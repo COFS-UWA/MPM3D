@@ -1,14 +1,14 @@
-#ifndef __STEP_H__
-#define __STEP_H__
+#ifndef __Step_h__
+#define __Step_h__
 
 #include <string>
+#include "LinkList.hpp"
 
 #include "Model.h"
+#include "TimeHistory.h"
 
-class ModelDataOutput;
-class TimeHistoryOutput;
-typedef int (*SolveSubstepFunc)(void *_self);
-int solve_substep_base(void *_self);
+typedef int (*CalSubstepFunc)(void *_self);
+int cal_substep_base(void *_self);
 
 /* ========================================================
 Class Step:
@@ -20,122 +20,97 @@ Class Step:
 class Step
 {
 protected:
-	const char *type;
 	std::string name;
+	const char *type;
 
+	// model
+	Model *model;
+
+	// whether this is the first calculaton step
 	bool is_first_step;
+
 	// substep index at start of this step
-	size_t start_substep_index;
-	// number of substep from the start of this step
-	size_t substep_num;
+	size_t prev_substep_num;
+	// start time of this step
+	double start_time;
+
 	// time length of this step
 	double step_time;
-	// start time for this step
-	double start_time;
+
+	// substep from the start of this step
+	size_t substep_index;
 	// time from the start of this step
 	double current_time;
+
 	// time increment
 	double dtime; // time increment
 	double time_tol_ratio;
 	double time_tol; // = dt * time_tol_ratio
-	// model
-	Model *model;
 
 public:
-	Step(SolveSubstepFunc solve_substep_func = &solve_substep_base,
-		 const char *_type = "Step");
+	Step(const char *_name, const char *_type = "Step",
+		CalSubstepFunc _cal_substep_func = &cal_substep_base);
 	~Step();
-	// type
-	inline const char *get_type(void) const { return type; }
-	// step name
-	inline const char *get_name(void) const noexcept { return name.c_str(); }
+
 	inline void set_name(const char *_name) noexcept { name = _name; }
-	// step time length
-	inline void set_time(double _time) noexcept { step_time = _time; }
+	inline void set_step_time(double _time) noexcept { step_time = _time; }
 	inline void set_dtime(double _dtime, double t_tol_r = 0.001) noexcept
 	{
-		dtime = _dtime, time_tol_ratio = t_tol_r, time_tol = dtime * t_tol_r;
+		dtime = _dtime;
+		time_tol_ratio = t_tol_r;
+		time_tol = dtime * t_tol_r;
 	}
-	// time from the start of this step
-	inline double get_current_time(void) { return current_time; }
-	// total time from the start of the whole simulation
-	inline double get_total_time(void) { return start_time + current_time; }
-	// number of substep from teh start of this step
-	inline size_t get_substep_num(void) { return substep_num; }
-	// total number of substep from the start of the whole simulation
-	inline size_t get_total_substep_num(void) { return start_substep_index + substep_num; }
-	// time length of this step
-	inline double get_step_time(void) { return step_time; }
-	// size of time increment
-	inline double get_dtime(void) { return dtime; }
-
-	// set model
 	inline void set_model(Model &md) noexcept { model = &md; }
-	inline Model &get_model(void) const noexcept { return *model; }
 	// continuate from prev step
 	void set_prev_step(Step &prev_step)
 	{
 		model = prev_step.model;
 		is_first_step = false;
-		start_substep_index = prev_step.get_total_substep_num();
+		prev_substep_num = prev_step.get_total_substep_index() + 1;
 		start_time = prev_step.get_total_time();
 	}
 
+	inline const char *get_type() const { return type; }
+	inline const char *get_name() const noexcept { return name.c_str(); }
+	inline Model &get_model() const noexcept { return *model; }
+
+	// time length of this step
+	inline double get_step_time() { return step_time; }
+	// time from the start of this step
+	inline double get_current_time() { return current_time; }
+	// total time from the start of the whole simulation
+	inline double get_total_time() { return start_time + current_time; }
+	// number of substep from the start of this step
+	inline size_t get_substep_index() { return substep_index; }
+	// total number of substep from the start of the whole simulation
+	inline size_t get_total_substep_index() { return prev_substep_num + substep_index; }
+	// size of time increment
+	inline double get_dtime() { return dtime; }
+
 protected:
 	// initialization before calculation
-	virtual int init_calculation(void) { return 0; }
-	// calculation of each substep
-	SolveSubstepFunc solve_substep;
+	virtual int init_calculation() { return 0; }
 	// finalization after calculation
-	virtual int finalize_calculation(void) { return 0; }
+	virtual int finalize_calculation() { return 0; }
+	// calculation of each substep
+	CalSubstepFunc cal_substep_func;
+	inline int cal_substep() { return (*cal_substep_func)(this); }
 
-	// =================== main functions ===================
-protected:
-	int (Step::*solve_func)(void);
-public:
-	// different implimentations
-	int solve_th_only(void); // only output time history
-	int solve_th_and_md(void); // output time history and model data
-	inline void use_solve_th_only(void) noexcept { solve_func = &Step::solve_th_only; }
-	inline void use_solve_th_and_md(void) noexcept { solve_func = &Step::solve_th_and_md; }
-	// there is not lower limit at dt
-	// may get dt very close to 0.0
-	inline int solve(void) { return (this->*solve_func)(); }
+public: // solve this step
+	virtual int solve();
 
-	// =============== Time History Utilities ===============
+	// =============== Time History ================
 protected:
-	TimeHistoryOutput *time_history_top;
-	void output_all_time_history(void);
-	void output_time_history(void);
-public:
-	void add_time_history(TimeHistoryOutput &th) noexcept;
-	inline void clear_time_history(void) noexcept { time_history_top = nullptr;	}
+	typedef LinkList<TimeHistory, offsetof(TimeHistory, pointer_by_step)> TimeHistoryList;
+	TimeHistoryList time_history_list;
+	double next_output_time;
+	void init_time_history();
+	void output_time_history();
+	void finalize_time_history();
 
-	// ================ Model Data Utilities ================
-protected:
-	ModelDataOutput *model_data_top;
 public:
-	void add_model_data(ModelDataOutput &md) noexcept;
-	inline void clear_model_data(void) noexcept { model_data_top = nullptr; }
+	void add_time_history(TimeHistory &th) { time_history_list.append(th); }
+	inline void clear_time_history() { time_history_list.reset(); }
 };
-
-#include "TimeHistoryOutput.h"
-
-inline void Step::add_time_history(TimeHistoryOutput &th) noexcept
-{
-	th.step = this;
-	th.model = model;
-	th.next = time_history_top;
-	time_history_top = &th;
-}
-
-#include "ModelDataOutput.h"
-
-inline void Step::add_model_data(ModelDataOutput &md) noexcept
-{
-	md.model = model;
-	md.next = model_data_top;
-	model_data_top = &md;
-}
 
 #endif

@@ -16,3 +16,15 @@ add_library(
     StringBuffer.h
     PreAllocStringBuffer.hpp
     )
+
+set(MEMORYUTILS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
+
+target_include_directories(
+    MemoryUtils PUBLIC
+    ${MEMORYUTILS_INCLUDE_DIR}
+    )
+
+if (MSVC)
+    target_compile_definitions(MemoryUtils PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_options(MemoryUtils PRIVATE -YcMemoryUtils_pcp.h)
+endif()

@@ -1,4 +1,4 @@
-#include "QtPostProcessor_pcp.h"
+#include "ResultViewerQt_pcp.h"
 
 #include <iostream>
 
@@ -50,11 +50,11 @@ void GLWindow::initializeGL()
 
 	shader.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"..\\..\\Asset\\shader_unicolor.vert"
+		"..\\..\\Asset\\shader_unicolor.vs"
 		);
 	shader.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"..\\..\\Asset\\shader_unicolor.frag"
+		"..\\..\\Asset\\shader_unicolor.fs"
 		);
 	shader.link();
 

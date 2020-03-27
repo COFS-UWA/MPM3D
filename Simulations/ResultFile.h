@@ -1,17 +1,17 @@
-#ifndef __Result_File_H__
-#define __Result_File_H__
+#ifndef __Result_File_h__
+#define __Result_File_h__
 
 #include "ResultFileType.h"
 
 class ResultFile
 {
 protected:
-	ResultFileType type;
+	const char *type;
 
 public:
-	ResultFile(ResultFileType _tp) : type(_tp) {}
+	ResultFile(const char *type_name = "ResultFile") : type(type_name) {}
 	~ResultFile() {}
-	inline ResultFileType get_type(void) { return type; }
+	inline const char *get_type(void) const { return type; }
 };
 
 #endif

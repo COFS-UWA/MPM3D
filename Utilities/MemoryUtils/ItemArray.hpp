@@ -44,9 +44,9 @@ namespace MemoryUtils
 			page_size(base_page_size) {}
 		~ItemArray() { clear(); }
 
-		inline Item *get_mem(void) const { return start; }
-		inline size_t get_num(void) const { return size_t(cur - start); }
-		inline size_t get_capacity(void) const { return size_t(mem_end - start); }
+		inline Item *get_mem() const { return start; }
+		inline size_t get_num() const { return size_t(cur - start); }
+		inline size_t get_capacity() const { return size_t(mem_end - start); }
 		inline Item *get_nth_item(size_t id) { return start + id; }
 		inline Item &operator[] (size_t id) { return start[id]; }
 		inline void set_page_size(size_t init_page_size)
@@ -54,10 +54,10 @@ namespace MemoryUtils
 			base_page_size = init_page_size ? init_page_size : 1;
 			page_size = base_page_size;
 		}
-		inline size_t get_page_size(void) const { return page_size; }
+		inline size_t get_page_size() const { return page_size; }
 
 		// Alloc memory for one item
-		inline Item *alloc(void)
+		inline Item *alloc()
 		{
 			if (cur < mem_end)
 				return cur++;
@@ -114,8 +114,8 @@ namespace MemoryUtils
 				expand_memory();
 			}
 		}
-		inline void reset(void)	{ cur = start; }
-		void clear(void)
+		inline void reset()	{ cur = start; }
+		void clear()
 		{
 			// reset page size
 			page_size = base_page_size;
@@ -131,7 +131,7 @@ namespace MemoryUtils
 		}
 
 	protected:
-		void expand_memory(void)
+		void expand_memory()
 		{
 			size_t capacity_new = size_t(mem_end - start) + page_size;
 			page_size *= fold;

@@ -1,5 +1,5 @@
-#include "SimulationCore_pcp.h"
+#include "Simulations_pcp.h"
 
-#include "TimeHistoryOutput.h"
+#include "TimeHistory.h"
 
-int time_history_output_func_null(TimeHistoryOutput &_self) { return 0; }
+int time_history_output_func_null(TimeHistory &_self) { return 0; }

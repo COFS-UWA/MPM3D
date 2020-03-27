@@ -18,8 +18,12 @@ add_library(
     ModifiedCamClay.h ModifiedCamClay.cpp
     )
 
+set(MATERIALMODELS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
+
 target_include_directories(
     MaterialModels PUBLIC
+    ${MATERIALMODELS_INCLUDE_DIR}
+    ${COMMONUTILS_INCLUDE_DIR}
     ${MEMORYUTILS_INCLUDE_DIR}
     )
     

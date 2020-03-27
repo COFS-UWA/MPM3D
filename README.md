@@ -5,7 +5,4 @@
 3. Soil (Rigid objects) - structure interaction
 
 ## External dependencies
-Eigen
-Hdf5
-Ot5
-OpenGL
+Eigen, Hdf5, Ot5, OpenGL

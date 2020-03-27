@@ -35,8 +35,8 @@ namespace MemoryUtils
 				mem_size = _size;
 			}
 		}
-		inline Item *get_mem(void) noexcept { return mem_buf; }
-		inline size_t get_size(void) const noexcept { return mem_size; }
+		inline Item *get_mem() noexcept { return mem_buf; }
+		inline size_t get_size() const noexcept { return mem_size; }
 		inline Item &operator[] (size_t id) { return mem_buf[id]; }
 	};
 
@@ -65,8 +65,8 @@ namespace MemoryUtils
 			}
 			return mem_buf;
 		}
-		inline Item *get_mem(void) noexcept { return mem_buf; }
-		inline size_t get_size(void) const noexcept { return mem_size; }
+		inline Item *get_mem() noexcept { return mem_buf; }
+		inline size_t get_size() const noexcept { return mem_size; }
 		inline Item &operator[] (size_t id) { return mem_buf[id]; }
 	};
 };

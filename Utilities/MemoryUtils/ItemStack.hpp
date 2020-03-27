@@ -67,7 +67,7 @@ namespace MemoryUtils
 			base_page_size = init_page_size ? init_page_size : 1;
 			page_size = base_page_size;
 		}
-		inline size_t get_page_size(void) const noexcept { return page_size; }
+		inline size_t get_page_size() const noexcept { return page_size; }
 		inline void push(Item *pitem)
 		{
 			if (cur < end)
@@ -104,7 +104,7 @@ namespace MemoryUtils
 			++cur;
 			return;
 		}
-		inline Item *pop(void)
+		inline Item *pop()
 		{
 			--cur;
 			if (cur < start)
@@ -121,11 +121,11 @@ namespace MemoryUtils
 			}
 			return cur;
 		}
-		inline bool is_empty(void) const
+		inline bool is_empty() const
 		{
 			return cur_page == &first_page && cur = start;
 		}
-		inline void reset(void)
+		inline void reset()
 		{
 			cur_page = &first_page;
 			start = first_page_start;
@@ -168,7 +168,7 @@ namespace MemoryUtils
 			end = first_page_end;
 			cur = start;
 		}
-		void clear(void)
+		void clear()
 		{
 			// reset page size
 			page_size = base_page_size;
@@ -248,7 +248,7 @@ namespace MemoryUtils
 		}
 
 	protected:
-		void alloc_new_memory_page(void)
+		void alloc_new_memory_page()
 		{
 			// alloc new page
 			union { char *mem; MemPageHeader *mem_page; };

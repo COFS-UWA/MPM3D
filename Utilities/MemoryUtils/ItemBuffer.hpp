@@ -75,9 +75,9 @@ namespace MemoryUtils
 			base_page_size = init_page_size ? init_page_size : 1;
 			page_size = base_page_size;
 		}
-		inline size_t get_page_size(void) const noexcept { return page_size; }
+		inline size_t get_page_size() const noexcept { return page_size; }
 		// allocate memory for single item
-		inline Item *alloc(void)
+		inline Item *alloc()
 		{
 			if (empty_slot)
 			{
@@ -139,14 +139,14 @@ namespace MemoryUtils
 				slots[i].next = &slots[i + 1];
 			empty_slot = slots;
 		}
-		inline void reset(void)
+		inline void reset()
 		{
 			empty_slot = nullptr;
 			cur_page = &in_stack_page;
 			cur = in_stack_page_start;
 			end = in_stack_page_start + in_stack_page_size;
 		}
-		void clear(void)
+		void clear()
 		{
 			// reset page size
 			page_size = base_page_size;
@@ -169,7 +169,7 @@ namespace MemoryUtils
 			end = cur + in_stack_page_size;
 		}
 		// Reset and contract all memory pages into one (if necessary)
-		inline void reset_and_optimize(void)
+		inline void reset_and_optimize()
 		{
 			if (cur_page == &in_stack_page)
 			{
@@ -211,7 +211,7 @@ namespace MemoryUtils
 			// update page_size
 			page_size *= fold;
 		}
-		void _reset_and_optimize(void)
+		void _reset_and_optimize()
 		{
 			// Calculate total allocated size
 			size_t total_size = 0;

@@ -29,10 +29,10 @@ namespace MemoryUtils
 		}
 		~StringBuffer() { if (str) delete[] str; }
 
-		inline const char *get_string(void) const { return str; }
-		inline const char *c_str(void) const { return str; }
-		inline size_t get_length(void) const { return length; }
-		inline size_t get_capacity(void) const { return capacity; }
+		inline const char *get_string() const { return str; }
+		inline const char *c_str() const { return str; }
+		inline size_t get_length() const { return length; }
+		inline size_t get_capacity() const { return capacity; }
 
 		inline void reserve(size_t reserve_string_length)
 		{
@@ -44,12 +44,12 @@ namespace MemoryUtils
 			if (expand_string_length)
 				reserve_raw(capacity + expand_string_length);
 		}
-		inline void reset(void)
+		inline void reset()
 		{
 			length = 0;
 			if (str) str[0] = '\0';
 		}
-		void clear(void)
+		void clear()
 		{
 			if (str)
 			{

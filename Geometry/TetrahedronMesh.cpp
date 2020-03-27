@@ -1,7 +1,4 @@
-#include "QtPostProcessor_pcp.h"
-
-#include <fstream>
-#include "hdf5.h"
+#include "Geometry_pcp.h"
 
 #include "TetrahedronMesh.h"
 
@@ -49,7 +46,7 @@ void TetrahedronMesh::compress_node_and_elem_indices()
 	//}
 }
 
-void TetrahedronMesh::cal_area_and_reorder_node(void)
+void TetrahedronMesh::cal_area_and_reorder_node()
 {
 	//// Calculate area of triangle.
 	//area = 0.0;
@@ -139,8 +136,8 @@ int TetrahedronMesh::init_mesh(
 
 int TetrahedronMesh::load_mesh_hdf5(const char *file_name)
 {
-	hid_t mesh_file = H5Fopen(file_name, H5F_ACC_RDONLY, H5P_DEFAULT);
-	H5Dclose(mesh_file);
+	//hid_t mesh_file = H5Fopen(file_name, H5F_ACC_RDONLY, H5P_DEFAULT);
+	//H5Dclose(mesh_file);
 	return 0;
 }
 

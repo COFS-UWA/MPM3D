@@ -17,15 +17,17 @@ add_executable(
     MainWindow.h MainWindow.cpp
     GLBufferObject.h GLBufferObject.cpp
     GLWindow.h GLWindow.cpp
-    Geometry.h Geometry.cpp
-    TetrahedronMesh.h TetrahedronMesh.cpp
     )
+
+set(RESULTVIEWERQT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
 
 target_include_directories(
     ResultViewerQt PUBLIC
     # Internal
     ${MEMORYUTILS_INCLUDE_DIR}
-    ${ResultViewerQt_INCLUDE_DIR}
+    ${MATERIALMODELS_INCLUDE_DIR}
+    ${GEOMETRY_INCLUDE_DIR}
+    ${RESULTVIEWERQT_INCLUDE_DIR}
     # External
     ${HDF5_INCLUDE_DIR}
     )
@@ -48,7 +50,8 @@ if (MSVC)
     target_compile_definitions(ResultViewerQt PRIVATE _CRT_SECURE_NO_WARNINGS)
     # precompiled header
     target_compile_options(ResultViewerQt PRIVATE -YcResultViewerQt_pcp.h)
-    set_source_files_properties(${CMAKE_BINARY_DIR}/ResultViewerQt/ResultViewerQt_autogen/mocs_compilation.cpp PROPERTIES COMPILE_FLAGS /Y-)
+    # exclude moc files from precompilation
+    set_source_files_properties(${CMAKE_BINARY_DIR}\\ResultViewerQt\\ResultViewerQt_autogen\\mocs_compilation.cpp PROPERTIES COMPILE_FLAGS /Y-)
 endif()
 
 set(CMAKE_AUTOMOC OFF)

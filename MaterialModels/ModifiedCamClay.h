@@ -26,7 +26,7 @@ namespace MatModel
 		double e; // void ratio
 
 		ModifiedCamClay() :
-			MaterialModel(modified_cam_clay_integration_function, MaterialModelType::ModifiedCamClay),
+			MaterialModel(modified_cam_clay_integration_function, Type::ModifiedCamClay),
 			e(0.0), pc(0.0), niu(0.0),
 			kappa(0.0), lambda(0.0), fric_angle(0.0), M2(0.0)
 		{
@@ -127,16 +127,16 @@ namespace MatModel
 			}
 		}
 
-		inline double get_p(void)  noexcept { return cal_p(); }
-		inline double get_q(void)  noexcept { return cal_q(); }
-		inline double get_pc(void) noexcept { return pc; }
-		inline double get_e_by_strain(void)  noexcept { return e; }
-		inline double get_e_by_model(void) noexcept
+		inline double get_p()  noexcept { return cal_p(); }
+		inline double get_q()  noexcept { return cal_q(); }
+		inline double get_pc() noexcept { return pc; }
+		inline double get_e_by_strain()  noexcept { return e; }
+		inline double get_e_by_model() noexcept
 		{
 			return N - lambda * log(pc) + kappa * log(-pc / cal_p());
 		}
-		inline double get_f(void) noexcept { return cal_f(cal_p(), cal_q()); }
-		inline double get_norm_f(void) noexcept { return cal_norm_f(cal_p(), cal_q()); }
+		inline double get_f() noexcept { return cal_f(cal_p(), cal_q()); }
+		inline double get_norm_f() noexcept { return cal_norm_f(cal_p(), cal_q()); }
 
 	protected:
 		// form elastic stiffness matrix
@@ -191,7 +191,7 @@ namespace MatModel
 			De_mat[5][3] = 0.0;
 			De_mat[5][4] = 0.0;
 		}
-		inline void form_Dep_mat(void) noexcept
+		inline void form_Dep_mat() noexcept
 		{
 			memcpy(Dep_mat, De_mat, 6 * 6 * sizeof(double));
 		}
@@ -207,11 +207,11 @@ namespace MatModel
 					Dep_mat[i][j] = De_mat[i][j] - De_dg_ds[i] * De_dg_ds[j] / divider;
 		}
 
-		inline double cal_p(void) noexcept
+		inline double cal_p() noexcept
 		{
 			return (s11 + s22 + s33) / 3.0;
 		}
-		inline double cal_q(void) noexcept
+		inline double cal_q() noexcept
 		{
 			double s11_s22_diff = s11 - s22;
 			double s22_s33_diff = s22 - s33;

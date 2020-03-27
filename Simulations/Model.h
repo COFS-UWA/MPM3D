@@ -1,5 +1,5 @@
-#ifndef __MODEL_H__
-#define __MODEL_H__
+#ifndef __Model_h__
+#define __Model_h__
 
 #include <string>
 
@@ -14,8 +14,8 @@ public:
 		name(20, '\0'), type(type_name) {}
 	~Model() {}
 	inline void set_name(const char *na) { name = na; }
-	inline const char *get_name(void) const { return name.c_str(); }
-	inline const char *get_type(void) const { return type; }
+	inline const char *get_name() const { return name.c_str(); }
+	inline const char *get_type() const { return type; }
 };
 
 #endif

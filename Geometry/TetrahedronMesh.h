@@ -51,20 +51,20 @@ public:
 		elems(nullptr), elem_num(0) {}
 	~TetrahedronMesh() { clear(); }
 
-	inline void clear(void)
+	inline void clear()
 	{
 		clear_nodes();
 		clear_elements();
 	}
 
-	inline void clear_nodes(void)
+	inline void clear_nodes()
 	{
 		if (nodes) delete[] nodes;
 		nodes = nullptr;
 		node_num = 0;
 	}
 
-	inline void clear_elements(void)
+	inline void clear_elements()
 	{
 		if (elems) delete[] elems;
 		elems = nullptr;
@@ -79,7 +79,7 @@ public:
 		node_num = num;
 	}
 
-	void alloc_elements(size_t num)
+	inline void alloc_elements(size_t num)
 	{
 		if (num == 0) return;
 		clear_elements();
@@ -88,9 +88,9 @@ public:
 	}
 
 	inline size_t get_node_num() const noexcept { return node_num; }
-	inline Node *get_nodes(void) const noexcept { return nodes; }
-	inline size_t get_elem_num(void) const noexcept { return elem_num; }
-	inline Element *get_elems(void) const noexcept { return elems; }
+	inline Node *get_nodes() const noexcept { return nodes; }
+	inline size_t get_elem_num() const noexcept { return elem_num; }
+	inline Element *get_elems() const noexcept { return elems; }
 
 	bool is_in_tetrahedron(Element &elem, Point3D &p);
 

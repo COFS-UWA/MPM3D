@@ -1,6 +1,4 @@
-#ifndef __SIMULATION_CORE_PCP_H__
-#define __SIMULATION_CORE_PCP_H__
-
-#include <iostream>
+#ifndef __Simulations_pcp_h__
+#define __Simulations_pcp_h__
 
 #endif

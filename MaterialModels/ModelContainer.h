@@ -2,36 +2,49 @@
 #define __Model_Container_h__
 
 #include "ItemBuffer.hpp"
+#include "LinkList.hpp"
 
 #include "LinearElasticity.h"
 #include "ModifiedCamClay.h"
 
 namespace MatModel
 {
-	template <typename CModel>
+	template <typename MModel>
 	class __Model_Container__
 	{
 	protected:
-		MemoryUtils::ItemBuffer<CModel> buffer;
-		ConstitutiveModelList list;
+		MemoryUtils::ItemBuffer<MModel> buffer;
+		LinkList<MModel, offsetof(MModel, pointer_by_container)> list;
 
 	public:
-		CModel *add(size_t num)
+		__Model_Container__() {}
+		~__Model_Container__()
 		{
-			CModel *res = buffer.alloc(num);
+			list.reset();
+			buffer.clear();
+		}
+
+		MModel *add(size_t num)
+		{
+			MModel *res = buffer.alloc(num);
+			MModel *iter = res;
 			for (size_t m_id = 0; m_id < num; ++m_id)
 			{
-				new (res + m_id) CModel;
-				list.add_cm(res[m_id]);
+				new (iter) MModel;
+				list.append(iter);
+				++iter;
 			}
 			return res;
 		}
-		inline size_t get_num(void) { return list.get_num(); }
-		inline CModel *first(void) { return static_cast<CModel *>(list.first()); }
-		inline CModel *next(CModel *cm) { return static_cast<CModel *>(list.next(cm)); }
+
+		inline size_t get_num() { return list.get_num(); }
+
+		inline MModel *first() { return list.first(); }
+		inline MModel *next(MModel *mm) { return list.next(mm); }
+		inline bool is_not_end(MModel *mm) { return list.is_not_end(mm); }
 	};
 
-#define __Model_Container_Add_Model__(ModelName) \
+#define __Add_Mat_Model_to_Model_Container__(ModelName) \
 protected:                                       \
 	__Model_Container__<ModelName> ModelName##Container; \
 public:                                          \
@@ -39,26 +52,30 @@ public:                                          \
 	{                                            \
 		return ModelName##Container.add(num);    \
 	}                                            \
-	inline size_t get_num_##ModelName##(void)    \
+	inline size_t get_num_##ModelName##()    \
 	{                                            \
 		return ModelName##Container.get_num();   \
 	}                                            \
-	inline ModelName *first_##ModelName##(void)  \
+	inline ModelName *first_##ModelName##()  \
 	{                                            \
 		return ModelName##Container.first();     \
 	}                                            \
-	inline ModelName *next_##ModelName##(ModelName *cm) \
+	inline ModelName *next_##ModelName##(ModelName *mm) \
 	{                                            \
-		return ModelName##Container.next(cm);    \
+		return ModelName##Container.next(mm);    \
+	}                                            \
+	inline bool is_not_end(ModelName *mm)        \
+	{                                            \
+		return ModelName##Container.is_not_end(mm);  \
 	}
 
 	class ModelContainer
 	{
-		__Model_Container_Add_Model__(LinearElasticity);
-		__Model_Container_Add_Model__(ModifiedCamClay);
+		__Add_Mat_Model_to_Model_Container__(LinearElasticity);
+		__Add_Mat_Model_to_Model_Container__(ModifiedCamClay);
 	};
 
-#undef __Model_Container_Add_Model__
+#undef __Add_Mat_Model_to_Model_Container__
 };
 
 #endif

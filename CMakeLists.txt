@@ -11,26 +11,20 @@ set(HDF5_DIR D:/Vendors/HDF5-1.10.6-win64/cmake/hdf5/) # Hdf5
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Vendors/)
 include(Vendors REQUIRED)
 
-# MemoryUtils
-set(MEMORYUTILS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/MemoryUtils/)
-add_subdirectory(MemoryUtils/)
-
-# File Operations
-set(FILEOPS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/FileOps/)
-add_subdirectory(FileOps/)
+# Utilities
+add_subdirectory(Utilities/)
 
 # Material Models
-set(MATERIALMODELS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/MaterialModels/)
 add_subdirectory(MaterialModels/)
 
+# Geometry
+add_subdirectory(Geometry/)
+
 # Simulations
-set(SIMULATIONS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/Simulations/)
 add_subdirectory(Simulations/)
 
-# Tests
-
 # ResultViewerQt
-set(RESULTVIEWERQT_INCLUDE_DIR
-    ${CMAKE_SOURCE_DIR}/ResultViewerQt/
-    )
 add_subdirectory(ResultViewerQt/)
+
+# Tests
+add_subdirectory(Tests/)

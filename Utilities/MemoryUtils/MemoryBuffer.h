@@ -28,7 +28,7 @@ namespace MemoryUtils
 			}
 		}
 		~MemoryBuffer() { clear(); }
-		void clear(void)
+		void clear()
 		{
 			if (buffer)
 			{
@@ -57,10 +57,10 @@ namespace MemoryUtils
 		{
 			reserve(capacity + expand_size);
 		}
-		inline void *get_buffer(void) const { return buffer; }
-		inline size_t get_size(void) const { return size; }
-		inline size_t get_capacity(void) const { return capacity; }
-		inline void reset(void)	{ size = 0; }
+		inline void *get_buffer() const { return buffer; }
+		inline size_t get_size() const { return size; }
+		inline size_t get_capacity() const { return capacity; }
+		inline void reset()	{ size = 0; }
 		void add_data(const void *data, size_t data_size)
 		{
 			size_t new_size = size + data_size;

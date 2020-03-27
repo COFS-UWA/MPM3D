@@ -2,20 +2,19 @@
 #define __Material_Model_h__
 
 #include "MaterialModelType.h"
+#include "LinkList.hpp"
 
 namespace MatModel
 {
 	class MaterialModel;
-	typedef int(*__Constitutive_Model_Integration_Func__)(MaterialModel *_self, double dstrain[6]);
+	template <typename MModel> class __Model_Container__;
 
-	class MaterialModelList;
-
+	typedef int(*CMIntFunc)(MaterialModel *_self, double dstrain[6]);
+	
 	class MaterialModel
 	{
-	public:
-		typedef __Constitutive_Model_Integration_Func__ CMIntFunc;
-
-		MaterialModelType type;
+	protected:
+		Type type;
 
 		union // stress
 		{
@@ -50,22 +49,24 @@ namespace MatModel
 
 		CMIntFunc integration_func;
 
-		MaterialModel(CMIntFunc _inte_func = nullptr,
-			MaterialModelType _type = MaterialModelType::InvalidType) :
+	public:
+		MaterialModel(
+			CMIntFunc _inte_func = nullptr,
+			Type _type = Type::InvalidType
+			) :
 			integration_func(_inte_func), type(_type) {}
 		~MaterialModel() {}
 
 		inline int integrate(double dstrain[6]) { return (*integration_func)(this, dstrain); }
 
-		inline const double *get_stress(void)    noexcept { return stress; }
-		inline const double *get_dstress(void)   noexcept { return dstress; }
-		inline const double *get_dstrain_e(void) noexcept { return dstrain_e; }
-		inline const double *get_dstrain_p(void) noexcept { return dstrain_p; }
-		inline const double *get_De_mat(void)  noexcept { return De_mat_array; }
-		inline const double *get_Dep_mat(void) noexcept { return Dep_mat_array; }
+		inline const double *get_stress()    noexcept { return stress; }
+		inline const double *get_dstress()   noexcept { return dstress; }
+		inline const double *get_dstrain_e() noexcept { return dstrain_e; }
+		inline const double *get_dstrain_p() noexcept { return dstrain_p; }
+		inline const double *get_De_mat()  noexcept { return De_mat_array; }
+		inline const double *get_Dep_mat() noexcept { return Dep_mat_array; }
 
 		// pointer to external data
-	public:
 		union
 		{
 			void *ext_data;
@@ -75,29 +76,8 @@ namespace MatModel
 		};
 
 	protected:
-		friend MaterialModelList;
-		MaterialModel *next;
-	};
-
-	class MaterialModelList
-	{
-	protected:
-		MaterialModel *head;
-		size_t num;
-
-	public:
-		MaterialModelList() : head(nullptr), num(0) {}
-		~MaterialModelList() { reset(); }
-		inline void reset(void) { head = nullptr; num = 0; }
-		inline void add_cm(MaterialModel &cm)
-		{
-			cm.next = head;
-			head = &cm;
-			++num;
-		}
-		inline size_t get_num(void) { return num; }
-		inline MaterialModel *first(void) { return head; }
-		inline MaterialModel *next(MaterialModel *cm) { return cm->next; }
+		template <typename MModel> friend class __Model_Container__;
+		LinkListPointer<MaterialModel> pointer_by_container;
 	};
 };
 

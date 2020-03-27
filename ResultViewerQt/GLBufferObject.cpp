@@ -1,4 +1,4 @@
-#include "QtPostProcessor_pcp.h"
+#include "ResultViewerQt_pcp.h"
 
 #include "GLBufferObject.h"
 

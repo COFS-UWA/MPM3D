@@ -1,4 +1,4 @@
-#ifndef __Qt_Post_Proccessor_pcp_H__
-#define __Qt_Post_Proccessor_pcp_H__
+#ifndef __Result_Viewer_Qt_pcp_h__
+#define __Result_Viewer_Qt_pcp_h__
 
 #endif
