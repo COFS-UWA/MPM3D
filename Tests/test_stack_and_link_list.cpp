@@ -22,6 +22,8 @@ namespace
 	template <typename Item, size_t offset>
 	void print_list(LinkList<Item, offset> &llist)
 	{
+		if (llist.is_empty())
+			std::cout << "empty list!\n";
 		for (Item *it_iter = llist.first();
 			llist.is_not_end(it_iter);
 			it_iter = llist.next(it_iter))
@@ -76,7 +78,7 @@ void test_stack_and_link_list()
 	std::cout << "test prepend\n";
 	for (size_t i = 0; i < 10; i++)
 	{
-		items[i].num = i + 1;
+		items[i].num = i;
 		llist.prepend(items[i]);
 	}
 
@@ -87,8 +89,40 @@ void test_stack_and_link_list()
 	llist.del(items[2]);
 	llist.del(items[9]);
 	llist.del(items[8]);
-
 	print_list(llist);
+
+	std::cout << "test push\n";
+	llist.push(items[0]);
+	llist.push(items[2]);
+	llist.push(items[9]);
+	print_list(llist);
+
+	std::cout << "test pop\n";
+	llist.pop();
+	llist.pop();
+	llist.pop();
+	llist.pop();
+	print_list(llist);
+
+	std::cout << "test insert before\n";
+	llist.insert_before(items[4], items[9]);
+	llist.insert_before(items[9], items[2]);
+	print_list(llist);
+
+	std::cout << "test insert after\n";
+	llist.insert_after(items[4], items[0]);
+	llist.insert_after(items[1], items[8]);
+	print_list(llist);
+
+	std::cout << "test transfer\n";
+	LinkList<IntItem, offsetof(IntItem, pointer)> llist2;
+	llist2.transfer(llist);
+	print_list(llist);
+	print_list(llist2);
+
+	llist2.transfer(llist);
+	print_list(llist);
+	print_list(llist2);
 
 	std::cout << "test stack list\n";
 	StackList<IntItem, offsetof(IntItem, next_by_stack)> slist;

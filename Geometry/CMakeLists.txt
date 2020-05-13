@@ -9,7 +9,11 @@ add_library(
     Geometry_pcp.h Geometry_pcp.cpp
     #
     Geometry.h Geometry.cpp
-    TetrahedronMesh.h TetrahedronMesh.cpp
+    NumPairHashTable.hpp
+    TetrahedronMeshTemplate.hpp
+    TetrahedronMesh.h #TetrahedronMesh.cpp
+    ParticleGenerator3D.hpp
+    SearchingGrid3D.hpp
     )
 
 set(GEOMETRY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
@@ -17,6 +21,9 @@ set(GEOMETRY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FOR
 target_include_directories(
     Geometry PUBLIC
     # Internal
+    ${COMMONUTILS_INCLUDE_DIR}
     ${MEMORYUTILS_INCLUDE_DIR}
     ${GEOMETRY_INCLUDE_DIR}
+    # External
+    ${HDF5_INCLUDE_DIR}
     )

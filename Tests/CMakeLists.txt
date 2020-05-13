@@ -11,10 +11,17 @@ add_executable(
     Tests_main.cpp
     # header
     test_utilities.h
+    test_geometry.h
     test_material_models.h
+    test_simulations.h
     # unit tests
     test_stack_and_link_list.cpp
     test_model_container.cpp
+    test_mcc_get_Su.cpp
+    test_solve_functions.cpp
+    test_tetrahedron_mesh.cpp
+    test_Model_T3D_ME_s_display.cpp
+    test_searching_grid3d.cpp
     )
 
 target_include_directories(
@@ -34,7 +41,7 @@ target_link_libraries(
     MemoryUtils
     MaterialModels
     Geometry
-    #Simulations
+    Simulations
     )
 
 if (WIN32)

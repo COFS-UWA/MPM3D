@@ -3,8 +3,6 @@
 # ResultViewerQt Project
 #
 #===================================
-# Qt5
-# find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL)
 set(CMAKE_AUTOMOC ON)
 
 add_executable(

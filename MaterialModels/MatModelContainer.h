@@ -1,5 +1,5 @@
-#ifndef __Model_Container_h__
-#define __Model_Container_h__
+#ifndef __Mat_Model_Container_h__
+#define __Mat_Model_Container_h__
 
 #include "ItemBuffer.hpp"
 #include "LinkList.hpp"
@@ -10,15 +10,15 @@
 namespace MatModel
 {
 	template <typename MModel>
-	class __Model_Container__
+	class __Mat_Model_Container__
 	{
 	protected:
 		MemoryUtils::ItemBuffer<MModel> buffer;
 		LinkList<MModel, offsetof(MModel, pointer_by_container)> list;
 
 	public:
-		__Model_Container__() {}
-		~__Model_Container__()
+		__Mat_Model_Container__() {}
+		~__Mat_Model_Container__()
 		{
 			list.reset();
 			buffer.clear();
@@ -46,7 +46,7 @@ namespace MatModel
 
 #define __Add_Mat_Model_to_Model_Container__(ModelName) \
 protected:                                       \
-	__Model_Container__<ModelName> ModelName##Container; \
+	__Mat_Model_Container__<ModelName> ModelName##Container; \
 public:                                          \
 	ModelName *add_##ModelName##(size_t num)     \
 	{                                            \
@@ -69,7 +69,7 @@ public:                                          \
 		return ModelName##Container.is_not_end(mm);  \
 	}
 
-	class ModelContainer
+	class MatModelContainer
 	{
 		__Add_Mat_Model_to_Model_Container__(LinearElasticity);
 		__Add_Mat_Model_to_Model_Container__(ModifiedCamClay);

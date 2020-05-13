@@ -1,13 +1,24 @@
 #include "Tests_pcp.h"
 
 #include "test_utilities.h"
+#include "test_geometry.h"
 #include "test_material_models.h"
+#include "test_simulations.h"
 
 int main(int argc, char *argv[])
 {
 	//test_stack_and_link_list();
 
-	test_model_container();
+	//test_model_container();
+
+	//test_solve_functions();
+
+	//test_tetrahedron_mesh();
+	//test_Model_T3D_ME_s_display();
+
+	//test_searching_grid3d1();
+	//test_searching_grid3d2();
+	test_searching_grid3d3();
 
 	system("pause");
 	return 0;

@@ -7,7 +7,7 @@
 namespace MatModel
 {
 	class MaterialModel;
-	template <typename MModel> class __Model_Container__;
+	template <typename MModel> class __Mat_Model_Container__;
 
 	typedef int(*CMIntFunc)(MaterialModel *_self, double dstrain[6]);
 	
@@ -76,7 +76,7 @@ namespace MatModel
 		};
 
 	protected:
-		template <typename MModel> friend class __Model_Container__;
+		template <typename MModel> friend class __Mat_Model_Container__;
 		LinkListPointer<MaterialModel> pointer_by_container;
 	};
 };

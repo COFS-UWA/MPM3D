@@ -11,7 +11,7 @@ add_library(
     MaterialModel.h
     MaterialModelType.h
     # ModelContainer
-    ModelContainer.h ModelContainer.cpp
+    MatModelContainer.h MatModelContainer.cpp
     # Linear Elasticity
     LinearElasticity.h LinearElasticity.cpp
     # Modified Cam Clay

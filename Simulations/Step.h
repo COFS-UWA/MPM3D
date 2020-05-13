@@ -10,13 +10,13 @@
 typedef int (*CalSubstepFunc)(void *_self);
 int cal_substep_base(void *_self);
 
-/* ========================================================
+/*===========================================================
 Class Step:
 	Functions needs to be rewritten in children classes:
 	1. init()
 	2. solve_substep()
 	3. finalize()
- =========================================================== */
+ ===========================================================*/
 class Step
 {
 protected:
@@ -41,6 +41,7 @@ protected:
 	size_t substep_index;
 	// time from the start of this step
 	double current_time;
+	double current_time_plus_tol;
 
 	// time increment
 	double dtime; // time increment
@@ -54,7 +55,7 @@ public:
 
 	inline void set_name(const char *_name) noexcept { name = _name; }
 	inline void set_step_time(double _time) noexcept { step_time = _time; }
-	inline void set_dtime(double _dtime, double t_tol_r = 0.001) noexcept
+	inline void set_dtime(double _dtime, double t_tol_r = 1.0e-3) noexcept
 	{
 		dtime = _dtime;
 		time_tol_ratio = t_tol_r;
@@ -66,7 +67,7 @@ public:
 	{
 		model = prev_step.model;
 		is_first_step = false;
-		prev_substep_num = prev_step.get_total_substep_index() + 1;
+		prev_substep_num = prev_step.get_total_substep_index();
 		start_time = prev_step.get_total_time();
 	}
 
@@ -103,13 +104,24 @@ public: // solve this step
 protected:
 	typedef LinkList<TimeHistory, offsetof(TimeHistory, pointer_by_step)> TimeHistoryList;
 	TimeHistoryList time_history_list;
+	int init_time_history();
+	int output_time_history();
+	int finalize_time_history();
+
+private: // helper data and functions (called after init "next_time")
 	double next_output_time;
-	void init_time_history();
-	void output_time_history();
-	void finalize_time_history();
+	// get output with the latest "next_time"
+	TimeHistory *get_latest_time_history(TimeHistoryList &th_list);
+	// insert time_history in ascending order
+	void insert_time_history_in_ascending_order(TimeHistoryList &th_list, TimeHistory *th);
 
 public:
-	void add_time_history(TimeHistory &th) { time_history_list.append(th); }
+	void add_time_history(TimeHistory &th)
+	{
+		time_history_list.append(th);
+		th.model = model;
+		th.step = this;
+	}
 	inline void clear_time_history() { time_history_list.reset(); }
 };
 

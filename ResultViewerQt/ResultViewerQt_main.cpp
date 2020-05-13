@@ -16,7 +16,5 @@ int main(int argc, char *argv[])
 
 	emit w.action_open->triggered();
 
-	int status = a.exec();
-	//system("pause");
-	return status;
+	return a.exec();
 }

@@ -1,0 +1,4 @@
+Eigen
+Qt5
+hdf5
+OpenGL

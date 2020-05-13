@@ -7,10 +7,7 @@ GLBufferObject::GLBufferObject(QOpenGLFunctions_3_3_Core *pa) :
 	vao(0), vbo(0), veo(0),
 	vert_data_num(0), elem_data_num(0) {}
 
-GLBufferObject::~GLBufferObject()
-{
-	clear();
-}
+GLBufferObject::~GLBufferObject() {	clear(); }
 
 void GLBufferObject::init_vert(GLfloat *node_data, size_t data_num)
 {
