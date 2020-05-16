@@ -1,8 +1,6 @@
 #ifndef __RESULT_FILE_XML_H__
 #define __RESULT_FILE_XML_H__
 
-#include "SimulationCore_pcp.h"
-
 #include <fstream>
 #include "ResultFile.h"
 
@@ -12,7 +10,7 @@ protected:
 	std::fstream file;
 
 public:
-	ResultFile_XML() : ResultFile(ResultFileType::XML) {}
+	ResultFile_XML() : ResultFile("ResultFile_XML") {}
 	~ResultFile_XML() { finalize(); }
 	int init(const char *file_name)
 	{

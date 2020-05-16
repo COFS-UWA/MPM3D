@@ -14,7 +14,7 @@ namespace MatModel
 		double E, niu;
 
 		LinearElasticity() :
-			MaterialModel(linear_elasticity_integration_function, Type::LinearElasticity) {}
+			MaterialModel(linear_elasticity_integration_function, "LinearElasticity") {}
 		~LinearElasticity() {}
 
 		void set_param(double _E, double _niu);

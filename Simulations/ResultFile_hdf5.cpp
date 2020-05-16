@@ -1,32 +1,33 @@
-#include "SimulationCore_pcp.h"
+#include "Simulations_pcp.h"
 
 #include "ResultFile_hdf5.h"
 
 ResultFile_hdf5::ResultFile_hdf5() : 
-	ResultFile(ResultFileType::Hdf5),
+	ResultFile("ResultFile_hdf5"),
 	file_id(-1), md_grp_id(-1), th_grp_id(-1) {}
 
 ResultFile_hdf5::~ResultFile_hdf5() { close(); }
 
 int ResultFile_hdf5::create(const char *file_name, bool over_write)
 {
+	hid_t cpl_id = H5Pcreate(H5P_FILE_CREATE);
+	H5Pset_link_creation_order(cpl_id, H5P_CRT_ORDER_TRACKED | H5P_CRT_ORDER_INDEXED);
+	
 	if (over_write)
-		file_id = H5Fcreate(file_name, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+		file_id = H5Fcreate(file_name, H5F_ACC_TRUNC, cpl_id, H5P_DEFAULT);
 	else
-		file_id = H5Fcreate(file_name, H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
+		file_id = H5Fcreate(file_name, H5F_ACC_EXCL, cpl_id, H5P_DEFAULT);
+	
+	H5Pclose(cpl_id);
 	return file_id < 0 ? -1 : 0;
 }
 
 int ResultFile_hdf5::open(const char *file_name, bool read_only)
 {
 	if (read_only)
-	{
 		file_id = H5Fopen(file_name, H5F_ACC_RDONLY, H5P_DEFAULT);
-	}
 	else
-	{
 		file_id = H5Fopen(file_name, H5F_ACC_RDWR, H5P_DEFAULT);
-	}
 	return file_id < 0 ? -1 : 0;
 }
 

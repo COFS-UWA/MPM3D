@@ -25,11 +25,11 @@ public:
 	~TimeHistory_ConsoleProgressBar();
 
 	// Initialize each steps
-	int init_per_step(void) override;
+	int init_per_step() override;
 	// output function
 	friend int time_history_output_func_console_progress_bar(TimeHistory &_self);
 	// Finalize each steps
-	void finalize_per_step(void) override;
+	void finalize_per_step() override;
 
 	void set_output_init_state(bool _need = true) noexcept override {}
 
@@ -43,7 +43,7 @@ public:
 	}
 
 protected:
-	void print_progress(void);
+	void print_progress();
 };
 
 

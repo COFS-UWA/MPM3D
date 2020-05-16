@@ -11,7 +11,7 @@ Step_T3D_ME_s::Step_T3D_ME_s(const char *_name) :
 
 Step_T3D_ME_s::~Step_T3D_ME_s() {}
 
-int Step_T3D_ME_s::init_calculation(void)
+int Step_T3D_ME_s::init_calculation()
 {
 	Model_T3D_ME_s &md = *model;
 
@@ -33,7 +33,7 @@ int Step_T3D_ME_s::init_calculation(void)
 	return 0;
 }
 
-int Step_T3D_ME_s::finalize_calculation(void) { return 0; }
+int Step_T3D_ME_s::finalize_calculation() { return 0; }
 
 int solve_substep_T3D_ME_s(void *_self)
 {
@@ -69,7 +69,7 @@ int solve_substep_T3D_ME_s(void *_self)
 	{
 		Element &e = md.elems[e_id];
 		e.pcls = nullptr;
-		e.vol = 0.0;
+		e.pcl_vol = 0.0;
 		e.s11 = 0.0;
 		e.s22 = 0.0;
 		e.s33 = 0.0;
@@ -84,14 +84,13 @@ int solve_substep_T3D_ME_s(void *_self)
 		Particle &pcl = md.pcls[pcl_id];
 		if (pcl.pe)
 		{
-			pcl.pe = md.find_in_which_element(pcl);
-			if (!pcl.pe)
+			if (!(pcl.pe = md.find_in_which_element(pcl)))
 				continue;
 			pcl.pe->add_pcl(pcl);
 
 			Element &e = *pcl.pe;
 			pcl.vol = pcl.m / pcl.density;
-			e.vol += pcl.vol;
+			e.pcl_vol += pcl.vol;
 			e.s11 += pcl.vol * pcl.s11;
 			e.s22 += pcl.vol * pcl.s22;
 			e.s33 += pcl.vol * pcl.s33;
@@ -138,35 +137,35 @@ int solve_substep_T3D_ME_s(void *_self)
 		Element &e = md.elems[e_id];
 		if (e.pcls)
 		{
-			e.s11 /= e.vol;
-			e.s22 /= e.vol;
-			e.s33 /= e.vol;
-			e.s12 /= e.vol;
-			e.s23 /= e.vol;
-			e.s31 /= e.vol;
-			if (e.vol > e.vol)
-				e.vol = e.vol;
+			e.s11 /= e.pcl_vol;
+			e.s22 /= e.pcl_vol;
+			e.s33 /= e.pcl_vol;
+			e.s12 /= e.pcl_vol;
+			e.s23 /= e.pcl_vol;
+			e.s31 /= e.pcl_vol;
+			if (e.pcl_vol > e.vol)
+				e.pcl_vol = e.vol;
 
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
 			Node &n4 = md.nodes[e.n4];
 			// node 1
-			n1.fx_int += (e.dN1_dx * e.s11 + e.dN1_dy * e.s12 + e.dN1_dz * e.s31) * e.vol;
-			n1.fy_int += (e.dN1_dx * e.s12 + e.dN1_dy * e.s22 + e.dN1_dz * e.s23) * e.vol;
-			n1.fz_int += (e.dN1_dx * e.s31 + e.dN1_dy * e.s23 + e.dN1_dz * e.s33) * e.vol;
+			n1.fx_int += (e.dN1_dx * e.s11 + e.dN1_dy * e.s12 + e.dN1_dz * e.s31) * e.pcl_vol;
+			n1.fy_int += (e.dN1_dx * e.s12 + e.dN1_dy * e.s22 + e.dN1_dz * e.s23) * e.pcl_vol;
+			n1.fz_int += (e.dN1_dx * e.s31 + e.dN1_dy * e.s23 + e.dN1_dz * e.s33) * e.pcl_vol;
 			// node 2
-			n2.fx_int += (e.dN2_dx * e.s11 + e.dN2_dy * e.s12 + e.dN2_dz * e.s31) * e.vol;
-			n2.fy_int += (e.dN2_dx * e.s12 + e.dN2_dy * e.s22 + e.dN2_dz * e.s23) * e.vol;
-			n2.fz_int += (e.dN2_dx * e.s31 + e.dN2_dy * e.s23 + e.dN2_dz * e.s33) * e.vol;
+			n2.fx_int += (e.dN2_dx * e.s11 + e.dN2_dy * e.s12 + e.dN2_dz * e.s31) * e.pcl_vol;
+			n2.fy_int += (e.dN2_dx * e.s12 + e.dN2_dy * e.s22 + e.dN2_dz * e.s23) * e.pcl_vol;
+			n2.fz_int += (e.dN2_dx * e.s31 + e.dN2_dy * e.s23 + e.dN2_dz * e.s33) * e.pcl_vol;
 			// node 3
-			n3.fx_int += (e.dN3_dx * e.s11 + e.dN3_dy * e.s12 + e.dN3_dz * e.s31) * e.vol;
-			n3.fy_int += (e.dN3_dx * e.s12 + e.dN3_dy * e.s22 + e.dN3_dz * e.s23) * e.vol;
-			n3.fz_int += (e.dN3_dx * e.s31 + e.dN3_dy * e.s23 + e.dN3_dz * e.s33) * e.vol;
+			n3.fx_int += (e.dN3_dx * e.s11 + e.dN3_dy * e.s12 + e.dN3_dz * e.s31) * e.pcl_vol;
+			n3.fy_int += (e.dN3_dx * e.s12 + e.dN3_dy * e.s22 + e.dN3_dz * e.s23) * e.pcl_vol;
+			n3.fz_int += (e.dN3_dx * e.s31 + e.dN3_dy * e.s23 + e.dN3_dz * e.s33) * e.pcl_vol;
 			// node 4
-			n4.fx_int += (e.dN4_dx * e.s11 + e.dN4_dy * e.s12 + e.dN4_dz * e.s31) * e.vol;
-			n4.fy_int += (e.dN4_dx * e.s12 + e.dN4_dy * e.s22 + e.dN4_dz * e.s23) * e.vol;
-			n4.fz_int += (e.dN4_dx * e.s31 + e.dN4_dy * e.s23 + e.dN4_dz * e.s33) * e.vol;
+			n4.fx_int += (e.dN4_dx * e.s11 + e.dN4_dy * e.s12 + e.dN4_dz * e.s31) * e.pcl_vol;
+			n4.fy_int += (e.dN4_dx * e.s12 + e.dN4_dy * e.s22 + e.dN4_dz * e.s23) * e.pcl_vol;
+			n4.fz_int += (e.dN4_dx * e.s31 + e.dN4_dy * e.s23 + e.dN4_dz * e.s33) * e.pcl_vol;
 		}
 	}
 

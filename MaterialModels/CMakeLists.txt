@@ -9,7 +9,6 @@ add_library(
     MaterialModels_pcp.h MaterialModels_pcp.cpp
     # Base class
     MaterialModel.h
-    MaterialModelType.h
     # ModelContainer
     MatModelContainer.h MatModelContainer.cpp
     # Linear Elasticity

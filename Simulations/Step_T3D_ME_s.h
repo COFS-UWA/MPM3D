@@ -17,9 +17,9 @@ public:
 protected:
 	Model_T3D_ME_s *model;
 
-	int init_calculation(void) override;
+	int init_calculation() override;
 	friend int solve_substep_T3D_ME_s(void *_self);
-	int finalize_calculation(void) override;
+	int finalize_calculation() override;
 
 	// local damping factor
 	double damping_ratio;

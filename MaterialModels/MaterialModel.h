@@ -1,7 +1,6 @@
 #ifndef __Material_Model_h__
 #define __Material_Model_h__
 
-#include "MaterialModelType.h"
 #include "LinkList.hpp"
 
 namespace MatModel
@@ -14,7 +13,7 @@ namespace MatModel
 	class MaterialModel
 	{
 	protected:
-		Type type;
+		const char *type;
 
 		union // stress
 		{
@@ -52,13 +51,14 @@ namespace MatModel
 	public:
 		MaterialModel(
 			CMIntFunc _inte_func = nullptr,
-			Type _type = Type::InvalidType
+			const char *_type = "MaterialModel"
 			) :
 			integration_func(_inte_func), type(_type) {}
 		~MaterialModel() {}
 
 		inline int integrate(double dstrain[6]) { return (*integration_func)(this, dstrain); }
 
+		inline const char *get_type() noexcept { return type; }
 		inline const double *get_stress()    noexcept { return stress; }
 		inline const double *get_dstress()   noexcept { return dstress; }
 		inline const double *get_dstrain_e() noexcept { return dstrain_e; }

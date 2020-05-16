@@ -18,7 +18,9 @@ int main(int argc, char *argv[])
 
 	//test_searching_grid3d1();
 	//test_searching_grid3d2();
-	test_searching_grid3d3();
+	//test_searching_grid3d3();
+
+	test_t3d_me_s_1d_compression();
 
 	system("pause");
 	return 0;

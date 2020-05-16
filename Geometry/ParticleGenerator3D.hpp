@@ -158,7 +158,7 @@ void ParticleGenerator3D<TetrahedronMesh>::generate_pcls_grid(
 	// generate particle
 	Particle pcl;
 	pcl.vol = pcl_dx * pcl_dy * pcl_dz;
-	particle_buffer.set_page_size(x_num * y_num * z_num);
+	pcl_buf.set_page_size(x_num * y_num * z_num);
 	for (size_t z_id = 0; z_id < z_num; ++z_id)
 		for (size_t y_id = 0; y_id < y_num; ++y_id)
 			for (size_t x_id = 0; x_id < x_num; ++x_id)

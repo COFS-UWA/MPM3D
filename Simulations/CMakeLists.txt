@@ -9,28 +9,29 @@ add_library(
     Simulations STATIC
     # precomplied header
     Simulations_pcp.h Simulations_pcp.cpp
+    macro_utils.h
     # model
     Model.h
     Step.h Step.cpp
+    ModelData.h ModelData.cpp
     TimeHistory.h TimeHistory.cpp
     ResultFile.h
+    ResultFile_hdf5.h ResultFile_hdf5.cpp
+    ResultFile_XML.h
+    Model_hdf5_utilities.h
     # boundary conditions
     BCs.h
     TimeHistory_ConsoleProgressBar.h TimeHistory_ConsoleProgressBar.cpp
-    # # 2D fluid MPM
-    # Model_T2D_fluid.h Model_T2D_fluid.cpp
-    # Step_T2D_fluid.h Step_T2D_fluid.cpp
-    # # 2D ME MPM
-    # Model_T2D_ME_s.h Model_T2D_ME_s.cpp
-    # Step_T2D_ME_s.h Step_T2D_ME_s.cpp
-    # Step_T2D_ME_s_Geostatic.h Step_T2D_ME_s_Geostatic.cpp
-    # # 2D CHM MPM
-    # Model_T2D_CHM_s.h Model_T2D_CHM_s.cpp
-    # Step_T2D_CHM_s.h Step_T2D_CHM_s.cpp
-    # Step_T2D_CHM_s_Geostatic.h Step_T2D_CHM_s_Geostatic.cpp
     # 3D ME MPM
     Model_T3D_ME_s.h Model_T3D_ME_s.cpp
     Step_T3D_ME_s.h Step_T3D_ME_s.cpp
+    ModelData_T3D_ME_s.h ModelData_T3D_ME_s.cpp
+    Model_T3D_ME_s_hdf5_utilities.h Model_T3D_ME_s_hdf5_utilities.cpp
+    TimeHistory_T3D_ME_s_complete.h TimeHistory_T3D_ME_s_complete.cpp
+    # 3D CHM MPM
+    Model_T3D_CHM_s.h Model_T3D_CHM_s.cpp
+    Step_T3D_CHM_s.h Step_T3D_CHM_s.cpp
+    Model_T3D_CHM_s_hdf5_utilities.h Model_T3D_CHM_s_hdf5_utilities.cpp
     # display model
     ModelWindow.h ModelWindow.cpp
     GLModelWindow.h GLModelWindow.cpp

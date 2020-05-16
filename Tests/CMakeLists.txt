@@ -22,6 +22,7 @@ add_executable(
     test_tetrahedron_mesh.cpp
     test_Model_T3D_ME_s_display.cpp
     test_searching_grid3d.cpp
+    test_t3d_me_s_1d_compression.cpp
     )
 
 target_include_directories(

@@ -26,7 +26,7 @@ namespace MatModel
 		double e; // void ratio
 
 		ModifiedCamClay() :
-			MaterialModel(modified_cam_clay_integration_function, Type::ModifiedCamClay),
+			MaterialModel(modified_cam_clay_integration_function, "ModifiedCamClay"),
 			e(0.0), pc(0.0), niu(0.0),
 			kappa(0.0), lambda(0.0), fric_angle(0.0), M2(0.0)
 		{

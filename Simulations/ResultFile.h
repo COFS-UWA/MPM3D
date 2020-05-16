@@ -1,8 +1,6 @@
 #ifndef __Result_File_h__
 #define __Result_File_h__
 
-#include "ResultFileType.h"
-
 class ResultFile
 {
 protected:
