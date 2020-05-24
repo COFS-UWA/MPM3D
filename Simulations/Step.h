@@ -123,6 +123,9 @@ public:
 		th.step = this;
 	}
 	inline void clear_time_history() { time_history_list.reset(); }
+
+private: // non-copyable
+	Step(Step &other);
 };
 
 #endif

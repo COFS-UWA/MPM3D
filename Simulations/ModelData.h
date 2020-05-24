@@ -51,6 +51,9 @@ public:
 
 protected:
 	ModelData *next;
+
+private: // non-copyable
+	ModelData(ModelData& other);
 };
 
 #endif

@@ -16,6 +16,9 @@ public:
 	inline void set_name(const char *na) { name = na; }
 	inline const char *get_name() const { return name.c_str(); }
 	inline const char *get_type() const { return type; }
+
+private: // non-copyable
+	Model(Model& other);
 };
 
 #endif

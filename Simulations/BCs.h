@@ -4,8 +4,8 @@
 // ============ Body force ============
 struct BodyForceAtPcl
 {
-	double bf;
 	size_t pcl_id;
+	double bf;
 };
 
 // ======== Surface traction =========
@@ -18,29 +18,29 @@ struct TractionBCAtPcl
 
 struct TractionBCAtNode
 {
-	double t;
 	size_t node_id;
+	double t;
 };
 
 // =========== Acceleration =========== 
 struct AccelerationBC
 {
-	double a;
 	size_t node_id;
+	double a;
 };
 
 // ============= Velocity ============= 
 struct VelocityBC
 {
-	double v;
 	size_t node_id;
+	double v;
 };
 
 // ============ Displacement ========== 
 struct DisplacementBC
 {
-	double u;
 	size_t node_id;
+	double u;
 };
 
 #endif

@@ -1,5 +1,8 @@
 #include "Simulations_pcp.h"
 
+#include <iostream>
+#include <assert.h>
+
 #include <cmath>
 #include "MaterialModel.h"
 
@@ -87,6 +90,12 @@ int solve_substep_T3D_ME_s(void *_self)
 			if (!(pcl.pe = md.find_in_which_element(pcl)))
 				continue;
 			pcl.pe->add_pcl(pcl);
+
+			// test find_in_which_element function
+			//size_t id1 = md.find_in_which_element(pcl)->id;
+			//size_t id2 = md.find_in_which_element_bf(pcl)->id;
+			//assert(id1 == id2);
+			//std::cout << id1 << ", " << id2 << "\n";
 
 			Element &e = *pcl.pe;
 			pcl.vol = pcl.m / pcl.density;
@@ -464,7 +473,9 @@ int solve_substep_T3D_ME_s(void *_self)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
+		{
 			n.de_vol /= n.pcl_vol;
+		}
 	}
 
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
@@ -523,6 +534,11 @@ int solve_substep_T3D_ME_s(void *_self)
 			pcl.e23 += de23;
 			pcl.e31 += de31;
 
+			if (pcl.id == 48)
+			{
+				int ee = self.get_substep_index();
+				int efe = 1;
+			}
 			// stress
 			double dstrain[6] = { de11, de22, de33, de12, de23, de31 };
 			pcl.mm->integrate(dstrain);

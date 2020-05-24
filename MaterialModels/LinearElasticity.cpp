@@ -27,12 +27,9 @@ namespace MatModel
 		dstrain_p[4] = 0.0;
 		dstrain_p[5] = 0.0;
 
-		dstress[0] = De_mat[0][0] * dstrain[0] + De_mat[0][1] * dstrain[1]
-			+ De_mat[0][2] * dstrain[2];
-		dstress[1] = De_mat[1][0] * dstrain[0] + De_mat[1][1] * dstrain[1]
-			+ De_mat[1][2] * dstrain[2];
-		dstress[2] = De_mat[2][0] * dstrain[0] + De_mat[2][1] * dstrain[1]
-			+ De_mat[2][2] * dstrain[2];
+		dstress[0] = De_mat[0][0] * dstrain[0] + De_mat[0][1] * dstrain[1] + De_mat[0][2] * dstrain[2];
+		dstress[1] = De_mat[1][0] * dstrain[0] + De_mat[1][1] * dstrain[1] + De_mat[1][2] * dstrain[2];
+		dstress[2] = De_mat[2][0] * dstrain[0] + De_mat[2][1] * dstrain[1] + De_mat[2][2] * dstrain[2];
 		dstress[3] = De_mat[3][3] * dstrain[3];
 		dstress[4] = De_mat[4][4] * dstrain[4];
 		dstress[5] = De_mat[5][5] * dstrain[5];

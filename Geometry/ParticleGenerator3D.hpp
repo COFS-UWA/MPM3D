@@ -210,7 +210,7 @@ void ParticleGenerator3D<TetrahedronMesh>::SecondOrderGaussPoint3DGenerator()
 	// pcl 1
 	pcl_res.x = alpha * p1.x + belta * p2.x + belta * p3.x + belta * p4.x;
 	pcl_res.y = alpha * p1.y + belta * p2.y + belta * p3.y + belta * p4.y;
-	pcl_res.z = alpha * p1.z + belta * p2.z + belta * p4.z + belta * p4.y;
+	pcl_res.z = alpha * p1.z + belta * p2.z + belta * p3.z + belta * p4.z;
 	add_pcl(pcl_res);
 	// pcl 2
 	pcl_res.x = belta * p1.x + alpha * p2.x + belta * p3.x + belta * p4.x;
@@ -290,7 +290,6 @@ void ParticleGenerator3D<TetrahedronMesh>::generate_pcls(GeneratorFunc cur_gener
 		p4.y = n4.y;
 		p4.z = n4.z;
 		pg_param.vol = elem.vol;
-
 		(this->*cur_generator_func)();
 	}
 }

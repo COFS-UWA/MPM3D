@@ -66,6 +66,9 @@ protected: // used by step
 	double interval_time;
 	double next_time;
 	LinkListPointer<TimeHistory> pointer_by_step;
+
+private: // non-copyable
+	TimeHistory(TimeHistory& other);
 };
 
 #endif

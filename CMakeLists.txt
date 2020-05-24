@@ -23,8 +23,8 @@ add_subdirectory(Geometry/)
 # Simulations
 add_subdirectory(Simulations/)
 
-# ResultViewerQt
-add_subdirectory(ResultViewerQt/)
+# ModelViewer
+add_subdirectory(ModelViewer/)
 
 # Tests
 add_subdirectory(Tests/)

@@ -14,13 +14,13 @@ int main(int argc, char *argv[])
 	//test_solve_functions();
 
 	//test_tetrahedron_mesh();
-	//test_Model_T3D_ME_s_display();
-
 	//test_searching_grid3d1();
 	//test_searching_grid3d2();
 	//test_searching_grid3d3();
 
-	test_t3d_me_s_1d_compression();
+	//test_Model_T3D_ME_s_display(argc, argv);
+
+	test_t3d_me_s_1d_compression(argc, argv);
 
 	system("pause");
 	return 0;

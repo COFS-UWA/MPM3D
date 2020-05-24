@@ -21,6 +21,7 @@ public:
 	int open(const char *file_name, bool read_only = true);
 	void close(void);
 	inline hid_t get_file_id(void) noexcept { return file_id; }
+	inline bool is_open() { return file_id >= 0 ? true : false; }
 
 	// group
 	hid_t create_group(hid_t parent_id, const char *name);
@@ -33,32 +34,23 @@ public:
 	void close_dataset(hid_t id);
 	bool has_dataset(hid_t parent_id, const char *name);
 
-	// model data group
-	hid_t get_model_data_grp_id(void);
-	// time history group
-	hid_t get_time_history_grp_id(void);
-	
-	// dataset
-	// write
-	int write_dataset(hid_t grp_id, const char *dset_name,
-		size_t num, double *data);
+	int write_dataset(hid_t grp_id, const char *dset_name, 
+					  size_t num, double *data);
+	int write_dataset(hid_t grp_id, const char* dset_name,
+		size_t num, void* data, hid_t datatype_id);
 	int write_dataset(hid_t grp_id, const char *dset_name,
 		size_t row_num, size_t col_num, double *data);
 	int write_dataset(hid_t grp_id, const char *dset_name,
 		size_t row_num,	size_t col_num, unsigned long long *data);
-	// self-defined data type
-	int write_dataset(hid_t grp_id, const char *dset_name,
-		size_t num, void *data, hid_t datatype_id);
-	// read
+
 	int read_dataset(hid_t grp_id, const char *dset_name,
 					 size_t num, double *data);
+	int read_dataset(hid_t grp_id, const char* dset_name,
+		size_t num, void* data, hid_t datatype_id);
 	int read_dataset(hid_t grp_id, const char *dset_name,
-					 size_t row_num, size_t col_num, double *data);
+		size_t row_num, size_t col_num, double *data);
 	int read_dataset(hid_t grp_id, const char *dset_name,
-					 size_t row_num, size_t col_num, unsigned long long *data);
-	// self-defined data type
-	int read_dataset(hid_t grp_id, const char *dset_name,
-					 size_t num, void *data, hid_t datatype_id);
+		size_t row_num, size_t col_num, unsigned long long *data);
 
 	// attributes
 	// write
@@ -69,6 +61,11 @@ public:
 	int read_attribute(hid_t grp_id, const char *name, double &value);
 	int read_attribute(hid_t grp_id, const char *name, size_t &value);
 	int read_attribute(hid_t grp_id, const char *name, size_t num, const char *str);
+
+	// model data group
+	hid_t get_model_data_grp_id(void);
+	// time history group
+	hid_t get_time_history_grp_id(void);
 };
 
 #endif

@@ -1,19 +1,19 @@
 import numpy as np
 import h5py
+import math
 
+# generate tetrahedron mesh
 if __name__ == "__main__":
-    h5_file = h5py.File("..\\Asset\\brick_mesh.h5", "w")
+    h5_file = h5py.File("..\\Asset\\teh_mesh.h5", "w")
     mesh_grp = h5_file.create_group("Mesh")
+    sqrt2 = math.sqrt(2.0)
+    sqrt3 = math.sqrt(3.0)
     # write nodes
     nodes = [
-        [2, -1.0, -1.0, -1.0],
-        [3,  1.0, -1.0, -1.0],
-        [4,  1.0,  1.0, -1.0],
-        [5, -1.0,  1.0, -1.0],
-        [6, -1.0, -1.0,  1.0],
-        [7,  1.0, -1.0,  1.0],
-        [8,  1.0,  1.0,  1.0],
-        [9, -1.0,  1.0,  1.0]
+        [0,  sqrt3, -1.0,   0.0],
+        [1,  0.0,    sqrt3, 0.0],
+        [2, -sqrt3, -1.0,   0.0],
+        [3,  0.0,    0.0,   2.0*sqrt2],
     ]
     node_type = np.dtype([("index", np.int64), ("x", np.float64), ("y", np.float64), ("z", np.float64)])
     nd = np.empty(len(nodes), dtype=node_type)
@@ -25,12 +25,7 @@ if __name__ == "__main__":
     n_dset = mesh_grp.create_dataset("Nodes", data=nd)
     # write elements
     elems = [
-        [3, 2, 3, 5, 6],
-        [4, 3, 4, 5, 8],
-        [5, 3, 5, 7, 6],
-        [7, 3, 5, 7, 8],
-        [8, 6, 7, 9, 5],
-        [1, 7, 8, 9, 5]
+        [0, 0, 1, 2, 3],
     ]
     elem_type = np.dtype([("index", np.int64), ("n1", np.int64), ("n2", np.int64), ("n3", np.int64), ("n4", np.int64)])
     ed = np.empty(len(elems), dtype=elem_type)

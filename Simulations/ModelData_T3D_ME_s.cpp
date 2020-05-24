@@ -84,8 +84,6 @@ int model_data_output_func_t2d_me_s_to_hdf5_res_file(ModelData &_self)
 	ModelData_T3D_ME_s &md = static_cast<ModelData_T3D_ME_s &>(_self);
 	Model_T3D_ME_s &model = static_cast<Model_T3D_ME_s &>(*md.model);
 	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(*md.res_file);
-
-	Model_T3D_ME_s_hdf5_utilities::output_background_mesh_to_hdf5_file(model, rf);
-
+	Model_T3D_ME_s_hdf5_utilities::output_model_to_hdf5_file(model, rf);
 	return 0;
 }

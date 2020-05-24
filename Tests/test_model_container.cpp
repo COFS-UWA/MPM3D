@@ -18,14 +18,16 @@ void test_model_container()
 
 	double dd = 0.0;
 	for (LinearElasticity *le_iter = mc.first_LinearElasticity();
-		 mc.is_not_end(le_iter); le_iter = mc.next_LinearElasticity(le_iter))
+		 mc.is_not_end_LinearElasticity(le_iter);
+		 le_iter = mc.next_LinearElasticity(le_iter))
 	{
 		le_iter->ext_data_d = dd;
 		dd += 1.0;
 	}
 
 	for (LinearElasticity *le_iter = mc.first_LinearElasticity();
-		mc.is_not_end(le_iter); le_iter = mc.next_LinearElasticity(le_iter))
+		mc.is_not_end_LinearElasticity(le_iter);
+		le_iter = mc.next_LinearElasticity(le_iter))
 	{
 		std::cout << le_iter->ext_data_d << " ";
 	}

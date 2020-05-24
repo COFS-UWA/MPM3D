@@ -8,6 +8,7 @@ ResultFile_hdf5::ResultFile_hdf5() :
 
 ResultFile_hdf5::~ResultFile_hdf5() { close(); }
 
+// ========================== file operations ===========================
 int ResultFile_hdf5::create(const char *file_name, bool over_write)
 {
 	hid_t cpl_id = H5Pcreate(H5P_FILE_CREATE);
@@ -50,7 +51,7 @@ void ResultFile_hdf5::close(void)
 	}
 }
 
-// =========================== group operation ==========================
+// ========================= group operations =========================
 hid_t ResultFile_hdf5::create_group(hid_t parent_id, const char *name)
 {
 	hid_t cpl_id = H5Pcreate(H5P_FILE_CREATE);
@@ -74,7 +75,7 @@ bool ResultFile_hdf5::has_group(hid_t parent_id, const char *name)
 	return res > 0 ? true : false;
 }
 
-// ============================== dataset operation ========================
+// ========================== dataset operations ========================
 hid_t ResultFile_hdf5::open_dataset(hid_t parent_id, const char *name)
 {
 	return H5Dopen(parent_id, name, H5P_DEFAULT);
@@ -88,32 +89,7 @@ bool ResultFile_hdf5::has_dataset(hid_t parent_id, const char *name)
 	return res > 0 ? true : false;
 }
 
-// =========================================================================
-hid_t ResultFile_hdf5::get_model_data_grp_id(void)
-{
-	if (md_grp_id < 0)
-	{
-		if (has_group(file_id, "ModelData"))
-			md_grp_id = open_group(file_id, "ModelData");
-		else
-			md_grp_id = create_group(file_id, "ModelData");
-	}
-	return md_grp_id;
-}
-
-hid_t ResultFile_hdf5::get_time_history_grp_id(void)
-{
-	if (th_grp_id < 0)
-	{
-		if (has_group(file_id, "TimeHistory"))
-			th_grp_id = open_group(file_id, "TimeHistory");
-		else
-			th_grp_id = create_group(file_id, "TimeHistory");
-	}
-	return th_grp_id;
-}
-
-// ======================== routines for dataset =======================
+// write dataset to group directly
 int ResultFile_hdf5::write_dataset(
 	hid_t grp_id,
 	const char *dset_name, 
@@ -125,11 +101,12 @@ int ResultFile_hdf5::write_dataset(
 	dataspace_id = H5Screate_simple(1, &num, nullptr);
 	dset_id = H5Dcreate(grp_id, dset_name, H5T_NATIVE_DOUBLE, dataspace_id,
 						H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
+	if (dset_id < 0)
+		return -1;
 	herr_t res = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, dataspace_id,
 						  dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
 	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
 	return res < 0 ? -2 : 0;
 }
 
@@ -146,10 +123,11 @@ int ResultFile_hdf5::write_dataset(
 	dataspace_id = H5Screate_simple(2, dims, nullptr);
 	dset_id = H5Dcreate(grp_id, dset_name, H5T_NATIVE_DOUBLE, dataspace_id,
 						H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
+	if (dset_id < 0)
+		return -1;
 	herr_t res = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, dataspace_id, dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
 	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
 	return res < 0 ? -2 : 0;
 }
 
@@ -166,15 +144,37 @@ int ResultFile_hdf5::write_dataset(
 	dataspace_id = H5Screate_simple(2, dims, nullptr);
 	dset_id = H5Dcreate(grp_id, dset_name, H5T_NATIVE_ULLONG, dataspace_id,
 						H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
+	if (dset_id < 0)
+		return -1;
 	herr_t res = H5Dwrite(dset_id, H5T_NATIVE_ULLONG, dataspace_id,
 						  dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
 	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
 	return res < 0 ? -2 : 0;
 }
 
+int ResultFile_hdf5::write_dataset(
+	hid_t grp_id,
+	const char* dset_name,
+	size_t num,
+	void* data,
+	hid_t datatype_id
+)
+{
+	hid_t dataspace_id, dset_id;
+	dataspace_id = H5Screate_simple(1, &num, nullptr);
+	dset_id = H5Dcreate(grp_id, dset_name, datatype_id, dataspace_id,
+		H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	if (dset_id < 0)
+		return -1;
+	herr_t res = H5Dwrite(dset_id, datatype_id, dataspace_id,
+		dataspace_id, H5P_DEFAULT, data);
+	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
+	return res < 0 ? -2 : 0;
+}
 
+// directly read from dataset
 int ResultFile_hdf5::read_dataset(
 	hid_t grp_id,
 	const char *dset_name,
@@ -185,11 +185,12 @@ int ResultFile_hdf5::read_dataset(
 	hid_t dataspace_id, dset_id;
 	dataspace_id = H5Screate_simple(1, &num, nullptr);
 	dset_id = H5Dopen(grp_id, dset_name, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
+	if (dset_id < 0)
+		return -1;
 	herr_t res = H5Dread(dset_id, H5T_NATIVE_DOUBLE, dataspace_id,
 						 dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
 	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
 	return res < 0 ? -2 : 0;
 }
 
@@ -205,11 +206,12 @@ int ResultFile_hdf5::read_dataset(
 	hsize_t dims[2] = { row_num, col_num };
 	dataspace_id = H5Screate_simple(2, dims, nullptr);
 	dset_id = H5Dopen(grp_id, dset_name, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
+	if (dset_id < 0)
+		return -1;
 	herr_t res = H5Dread(dset_id, H5T_NATIVE_DOUBLE, dataspace_id,
 						 dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
 	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
 	return res < 0 ? -2 : 0;
 }
 
@@ -225,17 +227,16 @@ int ResultFile_hdf5::read_dataset(
 	hsize_t dims[2] = { row_num, col_num };
 	dataspace_id = H5Screate_simple(2, dims, nullptr);
 	dset_id = H5Dopen(grp_id, dset_name, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
+	if (dset_id < 0)
+		return -1;
 	herr_t res = H5Dread(dset_id, H5T_NATIVE_ULLONG, dataspace_id,
 						 dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
 	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
 	return res < 0 ? -2 : 0;
 }
 
-
-// self-defined datatype
-int ResultFile_hdf5::write_dataset(
+int ResultFile_hdf5::read_dataset(
 	hid_t grp_id,
 	const char *dset_name,
 	size_t num,
@@ -245,27 +246,13 @@ int ResultFile_hdf5::write_dataset(
 {
 	hid_t dataspace_id, dset_id;
 	dataspace_id = H5Screate_simple(1, &num, nullptr);
-	dset_id = H5Dcreate(grp_id, dset_name, datatype_id, dataspace_id,
-		H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
-	herr_t res = H5Dwrite(dset_id, datatype_id, dataspace_id,
-		dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
-	H5Sclose(dataspace_id);
-	return res < 0 ? -2 : 0;
-}
-
-int ResultFile_hdf5::read_dataset(hid_t grp_id, const char *dset_name,
-	size_t num, void *data, hid_t datatype_id)
-{
-	hid_t dataspace_id, dset_id;
-	dataspace_id = H5Screate_simple(1, &num, nullptr);
 	dset_id = H5Dopen(grp_id, dset_name, H5P_DEFAULT);
-	if (dset_id < 0) return -1;
+	if (dset_id < 0)
+		return -1;
 	herr_t res = H5Dread(dset_id, datatype_id, dataspace_id,
 						 dataspace_id, H5P_DEFAULT, data);
-	H5Dclose(dset_id);
 	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
 	return res < 0 ? -2 : 0;
 }
 
@@ -363,4 +350,31 @@ int ResultFile_hdf5::read_attribute(
 	H5Aclose(attr_id);
 	H5Sclose(dataspace_id);
 	return 0;
+}
+
+
+// =========================================================================
+hid_t ResultFile_hdf5::get_model_data_grp_id(void)
+{
+	if (md_grp_id < 0)
+	{
+		if (has_group(file_id, "ModelData"))
+			md_grp_id = open_group(file_id, "ModelData");
+		else
+			md_grp_id = create_group(file_id, "ModelData");
+	}
+	return md_grp_id;
+}
+
+
+hid_t ResultFile_hdf5::get_time_history_grp_id(void)
+{
+	if (th_grp_id < 0)
+	{
+		if (has_group(file_id, "TimeHistory"))
+			th_grp_id = open_group(file_id, "TimeHistory");
+		else
+			th_grp_id = create_group(file_id, "TimeHistory");
+	}
+	return th_grp_id;
 }

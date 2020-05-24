@@ -121,12 +121,19 @@ void Model_T3D_ME_s::init_pcls(size_t num, double m, double density)
 		pcl.density = density;
 		pcl.vx = 0.0;
 		pcl.vy = 0.0;
+		pcl.vz = 0.0;
 		pcl.e11 = 0.0;
 		pcl.e22 = 0.0;
+		pcl.e33 = 0.0;
 		pcl.e12 = 0.0;
+		pcl.e23 = 0.0;
+		pcl.e31 = 0.0;
 		pcl.s11 = 0.0;
-		pcl.s12 = 0.0;
 		pcl.s22 = 0.0;
+		pcl.s33 = 0.0;
+		pcl.s12 = 0.0;
+		pcl.s23 = 0.0;
+		pcl.s31 = 0.0;
 	}
 }
 

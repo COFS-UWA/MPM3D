@@ -10,6 +10,12 @@ struct Point3D { double x, y, z; };
 struct Cube
 {
 	double xl, xu, yl, yu, zl, zu;
+	Cube() {}
+	Cube(double _xl, double _xu,
+		 double _yl, double _yu,
+		 double _zl, double _zu) :
+		xl(_xl), xu(_xu), yl(_yl),
+		yu(_yu), zl(_zl), zu(_zu) {}
 	inline bool is_in_box(double x, double y, double z)
 	{
 		if (x < xl || x > xu || y < yl || y > yu || z < zl || z > zu)

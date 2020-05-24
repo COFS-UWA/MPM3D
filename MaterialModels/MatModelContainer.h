@@ -64,7 +64,7 @@ public:                                          \
 	{                                            \
 		return ModelName##Container.next(mm);    \
 	}                                            \
-	inline bool is_not_end(ModelName *mm)        \
+	inline bool is_not_end_##ModelName##(ModelName *mm) \
 	{                                            \
 		return ModelName##Container.is_not_end(mm);  \
 	}

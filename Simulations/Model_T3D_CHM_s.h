@@ -80,6 +80,8 @@ namespace Model_T3D_CHM_s_Internal
 			_mm.ext_data = this;
 			mm = &_mm;
 		}
+
+		inline void cal_vol() { vol = m_s / (density_s * (1.0 - n)); }
 	};
 
 	struct Element

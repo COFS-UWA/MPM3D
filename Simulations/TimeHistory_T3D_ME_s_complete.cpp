@@ -41,18 +41,17 @@ void TimeHistory_T3D_ME_s_complete::close()
 	else if (!strcmp(res_file_type, "ResultFile_hdf5"))
 	{
 		ResultFile_hdf5 &rf = *static_cast<ResultFile_hdf5 *>(res_file);
-		rf.write_attribute(th_id, "output_num", output_id);
-		if (th_id > 0)
+		if (is_init)
 		{
+			rf.write_attribute(th_id, "output_num", output_id);
 			rf.close_group(th_id);
-			th_id = -1;
 		}
 	}
 
 	is_init = false;
 }
 
-int time_history_output_func_t3d_me_s_to_xml_res_file(TimeHistory &_self)
+int time_history_output_func_t3d_me_s_complete_to_xml_res_file(TimeHistory &_self)
 {
 	TimeHistory_T3D_ME_s_complete &th = static_cast<TimeHistory_T3D_ME_s_complete &>(_self);
 	ResultFile_XML &rf = static_cast<ResultFile_XML &>(th.get_res_file());
@@ -100,12 +99,12 @@ int time_history_output_func_t3d_me_s_to_xml_res_file(TimeHistory &_self)
 	return 0;
 }
 
-int time_history_output_func_t3d_me_s_to_hdf5_res_file(TimeHistory &_self)
+int time_history_output_func_t3d_me_s_complete_to_hdf5_res_file(TimeHistory &_self)
 {
 	TimeHistory_T3D_ME_s_complete &th = static_cast<TimeHistory_T3D_ME_s_complete &>(_self);
 	Step_T3D_ME_s &step = static_cast<Step_T3D_ME_s &>(th.get_step());
 	Model_T3D_ME_s &md = static_cast<Model_T3D_ME_s &>(step.get_model());
-	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(*th.res_file);
+	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(th.get_res_file());
 
 	char frame_name[30];
 	snprintf(frame_name, 30, "frame_%zu", th.output_id);
@@ -116,12 +115,8 @@ int time_history_output_func_t3d_me_s_to_hdf5_res_file(TimeHistory &_self)
 	rf.write_attribute(frame_grp_id, "current_time", step.get_current_time());
 	rf.write_attribute(frame_grp_id, "total_time", step.get_total_time());
 	
-	// output particle data
-	using Model_T3D_ME_s_hdf5_utilities::output_pcl_data_to_hdf5_file;
-	output_pcl_data_to_hdf5_file(md, rf, frame_grp_id);
-	// output consititutive model
-	using Model_T3D_ME_s_hdf5_utilities::output_material_model_to_hdf5_file;
-	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
+	using Model_T3D_ME_s_hdf5_utilities::time_history_complete_output_to_hdf5_file;
+	time_history_complete_output_to_hdf5_file(md, rf, frame_grp_id);
 	
 	rf.close_group(frame_grp_id);
 

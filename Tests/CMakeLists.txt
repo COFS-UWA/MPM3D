@@ -10,10 +10,12 @@ add_executable(
     # entry
     Tests_main.cpp
     # header
+    utils.h # commonly used functions
     test_utilities.h
     test_geometry.h
     test_material_models.h
     test_simulations.h
+    test_model_view.h
     # unit tests
     test_stack_and_link_list.cpp
     test_model_container.cpp
@@ -33,16 +35,18 @@ target_include_directories(
     ${MATERIALMODELS_INCLUDE_DIR}
     ${GEOMETRY_INCLUDE_DIR}
     ${SIMULATIONS_INCLUDE_DIR}
-    ${RESULTVIEWERQT_INCLUDE_DIR}
+    ${MODELVIEWER_INCLUDE_DIR}
     )
 
 #link_directories(${GLFW_LIBRARIES_DIR})
 target_link_libraries(
     Tests PUBLIC
+    CommonUtils
     MemoryUtils
     MaterialModels
     Geometry
     Simulations
+    ModelViewer
     )
 
 if (WIN32)

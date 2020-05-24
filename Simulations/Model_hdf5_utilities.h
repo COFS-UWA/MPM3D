@@ -80,6 +80,62 @@ inline hid_t get_ed_3d_dt_id()
 	return res;
 }
 
+// Boundary condition
+struct BodyForceAtPclData
+{
+	unsigned long long pcl_id;
+	double bf;
+};
+
+inline hid_t get_bf_pcl_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(BodyForceAtPclData));
+	H5Tinsert(res, "pcl_id", HOFFSET(BodyForceAtPclData, pcl_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "bf", HOFFSET(BodyForceAtPclData, bf), H5T_NATIVE_DOUBLE);
+	return res;
+}
+
+struct TractionBCAtPclData
+{
+	unsigned long long pcl_id;
+	double t;
+};
+
+inline hid_t get_tbc_pcl_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(TractionBCAtPclData));
+	H5Tinsert(res, "pcl_id", HOFFSET(TractionBCAtPclData, pcl_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "t", HOFFSET(TractionBCAtPclData, t), H5T_NATIVE_DOUBLE);
+	return res;
+}
+
+struct AccelerationBCData
+{
+	unsigned long long node_id;
+	double a;
+};
+
+inline hid_t get_abc_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(AccelerationBCData));
+	H5Tinsert(res, "node_id", HOFFSET(AccelerationBCData, node_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "a", HOFFSET(AccelerationBCData, a), H5T_NATIVE_DOUBLE);
+	return res;
+}
+
+struct VelocityBCData
+{
+	unsigned long long node_id;
+	double v;
+};
+
+inline hid_t get_vbc_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(VelocityBCData));
+	H5Tinsert(res, "node_id", HOFFSET(VelocityBCData, node_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "v", HOFFSET(VelocityBCData, v), H5T_NATIVE_DOUBLE);
+	return res;
+}
 
 // Material model
 // Linear elasticity
@@ -88,12 +144,12 @@ struct LinearElasticityStateData
 	unsigned long long pcl_id;
 	double E; // Young's modulus
 	double niu; // possion ratio
-	void from_mm(MatModel::LinearElasticity &mm)
+	inline void from_mm(MatModel::LinearElasticity &mm)
 	{
 		E = mm.E;
 		niu = mm.niu;
 	}
-	void to_mm(MatModel::LinearElasticity &mm)
+	inline void to_mm(MatModel::LinearElasticity &mm)
 	{
 		mm.set_param(E, niu);
 	}
@@ -122,7 +178,7 @@ struct ModifiedCamClayStateData
 	double Gamma; // critical state line
 	double M; // critical state line q = Mp 
 	double s11, s22, s33, s12, s23, s31; // stress state
-	void from_mm(MatModel::ModifiedCamClay &mm)
+	inline void from_mm(MatModel::ModifiedCamClay &mm)
 	{
 		niu = mm.niu;
 		kappa = mm.kappa;
@@ -141,7 +197,7 @@ struct ModifiedCamClayStateData
 		s23 = stress[4];
 		s31 = stress[5];
 	}
-	void to_mm(MatModel::ModifiedCamClay &mm)
+	inline void to_mm(MatModel::ModifiedCamClay &mm)
 	{
 		double stress[6] = { s11, s22, s33, s12, s23, s31 };
 		fric_angle = fric_angle / 3.14159265359 * 180.0;
