@@ -9,7 +9,7 @@ protected:
 public:
 	ResultFile(const char *type_name = "ResultFile") : type(type_name) {}
 	~ResultFile() {}
-	inline const char *get_type(void) const { return type; }
+	inline const char *get_type() const { return type; }
 
 private: // non-copyable
 	ResultFile(ResultFile& other);

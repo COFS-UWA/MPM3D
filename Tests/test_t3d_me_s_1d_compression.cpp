@@ -118,7 +118,6 @@ void test_t3d_me_s_1d_compression(int argc, char* argv[])
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_s_1d_compression.h5");
 
-	// output model data
 	ModelData_T3D_ME_s md;
 	md.output_model(model, res_file_hdf5);
 

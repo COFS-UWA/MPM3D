@@ -58,14 +58,27 @@ public:
 	int init(TMesh &mesh, QVector3D &_color)
 	{
 		typedef typename TMesh::Node Node;
-		typedef typename TMesh::Element Element;
-		clear();
-
 		size_t node_num = mesh.get_node_num();
 		Node* nodes = mesh.get_nodes();
+		typedef typename TMesh::Element Element;
 		size_t elem_num = mesh.get_elem_num();
 		Element* elems = mesh.get_elems();
-		if (!nodes || node_num == 0 || !elems || elem_num == 0)
+		return init<Node, Element>(nodes, node_num, elems, elem_num, _color);
+	}
+
+	template <typename Node, typename Element>
+	int init(
+		Node *nodes,
+		size_t node_num,
+		Element *elems,
+		size_t elem_num,
+		QVector3D &_color
+		)
+	{
+		clear();
+
+		if (!nodes || node_num == 0 ||
+			!elems || elem_num == 0)
 			return -1;
 
 		color = _color;
@@ -77,8 +90,8 @@ public:
 		glwp.glGenBuffers(1, &vbo);
 		glwp.glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		size_t node_data_num = node_num * 3;
-		GLfloat *node_data = new GLfloat[node_data_num];
-		GLfloat *pn = node_data;
+		GLfloat* node_data = new GLfloat[node_data_num];
+		GLfloat* pn = node_data;
 		for (size_t n_id = 0; n_id < node_num; ++n_id)
 		{
 			Node& n = nodes[n_id];
@@ -102,8 +115,8 @@ public:
 		glwp.glGenBuffers(1, &veo);
 		glwp.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veo);
 		index_num = elem_num * 12;
-		GLuint *line_indices = new GLuint[index_num];
-		GLuint *pl = line_indices;
+		GLuint* line_indices = new GLuint[index_num];
+		GLuint* pl = line_indices;
 		for (size_t e_id = 0; e_id < elem_num; ++e_id)
 		{
 			Element& e = elems[e_id];

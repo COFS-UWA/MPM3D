@@ -16,6 +16,7 @@ struct ParticleData
 	double x;
 	double y;
 	double z;
+	double vol;
 	double vx;
 	double vy;
 	double vz;
@@ -39,6 +40,7 @@ struct ParticleData
 		x = pcl.x;
 		y = pcl.y;
 		z = pcl.z;
+		vol = pcl.m / pcl.density;
 		vx = pcl.vx;
 		vy = pcl.vy;
 		vz = pcl.vz;
@@ -90,6 +92,7 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "x", HOFFSET(ParticleData, x), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "y", HOFFSET(ParticleData, y), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "z", HOFFSET(ParticleData, z), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "vol", HOFFSET(ParticleData, vol), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "vx", HOFFSET(ParticleData, vx), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "vy", HOFFSET(ParticleData, vy), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "vz", HOFFSET(ParticleData, vz), H5T_NATIVE_DOUBLE);

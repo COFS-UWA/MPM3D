@@ -1,5 +1,5 @@
-#ifndef __Result_File_hdf5_H__
-#define __Result_File_hdf5_H__
+#ifndef __Result_File_hdf5_h__
+#define __Result_File_hdf5_h__
 
 #include "hdf5.h"
 
@@ -19,8 +19,8 @@ public:
 	// open hdf5 file
 	int create(const char *file_name, bool over_write = true);
 	int open(const char *file_name, bool read_only = true);
-	void close(void);
-	inline hid_t get_file_id(void) noexcept { return file_id; }
+	void close();
+	inline hid_t get_file_id() noexcept { return file_id; }
 	inline bool is_open() { return file_id >= 0 ? true : false; }
 
 	// group
@@ -63,9 +63,9 @@ public:
 	int read_attribute(hid_t grp_id, const char *name, size_t num, const char *str);
 
 	// model data group
-	hid_t get_model_data_grp_id(void);
+	hid_t get_model_data_grp_id();
 	// time history group
-	hid_t get_time_history_grp_id(void);
+	hid_t get_time_history_grp_id();
 };
 
 #endif

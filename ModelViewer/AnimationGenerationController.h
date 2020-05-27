@@ -1,0 +1,95 @@
+#ifndef __Animation_Generation_Controller_h__
+#define __Animation_Generation_Controller_h__
+
+#include <QObject>
+#include <QTimer>
+
+#include "ItemArray.hpp"
+#include "ResultFile_hdf5.h"
+#include "MPM3DModelView.h"
+#include "GifCreator.h"
+
+// read result from hdf5 file
+// generate and display animation on MPM3DModelView
+// write animation to gif file
+class AnimationGenerationController : public QObject,
+	public MPM3DModelView::Controller
+{
+	Q_OBJECT
+	
+protected:
+	QTimer ani_timer;
+
+	double ani_time; // in ms
+	
+	// cal by initialize()
+	size_t frame_num;
+	double md_time;
+	
+	// cal by find_next_frame()
+	// current frame index
+	size_t cur_frame_id;
+	double md_delay;
+	// delay time between current frame and next frame
+	double ani_delay;
+
+	double ani_div_md;
+	// minimum time interval between each frame of animation
+	double min_ani_delay;
+	double min_md_delay;
+
+	double cur_ani_time;
+	double cur_md_time;
+
+	ResultFile_hdf5 *res_file;
+	hid_t th_id;
+	std::string field_name;
+	size_t pcl_num;
+	hid_t pcl_dt_id;
+	size_t pcl_size;
+	size_t pcl_x_off;
+	size_t pcl_y_off;
+	size_t pcl_z_off;
+	size_t pcl_vol_off;
+	size_t pcl_fld_off;
+	hid_t pcl_fld_type;
+
+	std::string gif_name;
+	GifCreator::GifWriter gif_file;
+	size_t view_width, view_height;
+	unsigned char *pixels_data;
+	unsigned short int ani_delay_100;
+
+public:
+	AnimationGenerationController(MPM3DModelView &v);
+	~AnimationGenerationController();
+	void close();
+
+	inline void set_ani_time(double _ani_time) { ani_time = _ani_time * 1000.0; }
+	int set_res_file(ResultFile_hdf5& rf, const char* th_na, const char* field_na);
+
+	int start();
+
+protected slots:
+	void next_frame();
+
+protected:
+	int initialize_model_view_data() override;
+
+	// update frame_num, cur_md_time and md_time
+	// display the the first frame scene
+	virtual int initialize();
+
+	// update cur_frame_id, ani_delay and md_delay
+	// return true if there is still next frame
+	// return false if already reach the last frame
+	virtual bool find_next_frame();
+
+	// update each frame
+	virtual int render();
+
+	// complete animation
+	virtual void complete();
+};
+
+#endif

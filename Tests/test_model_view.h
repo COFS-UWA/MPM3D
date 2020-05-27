@@ -3,4 +3,8 @@
 
 void t3d_me_s_1d_compression_postprocess(int argc, char** argv);
 
+void test_AnimationMPM3DApp(int argc, char** argv);
+
+void test_PospSingleFrame_display(int argc, char** argv);
+
 #endif

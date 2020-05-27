@@ -8,11 +8,11 @@ MPM3DModelView::MPM3DModelView(QWidget *parent) :
 	fov_angle(45.0f), view_dist_scale(1.0f), 
 	view_dir(1.0f, 0.0f, 0.0f), up_dir(0.0f, 0.0f, 1.0f), 
 	bg_mesh_buf(*this), need_to_paint_bg_mesh(true),
-	pcl_buf(*this), need_to_paint_pcl_buf(true),
+	pcl_buf(*this), cpcl_buf(*this),
+	is_monocolor_pcl(true), need_to_paint_pcl_buf(true),
 	point_buf(*this), need_to_paint_point_buf(true) {}
 
 MPM3DModelView::~MPM3DModelView() {}
-
 
 void MPM3DModelView::initializeGL()
 {
@@ -32,15 +32,29 @@ void MPM3DModelView::initializeGL()
 		);
 	shader_unicolor.link();
 	
-	th_mv->initialize_model_view_data();
-	
-	shader_unicolor.bind();
-	
-	update_view_mat();
-	shader_unicolor.setUniformValue("view_mat", view_mat);
+	shader_multicolor.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"..\\..\\Asset\\shader_multicolor.vs"
+		);
+	shader_multicolor.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"..\\..\\Asset\\shader_multicolor.fs"
+		);
+	shader_multicolor.link();
 
+	//th_mv->initialize_model_view_data();
+	controller->initialize_model_view_data();
+
+	update_view_mat();
 	update_proj_mat();
+
+	shader_unicolor.bind();
+	shader_unicolor.setUniformValue("view_mat", view_mat);
 	shader_unicolor.setUniformValue("proj_mat", proj_mat);
+
+	shader_multicolor.bind();
+	shader_multicolor.setUniformValue("view_mat", view_mat);
+	shader_multicolor.setUniformValue("proj_mat", proj_mat);
 }
 
 void MPM3DModelView::paintGL()
@@ -54,10 +68,23 @@ void MPM3DModelView::paintGL()
 		bg_mesh_buf.draw(shader_unicolor);
 
 	if (need_to_paint_pcl_buf)
-		pcl_buf.draw(shader_unicolor);
+	{
+		if (is_monocolor_pcl)
+		{
+			pcl_buf.draw(shader_unicolor);
+		}
+		else
+		{
+			shader_multicolor.bind();
+			cpcl_buf.draw();
+		}
+	}
 	
 	if (need_to_paint_point_buf)
+	{
+		shader_unicolor.bind();
 		point_buf.draw(shader_unicolor);
+	}
 }
 
 void MPM3DModelView::resizeGL(int width, int height)
@@ -72,11 +99,11 @@ void MPM3DModelView::resizeGL(int width, int height)
 void MPM3DModelView::update_view_mat()
 {
 	float dist_from_obj;
-	dist_from_obj = mh_radius * view_dist_scale / sin(fov_angle * 0.5 / 180.0 * 3.14159265359);
+	dist_from_obj = md_radius * view_dist_scale / sin(fov_angle * 0.5 / 180.0 * 3.14159265359);
 	view_dir.normalize();
-	QVector3D cam_cen = mh_centre - dist_from_obj * view_dir;
+	QVector3D cam_cen = md_centre - dist_from_obj * view_dir;
 	view_mat.setToIdentity();
-	view_mat.lookAt(cam_cen, mh_centre, up_dir);
+	view_mat.lookAt(cam_cen, md_centre, up_dir);
 }
 
 void MPM3DModelView::update_proj_mat()

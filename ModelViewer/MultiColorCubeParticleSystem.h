@@ -20,7 +20,7 @@ protected:
 	{
 		SingleVertData v1, v2, v3, v4, v5, v6, v7, v8;
 		inline void init(GLfloat xc, GLfloat yc, GLfloat zc,
-						 GLfloat vol, Color &c)
+			GLfloat vol, Color& c)
 		{
 			GLfloat half_len = pow(vol, 0.33333333f) * 0.5;
 			// v1
@@ -82,6 +82,7 @@ protected:
 		}
 	};
 	MemoryUtils::ItemArray<VertData> vert_data;
+	GLsizei vert_data_size;
 
 	struct ElemData
 	{
@@ -151,9 +152,18 @@ protected:
 		}
 	};
 	MemoryUtils::ItemArray<ElemData> elem_data; // face id
-	
+	GLsizei elem_data_size;
+
+	size_t pcl_size, pcl_num;
+	size_t x_off, y_off, z_off;
+	size_t vol_off;
+	float vol_scale;
+	size_t fld_off;
+	ValueToColor *pv2c;
+
 public:
-	MultiColorCubeParticleSystem() {}
+	MultiColorCubeParticleSystem() :
+		vert_data_size(0), elem_data_size(0), pcl_num(0) {}
 	~MultiColorCubeParticleSystem() { clear(); }
 	inline void clear()
 	{
@@ -161,37 +171,93 @@ public:
 		elem_data.clear();
 	}
 
-	inline GLvoid *get_vert_data() { return (GLvoid *)vert_data.get_mem(); }
-	inline GLvoid *get_elem_data() { return (GLvoid *)elem_data.get_mem(); }
-	
+	inline GLvoid* get_vert_data() { return (GLvoid *)vert_data.get_mem(); }
+	inline GLsizei get_vert_data_size() { return vert_data_size; }
+	inline GLvoid* get_elem_data() { return (GLvoid *)elem_data.get_mem(); }
+	inline GLsizei get_elem_data_size() { return elem_data_size; }
+
 	// Assumptions:
-	// Particle has memebers x, y, z, vol
-	// pcl value offset means offsetof(Particle, data_member)
-	template <typename Particle>
-	int init_data(Particle *pcls, size_t pcl_num,
-		size_t pcl_value_offset, ValueToColor &v2c)
+	// 1. Particle has members x, y, z, vol and field_value
+	// 2. pcl_value_offset means offsetof(Particle, data_member)
+	template <typename FieldType>
+	int init_data(
+		char* pcls_data, size_t _pcl_size, size_t _pcl_num,
+		size_t _x_off, size_t _y_off, size_t _z_off,
+		size_t _vol_off, float _vol_scale,
+		size_t _fld_off, ValueToColor& v2c
+		)
 	{
-		if (pcl_num == 0)
+		if (!pcls_data || _pcl_num == 0)
 			return -1;
 
-		vert_data.reserve(pcl_num);
-		VertData *verts = vert_data.get_mem();
-		elem_data.reserve(pcl_num);
-		ElemData *elems = elem_data.get_mem();
+		pcl_size = _pcl_size;
+		pcl_num = _pcl_num;
+		x_off = _x_off;
+		y_off = _y_off;
+		z_off = _z_off;
+		vol_off = _vol_off;
+		vol_scale = _vol_scale;
+		fld_off = _fld_off;
+		pv2c = &v2c;
 
+		vert_data_size = pcl_num * sizeof(VertData);
+		vert_data.reserve(pcl_num);
+		VertData* verts = vert_data.get_mem();
+
+		elem_data_size = pcl_num * sizeof(ElemData);
+		elem_data.reserve(pcl_num);
+		ElemData* elems = elem_data.get_mem();
+
+		char* pcl_data = pcls_data;
+		double pcl_x, pcl_y, pcl_z, pcl_vol, pcl_fld;
 		size_t cur_id_off = 0;
 		for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 		{
-			Particle &pcl = pcls[pcl_id];
-			double value = *(double *)(((char*)(&pcl)) + pcl_value_offset);
-			VertData &v = verts[pcl_id];
-			v.init((GLfloat)pcl.x, (GLfloat)pcl.y, (GLfloat)pcl.z,
-				   (GLfloat)pcl.vol, v2c.get_color(value));
-			ElemData &e = elem[pcl_id];
+			pcl_x = *(double *)(pcl_data + x_off);
+			pcl_y = *(double *)(pcl_data + y_off);
+			pcl_z = *(double *)(pcl_data + z_off);
+			pcl_vol = *(double*)(pcl_data + vol_off);
+			pcl_fld = double(*(FieldType *)(pcl_data + fld_off));
+			VertData& v = verts[pcl_id];
+			v.init((GLfloat)pcl_x, (GLfloat)pcl_y, (GLfloat)pcl_z,
+				   (GLfloat)pcl_vol, v2c.get_color(pcl_fld));
+			ElemData& e = elems[pcl_id];
 			e.offset(cur_id_off);
 			cur_id_off += 8;
+			pcl_data += pcl_size;
 		}
 
+		return 0;
+	}
+
+	template <typename FieldType>
+	int update_data(char *pcls_data)
+	{
+		if (!pcls_data || pcl_num == 0)
+			return -1;
+
+		VertData* verts = vert_data.get_mem();
+		ElemData* elems = elem_data.get_mem();
+
+		char* pcl_data = pcls_data;
+		double pcl_x, pcl_y, pcl_z, pcl_vol, pcl_fld;
+		size_t cur_id_off = 0;
+		for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+		{
+			pcl_x = *(double*)(pcl_data + x_off);
+			pcl_y = *(double*)(pcl_data + y_off);
+			pcl_z = *(double*)(pcl_data + z_off);
+			pcl_vol = *(double*)(pcl_data + vol_off);
+			pcl_fld = double(*(FieldType *)(pcl_data + fld_off));
+			VertData& v = verts[pcl_id];
+			v.init((GLfloat)pcl_x, (GLfloat)pcl_y, (GLfloat)pcl_z,
+				   (GLfloat)pcl_vol, v2c.get_color(pcl_fld));
+			ElemData& e = elems[pcl_id];
+			e.offset(cur_id_off);
+			cur_id_off += 8;
+			pcl_data += pcl_size;
+		}
+		
 		return 0;
 	}
 };

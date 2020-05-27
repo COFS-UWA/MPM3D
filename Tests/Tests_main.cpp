@@ -4,6 +4,7 @@
 #include "test_geometry.h"
 #include "test_material_models.h"
 #include "test_simulations.h"
+#include "test_model_view.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +21,11 @@ int main(int argc, char *argv[])
 
 	//test_Model_T3D_ME_s_display(argc, argv);
 
-	test_t3d_me_s_1d_compression(argc, argv);
+	//test_t3d_me_s_1d_compression(argc, argv);
+	
+	//test_AnimationMPM3DApp(argc, argv);
+
+	test_PospSingleFrame_display(argc, argv);
 
 	system("pause");
 	return 0;

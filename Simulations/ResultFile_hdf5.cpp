@@ -32,7 +32,7 @@ int ResultFile_hdf5::open(const char *file_name, bool read_only)
 	return file_id < 0 ? -1 : 0;
 }
 
-void ResultFile_hdf5::close(void)
+void ResultFile_hdf5::close()
 {
 	if (md_grp_id >= 0)
 	{
@@ -354,7 +354,7 @@ int ResultFile_hdf5::read_attribute(
 
 
 // =========================================================================
-hid_t ResultFile_hdf5::get_model_data_grp_id(void)
+hid_t ResultFile_hdf5::get_model_data_grp_id()
 {
 	if (md_grp_id < 0)
 	{
@@ -367,7 +367,7 @@ hid_t ResultFile_hdf5::get_model_data_grp_id(void)
 }
 
 
-hid_t ResultFile_hdf5::get_time_history_grp_id(void)
+hid_t ResultFile_hdf5::get_time_history_grp_id()
 {
 	if (th_grp_id < 0)
 	{

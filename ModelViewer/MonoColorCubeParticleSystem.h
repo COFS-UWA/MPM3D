@@ -147,13 +147,17 @@ public:
 	}
 
 	inline GLvoid *get_vert_data() { return (GLvoid *)vert_data.get_mem(); }
-	inline GLsizeiptr get_vert_data_size() { return vert_data_size; }
+	inline GLsizei get_vert_data_size() { return vert_data_size; }
 	inline GLvoid *get_elem_data() { return (GLvoid *)elem_data.get_mem(); }
-	inline GLsizeiptr get_elem_data_size() { return elem_data_size; }
+	inline GLsizei get_elem_data_size() { return elem_data_size; }
 
 	// Assumptions: Particle has memebers x, y, z, vol
 	template <typename Particle>
-	int init_data(Particle *pcls, size_t _pcl_num, GLfloat _vol_scale = 0.125f)
+	int init_data(
+		Particle *pcls,
+		size_t _pcl_num,
+		GLfloat _vol_scale = 0.125f
+		)
 	{
 		if (!pcls || _pcl_num == 0)
 			return -1;
@@ -192,6 +196,9 @@ public:
 	template <typename Particle>
 	int update_data(Particle* pcls)
 	{
+		if (!pcls || pcl_num == 0)
+			return -1;
+
 		VertData* verts = vert_data.get_mem();
 		for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 		{

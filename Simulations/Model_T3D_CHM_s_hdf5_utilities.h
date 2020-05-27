@@ -17,6 +17,7 @@ struct ParticleData
 	double x;
 	double y;
 	double z;
+	double vol;
 	double vx_s;
 	double vy_s;
 	double vz_s;
@@ -38,6 +39,7 @@ struct ParticleData
 	double e31;
 	void from_pcl(Model_T3D_CHM_s::Particle &pcl)
 	{
+		id = pcl.id;
 		n = pcl.n;
 		m_s = pcl.m_s;
 		density_s = pcl.density_s;
@@ -45,6 +47,7 @@ struct ParticleData
 		x = pcl.x;
 		y = pcl.y;
 		z = pcl.z;
+		vol = pcl.m_s / (pcl.density_s * (1.0-pcl.n));
 		vx_s = pcl.vx_s;
 		vy_s = pcl.vy_s;
 		vz_s = pcl.vz_s;
@@ -67,6 +70,7 @@ struct ParticleData
 	}
 	void to_pcl(Model_T3D_CHM_s::Particle &pcl)
 	{
+		pcl.id = id;
 		pcl.n = n;
 		pcl.m_s = m_s;
 		pcl.density_s = density_s;
@@ -107,6 +111,7 @@ inline hid_t get_pcl_dt_id(void)
 	H5Tinsert(res, "x", HOFFSET(ParticleData, x), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "y", HOFFSET(ParticleData, y), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "z", HOFFSET(ParticleData, z), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "vol", HOFFSET(ParticleData, vol), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "vx_s", HOFFSET(ParticleData, vx_s), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "vy_s", HOFFSET(ParticleData, vy_s), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "vz_s", HOFFSET(ParticleData, vz_s), H5T_NATIVE_DOUBLE);

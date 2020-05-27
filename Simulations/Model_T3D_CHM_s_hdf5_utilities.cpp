@@ -152,7 +152,6 @@ int output_pcl_data_to_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf, hid_t
 	{
 		ParticleData &pd = pcl_data[p_id];
 		Model_T3D_CHM_s::Particle &pcl = md.pcls[p_id];
-		pd.id = pcl.id;
 		pd.from_pcl(pcl);
 	}
 	hid_t pcl_dt_id = get_pcl_dt_id();
@@ -197,7 +196,6 @@ int load_pcl_data_from_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf, hid_t
 	{
 		ParticleData &pcl_data = pcls_data[p_id];
 		Model_T3D_CHM_s::Particle &pcl = md.pcls[p_id];
-		pcl.id = pcl_data.id;
 		pcl_data.to_pcl(pcl);
 	}
 	delete[] pcls_data;

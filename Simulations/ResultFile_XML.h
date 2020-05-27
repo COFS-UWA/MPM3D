@@ -1,5 +1,5 @@
-#ifndef __RESULT_FILE_XML_H__
-#define __RESULT_FILE_XML_H__
+#ifndef __Result_File_XML_h__
+#define __Result_File_XML_h__
 
 #include <fstream>
 #include "ResultFile.h"
@@ -25,14 +25,14 @@ public:
 
 		return 0;
 	}
-	void finalize(void)
+	void finalize()
 	{
 		const char *file_ending = "</ResultFile>\n";
 		file.write(file_ending, strlen(file_ending));
 		file.close();
 	}
 
-	std::fstream &get_file(void) noexcept { return file; }
+	std::fstream &get_file() noexcept { return file; }
 };
 
 #endif

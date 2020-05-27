@@ -9,6 +9,7 @@ add_library(
     FileUtils_pcp.h FileUtils_pcp.cpp
     #
     common.h common.cpp
+    GifCreator.h GifCreator.cpp
     )
 
 set(FILEUTILS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

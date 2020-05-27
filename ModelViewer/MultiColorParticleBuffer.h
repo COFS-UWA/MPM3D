@@ -1,27 +1,27 @@
-#ifndef __Mono_Color_Particle_Buffer_h__
-#define __Mono_Color_Particle_Buffer_h__
+#ifndef __Multi_Color_Particle_Buffer_h__
+#define __Multi_Color_Particle_Buffer_h__
 
 #include <QOpenGLWidget>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions_3_3_Core>
 
-#include "MonoColorCubeParticleSystem.h"
+#include "ValueToColor.h"
+#include "MultiColorCubeParticleSystem.h"
 
-class MonoColorParticleBuffer
+class MultiColorParticleBuffer
 {
 protected:
 	// opengl functions wrapper
-	QOpenGLFunctions_3_3_Core &glwp;
+	QOpenGLFunctions_3_3_Core& glwp;
 
 	GLuint vao, vbo, veo;
 	GLsizei index_num;
-	QVector3D color;
-	MonoColorCubeParticleSystem pcl_sys;
+	MultiColorCubeParticleSystem pcl_sys;
 
 public:
-	MonoColorParticleBuffer(QOpenGLFunctions_3_3_Core &wp) : glwp(wp),
-		vao(0), vbo(0), veo(0), index_num(0), color(1.0f, 1.0f, 1.0f) {}
-	~MonoColorParticleBuffer() { clear(); }
+	MultiColorParticleBuffer(QOpenGLFunctions_3_3_Core& wp) : glwp(wp),
+		vao(0), vbo(0), veo(0), index_num(0) {}
+	~MultiColorParticleBuffer() { clear(); }
 	void clear()
 	{
 		if (veo)
@@ -42,32 +42,37 @@ public:
 		index_num = 0;
 	}
 
-	// use uniform color shader
-	void draw(QOpenGLShaderProgram& shader)
+	void draw()
 	{
 		if (vao)
 		{
-			shader.setUniformValue("color", color);
-
 			glwp.glBindVertexArray(vao);
 			glwp.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glwp.glDrawElements(GL_TRIANGLES, index_num, GL_UNSIGNED_INT, 0);
 		}
 	}
 
-	template <typename Particle>
-	int init_pcl_data(Particle *pcls, size_t pcl_num, QVector3D &_color)
+	template <typename FieldType>
+	int init_data(
+		char* pcls_data, size_t pcl_size, size_t pcl_num,
+		size_t x_off, size_t y_off, size_t z_off,
+		size_t vol_off, float vol_scale,
+		size_t fld_off, ValueToColor& v2c
+		)
 	{
 		clear();
-		if (!pcls || pcl_num == 0)
+		if (!pcls_data || pcl_num == 0)
 			return -1;
-
-		color = _color;
 
 		glwp.glGenVertexArrays(1, &vao);
 		glwp.glBindVertexArray(vao);
 
-		pcl_sys.init_data<Particle>(pcls, pcl_num);
+		pcl_sys.init_data<FieldType>(
+			pcls_data, pcl_size, pcl_num, 
+			x_off, y_off, z_off,
+			vol_off, vol_scale,
+			fld_off, v2c
+			);
 
 		// node data
 		glwp.glGenBuffers(1, &vbo);
@@ -79,8 +84,10 @@ public:
 			GL_STREAM_DRAW
 			);
 
-		glwp.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *)0);
+		glwp.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 		glwp.glEnableVertexAttribArray(0);
+		glwp.glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+		glwp.glEnableVertexAttribArray(1);
 
 		// element data
 		glwp.glGenBuffers(1, &veo);
@@ -96,27 +103,28 @@ public:
 		return 0;
 	}
 
-	template <typename Particle>
-	int update_pcl_data(Particle* pcls)
+	template <typename FieldType>
+	int update_data(char* pcls_data)
 	{
-		if (!pcls)
-			return -1;
+		int res;
+		res = pcl_sys.update_data<FieldType>(pcls_data);
+		if (res < 0)
+			return res;
 
 		glwp.glBindVertexArray(vao);
-
-		pcl_sys.update_data<Particle>(pcls);
-
+		
 		glwp.glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glwp.glBufferData(
 			GL_ARRAY_BUFFER,
 			pcl_sys.get_vert_data_size(),
 			pcl_sys.get_vert_data(),
 			GL_STREAM_DRAW
-		);
+			);
 
-		// need?
-		//glwp.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		//glwp.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 		//glwp.glEnableVertexAttribArray(0);
+		//glwp.glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+		//glwp.glEnableVertexAttribArray(1);
 
 		return 0;
 	}
