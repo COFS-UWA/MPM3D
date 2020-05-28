@@ -84,9 +84,9 @@ public:
 			GL_STREAM_DRAW
 			);
 
-		glwp.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+		glwp.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (GLvoid*)0);
 		glwp.glEnableVertexAttribArray(0);
-		glwp.glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+		glwp.glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
 		glwp.glEnableVertexAttribArray(1);
 
 		// element data
@@ -120,11 +120,6 @@ public:
 			pcl_sys.get_vert_data(),
 			GL_STREAM_DRAW
 			);
-
-		//glwp.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-		//glwp.glEnableVertexAttribArray(0);
-		//glwp.glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-		//glwp.glEnableVertexAttribArray(1);
 
 		return 0;
 	}

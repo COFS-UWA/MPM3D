@@ -12,16 +12,20 @@ AnimationGenerationController::AnimationGenerationController(MPM3DModelView& v) 
 	frame_num(0), md_time(0.0),
 	min_ani_delay(20.0 * 0.9999), // maximum frame rate is 50 fps
 	res_file(nullptr), th_id(-1), field_name(""), pcl_dt_id(-1),
-	gif_name("")
+	gif_name(""), gif_is_init(false),
+	animation_completed(false)
 {
+	connect(this, SIGNAL(render_finished()), this, SLOT(prepare_next_frame()));
+	
 	ani_timer.setSingleShot(true);
-	connect(&ani_timer, SIGNAL(timeout()), this, SLOT(next_frame()));
+	connect(&ani_timer, SIGNAL(timeout()), view, SLOT(update()));
 }
 
 AnimationGenerationController::~AnimationGenerationController() { close(); }
 
 void AnimationGenerationController::close()
 {
+	// close hdf5 file
 	if (th_id >= 0)
 	{
 		res_file->close_group(th_id);
@@ -31,6 +35,13 @@ void AnimationGenerationController::close()
 	{
 		H5Tclose(pcl_dt_id);
 		pcl_dt_id = -1;
+	}
+
+	// close gif
+	if (gif_is_init)
+	{
+		GifCreator::GifEnd(&gif_file);
+		gif_is_init = false;
 	}
 }
 
@@ -105,52 +116,14 @@ int AnimationGenerationController::set_res_file(
 	return -3;
 }
 
-namespace
-{
-// helper function
-void reorder_buffer(unsigned char* RGBA_data, int width, int height)
-{
-	// RGBA data are 4 bytes long
-	long* data = reinterpret_cast<long*>(RGBA_data);
-	long* line1 = data;
-	long* line2 = data + (height - 1) * width;
-	long data_tmp;
-	while (line1 < line2)
-	{
-		for (size_t i = 0; i < width; ++i)
-		{
-			data_tmp = line1[i];
-			line1[i] = line2[i];
-			line2[i] = data_tmp;
-		}
-		line1 += width;
-		line2 -= width;
-	}
-}
-
-}
-
-int AnimationGenerationController::initialize_model_view_data() { return start(); }
-
-namespace
-{
-	inline void print_frame_info(size_t cur_frame_id,
-		double cur_ani_time, double cur_md_time)
-	{
-		std::cout << "Display frame " << cur_frame_id
-				  << " at "  << cur_ani_time / 1000.0
-				  << "s (model time: " << cur_md_time << ")\n";
-	}
-}
-
-int AnimationGenerationController::start()
+int AnimationGenerationController::initialize_model_view_data()
 {
 	cur_frame_id = 0;
 	cur_ani_time = 0.0;
 	cur_md_time = 0.0;
 
-	int res;
-	if ((res = initialize()) < 0)
+	int res = initialize();
+	if (res < 0)
 		return res;
 
 	if (frame_num == 0 || md_time <= 0.0)
@@ -159,54 +132,113 @@ int AnimationGenerationController::start()
 	ani_div_md = ani_time / md_time;
 	min_md_delay = min_ani_delay / ani_div_md;
 
-	view->update();
-	print_frame_info(cur_frame_id, cur_ani_time, cur_md_time);
-	auto prev_frame_time = std::chrono::system_clock::now();
-
-	if (!find_next_frame())
-	{
-		complete();
-		return 0;
-	}
-
-	cur_ani_time += ani_delay;
-	cur_md_time += md_delay;
-
-	render();
-
-	auto cur_time = std::chrono::system_clock::now();
-	auto elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(cur_time - prev_frame_time);
-	double time_to_next_frame = ani_delay - double(elapsed_time.count());
-	if (time_to_next_frame < 0.0)
-		time_to_next_frame = 0.0;
-	ani_timer.start(time_to_next_frame);
+	has_next_frame = find_next_frame();
 
 	return 0;
 }
 
-void AnimationGenerationController::next_frame()
+namespace
 {
-	view->update();
-	print_frame_info(cur_frame_id, cur_ani_time, cur_md_time);
-	auto prev_frame_time = std::chrono::system_clock::now();
 
-	if (!find_next_frame())
+inline void print_frame_info(size_t cur_frame_id,
+	double cur_ani_time, double cur_md_time)
+{
+	std::cout << "Display frame " << cur_frame_id
+			  << " at " << cur_ani_time / 1000.0
+			  << "s (model time: " << cur_md_time << ")\n";
+}
+
+}
+
+int AnimationGenerationController::before_render()
+{
+	if (!animation_completed)
+		print_frame_info(cur_frame_id, cur_ani_time, cur_md_time);
+	return 0;
+}
+
+int AnimationGenerationController::after_render()
+{
+	// prepare next frame
+	if (has_next_frame)
+		prev_frame_time = std::chrono::system_clock::now();
+	if (!animation_completed);
+		emit render_finished();
+	return 0;
+}
+
+void AnimationGenerationController::prepare_next_frame()
+{	
+	if (animation_completed)
+		return;
+
+	// init gif output
+	if (!gif_is_init && gif_name.length())
 	{
-		complete();
+		view_width = view->width();
+		view_height = view->height();
+		GifCreator::GifBegin(&gif_file, gif_name.c_str(), view_width, view_height, true);
+		gif_is_init = true;
+	}
+
+	// output frame to gif
+	if (gif_is_init)
+	{
+		ani_delay_100 = unsigned short int(ani_delay / 10.0);
+		if (ani_delay_100 < 2)
+			ani_delay_100 = 2;
+		screen_pixels = view->grab(view->geometry());
+		//char ss_name[50];
+		//snprintf(ss_name, 50, "frame_%zu.png", cur_frame_id);
+		//screen_pixels.save(ss_name, "png");
+		//std::cout << "output frame " << cur_frame_id << "\n";
+		screen_img = screen_pixels.toImage();
+		GifCreator::GifWriteFrame(
+			&gif_file,
+			screen_img.bits(), //(const uint8_t *)pixels_rgb_data,
+			view_width,
+			view_height,
+			ani_delay_100
+			);
+		if (!has_next_frame) // the last frame
+		{
+			GifCreator::GifWriteFrame(
+				&gif_file,
+				screen_img.bits(),
+				view_width,
+				view_height,
+				2
+				);
+		}
+	}
+	
+	// finalize gif output
+	if (!has_next_frame)
+	{
+		if (gif_is_init)
+		{
+			GifCreator::GifEnd(&gif_file);
+			gif_is_init = false;
+			animation_completed = true;
+		}
 		return;
 	}
 
+	cur_frame_id = next_frame_id;
 	cur_ani_time += ani_delay;
 	cur_md_time += md_delay;
 
 	render();
 
-	auto cur_time = std::chrono::system_clock::now();
-	auto elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(cur_time - prev_frame_time);
+	has_next_frame = find_next_frame();
+
+	std::chrono::system_clock::time_point cur_time = std::chrono::system_clock::now();
+	std::chrono::milliseconds elapsed_time
+		= std::chrono::duration_cast<std::chrono::milliseconds>(cur_time - prev_frame_time);
 	double time_to_next_frame = ani_delay - double(elapsed_time.count());
 	if (time_to_next_frame < 0.0)
 		time_to_next_frame = 0.0;
-	ani_timer.start(time_to_next_frame);
+	ani_timer.start(time_to_next_frame); // display this frame
 }
 
 
@@ -282,15 +314,6 @@ int AnimationGenerationController::initialize()
 		pcl_fld_off, view->get_color_scale());
 	delete[] pcls_data;
 
-	// init gif output
-	if (gif_name.length())
-	{
-		view_width = view->width();
-		view_height = view->height();
-		GifCreator::GifBegin(&gif_file, gif_name.c_str(), view_width, view_height, 1);
-		pixels_data = new unsigned char[view_width * view_height * 4];
-	}
-
 	return 0;
 }
 
@@ -300,7 +323,7 @@ bool AnimationGenerationController::find_next_frame()
 	double new_frame_md_time, diff_md_time, diff_ani_time;
 	char frame_name[50];
 	hid_t frame_h5_id;
-	ResultFile_hdf5& rf = *res_file;
+	ResultFile_hdf5 &rf = *res_file;
 	
 	for (frame_id = cur_frame_id + 1; frame_id < frame_num; ++frame_id)
 	{
@@ -315,32 +338,21 @@ bool AnimationGenerationController::find_next_frame()
 		{
 			ani_delay = diff_ani_time;
 			md_delay = diff_md_time;
-			cur_frame_id = frame_id;
+			next_frame_id = frame_id;
 			return true;
 		}
 	}
 
 	// not more frame
-	ani_delay = 500; // 0.5s
+	ani_delay = 2500.0; // 1.0s
 	md_delay = ani_delay / ani_delay_100;
-	cur_frame_id = frame_num; // invalid value
+	next_frame_id = frame_num; // invalid value
 	return false;
 }
 
 int AnimationGenerationController::render()
 {
-	ResultFile_hdf5& rf = *res_file;
-
-	// output previous frame to gif
-	if (gif_name.length())
-	{
-		ani_delay_100 = unsigned short int(ani_delay / 10.0);
-		if (ani_delay_100 < 2)
-			ani_delay_100 = 2;
-		view->glReadPixels(0, 0, view_width, view_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels_data);
-		reorder_buffer(pixels_data, view_width, view_height);
-		GifCreator::GifWriteFrame(&gif_file, pixels_data, view_width, view_height, ani_delay_100);
-	}
+	ResultFile_hdf5 &rf = *res_file;
 	
 	// write particle data to view
 	char frame_name[50];
@@ -354,33 +366,10 @@ int AnimationGenerationController::render()
 	rf.read_dataset(pcl_data_id, "field", pcl_num, pcls_data, pcl_dt_id);
 	rf.close_group(pcl_data_id);
 	rf.close_group(frame_id);
-	// write pcl data to view
-	// support field data of different type
+	// write pcl data to view, support field data of different type
 	//if (data_type == H5T_NATIVE_DOUBLE)
-	view->init_multicolor_pcl_data<double>(
-		pcls_data, pcl_size, pcl_num,
-		pcl_x_off, pcl_y_off, pcl_z_off,
-		pcl_vol_off, 0.125,
-		pcl_fld_off, view->get_color_scale());
+	view->update_multicolor_pcl_data<double>(pcls_data);
 	delete[] pcls_data;
 
 	return 0;
-}
-
-void AnimationGenerationController::complete()
-{
-	if (gif_name.length())
-	{
-		// output the last frame to gif
-		ani_delay_100 = unsigned short int(ani_delay / 10.0);
-		if (ani_delay_100 < 2)
-			ani_delay_100 = 2;
-		view->glReadPixels(0, 0, view_width, view_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels_data);
-		reorder_buffer(pixels_data, view_width, view_height);
-		GifCreator::GifWriteFrame(&gif_file, pixels_data, view_width, view_height, ani_delay_100);
-		// end gif
-		GifCreator::GifEnd(&gif_file);
-		delete[] pixels_data;
-		pixels_data = nullptr;
-	}
 }

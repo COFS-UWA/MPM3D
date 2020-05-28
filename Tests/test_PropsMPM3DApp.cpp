@@ -11,8 +11,10 @@ void test_PospMPM3DApp(int argc, char **argv)
 	app.set_view_dir(10.0f, 30.0f);
 	app.set_ani_time(5.0);
 
+	app.set_gif_name("bar_com.gif");
+
 	PospMPM3DApp::Colori colors[] = {
-		{ 0, 0, 255 },
+		{ 0,   0,   255 },
 		{ 0,   93,  255 },
 		{ 0,   185, 255 },
 		{ 0,   255, 232 },
@@ -25,11 +27,11 @@ void test_PospMPM3DApp(int argc, char **argv)
 		{ 255, 93,  0 },
 		{ 255, 0,   0 }
 	};
-	app.init_color_scale(-1.0, 1.0, colors, sizeof(colors) / sizeof(colors[0]));
+	app.init_color_scale(-8.0e-6, 0.0, colors, sizeof(colors) / sizeof(colors[0]));
 
 	ResultFile_hdf5 rf;
 	rf.open("t3d_me_s_1d_compression.h5");
-	int res = app.set_res_file(rf, "compression", "vx");
+	int res = app.set_res_file(rf, "compression", "s33");
 
 	app.start();
 }

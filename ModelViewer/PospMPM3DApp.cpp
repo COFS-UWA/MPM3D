@@ -68,8 +68,28 @@ int PospMPM3DApp::start()
 	return app.exec();
 }
 
+// for single frame display
+int PospMPM3DApp::set_res_file(
+	ResultFile_hdf5& rf,
+	const char* th_na,
+	size_t frame_id,
+	const char* field_na
+	)
+{
+	if (type != SingleFrame)
+		return -1;
+
+	PospSingleFrameController& con =
+		*static_cast<PospSingleFrameController *>(view_controller);
+	return con.set_res_file(rf, th_na, frame_id, field_na);
+}
+
+// for animation generation
 void PospMPM3DApp::set_ani_time(double ani_time)
 {
+	if (type != Animation)
+		return ;
+
 	AnimationGenerationController &con = 
 		*static_cast<AnimationGenerationController *>(view_controller);
 	con.set_ani_time(ani_time);
@@ -81,8 +101,20 @@ int PospMPM3DApp::set_res_file(
 	const char* field_na
 	)
 {
+	if (type != Animation)
+		return -1;
+
 	AnimationGenerationController& con =
 		*static_cast<AnimationGenerationController*>(view_controller);
 	return con.set_res_file(rf, th_na, field_na);
 }
 
+void PospMPM3DApp::set_gif_name(const char* gif_na)
+{
+	if (type != Animation)
+		return;
+
+	AnimationGenerationController& con =
+		*static_cast<AnimationGenerationController*>(view_controller);
+	return con.set_gif_name(gif_na);
+}

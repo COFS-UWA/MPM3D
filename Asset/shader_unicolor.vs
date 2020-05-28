@@ -1,6 +1,6 @@
 #version 330 core
 
-layout(location = 0) in vec3 in_pos;
+layout (location = 0) in vec3 in_pos;
 
 out vec3 mid_color;
 

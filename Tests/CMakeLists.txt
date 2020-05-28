@@ -25,7 +25,7 @@ add_executable(
     test_Model_T3D_ME_s_display.cpp
     test_searching_grid3d.cpp
     test_t3d_me_s_1d_compression.cpp
-    test_AnimationMPM3DApp.cpp
+    test_PropsMPM3DApp.cpp
     test_PospSingleFrame_display.cpp
     )
 

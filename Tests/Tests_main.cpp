@@ -23,10 +23,10 @@ int main(int argc, char *argv[])
 
 	//test_t3d_me_s_1d_compression(argc, argv);
 	
-	//test_AnimationMPM3DApp(argc, argv);
+	//test_PospSingleFrame_display(argc, argv);
 
-	test_PospSingleFrame_display(argc, argv);
-
-	system("pause");
+	test_PospMPM3DApp(argc, argv);
+	
+	//system("pause");
 	return 0;
 }

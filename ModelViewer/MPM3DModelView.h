@@ -4,6 +4,7 @@
 #include <QOpenGLWidget>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions_3_3_Core>
+#include <QTimer>
 
 #include "Geometry.h"
 #include "TetrahedronMeshBuffer.h"
@@ -80,7 +81,11 @@ public:
 			view->controller = this;
 		}
 
+		// called in initializeGL()
 		virtual int initialize_model_view_data() = 0;
+		// callled in paintGL()
+		virtual int before_render() { return 0; }
+		virtual int after_render() { return 0; }
 	};
 
 protected:
@@ -234,6 +239,14 @@ public:
 	{
 		return point_buf.init(points, point_num, point_size, points_color);
 	}
+
+public: // whether window is fully loaded
+	inline bool is_fully_loaded() { return win_is_fully_loaded; }
+private:
+	bool win_is_fully_loaded;
+	QTimer init_timer;
+protected slots:
+	void init_timer_func();
 };
 
 #endif

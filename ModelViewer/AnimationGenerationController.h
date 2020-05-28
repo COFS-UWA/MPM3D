@@ -20,26 +20,34 @@ class AnimationGenerationController : public QObject,
 protected:
 	QTimer ani_timer;
 
+	// set by set_ani_time()
 	double ani_time; // in ms
 	
 	// cal by initialize()
-	size_t frame_num;
 	double md_time;
+	size_t frame_num;
 	
+	bool has_next_frame;
 	// cal by find_next_frame()
-	// current frame index
-	size_t cur_frame_id;
-	double md_delay;
-	// delay time between current frame and next frame
+	size_t next_frame_id;
+	// time interval between current and next frame
 	double ani_delay;
+	double md_delay;
 
 	double ani_div_md;
-	// minimum time interval between each frame of animation
+	// minimum time interval between each frame
 	double min_ani_delay;
 	double min_md_delay;
 
+	size_t cur_frame_id;
 	double cur_ani_time;
 	double cur_md_time;
+	double next_ani_time;
+	double next_md_time;
+
+	std::chrono::system_clock::time_point prev_frame_time;
+
+	bool animation_completed;
 
 	ResultFile_hdf5 *res_file;
 	hid_t th_id;
@@ -55,10 +63,12 @@ protected:
 	hid_t pcl_fld_type;
 
 	std::string gif_name;
+	bool gif_is_init;
+	unsigned short int ani_delay_100;
 	GifCreator::GifWriter gif_file;
 	size_t view_width, view_height;
-	unsigned char *pixels_data;
-	unsigned short int ani_delay_100;
+	QPixmap screen_pixels;
+	QImage screen_img;
 
 public:
 	AnimationGenerationController(MPM3DModelView &v);
@@ -67,15 +77,20 @@ public:
 
 	inline void set_ani_time(double _ani_time) { ani_time = _ani_time * 1000.0; }
 	int set_res_file(ResultFile_hdf5& rf, const char* th_na, const char* field_na);
-
-	int start();
-
-protected slots:
-	void next_frame();
+	inline void set_gif_name(const char* gif_na) { gif_name = gif_na; }
 
 protected:
 	int initialize_model_view_data() override;
+	int before_render() override;
+	int after_render() override;
 
+signals:
+	void render_finished();
+
+protected slots:
+	void prepare_next_frame();
+
+protected: // user defined behaviour
 	// update frame_num, cur_md_time and md_time
 	// display the the first frame scene
 	virtual int initialize();
@@ -87,9 +102,6 @@ protected:
 
 	// update each frame
 	virtual int render();
-
-	// complete animation
-	virtual void complete();
 };
 
 #endif

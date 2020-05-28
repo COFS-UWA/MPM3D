@@ -220,7 +220,8 @@ public:
 			pcl_fld = double(*(FieldType *)(pcl_data + fld_off));
 			VertData& v = verts[pcl_id];
 			v.init((GLfloat)pcl_x, (GLfloat)pcl_y, (GLfloat)pcl_z,
-				   (GLfloat)pcl_vol, v2c.get_color(pcl_fld));
+				   (GLfloat)pcl_vol * vol_scale,
+				   pv2c->get_color(pcl_fld));
 			ElemData& e = elems[pcl_id];
 			e.offset(cur_id_off);
 			cur_id_off += 8;
@@ -251,7 +252,8 @@ public:
 			pcl_fld = double(*(FieldType *)(pcl_data + fld_off));
 			VertData& v = verts[pcl_id];
 			v.init((GLfloat)pcl_x, (GLfloat)pcl_y, (GLfloat)pcl_z,
-				   (GLfloat)pcl_vol, v2c.get_color(pcl_fld));
+				   (GLfloat)pcl_vol * vol_scale,
+				   pv2c->get_color(pcl_fld));
 			ElemData& e = elems[pcl_id];
 			e.offset(cur_id_off);
 			cur_id_off += 8;
