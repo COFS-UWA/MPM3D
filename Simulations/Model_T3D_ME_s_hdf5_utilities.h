@@ -40,7 +40,7 @@ struct ParticleData
 		x = pcl.x;
 		y = pcl.y;
 		z = pcl.z;
-		vol = pcl.m / pcl.density;
+		vol = pcl.get_vol();
 		vx = pcl.vx;
 		vy = pcl.vy;
 		vz = pcl.vz;

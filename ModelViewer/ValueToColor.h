@@ -147,5 +147,4 @@ public:
 	// assume uniform color scale
 };
 
-
 #endif

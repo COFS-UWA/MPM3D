@@ -444,6 +444,8 @@ int load_boundary_condition_from_hdf5_file(
 	if (grp_id < 0)
 		return -1;
 
+	// to be finished...
+
 	return 0;
 }
 
@@ -605,10 +607,8 @@ int load_material_model_from_hdf5_file(
 	// linear elasticity
 	if (rf.has_dataset(mm_grp_id, "LinearElasticity"))
 	{
-		// mm_num
-		mm_dset_id = rf.open_dataset(mm_grp_id, "LinearElasticity");
-		rf.read_attribute(mm_dset_id, "mm_num", mm_num);
-		rf.close_dataset(mm_dset_id);
+		rf.read_attribute(mm_grp_id, "LinearElasticity_num", mm_num);
+
 		// get data
 		LinearElasticityStateData *mm_data = new LinearElasticityStateData[mm_num];
 		hid_t le_dt_id = get_le_hdf5_dt_id();
@@ -626,8 +626,7 @@ int load_material_model_from_hdf5_file(
 			LinearElasticityStateData &mmd = mm_data[mm_id];
 			MatModel::LinearElasticity &mm = mms[mm_id];
 			mmd.to_mm(mm);
-			mm.ext_data = &md.pcls[mmd.pcl_id];
-			md.pcls[mmd.pcl_id].mm = &mm;
+			md.pcls[mmd.pcl_id].set_mat_model(mm);
 		}
 		delete[] mm_data;
 	}
@@ -635,10 +634,8 @@ int load_material_model_from_hdf5_file(
 	// modified cam clay
 	if (rf.has_dataset(mm_grp_id, "ModifiedCamClay"))
 	{
-		// mm_num
-		mm_dset_id = rf.open_dataset(mm_grp_id, "ModifiedCamClay");
-		rf.read_attribute(mm_dset_id, "mm_num", mm_num);
-		rf.close_dataset(mm_dset_id);
+		rf.read_attribute(mm_grp_id, "ModifiedCamClay_num", mm_num);
+		
 		// get data
 		ModifiedCamClayStateData *mm_data = new ModifiedCamClayStateData[mm_num];
 		hid_t mcc_dt_id = get_mcc_hdf5_dt_id();
@@ -709,7 +706,8 @@ int load_model_from_hdf5_file(
 	ResultFile_hdf5 rf;
 	rf.open(hdf5_name);
 	hid_t file_id = rf.get_file_id();
-	if (file_id < 0) return -1;
+	if (file_id < 0)
+		return -1;
 
 	// model data
 	hid_t md_grp_id = rf.get_model_data_grp_id();

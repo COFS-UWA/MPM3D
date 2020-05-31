@@ -47,8 +47,8 @@ void AnimationGenerationController::close()
 
 int AnimationGenerationController::set_res_file(
 	ResultFile_hdf5& rf,
-	const char* th_na,
-	const char* field_na
+	const char *th_na,
+	const char *field_na
 	)
 {
 	close();

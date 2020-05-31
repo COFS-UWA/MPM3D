@@ -177,11 +177,11 @@ public:
 		for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 		{
 			Particle &pcl = pcls[pcl_id];
-			pcl.cal_vol();
+			GLfloat pcl_vol = GLfloat(pcl.get_vol());
 
 			VertData &v = verts[pcl_id];
 			v.init((GLfloat)pcl.x, (GLfloat)pcl.y, (GLfloat)pcl.z,
-				   (GLfloat)pcl.vol * vol_scale);
+				   pcl_vol * vol_scale);
 			
 			ElemData &e = elems[pcl_id];
 			e.offset(cur_id_off);

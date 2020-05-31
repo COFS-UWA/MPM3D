@@ -47,7 +47,7 @@ struct ParticleData
 		x = pcl.x;
 		y = pcl.y;
 		z = pcl.z;
-		vol = pcl.m_s / (pcl.density_s * (1.0-pcl.n));
+		vol = pcl.get_vol();
 		vx_s = pcl.vx_s;
 		vy_s = pcl.vy_s;
 		vz_s = pcl.vz_s;
@@ -134,16 +134,26 @@ inline hid_t get_pcl_dt_id(void)
 	return res;
 }
 
-int output_model_data_to_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf);
-int load_model_data_from_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf);
+int output_background_mesh_to_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_background_mesh_from_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int output_pcl_data_to_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf, hid_t frame_id /* frame id */);
-int load_pcl_data_from_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf, hid_t frame_id /* frame id */);
+int output_boundary_condition_to_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_boundary_condition_from_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int output_material_model_to_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf, hid_t frame_id /* frame id */);
-int load_material_model_from_hdf5_file(Model_T3D_CHM_s &md, ResultFile_hdf5 &rf, hid_t frame_id /* frame id */);
+int output_pcl_data_to_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_pcl_data_from_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int load_model_from_hdf5_file(Model_T3D_CHM_s &md, const char *hdf5_name, const char *th_name, size_t frame_id);
+int output_material_model_to_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_material_model_from_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+
+// output the whole model to ModelData
+int output_model_to_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf);
+
+// output the particle data and material models to hdf5 (used by time history)
+int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_s& md, ResultFile_hdf5& rf, hid_t frame_grp_id);
+
+// load model data from hdf5 to model data
+int load_model_from_hdf5_file(Model_T3D_CHM_s& md, const char* hdf5_name, const char* th_name, size_t frame_id);
 };
 
 #endif

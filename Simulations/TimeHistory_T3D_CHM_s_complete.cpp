@@ -1,13 +1,13 @@
 #include "Simulations_pcp.h"
 
-#include "Model_T3D_ME_s.h"
-#include "Step_T3D_ME_s.h"
+#include "Model_T3D_CHM_s.h"
+#include "Step_T3D_CHM_s.h"
 
-#include "Model_T3D_ME_s_hdf5_utilities.h"
+#include "Model_T3D_CHM_s_hdf5_utilities.h"
 
-#include "TimeHistory_T3D_ME_s_complete.h"
+#include "TimeHistory_T3D_CHM_s_complete.h"
 
-int TimeHistory_T3D_ME_s_complete::init()
+int TimeHistory_T3D_CHM_s_complete::init()
 {
 	if (is_init) return 0;
 	
@@ -31,7 +31,7 @@ int TimeHistory_T3D_ME_s_complete::init()
 	return 0;
 }
 
-void TimeHistory_T3D_ME_s_complete::close()
+void TimeHistory_T3D_CHM_s_complete::close()
 {
 	const char *res_file_type = res_file->get_type();
 	if (!strcmp(res_file_type, "ResultFile_XML"))
@@ -51,9 +51,9 @@ void TimeHistory_T3D_ME_s_complete::close()
 	is_init = false;
 }
 
-int time_history_output_func_t3d_me_s_complete_to_xml_res_file(TimeHistory &_self)
+int time_history_output_func_t3d_chm_s_complete_to_xml_res_file(TimeHistory &_self)
 {
-	TimeHistory_T3D_ME_s_complete &th = static_cast<TimeHistory_T3D_ME_s_complete &>(_self);
+	TimeHistory_T3D_CHM_s_complete &th = static_cast<TimeHistory_T3D_CHM_s_complete &>(_self);
 	ResultFile_XML &rf = static_cast<ResultFile_XML &>(th.get_res_file());
 	std::fstream &file = rf.get_file();
 
@@ -61,7 +61,7 @@ int time_history_output_func_t3d_me_s_complete_to_xml_res_file(TimeHistory &_sel
 #define str_buffer_len (sizeof(str_buffer) / sizeof(str_buffer[0]))
 
 	// time history
-	Step_T3D_ME_s &step = static_cast<Step_T3D_ME_s &>(th.get_step());
+	Step_T3D_CHM_s &step = static_cast<Step_T3D_CHM_s &>(th.get_step());
 	const char *time_history_info = ""
 		"<TimeHistory>\n"
 		"    <substep_index> %zu </substep_index>\n"
@@ -74,7 +74,7 @@ int time_history_output_func_t3d_me_s_complete_to_xml_res_file(TimeHistory &_sel
 	file.write(str_buffer, strlen(str_buffer));
 
 	// output material points data
-	Model_T3D_ME_s &model = static_cast<Model_T3D_ME_s &>(th.get_model());
+	Model_T3D_CHM_s &model = static_cast<Model_T3D_CHM_s &>(th.get_model());
 	const char *material_point_info = ""
 		"    <MaterialPoints num=%zu>\n";
 	snprintf(str_buffer, str_buffer_len, material_point_info, model.pcl_num);
@@ -85,7 +85,7 @@ int time_history_output_func_t3d_me_s_complete_to_xml_res_file(TimeHistory &_sel
 	const char *field_data_format = "        %16.10e, %16.10e, %16.10e, %16.10e, %16.10e, %16.10e, %16.10e, %16.10e, %16.10e, %16.10e\n";
 	for (size_t pcl_id = 0; pcl_id < model.pcl_num; ++pcl_id)
 	{
-		Model_T3D_ME_s::Particle &pcl = model.pcls[pcl_id];
+		Model_T3D_CHM_s::Particle &pcl = model.pcls[pcl_id];
 		snprintf(str_buffer, str_buffer_len, field_data_format,
 				 pcl.x, pcl.y, pcl.z, pcl.get_vol(),
 				 pcl.s11, pcl.s22, pcl.s33, pcl.s12, pcl.s23, pcl.s31);
@@ -99,11 +99,11 @@ int time_history_output_func_t3d_me_s_complete_to_xml_res_file(TimeHistory &_sel
 	return 0;
 }
 
-int time_history_output_func_t3d_me_s_complete_to_hdf5_res_file(TimeHistory &_self)
+int time_history_output_func_t3d_chm_s_complete_to_hdf5_res_file(TimeHistory &_self)
 {
-	TimeHistory_T3D_ME_s_complete &th = static_cast<TimeHistory_T3D_ME_s_complete &>(_self);
-	Step_T3D_ME_s &step = static_cast<Step_T3D_ME_s &>(th.get_step());
-	Model_T3D_ME_s &md = static_cast<Model_T3D_ME_s &>(step.get_model());
+	TimeHistory_T3D_CHM_s_complete &th = static_cast<TimeHistory_T3D_CHM_s_complete &>(_self);
+	Step_T3D_CHM_s &step = static_cast<Step_T3D_CHM_s &>(th.get_step());
+	Model_T3D_CHM_s &md = static_cast<Model_T3D_CHM_s &>(step.get_model());
 	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(th.get_res_file());
 
 	char frame_name[30];
@@ -115,7 +115,7 @@ int time_history_output_func_t3d_me_s_complete_to_hdf5_res_file(TimeHistory &_se
 	rf.write_attribute(frame_grp_id, "current_time", step.get_current_time());
 	rf.write_attribute(frame_grp_id, "total_time", step.get_total_time());
 	
-	using Model_T3D_ME_s_hdf5_utilities::time_history_complete_output_to_hdf5_file;
+	using Model_T3D_CHM_s_hdf5_utilities::time_history_complete_output_to_hdf5_file;
 	time_history_complete_output_to_hdf5_file(md, rf, frame_grp_id);
 	
 	rf.close_group(frame_grp_id);

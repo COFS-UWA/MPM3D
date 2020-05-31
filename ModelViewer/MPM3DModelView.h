@@ -13,8 +13,6 @@
 #include "MultiColorParticleBuffer.h"
 #include "PointBuffer.h"
 
-class TimeHistory_ModelView;
-
 class MPM3DModelView : public QOpenGLWidget,
 	public QOpenGLFunctions_3_3_Core
 {
@@ -57,10 +55,6 @@ protected:
 	PointBuffer point_buf;
 	bool need_to_paint_point_buf;
 
-	// model view timehistory
-	friend TimeHistory_ModelView;
-	TimeHistory_ModelView *th_mv;
-
 public:
 	// Controller of this window behavior
 	class Controller
@@ -69,13 +63,13 @@ public:
 		MPM3DModelView *view;
 
 	public:
-		Controller(MPM3DModelView& v) : view(&v)
+		Controller(MPM3DModelView &v) : view(&v)
 		{
 			view->controller = this;
 		}
 		virtual ~Controller() {}
 
-		inline void set_view(MPM3DModelView& v)
+		inline void set_view(MPM3DModelView &v)
 		{
 			view = &v;
 			view->controller = this;
@@ -98,11 +92,13 @@ public:
 	void paintGL();
 	void resizeGL(int width, int height);
 
+	inline ValueToColor &get_color_scale() { return color_scale; }
+	
 	inline void set_display_bg_mesh(bool op = true) { need_to_paint_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { need_to_paint_pcl_buf = op; }
 	inline void set_display_points(bool op = true) { need_to_paint_point_buf = op; }
 
-	inline void set_view_dir(QVector3D& _view_dir) { view_dir = _view_dir; }
+	inline void set_view_dir(QVector3D &_view_dir) { view_dir = _view_dir; }
 	inline void set_view_dir(float x, float y, float z)
 	{
 		view_dir.setX(x);
@@ -123,10 +119,9 @@ public:
 	}
 	inline void set_view_dist_scale(float scale) { view_dist_scale = scale; }
 	
-	inline ValueToColor& get_color_scale() { return color_scale; }
-
+	// ==================== init model data buffer =================
 	template <typename TMesh>
-	inline int init_bg_mesh(TMesh &mesh, QVector3D&_color)
+	inline int init_bg_mesh(TMesh &mesh, QVector3D &_color)
 	{
 		// init mesh_range
 		Cube mh_bbox = mesh.get_bounding_box();
@@ -241,11 +236,12 @@ public:
 	}
 
 public: // whether window is fully loaded
+	// display model and take screenshot after window is fully loaded
 	inline bool is_fully_loaded() { return win_is_fully_loaded; }
 private:
 	bool win_is_fully_loaded;
 	QTimer init_timer;
-protected slots:
+private slots:
 	void init_timer_func();
 };
 

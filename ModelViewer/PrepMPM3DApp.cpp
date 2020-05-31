@@ -31,24 +31,20 @@ MainWindow::~MainWindow() {}
 
 };
 
-PrepMPM3DApp::PrepMPM3DApp(int &argc, char* argv[]) :
-	app(argc, argv), main_win(new PreMPM3DApp_Internal::MainWindow) {}
+PrepMPM3DApp::PrepMPM3DApp(int &argc, char **argv) :
+	app(argc, argv),
+	main_win(new PreMPM3DApp_Internal::MainWindow),
+	view_controller(nullptr) {}
 
 PrepMPM3DApp::~PrepMPM3DApp()
 {
 	delete main_win;
-}
 
-void PrepMPM3DApp::set_view_dir_and_scale(float x, float y, float z, float dist_sc)
-{
-	main_win->model_view->set_view_dir(x, y, z);
-	main_win->model_view->set_view_dist_scale(dist_sc);
-}
-
-void PrepMPM3DApp::set_view_dir_and_scale(float theta, float fai, float dist_sc)
-{
-	main_win->model_view->set_view_dir(theta, fai);
-	main_win->model_view->set_view_dist_scale(dist_sc);
+	if (view_controller)
+	{
+		delete view_controller;
+		view_controller = nullptr;
+	}
 }
 
 int PrepMPM3DApp::start()

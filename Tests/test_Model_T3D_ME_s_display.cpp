@@ -2,11 +2,10 @@
 
 #include "Model_T3D_ME_s.h"
 #include "PrepMPM3DApp.h"
-#include "TimeHistory_ModelView_T3D_ME_s.h"
 
 #include "test_simulations.h"
 
-void test_Model_T3D_ME_s_display(int argc, char* argv[])
+void test_Model_T3D_ME_s_display(int argc, char **argv)
 {
 	Model_T3D_ME_s model;
 
@@ -52,8 +51,6 @@ void test_Model_T3D_ME_s_display(int argc, char* argv[])
 
 	PrepMPM3DApp view_app(argc, argv);
 	view_app.set_view_dir(-1.0f, -2.0f, -1.0f);
-
-	TimeHistory_ModelView_T3D_ME_s th_mv(model, view_app);
-
+	view_app.set_model(model);
 	view_app.start();
 }

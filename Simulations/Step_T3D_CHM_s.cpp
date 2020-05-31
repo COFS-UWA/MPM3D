@@ -11,7 +11,7 @@ Step_T3D_CHM_s::Step_T3D_CHM_s(const char *_name) :
 
 Step_T3D_CHM_s::~Step_T3D_CHM_s() {}
 
-int Step_T3D_CHM_s::init_calculation(void)
+int Step_T3D_CHM_s::init_calculation()
 {
 	Model_T3D_CHM_s &md = *model;
 
@@ -36,7 +36,7 @@ int Step_T3D_CHM_s::init_calculation(void)
 	return 0;
 }
 
-int Step_T3D_CHM_s::finalize_calculation(void) { return 0; }
+int Step_T3D_CHM_s::finalize_calculation() { return 0; }
 
 int solve_substep_T3D_CHM_s(void *_self)
 {

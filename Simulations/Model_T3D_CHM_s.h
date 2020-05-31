@@ -81,7 +81,7 @@ namespace Model_T3D_CHM_s_Internal
 			mm = &_mm;
 		}
 
-		inline void cal_vol() { vol = m_s / (density_s * (1.0 - n)); }
+		inline double get_vol() { return m_s / (density_s * (1.0 - n)); }
 	};
 
 	struct Element
@@ -193,7 +193,7 @@ public:
 				   double _Kf, double _k, double _miu);
 	void alloc_pcls(size_t num);
 	void clear_pcls();
-
+	
 	INIT_BC_TEMPLATE(bfx, BodyForceAtPcl)
 	INIT_BC_TEMPLATE(bfy, BodyForceAtPcl)
 	INIT_BC_TEMPLATE(bfz, BodyForceAtPcl)

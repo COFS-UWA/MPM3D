@@ -58,7 +58,7 @@ namespace Model_T3D_ME_s_Internal
 			mm = &_mm;
 		}
 
-		inline void cal_vol() { vol = m / density; }
+		inline double get_vol() { return m / density; }
 	};
 
 	struct Element

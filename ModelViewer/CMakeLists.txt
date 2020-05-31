@@ -13,6 +13,7 @@ add_library(
     # utils
     hdf5_utils.h hdf5_utils.cpp
     # 3D MPM model display
+    MPM3DModelView.h MPM3DModelView.cpp
     # Mesh gl buffer
     TetrahedronMeshBuffer.h TetrahedronMeshBuffer.cpp
     # Particle gl buffer
@@ -20,17 +21,21 @@ add_library(
     MonoColorParticleBuffer.h MonoColorParticleBuffer.cpp
     MultiColorCubeParticleSystem.h ValueToColor.h
     MultiColorParticleBuffer.h MultiColorParticleBuffer.cpp
+    # Particle gl buffer with Phong model
+    PhongCubeParticleSystem.h
+    PhongParticleBuffer.h PhongParticleBuffer.cpp
     # Point gl buffer
     PointBuffer.h PointBuffer.cpp
-    MPM3DModelView.h MPM3DModelView.cpp
+    # Preprocess single frame controller
+    PrepSingleFrameControllerBase.h
+    PrepSingleFrameControllerTemplate.hpp
+    # Preprocess window
     PrepMPM3DApp.h PrepMPM3DApp.cpp
-    TimeHistory_ModelView.h TimeHistory_ModelView.cpp
-    # Helper of MPM3DModelView: input data to ModelView
-    TimeHistory_ModelView_T3D_ME_s.h TimeHistory_ModelView_T3D_ME_s.cpp
-    # Single frame
+    # Post-process single frame controller
     PospSingleFrameController.h PospSingleFrameController.cpp
-    # Animation
+    # Animation controller
     AnimationGenerationController.h AnimationGenerationController.cpp
+    # Post-process window
     PospMPM3DApp.h PospMPM3DApp.cpp
     )
 

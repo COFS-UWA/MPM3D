@@ -1,6 +1,5 @@
 #include "ModelViewer_pcp.h"
 
-#include "TimeHistory_ModelView.h"
 #include "MPM3DModelView.h"
 
 MPM3DModelView::MPM3DModelView(QWidget *parent) :
@@ -47,7 +46,6 @@ void MPM3DModelView::initializeGL()
 		);
 	shader_multicolor.link();
 
-	//th_mv->initialize_model_view_data();
 	// need to init bounding circle
 	controller->initialize_model_view_data();
 

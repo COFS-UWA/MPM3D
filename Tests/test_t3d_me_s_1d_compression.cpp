@@ -14,7 +14,6 @@
 #include "TimeHistory_T3D_ME_s_complete.h"
 
 #include "PrepMPM3DApp.h"
-#include "TimeHistory_ModelView_T3D_ME_s.h"
 
 #include "utils.h"
 
@@ -27,16 +26,15 @@ void display_model(int argc, char** argv,
 {
 	PrepMPM3DApp view_app(argc, argv);
 	view_app.set_view_dir(theta, fai);
-	TimeHistory_ModelView_T3D_ME_s th_mv(model, view_app);
+	view_app.set_model(model);
 	if (ptlist.get_num())
-		th_mv.set_points(ptlist.get_mem(), ptlist.get_num());
-	//view_app.set_display_pcls(false);
+		view_app.set_points(ptlist.get_mem(), ptlist.get_num());
 	view_app.start();
 }
 
 }
 
-void test_t3d_me_s_1d_compression(int argc, char* argv[])
+void test_t3d_me_s_1d_compression(int argc, char **argv)
 {
 	Model_T3D_ME_s model;
 	model.load_mesh_from_hdf5("..\\..\\Asset\\bar_mesh1.h5");
@@ -109,11 +107,11 @@ void test_t3d_me_s_1d_compression(int argc, char* argv[])
 
 	MemoryUtils::ItemArray<Point3D> ptlist(50);
 	//init_vx_bcs_display(model, ptlist);
-	//init_vy_bcs_display(model, ptlist);
+	init_vy_bcs_display(model, ptlist);
 	//init_vz_bcs_display(model, ptlist);
 	//init_tz_bcs_display(model, ptlist);
-	//display_model(argc, argv, 0.0f, 45.0f, model, ptlist);
-	//return;
+	display_model(argc, argv, 0.0f, 45.0f, model, ptlist);
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_s_1d_compression.h5");
