@@ -26,6 +26,7 @@ void display_model(int argc, char** argv,
 {
 	PrepMPM3DApp view_app(argc, argv);
 	view_app.set_view_dir(theta, fai);
+	view_app.set_light_dir(60.0, 20.0);
 	view_app.set_model(model);
 	if (ptlist.get_num())
 		view_app.set_points(ptlist.get_mem(), ptlist.get_num());
@@ -110,7 +111,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	init_vy_bcs_display(model, ptlist);
 	//init_vz_bcs_display(model, ptlist);
 	//init_tz_bcs_display(model, ptlist);
-	display_model(argc, argv, 0.0f, 45.0f, model, ptlist);
+	display_model(argc, argv, 45.0, 10.0, model, ptlist);
 	return;
 
 	ResultFile_hdf5 res_file_hdf5;

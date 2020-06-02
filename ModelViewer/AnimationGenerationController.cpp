@@ -368,7 +368,7 @@ int AnimationGenerationController::render()
 	rf.close_group(frame_id);
 	// write pcl data to view, support field data of different type
 	//if (data_type == H5T_NATIVE_DOUBLE)
-	view->update_multicolor_pcl_data<double>(pcls_data);
+	view->update_multicolor_pcl_data<double>(pcls_data, view->get_color_scale());
 	delete[] pcls_data;
 
 	return 0;

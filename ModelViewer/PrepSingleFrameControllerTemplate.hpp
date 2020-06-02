@@ -31,7 +31,10 @@ protected:
 				return res;
 
 			// particle data
-			QVector3D orange(0.8235f, 0.5137f, 0.0314f);
+			//QVector3D orange(0.8235f, 0.5137f, 0.0314f);
+			//if ((res = view->init_monocolor_pcl_data<Particle>(model->get_pcls(), model->get_pcl_num(), orange)) != 0)
+			//	return res;
+			ValueToColor::Colorf orange(0.8235f, 0.5137f, 0.0314f);
 			if ((res = view->init_monocolor_pcl_data<Particle>(model->get_pcls(), model->get_pcl_num(), orange)) != 0)
 				return res;
 		}

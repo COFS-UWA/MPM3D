@@ -10,7 +10,7 @@ add_executable(
     # entry
     Tests_main.cpp
     # header
-    utils.h # commonly used functions
+    utils.h utils.cpp
     test_utilities.h
     test_geometry.h
     test_material_models.h

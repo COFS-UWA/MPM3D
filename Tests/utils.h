@@ -3,6 +3,7 @@
 
 #include "ItemArray.hpp"
 #include "Geometry.h"
+#include "ValueToColor.h"
 
 typedef MemoryUtils::ItemArray<size_t> IndexArray;
 typedef MemoryUtils::ItemArray<Point3D> Point3DArray;
@@ -160,5 +161,17 @@ void init_tz_bcs_display(Model& md, Point3DArray& ptlist)
 		ptlist.add(pt);
 	}
 }
+
+// color scale from abaqus
+struct ColorScaleExamples
+{
+protected:
+	static ValueToColor::Colori abaqus_color_scale[];
+	static size_t abaqus_color_scale_num;
+
+public:
+	static ValueToColor::Colori* get_color_scale() { return abaqus_color_scale; }
+	static size_t get_color_num() { return abaqus_color_scale_num; }
+};
 
 #endif

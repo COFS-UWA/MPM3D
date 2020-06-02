@@ -156,10 +156,11 @@ int PospSingleFrameController::initialize_model_view_data()
 	// support field data of different type
 	//if (data_type == H5T_NATIVE_DOUBLE)
 	view->init_multicolor_pcl_data<double>(
-		pcls_data, pcl_size, pcl_num,
-		pcl_x_off, pcl_y_off, pcl_z_off,
-		pcl_vol_off, 0.125,
-		pcl_fld_off, view->get_color_scale());
+			pcls_data, pcl_size, pcl_num,
+			pcl_x_off, pcl_y_off, pcl_z_off,
+			pcl_vol_off, 0.125,
+			pcl_fld_off, view->get_color_scale());
 	delete[] pcls_data;
+
 	return 0;
 }

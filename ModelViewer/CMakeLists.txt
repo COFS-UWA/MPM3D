@@ -10,19 +10,16 @@ add_library(
     ModelViewer STATIC
     # Precomplied header
     ModelViewer_pcp.h ModelViewer_pcp.cpp
-    # utils
-    hdf5_utils.h hdf5_utils.cpp
     # 3D MPM model display
     MPM3DModelView.h MPM3DModelView.cpp
     # Mesh gl buffer
     TetrahedronMeshBuffer.h TetrahedronMeshBuffer.cpp
-    # Particle gl buffer
+    # Particle gl buffer - unicolor
     MonoColorCubeParticleSystem.h
     MonoColorParticleBuffer.h MonoColorParticleBuffer.cpp
-    MultiColorCubeParticleSystem.h ValueToColor.h
-    MultiColorParticleBuffer.h MultiColorParticleBuffer.cpp
     # Particle gl buffer with Phong model
-    PhongCubeParticleSystem.h
+    ValueToColor.h
+    PhongCubeParticleSystem.h PhongCubeParticleSystem.cpp
     PhongParticleBuffer.h PhongParticleBuffer.cpp
     # Point gl buffer
     PointBuffer.h PointBuffer.cpp
