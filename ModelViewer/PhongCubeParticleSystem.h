@@ -4,6 +4,7 @@
 #include <QOpenGLWidget> // for opengl type
 
 #include "ItemArray.hpp"
+#include "Geometry.h"
 #include "ValueToColor.h"
 
 // particle system rendered with the Phong model
@@ -478,6 +479,9 @@ public:
 
 		return 0;
 	}
+
+	int init_points(Point3D* pcls, size_t pcl_num,
+		float pcl_vol, Color& color);
 };
 
 #endif

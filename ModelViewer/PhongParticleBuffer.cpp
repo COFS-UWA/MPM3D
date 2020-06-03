@@ -137,3 +137,26 @@ int PhongParticleBuffer::update_data(char* pcls_data, Color& color)
 
 	return 0;
 }
+
+int PhongParticleBuffer::init_points(
+	Point3D* pcls,
+	size_t pcl_num,
+	float pcl_vol,
+	Color& color
+	)
+{
+	clear();
+	if (!pcls || pcl_num == 0)
+		return -1;
+
+	pcl_sys.init_points(pcls, pcl_num, pcl_vol, color);
+
+	create_buffer(
+		pcl_sys.get_vert_data(),
+		pcl_sys.get_vert_data_size(),
+		pcl_sys.get_elem_data(),
+		pcl_sys.get_elem_data_size()
+	);
+
+	return 0;
+}

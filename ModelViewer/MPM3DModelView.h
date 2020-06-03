@@ -10,10 +10,12 @@
 #include "TetrahedronMeshBuffer.h"
 
 #include "MonoColorParticleBuffer.h"
+
 #include "ValueToColor.h"
+#include "BallParticleBuffer.h"
 #include "PhongParticleBuffer.h"
 
-#include "PointBuffer.h"
+//#include "PointBuffer.h"
 
 class MPM3DModelView : public QOpenGLWidget,
 	public QOpenGLFunctions_3_3_Core
@@ -59,6 +61,7 @@ protected:
 	// shader
 	QOpenGLShaderProgram shader_unicolor;
 	QOpenGLShaderProgram shader_phong;
+	QOpenGLShaderProgram shader_ball;
 
 	// background mesh
 	bool need_to_paint_bg_mesh;
@@ -68,10 +71,17 @@ protected:
 	bool need_to_paint_pcl_buf;
 	ValueToColor color_scale;
 	PhongParticleBuffer phong_pcl_buf;
+	BallParticleBuffer ball_pcl_buf;
+	enum PclShape
+	{
+		InvalidShape = -1,
+		CubeShape = 0,
+		BallShape = 1
+	} pcl_shape;
 
 	// point data
 	bool need_to_paint_point_buf;
-	PointBuffer point_buf;
+	PhongParticleBuffer point_buf;
 
 public:
 	// Controller of this window behavior
@@ -241,6 +251,7 @@ public:
 		Colorf& pcl_color
 		)
 	{
+		pcl_shape = CubeShape;
 		return phong_pcl_buf.init_data<Particle>(
 			pcls, pcl_num, 0.125, pcl_color);
 	}
@@ -264,6 +275,7 @@ public:
 		size_t fld_off, ValueToColor& color_scale
 	)
 	{
+		pcl_shape = CubeShape;
 		return phong_pcl_buf.init_data<FieldType>(
 					pcls_data, pcl_size, pcl_num,
 					x_off, y_off, z_off,
@@ -277,11 +289,12 @@ public:
 		return phong_pcl_buf.update_data<FieldType>(pcls, color_scale);
 	}
 
-	// point data
-	inline int init_point_data(Point3D* points, size_t point_num,
-		GLfloat point_size,	QVector3D& points_color)
+	// points data
+	inline int init_points(Point3D* points, size_t point_num,
+						   GLfloat point_vol, Colorf &point_color)
 	{
-		return point_buf.init(points, point_num, point_size, points_color);
+		need_to_paint_point_buf = true;
+		return point_buf.init_points(points, point_num, point_vol, point_color);
 	}
 
 public: // whether window is fully loaded

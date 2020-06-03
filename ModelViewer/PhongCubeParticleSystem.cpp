@@ -73,3 +73,32 @@ int PhongCubeParticleSystem::update_data(
 	}
 	return 0;
 }
+
+int PhongCubeParticleSystem::init_points(
+	Point3D* pcls, size_t pcl_num,
+	float pcl_vol, Color& color)
+{
+	vert_data_size = pcl_num * sizeof(VertData);
+	vert_data.reserve(pcl_num);
+	VertData* verts = vert_data.get_mem();
+
+	elem_data_size = pcl_num * sizeof(ElemData);
+	elem_data.reserve(pcl_num);
+	ElemData* elems = elem_data.get_mem();
+
+	size_t cur_id_off = 0;
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		Point3D& pt = pcls[pcl_id];
+		
+		VertData& v = verts[pcl_id];
+		v.init((GLfloat)pt.x, (GLfloat)pt.y, (GLfloat)pt.z,
+			   (GLfloat)pcl_vol, color);
+		
+		ElemData& e = elems[pcl_id];
+		e.offset(cur_id_off);
+		cur_id_off += 24;
+	}
+	
+	return 0;
+}

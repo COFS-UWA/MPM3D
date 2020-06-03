@@ -21,8 +21,9 @@ add_library(
     ValueToColor.h
     PhongCubeParticleSystem.h PhongCubeParticleSystem.cpp
     PhongParticleBuffer.h PhongParticleBuffer.cpp
-    # Point gl buffer
-    PointBuffer.h PointBuffer.cpp
+    # Particle as balls
+    ball_mesh_data.h
+    BallParticleBuffer.h BallParticleBuffer.cpp
     # Preprocess single frame controller
     PrepSingleFrameControllerBase.h
     PrepSingleFrameControllerTemplate.hpp

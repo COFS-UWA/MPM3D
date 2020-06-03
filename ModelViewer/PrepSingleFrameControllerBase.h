@@ -14,6 +14,7 @@ class PrepSingleFrameControllerBase : public QObject,
 protected:
 	Point3D *points;
 	size_t point_num;
+	float point_vol;
 
 public:
 	PrepSingleFrameControllerBase(MPM3DModelView& v) :
@@ -22,7 +23,12 @@ public:
 	~PrepSingleFrameControllerBase() { close(); }
 	void close() {}
 
-	inline void set_points(Point3D *pts, size_t pt_num) { points = pts, point_num = pt_num; }
+	inline void set_points(Point3D* pts, size_t pt_num, float pt_vol)
+	{
+		points = pts;
+		point_num = pt_num;
+		point_vol = pt_vol;
+	}
 
 protected:
 	int initialize_model_view_data() override
@@ -30,8 +36,8 @@ protected:
 		int res;
 		if (points && point_num != 0)
 		{
-			QVector3D red(1.0f, 0.0f, 0.0f);
-			if ((res = view->init_point_data(points, point_num, 10.0f, red)) != 0)
+			ValueToColor::Colorf red(1.0f, 0.0f, 0.0f);
+			if ((res = view->init_points(points, point_num, point_vol, red)) != 0)
 				return res;
 		}
 		return 0;

@@ -21,15 +21,15 @@ namespace
 {
 
 void display_model(int argc, char** argv,
-	float theta, float fai,
-	Model_T3D_ME_s &model, Point3DArray &ptlist)
+	float theta, float fai, float lt_theta, float lt_fai, 
+	Model_T3D_ME_s &model, Point3DArray &ptlist, float pt_vol)
 {
 	PrepMPM3DApp view_app(argc, argv);
 	view_app.set_view_dir(theta, fai);
-	view_app.set_light_dir(60.0, 20.0);
+	view_app.set_light_dir(lt_theta, lt_fai);
 	view_app.set_model(model);
 	if (ptlist.get_num())
-		view_app.set_points(ptlist.get_mem(), ptlist.get_num());
+		view_app.set_points(ptlist.get_mem(), ptlist.get_num(), pt_vol);
 	view_app.start();
 }
 
@@ -111,7 +111,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	init_vy_bcs_display(model, ptlist);
 	//init_vz_bcs_display(model, ptlist);
 	//init_tz_bcs_display(model, ptlist);
-	display_model(argc, argv, 45.0, 10.0, model, ptlist);
+	display_model(argc, argv, 45.0, 10.0, 60.0, 20.0, model, ptlist, 1.0e-5);
 	return;
 
 	ResultFile_hdf5 res_file_hdf5;

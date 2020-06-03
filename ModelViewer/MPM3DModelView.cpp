@@ -16,8 +16,9 @@ MPM3DModelView::MPM3DModelView(QWidget *parent) :
 	light_dir(view_dir), light_dist_scale(2.0f),
 	// model data gl buffer
 	need_to_paint_bg_mesh(true), bg_mesh_buf(*this),
-	need_to_paint_pcl_buf(true), phong_pcl_buf(*this),
-	need_to_paint_point_buf(true), point_buf(*this),
+	need_to_paint_pcl_buf(true), pcl_shape(InvalidShape),
+	phong_pcl_buf(*this), ball_pcl_buf(*this),
+	need_to_paint_point_buf(false), point_buf(*this),
 	// whether window is fully loaded
 	win_is_fully_loaded(false)
 {
@@ -94,7 +95,7 @@ void MPM3DModelView::paintGL()
 	controller->before_render();
 
 	glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// draw bg mesh
 	if (need_to_paint_bg_mesh)
@@ -105,14 +106,25 @@ void MPM3DModelView::paintGL()
 
 	if (need_to_paint_pcl_buf)
 	{
-		shader_phong.bind();
-		phong_pcl_buf.draw();
+		switch (pcl_shape)
+		{
+		case CubeShape:
+			shader_phong.bind();
+			phong_pcl_buf.draw();
+			break;
+		case BallShape:
+			shader_ball.bind();
+			ball_pcl_buf.draw();
+			break;
+		default:
+			break;
+		}
 	}
 	
 	if (need_to_paint_point_buf)
 	{
-		shader_unicolor.bind();
-		point_buf.draw(shader_unicolor);
+		shader_phong.bind();
+		point_buf.draw();
 	}
 
 	controller->after_render();

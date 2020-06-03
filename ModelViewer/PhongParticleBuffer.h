@@ -39,6 +39,9 @@ public:
 				  size_t vol_off, float vol_scale, Color &color);
 	int update_data(char* pcls_data, Color& color);
 
+	int init_points(Point3D* pcls, size_t pcl_num,
+					float pcl_vol, Color& color);
+	
 	template <typename Particle>
 	int init_data(Particle *pcls, size_t pcl_num,
 				  float vol_scale, Color &color)

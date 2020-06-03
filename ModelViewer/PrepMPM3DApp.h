@@ -80,12 +80,12 @@ public:
 	}
 
 	// can only called after set_model(md)
-	inline void set_points(Point3D *points, size_t point_num)
+	inline void set_points(Point3D *points, size_t point_num, float point_vol)
 	{
 		PrepSingleFrameControllerBase &con
 			= *static_cast<PrepSingleFrameControllerBase *>(view_controller);
 		if (points && point_num != 0)
-			con.set_points(points, point_num);
+			con.set_points(points, point_num, point_vol);
 	}
 };
 
