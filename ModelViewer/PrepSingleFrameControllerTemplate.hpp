@@ -7,15 +7,21 @@ template <typename Model>
 class PrepSingleFrameControllerTemplate :
 	public PrepSingleFrameControllerBase
 {
+public:
+	typedef MPM3DModelView::PclShape PclShape;
+
 protected:
 	Model *model;
+	PclShape pcl_shape;
 
 public:
 	PrepSingleFrameControllerTemplate(MPM3DModelView& v) :
-		PrepSingleFrameControllerBase(v), model(nullptr) {}
+		PrepSingleFrameControllerBase(v),
+		model(nullptr), pcl_shape(PclShape::CubeShape) {}
 	~PrepSingleFrameControllerTemplate() { close(); }
 	void close() {}
 
+	inline void set_pcl_shape(PclShape shape) { pcl_shape = shape; }
 	inline void set_model(Model &md) { model = &md; }
 
 protected:
@@ -31,11 +37,14 @@ protected:
 				return res;
 
 			// particle data
-			//QVector3D orange(0.8235f, 0.5137f, 0.0314f);
-			//if ((res = view->init_monocolor_pcl_data<Particle>(model->get_pcls(), model->get_pcl_num(), orange)) != 0)
-			//	return res;
 			ValueToColor::Colorf orange(0.8235f, 0.5137f, 0.0314f);
-			if ((res = view->init_monocolor_pcl_data<Particle>(model->get_pcls(), model->get_pcl_num(), orange)) != 0)
+			res = view->init_monocolor_pcl_data<Particle>(
+				model->get_pcls(),
+				model->get_pcl_num(),
+				orange,
+				pcl_shape
+				);
+			if (res != 0)
 				return res;
 		}
 

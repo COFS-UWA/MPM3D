@@ -52,6 +52,6 @@ void test_Model_T3D_ME_s_display(int argc, char **argv)
 	PrepMPM3DApp view_app(argc, argv);
 	view_app.set_view_dir(45.0, 10.0);
 	view_app.set_light_dir(60.0, 20.0);
-	view_app.set_model(model);
+	view_app.set_model(model, MPM3DModelView::BallShape);
 	view_app.start();
 }

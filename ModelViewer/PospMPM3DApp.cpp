@@ -73,7 +73,8 @@ int PospMPM3DApp::set_res_file(
 	ResultFile_hdf5& rf,
 	const char* th_na,
 	size_t frame_id,
-	const char* field_na
+	const char* field_na,
+	MPM3DModelView::PclShape shape
 	)
 {
 	if (type != SingleFrame)
@@ -81,6 +82,7 @@ int PospMPM3DApp::set_res_file(
 
 	PospSingleFrameController& con =
 		*static_cast<PospSingleFrameController *>(view_controller);
+	con.set_pcl_type(shape);
 	return con.set_res_file(rf, th_na, frame_id, field_na);
 }
 
@@ -98,7 +100,8 @@ void PospMPM3DApp::set_ani_time(double ani_time)
 int PospMPM3DApp::set_res_file(
 	ResultFile_hdf5& rf, 
 	const char* th_na,
-	const char* field_na
+	const char* field_na,
+	MPM3DModelView::PclShape shape
 	)
 {
 	if (type != Animation)
@@ -106,6 +109,7 @@ int PospMPM3DApp::set_res_file(
 
 	AnimationGenerationController& con =
 		*static_cast<AnimationGenerationController*>(view_controller);
+	con.set_pcl_type(shape);
 	return con.set_res_file(rf, th_na, field_na);
 }
 

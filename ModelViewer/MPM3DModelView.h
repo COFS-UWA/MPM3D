@@ -24,6 +24,13 @@ class MPM3DModelView : public QOpenGLWidget,
 public:
 	typedef ValueToColor::Colori Colori;
 	typedef ValueToColor::Colorf Colorf;
+	
+	enum PclShape
+	{
+		InvalidShape = -1,
+		CubeShape = 0,
+		BallShape = 1
+	};
 
 protected:
 	// camera info
@@ -72,12 +79,7 @@ protected:
 	ValueToColor color_scale;
 	PhongParticleBuffer phong_pcl_buf;
 	BallParticleBuffer ball_pcl_buf;
-	enum PclShape
-	{
-		InvalidShape = -1,
-		CubeShape = 0,
-		BallShape = 1
-	} pcl_shape;
+	PclShape pcl_shape;
 
 	// point data
 	bool need_to_paint_point_buf;
@@ -242,51 +244,83 @@ public:
 		return bg_mesh_buf.init<Node, Element>(nodes, node_num, elems, elem_num, _color);
 	}
 
+	// color map
+	inline int init_color_scale(
+		double lower, double upper,
+		Colori* colors, size_t color_num,
+		bool out_of_bound_color = true
+	)
+	{
+		return color_scale.init(lower, upper,
+			colors, color_num, out_of_bound_color);
+	}
+	
 	// init particle data
 	// mono color version
 	template <typename Particle>
 	inline int init_monocolor_pcl_data(
 		Particle* pcls,
 		size_t pcl_num,
-		Colorf& pcl_color
+		Colorf& pcl_color,
+		PclShape _shape = CubeShape
 		)
 	{
-		pcl_shape = CubeShape;
-		return phong_pcl_buf.init_data<Particle>(
-			pcls, pcl_num, 0.125, pcl_color);
+		pcl_shape = _shape;
+		if (pcl_shape == CubeShape)
+		{
+			return phong_pcl_buf.init_data<Particle>(
+				pcls, pcl_num, 0.125, pcl_color);
+		}
+		else if (pcl_shape == BallShape)
+		{
+			return ball_pcl_buf.init_data<Particle>(
+				pcls, pcl_num, 0.125, pcl_color);
+		}
+
+		return -1;
 	}
 
 	// multi-color version
-	inline int init_color_scale(
-		double lower, double upper,
-		Colori *colors, size_t color_num,
-		bool out_of_bound_color = true
-		)
-	{
-		return color_scale.init(lower, upper, 
-			colors, color_num, out_of_bound_color);
-	}
 	
 	template <typename FieldType = double>
 	inline int init_multicolor_pcl_data(
 		char* pcls_data, size_t pcl_size, size_t pcl_num,
 		size_t x_off, size_t y_off, size_t z_off,
 		size_t vol_off, float vol_scale,
-		size_t fld_off, ValueToColor& color_scale
-	)
+		size_t fld_off, ValueToColor& color_scale,
+		PclShape _shape = CubeShape
+		)
 	{
-		pcl_shape = CubeShape;
-		return phong_pcl_buf.init_data<FieldType>(
+		pcl_shape = _shape;
+		if (pcl_shape == CubeShape)
+		{
+			return phong_pcl_buf.init_data<FieldType>(
+				pcls_data, pcl_size, pcl_num,
+				x_off, y_off, z_off,
+				vol_off, vol_scale,
+				fld_off, color_scale);
+		}
+		else if (pcl_shape == BallShape)
+		{
+			return ball_pcl_buf.init_data<FieldType>(
 					pcls_data, pcl_size, pcl_num,
 					x_off, y_off, z_off,
 					vol_off, vol_scale,
 					fld_off, color_scale);
+		}
+
+		return -1;
 	}
 
 	template <typename FieldType = double>
 	inline int update_multicolor_pcl_data(char* pcls, ValueToColor& color_scale)
 	{
-		return phong_pcl_buf.update_data<FieldType>(pcls, color_scale);
+		if (pcl_shape == CubeShape)
+			return phong_pcl_buf.update_data<FieldType>(pcls, color_scale);
+		else if (pcl_shape == BallShape)
+			return ball_pcl_buf.update_data<FieldType>(pcls, color_scale);
+
+		return -1;
 	}
 
 	// points data

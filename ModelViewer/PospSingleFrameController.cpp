@@ -5,7 +5,8 @@
 
 PospSingleFrameController::PospSingleFrameController(MPM3DModelView& v) :
 	MPM3DModelView::Controller(v),
-	th_id(-1), frame_grp_id(-1), pcl_dt_id(-1) {}
+	th_id(-1), frame_grp_id(-1), pcl_dt_id(-1),
+	pcl_shape(MPM3DModelView::CubeShape) {}
 
 PospSingleFrameController::~PospSingleFrameController() { close(); }
 
@@ -159,7 +160,8 @@ int PospSingleFrameController::initialize_model_view_data()
 			pcls_data, pcl_size, pcl_num,
 			pcl_x_off, pcl_y_off, pcl_z_off,
 			pcl_vol_off, 0.125,
-			pcl_fld_off, view->get_color_scale());
+			pcl_fld_off, view->get_color_scale(),
+			pcl_shape);
 	delete[] pcls_data;
 
 	return 0;

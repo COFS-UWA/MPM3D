@@ -13,6 +13,8 @@ class PospSingleFrameController : public QObject,
 	public MPM3DModelView::Controller
 {
 	Q_OBJECT
+public:
+	typedef MPM3DModelView::PclShape PclShape;
 
 protected:
 	ResultFile_hdf5* res_file;
@@ -29,12 +31,16 @@ protected:
 	size_t pcl_fld_off;
 	hid_t pcl_fld_type;
 	
+	PclShape pcl_shape;
+
 	// add png output here...
 
 public:
 	PospSingleFrameController(MPM3DModelView& v);
 	~PospSingleFrameController();
 	void close();
+
+	inline void set_pcl_type(PclShape shape) { pcl_shape = shape; }
 
 	int set_res_file(
 		ResultFile_hdf5& rf,

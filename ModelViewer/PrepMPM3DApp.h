@@ -71,12 +71,14 @@ public:
 	inline void set_spec_shininess(float shininess) { main_win->model_view->set_spec_shininess(shininess); }
 
 	template <typename Model>
-	inline void set_model(Model &md)
+	inline void set_model(Model &md,
+		MPM3DModelView::PclShape pcl_shape = MPM3DModelView::PclShape::CubeShape)
 	{
 		typedef PrepSingleFrameControllerTemplate<Model> Controller;
 		view_controller = new Controller(get_model_view());
 		Controller &con = *static_cast<Controller *>(view_controller);
 		con.set_model(md);
+		con.set_pcl_shape(pcl_shape);
 	}
 
 	// can only called after set_model(md)

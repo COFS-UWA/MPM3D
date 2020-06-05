@@ -12,7 +12,7 @@ MPM3DModelView::MPM3DModelView(QWidget *parent) :
 	// phong model
 	light_color(1.0f, 1.0f, 1.0f),
 	amb_coef(0.0f), diff_coef(1.0f),
-	spec_coef(0.0f), spec_shininess(20.0f),
+	spec_coef(0.0f), spec_shininess(30.0f),
 	light_dir(view_dir), light_dist_scale(2.0f),
 	// model data gl buffer
 	need_to_paint_bg_mesh(true), bg_mesh_buf(*this),
@@ -56,13 +56,25 @@ void MPM3DModelView::initializeGL()
 	);
 	shader_phong.link();
 	
+	shader_ball.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"..\\..\\Asset\\shader_ball.vert"
+	);
+	shader_ball.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"..\\..\\Asset\\shader_ball.frag"
+	);
+	shader_ball.link();
+
 	// Need to init md_center and md_radius
 	controller->initialize_model_view_data();
 
 	// Need md_center and md_radius cal by initialize_model_view_data().
 	update_view_mat();
 	update_proj_mat();
+	update_light_pos();
 
+	// unicolor shader
 	shader_unicolor.bind();
 	shader_unicolor.setUniformValue("view_mat", view_mat);
 	shader_unicolor.setUniformValue("proj_mat", proj_mat);
@@ -78,13 +90,31 @@ void MPM3DModelView::initializeGL()
 	shader_phong.setUniformValue("fog_color", fog_color);
 	
 	// phong model parameters
-	update_light_pos();
 	shader_phong.setUniformValue("light_pos", light_pos);
 	shader_phong.setUniformValue("light_color", light_color);
 	shader_phong.setUniformValue("amb_coef", amb_coef);
 	shader_phong.setUniformValue("diff_coef", diff_coef);
 	shader_phong.setUniformValue("spec_coef", spec_coef);
 	shader_phong.setUniformValue("spec_shininess", spec_shininess);
+
+	// ball shader
+	shader_ball.bind();
+	shader_ball.setUniformValue("view_mat", view_mat);
+	shader_ball.setUniformValue("proj_mat", proj_mat);
+
+	shader_ball.setUniformValue("view_pos", view_pos);
+
+	// fog effect
+	shader_ball.setUniformValue("fog_coef", fog_coef);
+	shader_ball.setUniformValue("fog_color", fog_color);
+
+	// phong model parameters
+	shader_ball.setUniformValue("light_pos", light_pos);
+	shader_ball.setUniformValue("light_color", light_color);
+	shader_ball.setUniformValue("amb_coef", amb_coef);
+	shader_ball.setUniformValue("diff_coef", diff_coef);
+	shader_ball.setUniformValue("spec_coef", spec_coef);
+	shader_ball.setUniformValue("spec_shininess", spec_shininess);
 }
 
 void MPM3DModelView::paintGL()
@@ -147,6 +177,9 @@ void MPM3DModelView::resizeGL(int width, int height)
 
 	shader_phong.bind();
 	shader_phong.setUniformValue("proj_mat", proj_mat);
+
+	shader_ball.bind();
+	shader_ball.setUniformValue("proj_mat", proj_mat);
 }
 
 void MPM3DModelView::update_view_mat()

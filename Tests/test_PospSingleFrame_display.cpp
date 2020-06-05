@@ -18,7 +18,8 @@ void test_PospSingleFrame_display(int argc, char **argv)
 
 	ResultFile_hdf5 rf;
 	rf.open("t3d_me_s_1d_compression.h5");
-	int res = app.set_res_file(rf, "compression", 0, "s33");
+	int res = app.set_res_file(rf, "compression", 0, "s33",
+							   MPM3DModelView::BallShape);
 
 	app.start();
 }

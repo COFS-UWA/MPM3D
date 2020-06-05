@@ -8,10 +8,11 @@ in vec3 obj_normal;
 
 uniform vec3 view_pos;
 
+// fog effects
 uniform float fog_coef;
 uniform vec3 fog_color;
 
-// phong model parameters
+// phong model
 uniform vec3 light_pos;
 uniform vec3 light_color;
 
@@ -23,7 +24,6 @@ uniform float spec_shininess;
 vec3 phong_lighting()
 {
     // ambient
-    //float amb_coef = 0.1;
     vec3 ambient = amb_coef * light_color;
 
     // diffuse 
@@ -33,8 +33,6 @@ vec3 phong_lighting()
     vec3 diffuse = diff_coef * diff_mid * light_color;
     
     // specular
-    //float spec_coef = 0.5f;
-    //float spec_shininess = 32.0f;
     vec3 view_dir = normalize(view_pos - obj_pos);
     vec3 reflect_dir = reflect(-light_dir, norm);
     float spec_mid = pow(max(dot(view_dir, reflect_dir), 0.0), spec_shininess);
@@ -53,5 +51,4 @@ void main()
     result = fog_mid * result + (1.0f - fog_mid) * fog_color;
     
     frag_color = vec4(result, 1.0f);
-    //frag_color = vec4(obj_color, 1.0f);
 } 

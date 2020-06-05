@@ -16,7 +16,9 @@ class AnimationGenerationController : public QObject,
 	public MPM3DModelView::Controller
 {
 	Q_OBJECT
-	
+public:
+	typedef MPM3DModelView::PclShape PclShape;
+
 protected:
 	QTimer ani_timer;
 
@@ -70,11 +72,14 @@ protected:
 	QPixmap screen_pixels;
 	QImage screen_img;
 
+	PclShape pcl_shape;
+
 public:
 	AnimationGenerationController(MPM3DModelView &v);
 	~AnimationGenerationController();
 	void close();
 
+	inline void set_pcl_type(PclShape shape) { pcl_shape = shape; }
 	inline void set_ani_time(double _ani_time) { ani_time = _ani_time * 1000.0; }
 	int set_res_file(ResultFile_hdf5& rf, const char* th_na, const char* field_na);
 	inline void set_gif_name(const char* gif_na) { gif_name = gif_na; }

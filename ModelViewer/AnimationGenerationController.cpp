@@ -13,6 +13,7 @@ AnimationGenerationController::AnimationGenerationController(MPM3DModelView& v) 
 	min_ani_delay(20.0 * 0.9999), // maximum frame rate is 50 fps
 	res_file(nullptr), th_id(-1), field_name(""), pcl_dt_id(-1),
 	gif_name(""), gif_is_init(false),
+	pcl_shape(MPM3DModelView::CubeShape),
 	animation_completed(false)
 {
 	connect(this, SIGNAL(render_finished()), this, SLOT(prepare_next_frame()));
@@ -311,7 +312,8 @@ int AnimationGenerationController::initialize()
 		pcls_data, pcl_size, pcl_num,
 		pcl_x_off, pcl_y_off, pcl_z_off,
 		pcl_vol_off, 0.125,
-		pcl_fld_off, view->get_color_scale());
+		pcl_fld_off, view->get_color_scale(),
+		pcl_shape);
 	delete[] pcls_data;
 
 	return 0;

@@ -80,12 +80,14 @@ public:
 	
 	// for single frame display
 	int set_res_file(ResultFile_hdf5& rf, const char *th_na,
-					 size_t frame_id, const char *field_na);
+					 size_t frame_id, const char *field_na,
+					 MPM3DModelView::PclShape shape = MPM3DModelView::CubeShape);
 
 	// for animation generation
 	void set_ani_time(double ani_time);
 	int set_res_file(ResultFile_hdf5 &rf, const char *th_na,
-					 const char *field_na);
+					 const char *field_na,
+		MPM3DModelView::PclShape shape = MPM3DModelView::CubeShape);
 	void set_gif_name(const char *gif_na);
 
 	typedef ValueToColor::Colori Colori;
