@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	//test_PospSingleFrame_display(argc, argv);
 	//test_PospMPM3DApp(argc, argv);
 
-	test_t3d_me_s_1d_compression(argc, argv);
+	//test_t3d_me_s_1d_compression(argc, argv);
 	//test_t3d_me_s_1d_compression_result(argc, argv);
 
 	test_t3d_chm_s_1d_consolidation(argc, argv);

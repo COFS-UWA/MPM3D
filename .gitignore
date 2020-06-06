@@ -1,2 +1,4 @@
 Build
 Vendors/Eigen
+PyUtilities/__pycache__
+PyTests/__pycache__

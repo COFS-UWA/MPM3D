@@ -129,18 +129,18 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 	ModelData_T3D_CHM_s md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_ConsoleProgressBar out_cpb;
 	TimeHistory_T3D_CHM_s_complete out1("consolidation");
 	out1.set_res_file(res_file_hdf5);
 	out1.set_output_init_state();
 	out1.set_interval_num(50);
+	TimeHistory_ConsoleProgressBar out_cpb;
 
 	Step_T3D_CHM_s step("step1");
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
-	step.add_time_history(out_cpb);
 	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
 	step.solve();
 }
 
