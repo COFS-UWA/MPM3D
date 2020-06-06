@@ -170,8 +170,7 @@ public:
 	VelocityBC *vfxs, *vfys, *vfzs;
 
 	double Kf;
-	double k;
-	double miu;
+	double k, miu;
 
 public:
 	Model_T3D_CHM_s();
@@ -189,7 +188,7 @@ public:
 	void init_pcls(size_t num, double n, double m_s, double density_s, double density_f,
 				   double _Kf, double _k, double _miu);
 	void init_pcls(ParticleGenerator3D<Model_T3D_CHM_s> &pg,
-				   double n, double m_s, double density_s, double density_f,
+				   double n, double density_s, double density_f,
 				   double _Kf, double _k, double _miu);
 	void alloc_pcls(size_t num);
 	void clear_pcls();

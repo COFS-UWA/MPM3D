@@ -4,6 +4,8 @@
 #include "ItemArray.hpp"
 #include "Geometry.h"
 #include "ValueToColor.h"
+#include "Model_T3D_ME_s.h"
+#include "Model_T3D_CHM_s.h"
 
 typedef MemoryUtils::ItemArray<size_t> IndexArray;
 typedef MemoryUtils::ItemArray<Point3D> Point3DArray;
@@ -95,73 +97,6 @@ void find_pcls(Model &md, IndexArray& pt_array,
 	}
 }
 
-template <typename Model>
-void init_vx_bcs_display(Model &md, Point3DArray &ptlist)
-{
-	typedef typename Model::Node Node;
-	Point3D pt;
-	Node* nodes = md.get_nodes();
-	ptlist.reset();
-	for (size_t v_id = 0; v_id < md.vx_num; ++v_id)
-	{
-		Node& n = nodes[md.vxs[v_id].node_id];
-		pt.x = n.x;
-		pt.y = n.y;
-		pt.z = n.z;
-		ptlist.add(pt);
-	}
-}
-
-template <typename Model>
-void init_vy_bcs_display(Model& md, Point3DArray& ptlist)
-{
-	typedef typename Model::Node Node;
-	Point3D pt;
-	Node* nodes = md.get_nodes();
-	ptlist.reset();
-	for (size_t v_id = 0; v_id < md.vy_num; ++v_id)
-	{
-		Node& n = nodes[md.vys[v_id].node_id];
-		pt.x = n.x;
-		pt.y = n.y;
-		pt.z = n.z;
-		ptlist.add(pt);
-	}
-}
-
-template <typename Model>
-void init_vz_bcs_display(Model& md, Point3DArray& ptlist)
-{
-	typedef typename Model::Node Node;
-	Point3D pt;
-	Node* nodes = md.get_nodes();
-	ptlist.reset();
-	for (size_t v_id = 0; v_id < md.vz_num; ++v_id)
-	{
-		Node& n = nodes[md.vzs[v_id].node_id];
-		pt.x = n.x;
-		pt.y = n.y;
-		pt.z = n.z;
-		ptlist.add(pt);
-	}
-}
-
-template <typename Model>
-void init_tz_bcs_display(Model& md, Point3DArray& ptlist)
-{
-	typedef typename Model::Particle Particle;
-	Point3D pt;
-	Particle *pcls = md.get_pcls();
-	for (size_t t_id = 0; t_id < md.tz_num; ++t_id)
-	{
-		Particle &pcl = pcls[md.tzs[t_id].pcl_id];
-		pt.x = GLfloat(pcl.x);
-		pt.y = GLfloat(pcl.y);
-		pt.z = GLfloat(pcl.z);
-		ptlist.add(pt);
-	}
-}
-
 // color scale from abaqus
 struct ColorScaleExamples
 {
@@ -173,5 +108,52 @@ public:
 	static ValueToColor::Colori* get_color_scale() { return abaqus_color_scale; }
 	static size_t get_color_num() { return abaqus_color_scale_num; }
 };
+
+
+template <typename Model>
+void display_model(int argc, char** argv,
+	float theta, float fai, float lt_theta, float lt_fai,
+	Model& model, Point3DArray& ptlist, float pt_vol)
+{
+	PrepMPM3DApp view_app(argc, argv);
+	view_app.set_view_dir(theta, fai);
+	view_app.set_light_dir(lt_theta, lt_fai);
+	view_app.set_model<Model>(model);
+	if (ptlist.get_num())
+	{
+		view_app.set_display_points(true);
+		view_app.set_points(ptlist.get_mem(), ptlist.get_num(), pt_vol);
+	}
+	view_app.start();
+}
+
+template <typename Model>
+void init_tz_bcs_display(Model& md, Point3DArray& ptlist)
+{
+	typedef typename Model::Particle Particle;
+	Point3D pt;
+	Particle* pcls = md.get_pcls();
+	for (size_t t_id = 0; t_id < md.tz_num; ++t_id)
+	{
+		Particle& pcl = pcls[md.tzs[t_id].pcl_id];
+		pt.x = GLfloat(pcl.x);
+		pt.y = GLfloat(pcl.y);
+		pt.z = GLfloat(pcl.z);
+		ptlist.add(pt);
+	}
+}
+
+// ME Model
+void init_vx_bcs_display(Model_T3D_ME_s& md, Point3DArray& ptlist);
+void init_vy_bcs_display(Model_T3D_ME_s& md, Point3DArray& ptlist);
+void init_vz_bcs_display(Model_T3D_ME_s& md, Point3DArray& ptlist);
+
+// CHM Model
+void init_vsx_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
+void init_vsy_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
+void init_vsz_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
+void init_vfx_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
+void init_vfy_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
+void init_vfz_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
 
 #endif

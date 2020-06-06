@@ -97,7 +97,7 @@ void Model_T3D_CHM_s::init_mesh_shape_funcs()
 int Model_T3D_CHM_s::init_mesh(
 	double *node_coords, size_t n_num,
 	size_t *elem_n_ids, size_t e_num
-)
+	)
 {
 	int res = BgMesh::init_mesh(node_coords, n_num, elem_n_ids, e_num);
 	if (res < 0)
@@ -120,13 +120,18 @@ int Model_T3D_CHM_s::init_search_grid(double _hx, double _hy, double _hz)
 	return search_bg_grid.init(*this, _hx, _hy, _hz);
 }
 
+void Model_T3D_CHM_s::alloc_pcls(size_t num)
+{
+	pcl_num = num;
+	pcls = new Particle[pcl_num];
+}
+
 void Model_T3D_CHM_s::init_pcls(size_t num,
 	double n, double m_s, double density_s, double density_f,
 	double _Kf, double _k, double _miu)
 {
 	clear_pcls();
-	pcls = new Particle[num];
-	pcl_num = num;
+	alloc_pcls(num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		Particle &pcl = pcls[pcl_id];
@@ -155,16 +160,13 @@ void Model_T3D_CHM_s::init_pcls(size_t num,
 		pcl.s31 = 0.0;
 		pcl.p = 0.0;
 	}
-}
-
-void Model_T3D_CHM_s::alloc_pcls(size_t num)
-{
-	pcl_num = num;
-	pcls = new Particle[pcl_num];
+	Kf = _Kf;
+	k = _k;
+	miu = _miu;
 }
 
 void Model_T3D_CHM_s::init_pcls(ParticleGenerator3D<Model_T3D_CHM_s> &pg,
-	double n, double m_s, double density_s, double density_f,
+	double n, double density_s, double density_f,
 	double _Kf, double _k, double _miu)
 {
 	clear_pcls();

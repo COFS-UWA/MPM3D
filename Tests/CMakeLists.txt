@@ -24,9 +24,10 @@ add_executable(
     test_tetrahedron_mesh.cpp
     test_Model_T3D_ME_s_display.cpp
     test_searching_grid3d.cpp
-    test_t3d_me_s_1d_compression.cpp
     test_PropsMPM3DApp.cpp
     test_PospSingleFrame_display.cpp
+    test_t3d_me_s_1d_compression.cpp
+    test_t3d_chm_s_1d_consolidation.cpp
     )
 
 target_include_directories(

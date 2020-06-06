@@ -225,11 +225,14 @@ int solve_substep_T3D_CHM_s(void *_self)
 			if (e.pcl_vol > e.vol)
 				e.pcl_vol = e.vol;
 
-			Node &n1 = md.nodes[e.n1];
-			Node &n2 = md.nodes[e.n2];
-			Node &n3 = md.nodes[e.n3];
-			Node &n4 = md.nodes[e.n4];
-			
+			Node& n1 = md.nodes[e.n1];
+			Node& n2 = md.nodes[e.n2];
+			Node& n3 = md.nodes[e.n3];
+			Node& n4 = md.nodes[e.n4];
+
+			if (n1.id == 20 || n2.id == 20 || n3.id == 20 || n4.id == 20)
+				int efef = 10;
+
 			// node 1
 			n1.fx_int_s += (e.dN1_dx * (e.s11 - (1.0 - e.n) * e.p) + e.dN1_dy * e.s12 + e.dN1_dz * e.s31) * e.pcl_vol;
 			n1.fy_int_s += (e.dN1_dx * e.s12 + e.dN1_dy * (e.s22 - (1.0 - e.n) * e.p) + e.dN1_dz * e.s23) * e.pcl_vol;
@@ -439,6 +442,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 				v_sign = 0.0;
 			nf = n.fx_ext_s - n.fx_int_s;
 			n.ax_s = (nf + n.fx_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_s;
+			
 			// fy_s
 			if (n.vy_s > 0.0)
 				v_sign = 1.0;
@@ -448,6 +452,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 				v_sign = 0.0;
 			nf = n.fy_ext_s - n.fy_int_s;
 			n.ay_s = (nf + n.fy_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_s;
+			
 			// fz_s
 			if (n.vz_s > 0.0)
 				v_sign = 1.0;
@@ -457,7 +462,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 				v_sign = 0.0;
 			nf = n.fz_ext_s - n.fz_int_s;
 			n.az_s = (nf + n.fz_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_s;
-			
+
 			// fx_f
 			if (n.vx_f > 0.0)
 				v_sign = 1.0;
@@ -467,6 +472,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 				v_sign = 0.0;
 			nf = n.fx_ext_f - n.fx_int_f;
 			n.ax_f = (nf - n.fx_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_f;
+			
 			// fy_f
 			if (n.vy_f > 0.0)
 				v_sign = 1.0;
@@ -476,6 +482,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 				v_sign = 0.0;
 			nf = n.fy_ext_f - n.fy_int_f;
 			n.ay_f = (nf - n.fy_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_f;
+			
 			// fz_f
 			if (n.vy_f > 0.0)
 				v_sign = 1.0;
@@ -682,8 +689,10 @@ int solve_substep_T3D_CHM_s(void *_self)
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
 			Node &n4 = md.nodes[e.n4];
+			
 			// solid volumetric strain
 			//e.de_vol_s = (n1.de_vol_s + n2.de_vol_s + n3.de_vol_s) / 3.0;
+			
 			// fluid volumetric strain
 			e.de_vol_f = (n1.de_vol_f + n2.de_vol_f + n3.de_vol_f + n4.de_vol_f) * 0.25;
 			e.p += md.Kf * e.de_vol_f;
@@ -760,7 +769,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 			
 			// pore pressure
 			//de_vol_f = n1.de_vol_f * pcl.N1 + n2.de_vol_f * pcl.N2 + n3.de_vol_f * pcl.N3;
-			pcl.p += e.p;
+			pcl.p = e.p;
 
 			// fluid density
 			pcl.density_f /= 1.0 - e.de_vol_f;
