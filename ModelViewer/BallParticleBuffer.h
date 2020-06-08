@@ -1,6 +1,8 @@
 #ifndef __Ball_Particle_Buffer_h__
 #define __Ball_Particle_Buffer_h__
 
+#include <iostream>
+
 #include <QOpenGLWidget>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions_3_3_Core>
@@ -96,7 +98,7 @@ public:
 		)
 	{
 		clear_inst_buffer();
-		if (!pcls_data || pcl_num == 0)
+		if (!pcls_data || _pcl_num == 0)
 			return -1;
 
 		pcl_size = _pcl_size;

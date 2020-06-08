@@ -49,7 +49,8 @@ namespace MemoryUtils
 
 	public:
 		ItemArrayFast() : mem_buf(nullptr), mem_size(0) {}
-		~ItemArrayFast()
+		~ItemArrayFast() { clear(); }
+		inline void clear()
 		{
 			if (mem_buf) delete[] mem_buf;
 			mem_buf = nullptr;

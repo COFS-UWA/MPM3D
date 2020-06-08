@@ -38,6 +38,20 @@ int Step_T3D_CHM_s::init_calculation()
 
 int Step_T3D_CHM_s::finalize_calculation() { return 0; }
 
+namespace
+{
+
+inline double get_sign(double var)
+{
+	if (var > 0.0)
+		return 1.0;
+	else if (var < 0.0)
+		return -1.0;
+	return 0.0;
+}
+
+}
+
 int solve_substep_T3D_CHM_s(void *_self)
 {
 	typedef Model_T3D_CHM_s::Node Node;
@@ -135,6 +149,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 			double mvx_f = pcl.m_f * pcl.vx_f;
 			double mvy_f = pcl.m_f * pcl.vy_f;
 			double mvz_f = pcl.m_f * pcl.vz_f;
+			
 			// node 1
 			Node &n1 = md.nodes[e.n1];
 			n1.has_mp = true;
@@ -151,7 +166,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 			// solid - fluid interaction
 			n1.fx_drag += pcl.N1 * n2_miu_div_k_vrx_vol;
 			n1.fy_drag += pcl.N1 * n2_miu_div_k_vry_vol;
-			n1.fz_drag += pcl.N1 * n2_miu_div_k_vry_vol;
+			n1.fz_drag += pcl.N1 * n2_miu_div_k_vrz_vol;
 
 			// node 2
 			Node &n2 = md.nodes[e.n2];
@@ -214,7 +229,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 		Element &e = md.elems[e_id];
 		if (e.pcls)
 		{
-			e.n = 1.0 - e.n / e.vol; // 1.0 - Vs / V
+			e.n = 1.0 - e.n / e.pcl_vol; // 1.0 - Vs / V
 			e.s11 /= e.pcl_vol;
 			e.s22 /= e.pcl_vol;
 			e.s33 /= e.pcl_vol;
@@ -225,13 +240,10 @@ int solve_substep_T3D_CHM_s(void *_self)
 			if (e.pcl_vol > e.vol)
 				e.pcl_vol = e.vol;
 
-			Node& n1 = md.nodes[e.n1];
-			Node& n2 = md.nodes[e.n2];
-			Node& n3 = md.nodes[e.n3];
-			Node& n4 = md.nodes[e.n4];
-
-			if (n1.id == 20 || n2.id == 20 || n3.id == 20 || n4.id == 20)
-				int efef = 10;
+			Node &n1 = md.nodes[e.n1];
+			Node &n2 = md.nodes[e.n2];
+			Node &n3 = md.nodes[e.n3];
+			Node &n4 = md.nodes[e.n4];
 
 			// node 1
 			n1.fx_int_s += (e.dN1_dx * (e.s11 - (1.0 - e.n) * e.p) + e.dN1_dy * e.s12 + e.dN1_dz * e.s31) * e.pcl_vol;
@@ -279,7 +291,6 @@ int solve_substep_T3D_CHM_s(void *_self)
 			// body force on particle
 			//bf_s = pcl.m_s * bf.bf;
 			//bf_f = pcl.m_f * bf.bf;
-			// problematic
 			bf_s = (pcl.density_s - pcl.density_f) * (1.0 - pcl.n) * pcl.vol * bf.bf;
 			bf_f = 0.0;
 			// node1
@@ -427,71 +438,36 @@ int solve_substep_T3D_CHM_s(void *_self)
 	}
 	
 	// update nodal acceleration of fluid pahse
-	double nf, v_sign;
+	double nf;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
 		{
 			// fx_s
-			if (n.vx_s > 0.0)
-				v_sign = 1.0;
-			else if (n.vx_s < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fx_ext_s - n.fx_int_s;
-			n.ax_s = (nf + n.fx_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_s;
-			
+			n.ax_s = (nf + n.fx_drag - self.damping_ratio * abs(nf) * get_sign(n.vx_s)) / n.m_s;
+			//n.ax_s = (n.fx_ext_s - n.fx_int_s) / n.m_s;
 			// fy_s
-			if (n.vy_s > 0.0)
-				v_sign = 1.0;
-			else if (n.vy_s < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fy_ext_s - n.fy_int_s;
-			n.ay_s = (nf + n.fy_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_s;
-			
+			n.ay_s = (nf + n.fy_drag - self.damping_ratio * abs(nf) * get_sign(n.vy_s)) / n.m_s;
+			//n.ay_s = (n.fy_ext_s - n.fy_int_s) / n.m_s;
 			// fz_s
-			if (n.vz_s > 0.0)
-				v_sign = 1.0;
-			else if (n.vz_s < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fz_ext_s - n.fz_int_s;
-			n.az_s = (nf + n.fz_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_s;
-
+			n.az_s = (nf + n.fz_drag - self.damping_ratio * abs(nf) * get_sign(n.vz_s)) / n.m_s;
+			//n.az_s = (n.fz_ext_s - n.fz_int_s) / n.m_s;
 			// fx_f
-			if (n.vx_f > 0.0)
-				v_sign = 1.0;
-			else if (n.vx_f < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fx_ext_f - n.fx_int_f;
-			n.ax_f = (nf - n.fx_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_f;
-			
+			n.ax_f = (nf - n.fx_drag - self.damping_ratio * abs(nf) * get_sign(n.vx_f)) / n.m_f;
+			//n.ax_f = (n.fx_ext_f - n.fx_int_f) / n.m_f;
 			// fy_f
-			if (n.vy_f > 0.0)
-				v_sign = 1.0;
-			else if (n.vy_f < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fy_ext_f - n.fy_int_f;
-			n.ay_f = (nf - n.fy_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_f;
-			
+			n.ay_f = (nf - n.fy_drag - self.damping_ratio * abs(nf) * get_sign(n.vy_f)) / n.m_f;
+			//n.ay_f = (n.fy_ext_f - n.fy_int_f) / n.m_f;
 			// fz_f
-			if (n.vy_f > 0.0)
-				v_sign = 1.0;
-			else if (n.vy_f < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fz_ext_f - n.fz_int_f;
-			n.az_f = (nf - n.fz_drag - self.damping_ratio * abs(nf) * v_sign) / n.m_f;
+			n.az_f = (nf - n.fz_drag - self.damping_ratio * abs(nf) * get_sign(n.vz_f)) / n.m_f;
+			//n.az_f = (n.fz_ext_f - n.fz_int_f) / n.m_f;
 		}
 	}
 
@@ -567,7 +543,6 @@ int solve_substep_T3D_CHM_s(void *_self)
 		n.vz_s = md.vszs[v_id].v;
 		n.az_s = 0.0;
 	}
-
 	for (size_t v_id = 0; v_id < md.vfx_num; ++v_id)
 	{
 		Node &n =  md.nodes[md.vfxs[v_id].node_id];
@@ -632,8 +607,8 @@ int solve_substep_T3D_CHM_s(void *_self)
 			e.dde22 = de22 - de_mean;
 			e.dde33 = de33 - de_mean;
 			// "volumetric strain" of fluid phase, take compression as positive
-			e.de_vol_f = (1.0 - e.n) / e.n * -e.de_vol_s
-					   - (n1.dux_f * e.dN1_dx + n2.dux_f * e.dN2_dx + n3.dux_f * e.dN3_dx + n4.dux_f * e.dN4_dx
+			e.de_vol_f = -(1.0 - e.n) / e.n * e.de_vol_s
+						-(n1.dux_f * e.dN1_dx + n2.dux_f * e.dN2_dx + n3.dux_f * e.dN3_dx + n4.dux_f * e.dN4_dx
 						+ n1.duy_f * e.dN1_dy + n2.duy_f * e.dN2_dy + n3.duy_f * e.dN3_dy + n4.duy_f * e.dN4_dy
 						+ n1.duz_f * e.dN1_dz + n2.duz_f * e.dN2_dz + n3.duz_f * e.dN3_dz + n4.duz_f * e.dN4_dz);
 		}
@@ -649,22 +624,22 @@ int solve_substep_T3D_CHM_s(void *_self)
 			double vol_de_vol_f = pcl.vol * e.de_vol_f;
 			// node 1
 			Node &n1 = md.nodes[e.n1];
-			n1.pcl_vol += pcl.N1 * pcl.vol;
+			n1.pcl_vol  += pcl.N1 * pcl.vol;
 			n1.de_vol_s += pcl.N1 * vol_de_vol_s;
 			n1.de_vol_f += pcl.N1 * vol_de_vol_f;
 			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.pcl_vol += pcl.N2 * pcl.vol;
+			n2.pcl_vol  += pcl.N2 * pcl.vol;
 			n2.de_vol_s += pcl.N2 * vol_de_vol_s;
 			n2.de_vol_f += pcl.N2 * vol_de_vol_f;
 			// node 3
 			Node &n3 = md.nodes[e.n3];
-			n3.pcl_vol += pcl.N3 * pcl.vol;
+			n3.pcl_vol  += pcl.N3 * pcl.vol;
 			n3.de_vol_s += pcl.N3 * vol_de_vol_s;
 			n3.de_vol_f += pcl.N3 * vol_de_vol_f;
-			// node 3
+			// node 4
 			Node &n4 = md.nodes[e.n4];
-			n4.pcl_vol += pcl.N4 * pcl.vol;
+			n4.pcl_vol  += pcl.N4 * pcl.vol;
 			n4.de_vol_s += pcl.N4 * vol_de_vol_s;
 			n4.de_vol_f += pcl.N4 * vol_de_vol_f;
 		}
@@ -689,10 +664,8 @@ int solve_substep_T3D_CHM_s(void *_self)
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
 			Node &n4 = md.nodes[e.n4];
-			
 			// solid volumetric strain
-			//e.de_vol_s = (n1.de_vol_s + n2.de_vol_s + n3.de_vol_s) / 3.0;
-			
+			e.de_vol_s = (n1.de_vol_s + n2.de_vol_s + n3.de_vol_s + n4.de_vol_s) * 0.25;
 			// fluid volumetric strain
 			e.de_vol_f = (n1.de_vol_f + n2.de_vol_f + n3.de_vol_f + n4.de_vol_f) * 0.25;
 			e.p += md.Kf * e.de_vol_f;
@@ -726,7 +699,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 			pcl.uz_s += n1.duz_s * pcl.N1 + n2.duz_s * pcl.N2 + n3.duz_s * pcl.N3 + n4.duz_s * pcl.N4;
 			pcl.ux_f += n1.dux_f * pcl.N1 + n2.dux_f * pcl.N2 + n3.dux_f * pcl.N3 + n4.dux_f * pcl.N4;
 			pcl.uy_f += n1.duy_f * pcl.N1 + n2.duy_f * pcl.N2 + n3.duy_f * pcl.N3 + n4.duy_f * pcl.N4;
-			pcl.uz_s += n1.duz_f * pcl.N1 + n2.duz_f * pcl.N2 + n3.duz_f * pcl.N3 + n4.duz_f * pcl.N4;
+			pcl.uz_f += n1.duz_f * pcl.N1 + n2.duz_f * pcl.N2 + n3.duz_f * pcl.N3 + n4.duz_f * pcl.N4;
 
 			// update position
 			pcl.x = pcl.x_ori + pcl.ux_s;
@@ -737,7 +710,7 @@ int solve_substep_T3D_CHM_s(void *_self)
 			//de_vol_s = n1.de_vol_s * pcl.N1 + n2.de_vol_s * pcl.N2 + n3.de_vol_s * pcl.N3 + n4.de_vol_s * pcl.N4;
 			de_vol_s = e.de_vol_s;
 
-			// strain
+			// strain increment
 			de_vol_s /= 3.0;
 			de11 = e.dde11 + de_vol_s;
 			de22 = e.dde22 + de_vol_s;

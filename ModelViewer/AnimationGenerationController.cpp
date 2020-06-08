@@ -168,6 +168,23 @@ int AnimationGenerationController::after_render()
 	return 0;
 }
 
+namespace
+{
+void from_bgra_to_rgba(uchar* dst, uchar* src, size_t width, size_t height)
+{
+	for (size_t h_id = 0; h_id < height; ++h_id)
+		for (size_t w_id = 0; w_id < width; ++w_id)
+		{
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+			dst[3] = 255;
+			dst += 4;
+			src += 4;
+		}
+}
+}
+
 void AnimationGenerationController::prepare_next_frame()
 {	
 	if (animation_completed)
@@ -179,6 +196,7 @@ void AnimationGenerationController::prepare_next_frame()
 		view_width = view->width();
 		view_height = view->height();
 		GifCreator::GifBegin(&gif_file, gif_name.c_str(), view_width, view_height, true);
+		screen_img_rgba.reserve(view_width * view_height * 4);
 		gif_is_init = true;
 	}
 
@@ -193,10 +211,13 @@ void AnimationGenerationController::prepare_next_frame()
 		//snprintf(ss_name, 50, "frame_%zu.png", cur_frame_id);
 		//screen_pixels.save(ss_name, "png");
 		//std::cout << "output frame " << cur_frame_id << "\n";
+
 		screen_img = screen_pixels.toImage();
+		uchar* scr_data = screen_img_rgba.get_mem();
+		from_bgra_to_rgba(scr_data, screen_img.bits(), view_width, view_height);
 		GifCreator::GifWriteFrame(
 			&gif_file,
-			screen_img.bits(), //(const uint8_t *)pixels_rgb_data,
+			scr_data,
 			view_width,
 			view_height,
 			ani_delay_100
@@ -205,7 +226,7 @@ void AnimationGenerationController::prepare_next_frame()
 		{
 			GifCreator::GifWriteFrame(
 				&gif_file,
-				screen_img.bits(),
+				scr_data,
 				view_width,
 				view_height,
 				2
@@ -219,6 +240,7 @@ void AnimationGenerationController::prepare_next_frame()
 		if (gif_is_init)
 		{
 			GifCreator::GifEnd(&gif_file);
+			screen_img_rgba.clear();
 			gif_is_init = false;
 			animation_completed = true;
 		}

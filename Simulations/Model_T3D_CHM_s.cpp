@@ -146,12 +146,6 @@ void Model_T3D_CHM_s::init_pcls(size_t num,
 		pcl.vx_f = 0.0;
 		pcl.vy_f = 0.0;
 		pcl.vz_f = 0.0;
-		pcl.e11 = 0.0;
-		pcl.e22 = 0.0;
-		pcl.e33 = 0.0;
-		pcl.e12 = 0.0;
-		pcl.e23 = 0.0;
-		pcl.e31 = 0.0;
 		pcl.s11 = 0.0;
 		pcl.s22 = 0.0;
 		pcl.s33 = 0.0;
@@ -159,6 +153,12 @@ void Model_T3D_CHM_s::init_pcls(size_t num,
 		pcl.s23 = 0.0;
 		pcl.s31 = 0.0;
 		pcl.p = 0.0;
+		pcl.e11 = 0.0;
+		pcl.e22 = 0.0;
+		pcl.e33 = 0.0;
+		pcl.e12 = 0.0;
+		pcl.e23 = 0.0;
+		pcl.e31 = 0.0;
 	}
 	Kf = _Kf;
 	k = _k;

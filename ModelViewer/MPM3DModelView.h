@@ -281,7 +281,6 @@ public:
 	}
 
 	// multi-color version
-	
 	template <typename FieldType = double>
 	inline int init_multicolor_pcl_data(
 		char* pcls_data, size_t pcl_size, size_t pcl_num,

@@ -7,28 +7,28 @@
 namespace
 {
 
-	class Model_test : public Model_T3D_ME_s
+class Model_test : public Model_T3D_ME_s
+{
+public:
+	int alloc_grids(Cube box, double _hx, double _hy, double _hz)
 	{
-	public:
-		int alloc_grids(Cube box, double _hx, double _hy, double _hz)
-		{
-			int res = search_bg_grid.alloc_grids(box, _hx, _hy, _hz);
-			search_bg_grid.set_mesh_info(*this);
-			return res;
-		}
+		int res = search_bg_grid.alloc_grids(box, _hx, _hy, _hz);
+		search_bg_grid.set_mesh_info(*this);
+		return res;
+	}
 
-		bool detect_AABB_tetrahedron_collision(Cube &aabb, Element &e)
-		{
-			search_bg_grid.cal_seperating_axes(e);
-			bool res = search_bg_grid.detect_AABB_tetrahedron_collision(aabb, e);
-			if (res)
-				std::cout << "contact \n";
-			else
-				std::cout << "not contact\n";
-			return res;
-		}
+	bool detect_AABB_tetrahedron_collision(Cube &aabb, Element &e)
+	{
+		search_bg_grid.cal_seperating_axes(e);
+		bool res = search_bg_grid.detect_AABB_tetrahedron_collision(aabb, e);
+		if (res)
+			std::cout << "contact \n";
+		else
+			std::cout << "not contact\n";
+		return res;
+	}
 
-	};
+};
 
 }
 

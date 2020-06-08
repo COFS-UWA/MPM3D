@@ -19,10 +19,11 @@
 #include "utils.h"
 #include "test_model_view.h"
 
+
 void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 {
 	Model_T3D_CHM_s model;
-	model.load_mesh_from_hdf5("..\\..\\Asset\\bar_mesh1.h5");
+	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_plus.h5");
 	std::cout << "node num: " << model.get_node_num() << "\n"
 			  << "elem num: " << model.get_elem_num() << "\n";
 
@@ -32,7 +33,7 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 	//Cube bar_box = { 0.0, 0.1, 0.0, 0.1, 0.0, 0.5 };
 	//pg.generate_pcls_grid(bar_box, 0.02, 0.02, 0.02);
 	pg.generate_pcls_second_order_gauss(model);
-	model.init_pcls(pg, 0.3, 20.0, 10.0, 1.0e4, 1.0, 1.0);
+	model.init_pcls(pg, 0.3, 20.0, 10.0, 10000.0, 1.0e-4, 1.0);
 	std::cout << "pcl num: " << model.get_pcl_num() << "\n";
 
 	size_t pcl_num = model.get_pcl_num();
@@ -42,14 +43,26 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 	{
 		Model_T3D_CHM_s::Particle &pcl = pcls[pcl_id];
 		MatModel::LinearElasticity &mm = mms[pcl_id];
-		mm.set_param(100.0, 0.0);
+		mm.set_param(1000.0, 0.0);
 		pcl.set_mat_model(mm);
 	}
 
 	IndexArray pt_array(100);
 
+	// surface traction
+	find_pcls(model, pt_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
+	size_t* tbc_pcl_id = pt_array.get_mem();
+	model.init_tzs(pt_array.get_num());
+	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
+	{
+		TractionBCAtPcl& tbc = model.tzs[t_id];
+		tbc.pcl_id = tbc_pcl_id[t_id];
+		tbc.t = 1.6666667e-3 * -1.0;
+	}
+	std::cout << "tz_num: " << model.tz_num << "\n";
+
 	find_nodes_on_x_plane(model, pt_array, 0.0);
-	find_nodes_on_x_plane(model, pt_array, 0.1, false);
+	find_nodes_on_x_plane(model, pt_array, 0.2, false);
 	size_t *vx_bc_n_id = pt_array.get_mem();
 	model.init_vsxs(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vsx_num; ++v_id)
@@ -67,7 +80,7 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 	}
 
 	find_nodes_on_y_plane(model, pt_array, 0.0);
-	find_nodes_on_y_plane(model, pt_array, 0.1, false);
+	find_nodes_on_y_plane(model, pt_array, 0.2, false);
 	size_t *vy_bc_n_id = pt_array.get_mem();
 	model.init_vsys(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vsy_num; ++v_id)
@@ -101,17 +114,6 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_pcls(model, pt_array, Cube(0.0, 0.1, 0.0, 0.1, 0.5-0.02, 0.5));
-	size_t *tbc_pcl_id = pt_array.get_mem();
-	model.init_tzs(pt_array.get_num());
-	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
-	{
-		TractionBCAtPcl &tbc = model.tzs[t_id];
-		tbc.pcl_id = tbc_pcl_id[t_id];
-		tbc.t = 1.6667e-3 * -1.0;
-	}
-	std::cout << "tz_num: " << model.tz_num << "\n";
-
 	MemoryUtils::ItemArray<Point3D> ptlist(50);
 	//init_vsx_bcs_display(model, ptlist);
 	//init_vsy_bcs_display(model, ptlist);
@@ -120,7 +122,7 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 	//init_vfy_bcs_display(model, ptlist);
 	//init_vfz_bcs_display(model, ptlist);
 	//init_tz_bcs_display(model, ptlist);
-	//display_model(argc, argv, 60.0, 30.0, 40.0, 20.0, model, ptlist, 1.0e-5);
+	//display_model(argc, argv, 40.0, -45.0, 40.0, 35.0, model, ptlist, 1.0e-5);
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
@@ -137,7 +139,7 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 
 	Step_T3D_CHM_s step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
+	step.set_step_time(10.0);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -148,22 +150,22 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv)
 {
 	PospMPM3DApp app(argc, argv, PospMPM3DApp::Animation);
+
 	app.set_view_dir(10.0f, 30.0f);
 	app.set_light_dir(10.0f, 30.0f);
 
 	app.set_ani_time(5.0);
 	app.set_gif_name("1d_consolidation.gif");
 
-	app.init_color_scale(-1.5, 0.0,
+	app.init_color_scale(0.0, 0.1,
 		ColorScaleExamples::get_color_scale(),
-		ColorScaleExamples::get_color_num());
+		ColorScaleExamples::get_color_num()
+		);
 
 	ResultFile_hdf5 rf;
 	rf.open("t3d_chm_s_1d_consolidation.h5");
 	int res = app.set_res_file(
-					rf,
-					"consolidation",
-					"p",
+					rf, "consolidation", "p",
 					MPM3DModelView::BallShape
 					);
 

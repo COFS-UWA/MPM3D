@@ -71,6 +71,7 @@ protected:
 	size_t view_width, view_height;
 	QPixmap screen_pixels;
 	QImage screen_img;
+	MemoryUtils::ItemArray<uchar> screen_img_rgba;
 
 	PclShape pcl_shape;
 

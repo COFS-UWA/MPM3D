@@ -118,7 +118,8 @@ void display_model(int argc, char** argv,
 	PrepMPM3DApp view_app(argc, argv);
 	view_app.set_view_dir(theta, fai);
 	view_app.set_light_dir(lt_theta, lt_fai);
-	view_app.set_model<Model>(model);
+	//view_app.set_display_bg_mesh(false);
+	view_app.set_model<Model>(model, MPM3DModelView::BallShape);
 	if (ptlist.get_num())
 	{
 		view_app.set_display_points(true);

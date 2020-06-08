@@ -534,11 +534,6 @@ int solve_substep_T3D_ME_s(void *_self)
 			pcl.e23 += de23;
 			pcl.e31 += de31;
 
-			if (pcl.id == 48)
-			{
-				int ee = self.get_substep_index();
-				int efe = 1;
-			}
 			// stress
 			double dstrain[6] = { de11, de22, de33, de12, de23, de31 };
 			pcl.mm->integrate(dstrain);

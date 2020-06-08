@@ -41,19 +41,20 @@ def cal_vol(p1, p2, p3, p4):
     return dot_prod(cross_prod(v21, v31), v41) / 6.0
 
 if __name__ == "__main__":
-    p  = Point(0.3, 0.3, 0.3)
-    p1 = Point(0.0, 0.0, 0.0)
-    p2 = Point(1.0, 0.0, 0.0)
-    p3 = Point(0.0, 1.0, 0.0)
-    p4 = Point(0.0, 0.0, 1.0)
+    p  = Point(0.0138197, 0.058541, 0.0138197)
+    p1 = Point(0, 0, 0)
+    p2 = Point(0.1, 0, 0)
+    p3 = Point(0, 0.1, 0)
+    p4 = Point(0, 0, 0.1)
+    # volume
     vol = cal_vol(p1, p2, p3, p4)
-    print("vol: %f\n" % vol)
+    print("vol: %f\n" % vol, end="")
     # N1, N2, N3, N4
     N1 = cal_vol(p2, p4, p3, p) / vol
     N2 = cal_vol(p1, p3, p4, p) / vol
     N3 = cal_vol(p1, p4, p2, p) / vol
     N4 = cal_vol(p1, p2, p3, p) / vol
-    print("N1: %f\nN2: %f\nN3: %f\nN4: %f\n" % (N1, N2, N3, N4))
+    print("N1: %f\nN2: %f\nN3: %f\nN4: %f\n" % (N1, N2, N3, N4), end="")
     # derivatives
     v21 = vec(p2, p1)
     v31 = vec(p3, p1)
@@ -62,13 +63,13 @@ if __name__ == "__main__":
     v32 = vec(p3, p2)
     # N1 derivatives
     dN1 = cross_prod(v42, v32).div_num(6.0*vol)
-    print("dN1_dx: %f\ndN1_dy: %f\ndN1_dz: %f\n" % (dN1.x, dN1.y, dN1.z))
+    print("dN1_dx: %f\ndN1_dy: %f\ndN1_dz: %f\n" % (dN1.x, dN1.y, dN1.z), end="")
     # N2 derivatives
     dN2 = cross_prod(v31, v41).div_num(6.0*vol)
-    print("dN2_dx: %f\ndN2_dy: %f\ndN2_dz: %f\n" % (dN2.x, dN2.y, dN2.z))
+    print("dN2_dx: %f\ndN2_dy: %f\ndN2_dz: %f\n" % (dN2.x, dN2.y, dN2.z), end="")
     # N3 derivatives
     dN3 = cross_prod(v41, v21).div_num(6.0*vol)
-    print("dN3_dx: %f\ndN3_dy: %f\ndN3_dz: %f\n" % (dN3.x, dN3.y, dN3.z))
+    print("dN3_dx: %f\ndN3_dy: %f\ndN3_dz: %f\n" % (dN3.x, dN3.y, dN3.z), end="")
     # N4 derivatives
     dN4 = cross_prod(v21, v31).div_num(6.0*vol)
-    print("dN4_dx: %f\ndN4_dy: %f\ndN4_dz: %f\n" % (dN4.x, dN4.y, dN4.z))
+    print("dN4_dx: %f\ndN4_dy: %f\ndN4_dz: %f\n" % (dN4.x, dN4.y, dN4.z), end="")

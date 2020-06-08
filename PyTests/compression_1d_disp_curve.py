@@ -21,19 +21,19 @@ for t_id in range(output_num):
     out_time.append(frame_time)
     # particle
     pcl_dset = frame_grp['ParticleData']['field']
-    pcl_fld = pcl_dset[90]
+    pcl_fld = pcl_dset[728]
     var = pcl_fld['z']
     if not is_init:
         init_z = var
         is_init = True
-    var = init_z - var
+    var = init_z -var
     pcl_var.append(var)
 
 hdf5_file.close()
 
 # analytical solution
 H = 1.0
-p0 = 1.0
+p0 = 0.1
 bf = 0.0
 E = 100.0
 density = 10.0
@@ -41,6 +41,7 @@ t_len = 10.0 # time length
 data_num = 200
 # cal data
 bav = BarAxialVibration(H, p0, bf, E, density)
+data_num += 1
 t_ana = np.zeros(data_num)
 u_ana = np.zeros(data_num)
 t_inv = t_len / float(data_num)
