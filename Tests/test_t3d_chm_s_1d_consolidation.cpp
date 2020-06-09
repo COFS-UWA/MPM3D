@@ -23,7 +23,7 @@
 void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 {
 	Model_T3D_CHM_s model;
-	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_plus.h5");
+	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_1.00_2x2x10.h5");
 	std::cout << "node num: " << model.get_node_num() << "\n"
 			  << "elem num: " << model.get_elem_num() << "\n";
 
@@ -151,13 +151,13 @@ void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv)
 {
 	PospMPM3DApp app(argc, argv, PospMPM3DApp::Animation);
 
-	app.set_view_dir(10.0f, 30.0f);
+	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(10.0f, 30.0f);
 
 	app.set_ani_time(5.0);
 	app.set_gif_name("1d_consolidation.gif");
 
-	app.init_color_scale(0.0, 0.1,
+	app.init_color_scale(0.0, 1.0,
 		ColorScaleExamples::get_color_scale(),
 		ColorScaleExamples::get_color_num()
 		);

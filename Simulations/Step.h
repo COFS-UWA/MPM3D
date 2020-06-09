@@ -128,4 +128,14 @@ private: // non-copyable
 	Step(Step &other);
 };
 
+// utilities functions
+inline double get_sign(double var)
+{
+	if (var > 0.0)
+		return 1.0;
+	else if (var < 0.0)
+		return -1.0;
+	return 0.0;
+}
+
 #endif

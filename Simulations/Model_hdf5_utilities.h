@@ -95,6 +95,20 @@ inline hid_t get_bf_pcl_dt_id()
 	return res;
 }
 
+struct BodyForceAtElemData
+{
+	unsigned long long elem_id;
+	double bf;
+};
+
+inline hid_t get_bf_elem_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(BodyForceAtElemData));
+	H5Tinsert(res, "elem_id", HOFFSET(BodyForceAtElemData, elem_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "bf", HOFFSET(BodyForceAtElemData, bf), H5T_NATIVE_DOUBLE);
+	return res;
+}
+
 struct TractionBCAtPclData
 {
 	unsigned long long pcl_id;
@@ -106,6 +120,22 @@ inline hid_t get_tbc_pcl_dt_id()
 	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(TractionBCAtPclData));
 	H5Tinsert(res, "pcl_id", HOFFSET(TractionBCAtPclData, pcl_id), H5T_NATIVE_ULLONG);
 	H5Tinsert(res, "t", HOFFSET(TractionBCAtPclData, t), H5T_NATIVE_DOUBLE);
+	return res;
+}
+
+struct TractionBCAtFaceData
+{
+	unsigned long long elem_id;
+	unsigned long long face_id;
+	double t;
+};
+
+inline hid_t get_tbc_face_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(TractionBCAtFaceData));
+	H5Tinsert(res, "elem_id", HOFFSET(TractionBCAtFaceData, elem_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "face_id", HOFFSET(TractionBCAtFaceData, face_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "t", HOFFSET(TractionBCAtFaceData, t), H5T_NATIVE_DOUBLE);
 	return res;
 }
 

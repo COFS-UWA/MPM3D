@@ -8,6 +8,12 @@ struct BodyForceAtPcl
 	double bf;
 };
 
+struct BodyForceAtElem
+{
+	size_t elem_id;
+	double bf;
+};
+
 // ======== Surface traction =========
 // sign: tensile - positive
 struct TractionBCAtPcl
@@ -16,9 +22,10 @@ struct TractionBCAtPcl
 	double t;
 };
 
-struct TractionBCAtNode
+struct TractionBCAtFace
 {
-	size_t node_id;
+	size_t elem_id;
+	size_t face_id;
 	double t;
 };
 

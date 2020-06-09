@@ -8,34 +8,28 @@ out_time = []
 pcl_var = []
 
 # numerical solution
-hdf5_file = py.File("..\\Build\\Tests\\t3d_me_s_1d_compression.h5", "r")
+hdf5_file = py.File("..\\Build\\Tests\\fem_t3d_me_s_1d_compression.h5", "r")
 th_grp = hdf5_file['TimeHistory']['compression']
 
 output_num = th_grp.attrs['output_num']
-is_init = False
-init_z = 0.0
 for t_id in range(output_num):
     # frame
     frame_grp = th_grp['frame_%d' % t_id]
     frame_time = frame_grp.attrs['total_time']
     out_time.append(frame_time)
     # particle
-    pcl_dset = frame_grp['ParticleData']['field']
-    pcl_fld = pcl_dset[729]
-    var = pcl_fld['z']
-    if not is_init:
-        init_z = var
-        is_init = True
-    var = init_z -var
+    pcl_dset = frame_grp['Mesh']['Nodes']
+    pcl_fld = pcl_dset[90]
+    var = -pcl_fld['uz']
     pcl_var.append(var)
 
 hdf5_file.close()
 
 # analytical solution
 H = 1.0
-p0 = 0.01
+p0 = 1.0
 bf = 0.0
-E = 100.0
+E = 1000.0
 density = 10.0
 t_len = 10.0 # time length
 data_num = 200
@@ -56,8 +50,8 @@ plot1 = fig.subplots(1, 1)
 plot1.set_xlabel("time")
 plot1.set_ylabel("displacement")
 
-line1, = plot1.plot(out_time, pcl_var)
-line2, = plot1.plot(t_ana, u_ana)
+line1, = plot1.plot(out_time, pcl_var, color='r', linestyle='-', marker='o')
+line2, = plot1.plot(t_ana, u_ana, color='k', linestyle='--')
 
 plt.legend(handles=[line1, line2], labels=['MPM', 'Analytical Solution'])
 plt.show()

@@ -7,7 +7,7 @@
 
 #include "ModelData_T3D_ME_s.h"
 
-int model_data_output_func_t2d_me_s_to_xml_res_file(ModelData &_self)
+int model_data_output_func_t3d_me_s_to_xml_res_file(ModelData &_self)
 {
 	ModelData_T3D_ME_s &md = static_cast<ModelData_T3D_ME_s &>(_self);
 	Model_T3D_ME_s &model = static_cast<Model_T3D_ME_s &>(*md.model);
@@ -79,7 +79,7 @@ int model_data_output_func_t2d_me_s_to_xml_res_file(ModelData &_self)
 	return 0;
 }
 
-int model_data_output_func_t2d_me_s_to_hdf5_res_file(ModelData &_self)
+int model_data_output_func_t3d_me_s_to_hdf5_res_file(ModelData &_self)
 {
 	ModelData_T3D_ME_s &md = static_cast<ModelData_T3D_ME_s &>(_self);
 	Model_T3D_ME_s &model = static_cast<Model_T3D_ME_s &>(*md.model);

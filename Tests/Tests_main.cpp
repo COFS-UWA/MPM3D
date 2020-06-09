@@ -30,6 +30,9 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_s_1d_consolidation(argc, argv);
 	test_t3d_chm_s_1d_consolidation_result(argc, argv);
 
+	//test_fem_t3d_me_s_1d_compression(argc, argv);
+	//test_fem_t3d_me_s_1d_compression2(argc, argv);
+
 	//system("pause");
 	return 0;
 }

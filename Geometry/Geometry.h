@@ -84,6 +84,15 @@ inline double cal_distance_2D(Rect &rec, Point2D &p) noexcept
 	return sqrt(x_diff * x_diff + y_diff * y_diff);
 }
 
+template <typename Point3D>
+inline double cal_triangle_area(Point3D &p1, Point3D &p2, Point3D &p3)
+{
+	double nx = (p2.y-p1.y)*(p3.z-p1.z) - (p3.y-p1.y)*(p2.z-p1.z);
+	double ny = (p2.z-p1.z)*(p3.x-p1.x) - (p3.z-p1.z)*(p2.x-p1.x);
+	double nz = (p2.x-p1.x)*(p3.y-p1.y) - (p3.x-p1.x)*(p2.y-p1.y);
+	return 0.5 * sqrt(nx*nx + ny*ny + nz*nz);
+}
+
 template <typename Node3D, typename Point3D>
 inline double cal_tetrahedron_vol(Node3D &n1, Node3D &n2, Node3D &n3, Point3D &p4)
 {

@@ -24,7 +24,7 @@
 void test_t3d_me_s_1d_compression(int argc, char **argv)
 {
 	Model_T3D_ME_s model;
-	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_plus.h5");
+	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_1.00_2x2x10.h5");
 	std::cout << "node num: " << model.get_node_num() << "\n"
 			  << "elem num: " << model.get_elem_num() << "\n";
 
@@ -49,6 +49,18 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	}
 
 	IndexArray pt_array(100);
+	
+	find_pcls(model, pt_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
+	size_t* tbc_pcl_id = pt_array.get_mem();
+	model.init_tzs(pt_array.get_num());
+	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
+	{
+		TractionBCAtPcl& tbc = model.tzs[t_id];
+		tbc.pcl_id = tbc_pcl_id[t_id];
+		tbc.t = 1.666667e-3 * -0.01;
+	}
+	std::cout << "tz_num: " << model.tz_num << "\n";
+
 	find_nodes_on_x_plane(model, pt_array, 0.0);
 	find_nodes_on_x_plane(model, pt_array, 0.2, false);
 	size_t *vx_bc_n_id = pt_array.get_mem();
@@ -81,17 +93,6 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_pcls(model, pt_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0-0.02, 1.0));
-	size_t *tbc_pcl_id = pt_array.get_mem();
-	model.init_tzs(pt_array.get_num());
-	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
-	{
-		TractionBCAtPcl &tbc = model.tzs[t_id];
-		tbc.pcl_id = tbc_pcl_id[t_id];
-		tbc.t = 1.666667e-3 * -0.1;
-	}
-	std::cout << "tz_num: " << model.tz_num << "\n";
-
 	MemoryUtils::ItemArray<Point3D> ptlist(50);
 	//init_vx_bcs_display(model, ptlist);
 	//init_vy_bcs_display(model, ptlist);
@@ -121,6 +122,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	step.solve();
 }
 
+
 void test_t3d_me_s_1d_compression_result(int argc, char **argv)
 {
 	PospMPM3DApp app(argc, argv, PospMPM3DApp::Animation);
@@ -130,7 +132,7 @@ void test_t3d_me_s_1d_compression_result(int argc, char **argv)
 	app.set_ani_time(5.0);
 	app.set_gif_name("bar_vibration.gif");
 
-	app.init_color_scale(-0.2, 0.0,
+	app.init_color_scale(-0.02, 0.0,
 		ColorScaleExamples::get_color_scale(),
 		ColorScaleExamples::get_color_num());
 

@@ -31,6 +31,12 @@ add_library(
     Model_T3D_CHM_s_hdf5_utilities.h Model_T3D_CHM_s_hdf5_utilities.cpp
     ModelData_T3D_CHM_s.h ModelData_T3D_CHM_s.cpp
     TimeHistory_T3D_CHM_s_complete.h TimeHistory_T3D_CHM_s_complete.cpp
+    # 3D ME FEM
+    Model_FEM_T3D_ME_s.h Model_FEM_T3D_ME_s.cpp
+    Step_FEM_T3D_ME_s.h Step_FEM_T3D_ME_s.cpp
+    Model_FEM_T3D_ME_s_hdf5_utilities.h Model_FEM_T3D_ME_s_hdf5_utilities.cpp
+    ModelData_FEM_T3D_ME_s.h ModelData_FEM_T3D_ME_s.cpp
+    TimeHistory_FEM_T3D_ME_s_complete.h TimeHistory_FEM_T3D_ME_s_complete.cpp
     )
 
 set(SIMULATIONS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

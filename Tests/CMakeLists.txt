@@ -28,6 +28,8 @@ add_executable(
     test_PospSingleFrame_display.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_chm_s_1d_consolidation.cpp
+    test_fem_t3d_me_s_1d_compression.cpp
+    test_fem_t3d_me_s_1d_compression2.cpp
     )
 
 target_include_directories(

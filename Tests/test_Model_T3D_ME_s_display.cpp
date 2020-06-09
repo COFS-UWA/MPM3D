@@ -64,8 +64,8 @@ void test_Model_T3D_ME_s_display(int argc, char **argv)
 
 	// load mesh
 	//model.load_mesh_from_hdf5("..\\..\\Asset\\teh_mesh.h5");
-	//model.load_mesh_from_hdf5("..\\..\\Asset\\bar_mesh1.h5");
-	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_plus.h5");
+	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_1.00_1x1x1.h5");
+	//model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_plus.h5");
 	model.init_edges();
 
 	size_t elem_num = model.get_elem_num();
@@ -116,8 +116,9 @@ void test_Model_T3D_ME_s_display(int argc, char **argv)
 	//psf_file.close();
 
 	PrepMPM3DApp view_app(argc, argv);
-	view_app.set_view_dir(60.0, 45.0);
+	view_app.set_view_dir(70.0, 35.0);
 	view_app.set_light_dir(20.0, 20.0);
 	view_app.set_model(model, MPM3DModelView::BallShape);
+	view_app.set_display_pcls(false);
 	view_app.start();
 }

@@ -91,12 +91,6 @@ int solve_substep_T3D_ME_s(void *_self)
 				continue;
 			pcl.pe->add_pcl(pcl);
 
-			// test find_in_which_element function
-			//size_t id1 = md.find_in_which_element(pcl)->id;
-			//size_t id2 = md.find_in_which_element_bf(pcl)->id;
-			//assert(id1 == id2);
-			//std::cout << id1 << ", " << id2 << "\n";
-
 			Element &e = *pcl.pe;
 			pcl.vol = pcl.m / pcl.density;
 			e.pcl_vol += pcl.vol;
@@ -110,6 +104,7 @@ int solve_substep_T3D_ME_s(void *_self)
 			double mvx = pcl.m * pcl.vx;
 			double mvy = pcl.m * pcl.vy;
 			double mvz = pcl.m * pcl.vz;
+
 			// node 1
 			Node &n1 = md.nodes[e.n1];
 			n1.has_mp = true;
@@ -117,6 +112,7 @@ int solve_substep_T3D_ME_s(void *_self)
 			n1.vx += pcl.N1 * mvx;
 			n1.vy += pcl.N1 * mvy;
 			n1.vz += pcl.N1 * mvz;
+
 			// node 2
 			Node &n2 = md.nodes[e.n2];
 			n2.has_mp = true;
@@ -124,6 +120,7 @@ int solve_substep_T3D_ME_s(void *_self)
 			n2.vx += pcl.N2 * mvx;
 			n2.vy += pcl.N2 * mvy;
 			n2.vz += pcl.N2 * mvz;
+
 			// node 3
 			Node &n3 = md.nodes[e.n3];
 			n3.has_mp = true;
@@ -131,6 +128,7 @@ int solve_substep_T3D_ME_s(void *_self)
 			n3.vx += pcl.N3 * mvx;
 			n3.vy += pcl.N3 * mvy;
 			n3.vz += pcl.N3 * mvz;
+
 			// node 4
 			Node &n4 = md.nodes[e.n4];
 			n4.has_mp = true;
@@ -313,39 +311,21 @@ int solve_substep_T3D_ME_s(void *_self)
 	}
 
 	// update nodal acceleration of fluid pahse
-	double nf, v_sign;
+	double nf;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp) // or n.m_f != 0.0
 		{
 			// fx
-			if (n.vx > 0.0)
-				v_sign = 1.0;
-			else if (n.vx < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fx_ext - n.fx_int;
-			n.ax = (nf - self.damping_ratio * abs(nf) * v_sign) / n.m;
+			n.ax = (nf - self.damping_ratio * abs(nf) * get_sign(n.vx)) / n.m;
 			// fy
-			if (n.vy > 0.0)
-				v_sign = 1.0;
-			else if (n.vy < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fy_ext - n.fy_int;
-			n.ay = (nf - self.damping_ratio * abs(nf) * v_sign) / n.m;
+			n.ay = (nf - self.damping_ratio * abs(nf) * get_sign(n.vy)) / n.m;
 			// fz
-			if (n.vz > 0.0)
-				v_sign = 1.0;
-			else if (n.vz < 0.0)
-				v_sign = -1.0;
-			else
-				v_sign = 0.0;
 			nf = n.fz_ext - n.fz_int;
-			n.az = (nf - self.damping_ratio * abs(nf) * v_sign) / n.m;
+			n.az = (nf - self.damping_ratio * abs(nf) * get_sign(n.vz)) / n.m;
 		}
 	}
 
@@ -546,7 +526,7 @@ int solve_substep_T3D_ME_s(void *_self)
 			pcl.s31 += dstress[5];
 
 			// density
-			pcl.density /= 1.0 + e.de_vol;
+			//pcl.density /= 1.0 + e.de_vol;
 		}
 	}
 

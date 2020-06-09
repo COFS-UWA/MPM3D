@@ -38,20 +38,6 @@ int Step_T3D_CHM_s::init_calculation()
 
 int Step_T3D_CHM_s::finalize_calculation() { return 0; }
 
-namespace
-{
-
-inline double get_sign(double var)
-{
-	if (var > 0.0)
-		return 1.0;
-	else if (var < 0.0)
-		return -1.0;
-	return 0.0;
-}
-
-}
-
 int solve_substep_T3D_CHM_s(void *_self)
 {
 	typedef Model_T3D_CHM_s::Node Node;
@@ -446,27 +432,27 @@ int solve_substep_T3D_CHM_s(void *_self)
 		{
 			// fx_s
 			nf = n.fx_ext_s - n.fx_int_s;
-			n.ax_s = (nf + n.fx_drag - self.damping_ratio * abs(nf) * get_sign(n.vx_s)) / n.m_s;
+			n.ax_s = (nf + n.fx_drag - self.damping_ratio * abs(n.vx_s) * get_sign(n.vx_s)) / n.m_s;
 			//n.ax_s = (n.fx_ext_s - n.fx_int_s) / n.m_s;
 			// fy_s
 			nf = n.fy_ext_s - n.fy_int_s;
-			n.ay_s = (nf + n.fy_drag - self.damping_ratio * abs(nf) * get_sign(n.vy_s)) / n.m_s;
+			n.ay_s = (nf + n.fy_drag - self.damping_ratio * abs(n.vy_s) * get_sign(n.vy_s)) / n.m_s;
 			//n.ay_s = (n.fy_ext_s - n.fy_int_s) / n.m_s;
 			// fz_s
 			nf = n.fz_ext_s - n.fz_int_s;
-			n.az_s = (nf + n.fz_drag - self.damping_ratio * abs(nf) * get_sign(n.vz_s)) / n.m_s;
+			n.az_s = (nf + n.fz_drag - self.damping_ratio * abs(n.vz_s) * get_sign(n.vz_s)) / n.m_s;
 			//n.az_s = (n.fz_ext_s - n.fz_int_s) / n.m_s;
 			// fx_f
 			nf = n.fx_ext_f - n.fx_int_f;
-			n.ax_f = (nf - n.fx_drag - self.damping_ratio * abs(nf) * get_sign(n.vx_f)) / n.m_f;
+			n.ax_f = (nf - n.fx_drag - self.damping_ratio * abs(n.vx_f) * get_sign(n.vx_f)) / n.m_f;
 			//n.ax_f = (n.fx_ext_f - n.fx_int_f) / n.m_f;
 			// fy_f
 			nf = n.fy_ext_f - n.fy_int_f;
-			n.ay_f = (nf - n.fy_drag - self.damping_ratio * abs(nf) * get_sign(n.vy_f)) / n.m_f;
+			n.ay_f = (nf - n.fy_drag - self.damping_ratio * abs(n.vy_f) * get_sign(n.vy_f)) / n.m_f;
 			//n.ay_f = (n.fy_ext_f - n.fy_int_f) / n.m_f;
 			// fz_f
 			nf = n.fz_ext_f - n.fz_int_f;
-			n.az_f = (nf - n.fz_drag - self.damping_ratio * abs(nf) * get_sign(n.vz_f)) / n.m_f;
+			n.az_f = (nf - n.fz_drag - self.damping_ratio * abs(n.vz_f) * get_sign(n.vz_f)) / n.m_f;
 			//n.az_f = (n.fz_ext_f - n.fz_int_f) / n.m_f;
 		}
 	}

@@ -90,5 +90,4 @@ namespace MatModel
 
 		memcpy(Dep_mat, De_mat, sizeof(double) * 36);
 	}
-
 };
