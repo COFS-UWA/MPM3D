@@ -483,11 +483,14 @@ int output_pcl_data_to_hdf5_file(
 	delete[] pcl_data;
 
 	rf.close_group(pcl_data_grp_id);
-	
 	return res;
 }
 
-int load_pcl_data_from_hdf5_file(Model_T3D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id)
+int load_pcl_data_from_hdf5_file(
+	Model_T3D_ME_s& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
 {
 	if (grp_id < 0)
 		return -1;
@@ -525,7 +528,6 @@ int load_pcl_data_from_hdf5_file(Model_T3D_ME_s& md, ResultFile_hdf5& rf, hid_t 
 	delete[] pcls_data;
 
 	rf.close_group(pcl_data_grp_id);
-
 	return 0;
 }
 
@@ -543,6 +545,9 @@ int output_material_model_to_hdf5_file(
 	hid_t grp_id
 	)
 {
+	if (grp_id < 0)
+		return -1;
+	
 	size_t mm_id, mm_num;
 	hid_t mm_grp_id = rf.create_group(grp_id, "MaterialModel");
 

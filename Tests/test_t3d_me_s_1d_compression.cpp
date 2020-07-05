@@ -50,7 +50,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 
 	IndexArray pt_array(100);
 	
-	find_pcls(model, pt_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
+	find_3d_pcls(model, pt_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
 	size_t* tbc_pcl_id = pt_array.get_mem();
 	model.init_tzs(pt_array.get_num());
 	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
@@ -61,8 +61,8 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	}
 	std::cout << "tz_num: " << model.tz_num << "\n";
 
-	find_nodes_on_x_plane(model, pt_array, 0.0);
-	find_nodes_on_x_plane(model, pt_array, 0.2, false);
+	find_3d_nodes_on_x_plane(model, pt_array, 0.0);
+	find_3d_nodes_on_x_plane(model, pt_array, 0.2, false);
 	size_t *vx_bc_n_id = pt_array.get_mem();
 	model.init_vxs(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vx_num; ++v_id)
@@ -72,8 +72,8 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_nodes_on_y_plane(model, pt_array, 0.0);
-	find_nodes_on_y_plane(model, pt_array, 0.2, false);
+	find_3d_nodes_on_y_plane(model, pt_array, 0.0);
+	find_3d_nodes_on_y_plane(model, pt_array, 0.2, false);
 	size_t *vy_bc_n_id = pt_array.get_mem();
 	model.init_vys(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vy_num; ++v_id)
@@ -83,7 +83,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 	
-	find_nodes_on_z_plane(model, pt_array, 0.0);
+	find_3d_nodes_on_z_plane(model, pt_array, 0.0);
 	size_t *vz_bc_n_id = pt_array.get_mem();
 	model.init_vzs(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vz_num; ++v_id)

@@ -2,6 +2,7 @@
 #define __Model_hdf5_utilities_H__
 
 #include "hdf5.h"
+#include "BCs.h"
 #include "MatModelContainer.h"
 
 namespace Model_hdf5_utilities
@@ -85,6 +86,16 @@ struct BodyForceAtPclData
 {
 	unsigned long long pcl_id;
 	double bf;
+	inline void from_bf(BodyForceAtPcl& _bf)
+	{
+		pcl_id = _bf.pcl_id;
+		bf = _bf.bf;
+	}
+	inline void to_bf(BodyForceAtPcl& _bf)
+	{
+		_bf.pcl_id = pcl_id;
+		_bf.bf = bf;
+	}
 };
 
 inline hid_t get_bf_pcl_dt_id()
@@ -113,6 +124,16 @@ struct TractionBCAtPclData
 {
 	unsigned long long pcl_id;
 	double t;
+	inline void from_tbc(TractionBCAtPcl& tbc)
+	{
+		pcl_id = tbc.pcl_id;
+		t = tbc.t;
+	}
+	inline void to_tbc(TractionBCAtPcl &tbc)
+	{
+		tbc.pcl_id = pcl_id;
+		tbc.t = t;
+	}
 };
 
 inline hid_t get_tbc_pcl_dt_id()
@@ -143,6 +164,16 @@ struct AccelerationBCData
 {
 	unsigned long long node_id;
 	double a;
+	inline void from_abc(AccelerationBC &abc)
+	{
+		node_id = abc.node_id;
+		a = abc.a;
+	}
+	inline void to_abc(AccelerationBC &abc)
+	{
+		abc.node_id = node_id;
+		abc.a = a;
+	}
 };
 
 inline hid_t get_abc_dt_id()
@@ -157,6 +188,16 @@ struct VelocityBCData
 {
 	unsigned long long node_id;
 	double v;
+	inline void from_vbc(VelocityBC &vbc)
+	{
+		node_id = vbc.node_id;
+		v = vbc.v;
+	}
+	inline void to_vbc(VelocityBC &vbc)
+	{
+		vbc.node_id = node_id;
+		vbc.v = v;
+	}
 };
 
 inline hid_t get_vbc_dt_id()
@@ -229,9 +270,8 @@ struct ModifiedCamClayStateData
 	}
 	inline void to_mm(MatModel::ModifiedCamClay &mm)
 	{
-		double stress[6] = { s11, s22, s33, s12, s23, s31 };
-		fric_angle = fric_angle / 3.14159265359 * 180.0;
-		mm.set_param_OC(niu, kappa, lambda, fric_angle, e, stress, pc);
+		double stress[6] = { s11, s22, s33, s12, s23, s31 };		fric_angle = fric_angle / 3.14159265359 * 180.0;
+		mm.set_param_OC(niu, kappa, lambda, fric_angle, N, stress, pc);
 	}
 };
 

@@ -138,8 +138,8 @@ void test_fem_t3d_me_s_1d_compression(int argc, char **argv)
 
 	IndexArray pt_array(100);
 
-	find_nodes_on_x_plane(model, pt_array, 0.0);
-	find_nodes_on_x_plane(model, pt_array, mh_length / inv_z * inv_x, false);
+	find_3d_nodes_on_x_plane(model, pt_array, 0.0);
+	find_3d_nodes_on_x_plane(model, pt_array, mh_length / inv_z * inv_x, false);
 	size_t* vx_bc_n_id = pt_array.get_mem();
 	model.init_vxs(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vx_num; ++v_id)
@@ -149,8 +149,8 @@ void test_fem_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_nodes_on_y_plane(model, pt_array, 0.0);
-	find_nodes_on_y_plane(model, pt_array, mh_length / inv_z * inv_x, false);
+	find_3d_nodes_on_y_plane(model, pt_array, 0.0);
+	find_3d_nodes_on_y_plane(model, pt_array, mh_length / inv_z * inv_x, false);
 	size_t* vy_bc_n_id = pt_array.get_mem();
 	model.init_vys(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vy_num; ++v_id)
@@ -160,7 +160,7 @@ void test_fem_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_nodes_on_z_plane(model, pt_array, 0.0);
+	find_3d_nodes_on_z_plane(model, pt_array, 0.0);
 	size_t* vz_bc_n_id = pt_array.get_mem();
 	model.init_vzs(pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vz_num; ++v_id)

@@ -55,8 +55,11 @@ public:
 		grids(nullptr), mesh(nullptr) {}
 	~SearchingGrid3D() { clear(); }
 
-	size_t get_grid_num() { return num; }
-	Grid *get_grids() { return grids; }
+	inline double get_hx() { return hx; }
+	inline double get_hy() { return hy; }
+	inline double get_hz() { return hz; }
+	inline size_t get_grid_num() { return num; }
+	inline Grid *get_grids() { return grids; }
 
 	int init(TetrahedronMesh &_mesh, double hx, double hy, double hz)
 	{
@@ -225,8 +228,8 @@ public:
 		while (pe)
 		{
 			pe_tmp = pe;
-			pe_buffer.del(pe_tmp);
 			pe = pe->next;
+			pe_buffer.del(pe_tmp);
 		}
 	}
 

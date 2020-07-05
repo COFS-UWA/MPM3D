@@ -10,20 +10,21 @@
 #include "Model_FEM_T3D_ME_s.h"
 
 typedef MemoryUtils::ItemArray<size_t> IndexArray;
+typedef MemoryUtils::ItemArray<Point2D> Point2DArray;
 typedef MemoryUtils::ItemArray<Point3D> Point3DArray;
 
 template <typename Model>
-void find_nodes_on_x_plane(Model& md, IndexArray& id_array,
+void find_2d_nodes_on_x_line(Model& md, IndexArray& id_array,
 	double x, bool need_reset_array = true, double tol = 1.0e-3)
 {
 	typedef typename Model::Node Node;
 
 	if (need_reset_array)
 		id_array.reset();
-	
+
 	size_t node_num = md.get_node_num();
 	Node* nodes = md.get_nodes();
-	tol = abs(x) < 1.0 ? tol : abs(x)*tol;
+	tol = abs(x) < 1.0 ? tol : abs(x) * tol;
 	double xl = x - tol;
 	double xu = x + tol;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
@@ -35,7 +36,7 @@ void find_nodes_on_x_plane(Model& md, IndexArray& id_array,
 }
 
 template <typename Model>
-void find_nodes_on_y_plane(Model& md, IndexArray& id_array,
+void find_2d_nodes_on_y_line(Model& md, IndexArray& id_array,
 	double y, bool need_reset_array = true, double tol = 1.0e-3)
 {
 	typedef typename Model::Node Node;
@@ -57,7 +58,51 @@ void find_nodes_on_y_plane(Model& md, IndexArray& id_array,
 }
 
 template <typename Model>
-void find_nodes_on_z_plane(Model& md, IndexArray& id_array,
+void find_3d_nodes_on_x_plane(Model& md, IndexArray& id_array,
+	double x, bool need_reset_array = true, double tol = 1.0e-3)
+{
+	typedef typename Model::Node Node;
+
+	if (need_reset_array)
+		id_array.reset();
+	
+	size_t node_num = md.get_node_num();
+	Node* nodes = md.get_nodes();
+	tol = abs(x) < 1.0 ? tol : abs(x)*tol;
+	double xl = x - tol;
+	double xu = x + tol;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		Node& n = nodes[n_id];
+		if (n.x > xl && n.x < xu)
+			id_array.add(n.id);
+	}
+}
+
+template <typename Model>
+void find_3d_nodes_on_y_plane(Model& md, IndexArray& id_array,
+	double y, bool need_reset_array = true, double tol = 1.0e-3)
+{
+	typedef typename Model::Node Node;
+
+	if (need_reset_array)
+		id_array.reset();
+
+	size_t node_num = md.get_node_num();
+	Node* nodes = md.get_nodes();
+	tol = abs(y) < 1.0 ? tol : abs(y) * tol;
+	double yl = y - tol;
+	double yu = y + tol;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		Node& n = nodes[n_id];
+		if (n.y > yl && n.y < yu)
+			id_array.add(n.id);
+	}
+}
+
+template <typename Model>
+void find_3d_nodes_on_z_plane(Model& md, IndexArray& id_array,
 	double z, bool need_reset_array = true, double tol = 1.0e-3)
 {
 	typedef typename Model::Node Node;
@@ -79,7 +124,27 @@ void find_nodes_on_z_plane(Model& md, IndexArray& id_array,
 }
 
 template <typename Model>
-void find_pcls(Model &md, IndexArray& pt_array,
+void find_2d_pcls(Model& md, IndexArray& pt_array,
+	Rect &range, bool need_reset_array = true)
+{
+	typedef typename Model::Particle Particle;
+
+	if (need_reset_array)
+		pt_array.reset();
+
+	size_t pcl_num = md.get_pcl_num();
+	Particle* pcls = md.get_pcls();
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		Particle& pcl = pcls[p_id];
+		if (pcl.x >= range.xl && pcl.x <= range.xu &&
+			pcl.y >= range.yl && pcl.y <= range.yu)
+			pt_array.add(pcl.id);
+	}
+}
+
+template <typename Model>
+void find_3d_pcls(Model &md, IndexArray& pt_array,
 	Cube &range, bool need_reset_array = true)
 {
 	typedef typename Model::Particle Particle;
@@ -113,7 +178,7 @@ public:
 
 
 template <typename Model>
-void display_model(int argc, char** argv,
+void display_3d_model(int argc, char** argv,
 	float theta, float fai, float lt_theta, float lt_fai,
 	Model& model, Point3DArray& ptlist, float pt_vol,
 	bool disp_mesh = true,

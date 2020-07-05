@@ -9,14 +9,14 @@ namespace MatModel
 	//     = 0 - elstic
 	//     > 0 - plastic
 	//     < 0 - convergence failure
-	int modified_cam_clay_integration_function(MaterialModel *_self, double dstrain[6])
+	int modified_cam_clay_integration_function(MaterialModel* _self, double dstrain[6])
 	{
-		ModifiedCamClay &self = static_cast<ModifiedCamClay &>(*_self);
+		ModifiedCamClay& self = static_cast<ModifiedCamClay&>(*_self);
 
-		double *dstress = self.dstress;
-		double *stress = self.stress;
-		double *dstrain_e = self.dstrain_e;
-		double *dstrain_p = self.dstrain_p;
+		double* dstress = self.dstress;
+		double* stress = self.stress;
+		double* dstrain_e = self.dstrain_e;
+		double* dstrain_p = self.dstrain_p;
 		double(*De_mat)[6] = self.De_mat;
 		for (size_t i = 0; i < 6; ++i)
 		{
@@ -45,7 +45,7 @@ namespace MatModel
 		double dg_ds[6], dg_dpc;
 		double A_pc, divider;
 		double dl, dep_cor[6], ds_cor[6];
-		for (int iter_id = 0; iter_id < 10; ++iter_id)
+		for (size_t iter_id = 0; iter_id < 20; ++iter_id)
 		{
 			self.cal_dg_stress(p, q, dg_ds, dg_dpc);
 			A_pc = self.cal_A_pc(dg_ds);
@@ -97,7 +97,6 @@ namespace MatModel
 			q = self.cal_q();
 			f = self.cal_f(p, q);
 			if (self.cal_norm_f(f, p) < 1.0e-8)
-				//if (f < 1.0e-4)
 			{
 				// update e
 				self.e += (self.e + 1.0) * (dstrain[0] + dstrain[1] + dstrain[2]);
@@ -122,4 +121,4 @@ namespace MatModel
 		return -1;
 	}
 
-};
+}

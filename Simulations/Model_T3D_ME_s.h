@@ -155,8 +155,8 @@ public:
 
 	int init_search_grid(double _hx, double _hy, double _hz);
 
-	void init_pcls(size_t num, double m, double density);
-	void init_pcls(ParticleGenerator3D<Model_T3D_ME_s> &pg, double density);
+	int init_pcls(size_t num, double m, double density);
+	int init_pcls(ParticleGenerator3D<Model_T3D_ME_s> &pg, double density);
 	void alloc_pcls(size_t num);
 	void clear_pcls();
 

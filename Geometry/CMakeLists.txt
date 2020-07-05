@@ -10,10 +10,16 @@ add_library(
     #
     Geometry.h Geometry.cpp
     NumPairHashTable.hpp
+    # 2D geometry
+    TriangleMeshTemplate.hpp
+    TriangleMesh.h
+    SearchingGrid2D.hpp
+    ParticleGenerator2D.hpp
+    # 3D geometry
     TetrahedronMeshTemplate.hpp
-    TetrahedronMesh.h #TetrahedronMesh.cpp
-    ParticleGenerator3D.hpp
+    TetrahedronMesh.h
     SearchingGrid3D.hpp
+    ParticleGenerator3D.hpp
     )
 
 set(GEOMETRY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

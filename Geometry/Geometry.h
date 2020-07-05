@@ -4,9 +4,45 @@
 #include <cmath>
 
 struct Point2D { double x, y; };
-struct Rect { double xl, xu, yl, yu; };
+
+struct Rect
+{
+	double xl, xu, yl, yu;
+	Rect() {}
+	Rect(double _xl, double _xu,
+		 double _yl, double _yu) :
+		xl(_xl), xu(_xu), yl(_yl), yu(_yu) {}
+	inline bool is_in_box(double x, double y)
+	{
+		if (x < xl || x > xu ||
+			y < yl || y > yu)
+			return false;
+		return true;
+	}
+	template <typename Point2D>
+	inline bool is_in_box(Point2D& point)
+	{
+		return is_in_box(point.x, point.y);
+	}
+};
+
+struct Vector2D
+{
+	double x, y;
+	inline double norm() { return sqrt(x * x + y * y); }
+	inline void normalize()
+	{
+		double len = norm();
+		if (len != 0.0)
+		{
+			x /= len;
+			y /= len;
+		}
+	}
+};
 
 struct Point3D { double x, y, z; };
+
 struct Cube
 {
 	double xl, xu, yl, yu, zl, zu;
@@ -14,11 +50,14 @@ struct Cube
 	Cube(double _xl, double _xu,
 		 double _yl, double _yu,
 		 double _zl, double _zu) :
-		xl(_xl), xu(_xu), yl(_yl),
-		yu(_yu), zl(_zl), zu(_zu) {}
+		xl(_xl), xu(_xu),
+		yl(_yl), yu(_yu),
+		zl(_zl), zu(_zu) {}
 	inline bool is_in_box(double x, double y, double z)
 	{
-		if (x < xl || x > xu || y < yl || y > yu || z < zl || z > zu)
+		if (x < xl || x > xu ||
+			y < yl || y > yu ||
+			z < zl || z > zu)
 			return false;
 		return true;
 	}
@@ -63,7 +102,7 @@ inline double cal_distance_2D(Node2D &p1, Point2D &p2) noexcept
 
 // distance between 3D points
 template <typename Node3D, typename Point3D>
-inline double cal_distance_3D(Node3D &n, Point3D &p)
+inline double cal_distance_3D(Node3D &n, Point3D &p) noexcept
 {
 	double dx = n.x - p.x;
 	double dy = n.y - p.y;
@@ -84,13 +123,10 @@ inline double cal_distance_2D(Rect &rec, Point2D &p) noexcept
 	return sqrt(x_diff * x_diff + y_diff * y_diff);
 }
 
-template <typename Point3D>
-inline double cal_triangle_area(Point3D &p1, Point3D &p2, Point3D &p3)
+template <typename Node2D, typename Point2D>
+inline double cal_triangle_area(Node2D &p1, Node2D &p2, Point2D &p3)
 {
-	double nx = (p2.y-p1.y)*(p3.z-p1.z) - (p3.y-p1.y)*(p2.z-p1.z);
-	double ny = (p2.z-p1.z)*(p3.x-p1.x) - (p3.z-p1.z)*(p2.x-p1.x);
-	double nz = (p2.x-p1.x)*(p3.y-p1.y) - (p3.x-p1.x)*(p2.y-p1.y);
-	return 0.5 * sqrt(nx*nx + ny*ny + nz*nz);
+	return 0.5 * ((p1.x-p3.x)*(p2.y-p3.y) - (p2.x-p3.x)*(p1.y-p3.y));
 }
 
 template <typename Node3D, typename Point3D>

@@ -19,6 +19,20 @@ add_library(
     ResultFile_XML.h
     Model_hdf5_utilities.h
     BCs.h # boundary conditions
+    # Rigid circle
+    RigidCircle.h RigidCircle.cpp
+    # 2D ME MPM
+    Model_T2D_ME_s.h Model_T2D_ME_s.cpp
+    Step_T2D_ME_s.h Step_T2D_ME_s.cpp
+    Model_T2D_ME_s_hdf5_utilities.h Model_T2D_ME_s_hdf5_utilities.cpp
+    ModelData_T2D_ME_s.h ModelData_T2D_ME_s.cpp
+    TimeHistory_T2D_ME_s_complete.h TimeHistory_T2D_ME_s_complete.cpp
+    # 2D CHM MPM
+    Model_T2D_CHM_s.h Model_T2D_CHM_s.cpp
+    Step_T2D_CHM_s.h Step_T2D_CHM_s.cpp
+    Model_T2D_CHM_s_hdf5_utilities.h Model_T2D_CHM_s_hdf5_utilities.cpp
+    ModelData_T2D_CHM_s.h ModelData_T2D_CHM_s.cpp
+    TimeHistory_T2D_CHM_s_complete.h TimeHistory_T2D_CHM_s_complete.cpp
     # 3D ME MPM
     Model_T3D_ME_s.h Model_T3D_ME_s.cpp
     Step_T3D_ME_s.h Step_T3D_ME_s.cpp

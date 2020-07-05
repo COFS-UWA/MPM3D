@@ -203,7 +203,7 @@ protected: // helper for load_mesh_from_hdf5()
 		double y;
 		double z;
 	};
-	inline static hid_t get_node_dt_id(void)
+	inline static hid_t get_node_dt_id()
 	{
 		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(NodeData));
 		H5Tinsert(res, "index", HOFFSET(NodeData, id), H5T_NATIVE_ULLONG);
@@ -221,7 +221,7 @@ protected: // helper for load_mesh_from_hdf5()
 		long long n3;
 		long long n4;
 	};
-	inline static hid_t get_elem_dt_id(void)
+	inline static hid_t get_elem_dt_id()
 	{
 		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(ElemData));
 		H5Tinsert(res, "index", HOFFSET(ElemData, id), H5T_NATIVE_ULLONG);

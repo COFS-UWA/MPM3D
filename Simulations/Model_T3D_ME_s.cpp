@@ -109,9 +109,12 @@ int Model_T3D_ME_s::init_search_grid(double _hx, double _hy, double _hz)
 	return search_bg_grid.init(*this, _hx, _hy, _hz);
 }
 
-void Model_T3D_ME_s::init_pcls(size_t num, double m, double density)
+int Model_T3D_ME_s::init_pcls(size_t num, double m, double density)
 {
 	clear_pcls();
+	if (num == 0)
+		return -1;
+	
 	alloc_pcls(num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -135,12 +138,15 @@ void Model_T3D_ME_s::init_pcls(size_t num, double m, double density)
 		pcl.s23 = 0.0;
 		pcl.s31 = 0.0;
 	}
+	return 0;
 }
 
-void Model_T3D_ME_s::init_pcls(ParticleGenerator3D<Model_T3D_ME_s> &pg, double density)
+int Model_T3D_ME_s::init_pcls(ParticleGenerator3D<Model_T3D_ME_s> &pg, double density)
 {
-	clear_pcls();
-	init_pcls(pg.get_num(), density, density);
+	int res = init_pcls(pg.get_num(), density, density);
+	if (res)
+		return res;
+
 	ParticleGenerator3D<Model_T3D_ME_s>::Particle *p_iter = pg.first();
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -151,6 +157,7 @@ void Model_T3D_ME_s::init_pcls(ParticleGenerator3D<Model_T3D_ME_s> &pg, double d
 		pcl.m *= p_iter->vol;
 		p_iter = pg.next(p_iter);
 	}
+	return 0;
 }
 
 void Model_T3D_ME_s::alloc_pcls(size_t num)

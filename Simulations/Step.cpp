@@ -49,8 +49,8 @@ int Step::solve()
 
 	} while (current_time_plus_tol < step_time);
 
-	finalize_time_history();
 	finalize_calculation();
+	finalize_time_history();
 
 	return 0;
 }

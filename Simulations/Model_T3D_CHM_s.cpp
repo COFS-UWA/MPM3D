@@ -126,11 +126,13 @@ void Model_T3D_CHM_s::alloc_pcls(size_t num)
 	pcls = new Particle[pcl_num];
 }
 
-void Model_T3D_CHM_s::init_pcls(size_t num,
+int Model_T3D_CHM_s::init_pcls(size_t num,
 	double n, double m_s, double density_s, double density_f,
 	double _Kf, double _k, double _miu)
 {
 	clear_pcls();
+	if (num == 0)
+		return -1;
 	alloc_pcls(num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -163,14 +165,17 @@ void Model_T3D_CHM_s::init_pcls(size_t num,
 	Kf = _Kf;
 	k = _k;
 	miu = _miu;
+	return 0;
 }
 
-void Model_T3D_CHM_s::init_pcls(ParticleGenerator3D<Model_T3D_CHM_s> &pg,
+int Model_T3D_CHM_s::init_pcls(ParticleGenerator3D<Model_T3D_CHM_s> &pg,
 	double n, double density_s, double density_f,
 	double _Kf, double _k, double _miu)
 {
-	clear_pcls();
-	init_pcls(pg.get_num(), n, density_s, density_s, density_f, _Kf, _k, _miu);
+	int res = init_pcls(pg.get_num(), n, density_s, density_s, density_f, _Kf, _k, _miu);
+	if (res)
+		return res;
+
 	ParticleGenerator3D<Model_T3D_CHM_s>::Particle *p_iter = pg.first();
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -181,6 +186,8 @@ void Model_T3D_CHM_s::init_pcls(ParticleGenerator3D<Model_T3D_CHM_s> &pg,
 		pcl.m_s *= p_iter->vol * (1.0 - pcl.n);
 		p_iter = pg.next(p_iter);
 	}
+
+	return 0;
 }
 
 void Model_T3D_CHM_s::clear_pcls()

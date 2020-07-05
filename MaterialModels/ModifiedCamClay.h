@@ -1,5 +1,5 @@
-#ifndef __Modified_Cam_Clay_h__
-#define __Modified_Cam_Clay_h__
+#ifndef __Modified_Cam_Clay_H__
+#define __Modified_Cam_Clay_H__
 
 #include <cmath>
 
@@ -8,13 +8,13 @@
 namespace MatModel
 {
 
-	int modified_cam_clay_integration_function(MaterialModel *_self, double dstrain[6]);
+	int modified_cam_clay_integration_function(MaterialModel* _self, double dstrain[6]);
 
 	// This model uses constant stiffness instead of
 	// deducing it from recompression line
 	class ModifiedCamClay : public MaterialModel
 	{
-		friend int modified_cam_clay_integration_function(MaterialModel *_self, double dstrain[6]);
+		friend int modified_cam_clay_integration_function(MaterialModel* _self, double dstrain[6]);
 	public:
 		double niu; // possion ratio
 		double kappa; // logrithmic recompression modulus
@@ -69,7 +69,7 @@ namespace MatModel
 			double q = cal_q();
 			pc = cal_pc(p, q);
 			// void ratio
-			e = N - lambda * log(pc);
+			e = N + (kappa - lambda) * log(pc) - kappa * log(-p);
 			// stiffness mat
 			form_De_mat(p);
 			//form_Dep_mat();
@@ -115,7 +115,8 @@ namespace MatModel
 			else // normally consolidated
 			{
 				// void ratio
-				e = N - lambda * log(pc);
+				//e = N - lambda * log(pc);
+				e = N + (kappa - lambda) * log(pc) - kappa * log(-p);
 				// stiffness mat
 				form_De_mat(p);
 				double dg_ds[6], dg_dpc;
@@ -127,16 +128,16 @@ namespace MatModel
 			}
 		}
 
-		inline double get_p()  noexcept { return cal_p(); }
-		inline double get_q()  noexcept { return cal_q(); }
-		inline double get_pc() noexcept { return pc; }
-		inline double get_e_by_strain()  noexcept { return e; }
-		inline double get_e_by_model() noexcept
+		inline double get_p(void)  noexcept { return cal_p(); }
+		inline double get_q(void)  noexcept { return cal_q(); }
+		inline double get_pc(void) noexcept { return pc; }
+		inline double get_e_by_strain(void)  noexcept { return e; }
+		inline double get_e_by_model(void) noexcept
 		{
 			return N - lambda * log(pc) + kappa * log(-pc / cal_p());
 		}
-		inline double get_f() noexcept { return cal_f(cal_p(), cal_q()); }
-		inline double get_norm_f() noexcept { return cal_norm_f(cal_p(), cal_q()); }
+		inline double get_f(void) noexcept { return cal_f(cal_p(), cal_q()); }
+		inline double get_norm_f(void) noexcept { return cal_norm_f(cal_p(), cal_q()); }
 
 	protected:
 		// form elastic stiffness matrix
@@ -191,7 +192,7 @@ namespace MatModel
 			De_mat[5][3] = 0.0;
 			De_mat[5][4] = 0.0;
 		}
-		inline void form_Dep_mat() noexcept
+		inline void form_Dep_mat(void) noexcept
 		{
 			memcpy(Dep_mat, De_mat, 6 * 6 * sizeof(double));
 		}
@@ -207,11 +208,11 @@ namespace MatModel
 					Dep_mat[i][j] = De_mat[i][j] - De_dg_ds[i] * De_dg_ds[j] / divider;
 		}
 
-		inline double cal_p() noexcept
+		inline double cal_p(void) noexcept
 		{
 			return (s11 + s22 + s33) / 3.0;
 		}
-		inline double cal_q() noexcept
+		inline double cal_q(void) noexcept
 		{
 			double s11_s22_diff = s11 - s22;
 			double s22_s33_diff = s22 - s33;
@@ -236,21 +237,21 @@ namespace MatModel
 		{
 			return -f / (M2 * p * pc);
 		}
-		void cal_dg_stress(double p, double q, double dg_ds[6], double &dg_dpc)
+		void cal_dg_stress(double p, double q, double dg_ds[6], double& dg_dpc)
 		{
 			double dg_dp, dg_dq;
 			dg_dp = M2 * (2.0 * p + pc);
-			dg_dq = 2.0 * q;
+			dg_dq = 2.0; // *q in dq_ds
 			dg_dpc = M2 * p;
 			// dq_ds
 			double dq_ds11, dq_ds22, dq_ds33;
 			double dq_ds12, dq_ds23, dq_ds31;
-			dq_ds11 = 0.5 * (s11 + s11 - s22 - s33) / q;
-			dq_ds22 = 0.5 * (s22 + s22 - s33 - s11) / q;
-			dq_ds33 = 0.5 * (s33 + s33 - s11 - s22) / q;
-			dq_ds12 = 3.0 * s12 / q;
-			dq_ds23 = 3.0 * s23 / q;
-			dq_ds31 = 3.0 * s31 / q;
+			dq_ds11 = 0.5 * (s11 + s11 - s22 - s33);
+			dq_ds22 = 0.5 * (s22 + s22 - s33 - s11);
+			dq_ds33 = 0.5 * (s33 + s33 - s11 - s22);
+			dq_ds12 = 3.0 * s12;
+			dq_ds23 = 3.0 * s23;
+			dq_ds31 = 3.0 * s31;
 			// dg_ds
 			dg_ds[0] = dg_dp / 3.0 + dg_dq * dq_ds11; // dg_ds11
 			dg_ds[1] = dg_dp / 3.0 + dg_dq * dq_ds22; // dg_ds22
@@ -274,6 +275,6 @@ namespace MatModel
 		}
 	};
 
-};
+}
 
 #endif
