@@ -31,9 +31,6 @@ Model_T2D_ME_s::~Model_T2D_ME_s()
 
 void Model_T2D_ME_s::init_mesh_shape_funcs()
 {
-	double a1, b1, coef1;
-	double a2, b2, coef2;
-	double a3, b3, coef3;
 	double area2;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
@@ -44,15 +41,22 @@ void Model_T2D_ME_s::init_mesh_shape_funcs()
 		area2 = n1.x * n2.y - n2.x * n1.y
 			  + n2.x * n3.y - n3.x * n2.y
 			  + n3.x * n1.y - n1.x * n3.y;
-		a1 = (n2.y - n3.y) / area2;
-		b1 = (n3.x - n2.x) / area2;
-		coef1 = (n2.x * n3.y - n3.x * n2.y) / area2;
-		a2 = (n3.y - n1.y) / area2;
-		b2 = (n1.x - n3.x) / area2;
-		coef2 = (n3.x * n1.y - n1.x * n3.y) / area2;
-		a3 = (n1.y - n2.y) / area2;
-		b3 = (n2.x - n1.x) / area2;
-		coef3 = (n1.x * n2.y - n2.x * n1.y) / area2;
+		e.a1 = (n2.y - n3.y) / area2;
+		e.b1 = (n3.x - n2.x) / area2;
+		e.coef1 = (n2.x * n3.y - n3.x * n2.y) / area2;
+		e.a2 = (n3.y - n1.y) / area2;
+		e.b2 = (n1.x - n3.x) / area2;
+		e.coef2 = (n3.x * n1.y - n1.x * n3.y) / area2;
+		e.a3 = (n1.y - n2.y) / area2;
+		e.b3 = (n2.x - n1.x) / area2;
+		e.coef3 = (n1.x * n2.y - n2.x * n1.y) / area2;
+		// shape function derivatives
+		e.dN1_dx = e.a1;
+		e.dN1_dy = e.b1;
+		e.dN2_dx = e.a2;
+		e.dN2_dy = e.b2;
+		e.dN3_dx = e.a3;
+		e.dN3_dy = e.b3;
 	}
 }
 

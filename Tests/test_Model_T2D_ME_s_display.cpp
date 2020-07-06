@@ -20,7 +20,7 @@ namespace
 		Model_T2D_ME_s& md,
 		Particle& pcl,
 		std::ostream& os
-	)
+		)
 	{
 		Node* nodes = md.get_nodes();
 		pcl.pe = md.find_in_which_element(pcl);
@@ -59,13 +59,13 @@ void test_Model_T2D_ME_s_display(int argc, char** argv)
 		1.0, 0.0, // 1
 		0.0, 1.0  // 2
 	};
-	size_t node_num = sizeof(node_coords) / (sizeof(node_coords[0])*2);
+	size_t node_num = sizeof(node_coords) / (sizeof(node_coords[0]) * 2);
 	size_t elem_indices[] = {
 		0, 1, 2 // 0
 	};
-	size_t elem_num = 1;
-	//model.init_mesh(node_coords, node_num, elem_indices, elem_num);
-	model.load_mesh_from_hdf5("..\\..\\Asset\\square_mesh.h5");
+	size_t elem_num = sizeof(elem_indices) / (sizeof(elem_indices[0]) * 3);
+	model.init_mesh(node_coords, node_num, elem_indices, elem_num);
+	//model.load_mesh_from_hdf5("..\\..\\Asset\\square_mesh.h5");
 
 	model.init_search_grid(0.05, 0.05);
 	
@@ -125,6 +125,6 @@ void test_Model_T2D_ME_s_display(int argc, char** argv)
 	QtApp_Prep_2DMPM view_app(argc, argv);
 	view_app.set_win_size(1000, 1000);
 	view_app.set_model(model);
-	view_app.set_pts(pts, 2, 0.15);
+	//view_app.set_pts(pts, 2, 0.15);
 	view_app.start();
 }

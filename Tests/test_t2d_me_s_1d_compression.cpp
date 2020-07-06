@@ -70,14 +70,14 @@ void test_t2d_mpm_me_s_1d_compression(int argc, char **argv)
 		tbc.t = 0.02 * -10.0;
 	}
 
-	QtApp_Prep_2DMPM md_disp(argc, argv);
-	md_disp.set_win_size(1000, 1000);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_2DMPM md_disp(argc, argv);
+	//md_disp.set_win_size(1000, 1000);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_1d_compression.h5");
@@ -102,36 +102,18 @@ void test_t2d_mpm_me_s_1d_compression(int argc, char **argv)
 	step.solve();
 }
 
-//void test_color_animation_t2d_me_s_1d_compression(void)
-//{
-//	double soil_height = 1.0;
-//	double soil_width = 0.2;
-//	double padding_height = soil_height * 0.05;
-//	double padding_width = soil_width * 0.05;
-//	// Abaqus "rainbow" spectrum scheme
-//	ColorGraph::Colori colors[] = {
-//		{ 0,   0,   255 },
-//		{ 0,   93,  255 },
-//		{ 0,   185, 255 },
-//		{ 0,   255, 232 },
-//		{ 0,   255, 139 },
-//		{ 0,   255, 46  },
-//		{ 46,  255, 0   },
-//		{ 139, 255, 0   },
-//		{ 232, 255, 0   },
-//		{ 255, 185, 0   },
-//		{ 255, 93,  0   },
-//		{ 255, 0,   0   }
-//	};
-//	GA_T2D_ME_s_hdf5 gen;
-//	gen.init_color_graph(-1.0, 1.0, colors, sizeof(colors)/sizeof(ColorGraph::Colori));
-//	gen.generate(
-//		5.0,
-//		-padding_width,
-//		soil_width + padding_width,
-//		-padding_height,
-//		soil_height + padding_height,
-//		"t2d_mpm_me_1d_compression.hdf5",
-//		"compression",
-//		"t2d_mpm_me_1d_compression.gif");
-//}
+#include "QtApp_Posp_2DMPM.h"
+
+#include "test_model_view.h"
+
+void test_t2d_me_s_1d_compression_result(int argc, char** argv)
+{
+	ResultFile_hdf5 rf;
+	rf.open("t2d_me_1d_compression.h5");
+
+	QtApp_Posp_2DMPM app(argc, argv);
+	app.set_win_size(900, 900);
+	app.set_fld_range(0.0, 1.0);
+	app.set_res_file(rf, "compression", 0, "y");
+	app.start();
+}

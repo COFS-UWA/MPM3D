@@ -1,7 +1,7 @@
 #version 330 core
 
 in vec3 obj_color;
-flat in int obj_type;
+flat in uint obj_type;
 
 out vec4 frag_color;
 

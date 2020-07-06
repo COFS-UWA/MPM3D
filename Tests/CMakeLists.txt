@@ -18,6 +18,7 @@ add_executable(
     test_model_view.h
     # unit tests
     # 2D
+    test_searching_grid2d.cpp
     test_Model_T2D_ME_s_display.cpp
     test_t2d_me_s_1d_compression.cpp
     test_t2d_chm_s_1d_consolidation.cpp

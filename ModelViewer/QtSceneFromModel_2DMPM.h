@@ -26,8 +26,8 @@ protected:
 	float pt_radius;
 	MemoryUtils::ItemArray<PointData> pts_mem;
 
-	QOpenGLShaderProgram shader_plain_2D;
-	QOpenGLShaderProgram shader_circle_insts;
+	QOpenGLShaderProgram shader_plain2D;
+	QOpenGLShaderProgram shader_circles;
 
 	bool display_bg_mesh;
 	bool display_pcls;
@@ -38,8 +38,9 @@ protected:
 	// points to be high lighted
 	QtMonoColourCircleGLObject pts_obj;
 	
+	bool display_whole_model;
 	GLfloat xl, xu, yl, yu, padding_ratio;
-	
+
 	// viewport info
 	GLint vp_x_pos, vp_y_pos;
 	GLsizei vp_x_size, vp_y_size;
@@ -63,7 +64,13 @@ public:
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }
 	inline void set_display_pts(bool op = true) { display_pts = op; }
-	
+	inline void set_display_whole_model() { display_whole_model = true; }
+	inline void set_display_range(double _xl, double _xu, double _yl, double _yu)
+	{
+		display_whole_model = false;
+		xl = _xl; xu = _xu; yl = _yl; yu = _yu;
+	}
+
 	inline void set_model(Model_T2D_ME_s& _model) { model = &_model; }
 	int set_pts_from_pcl_id(size_t* ids, size_t id_num, float radius);
 	int set_pts_from_node_id(size_t* ids, size_t id_num, float radius);

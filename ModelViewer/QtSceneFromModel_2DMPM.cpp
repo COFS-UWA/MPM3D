@@ -7,7 +7,8 @@ QtSceneFromModel_2DMPM::QtSceneFromModel_2DMPM(
 	gl(_gl), model(nullptr), pt_num(0), pts(nullptr),
 	display_bg_mesh(true), display_pcls(true), display_pts(true),
 	bg_mesh_obj(_gl), pcls_obj(_gl), pts_obj(_gl),
-	padding_ratio(0.05f), bg_color(0.2f, 0.3f, 0.3f)
+	display_whole_model(true), padding_ratio(0.05f),
+	bg_color(0.2f, 0.3f, 0.3f)
 {
 
 }
@@ -45,49 +46,54 @@ int QtSceneFromModel_2DMPM::initialize(int wd, int ht)
 {
 	// init shaders
 	// shader_plain2D
-	shader_plain_2D.addShaderFromSourceFile(
+	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_plain2D.vert"
 		);
-	shader_plain_2D.addShaderFromSourceFile(
+	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_plain2D.frag"
 		);
-	shader_plain_2D.link();
+	shader_plain2D.link();
 
 	// shader_circles
-	shader_circle_insts.addShaderFromSourceFile(
+	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_circles.vert"
 		);
-	shader_circle_insts.addShaderFromSourceFile(
+	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_circles.frag"
 		);
-	shader_circle_insts.link();
+	shader_circles.link();
 
-	// view matrix
-	Rect bbox = model->get_bounding_box();
-	GLfloat xlen = GLfloat(bbox.xu - bbox.xl);
-	GLfloat ylen = GLfloat(bbox.yu - bbox.yl);
-	GLfloat padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
-	xl = GLfloat(bbox.xl) - padding;
-	xu = GLfloat(bbox.xu) + padding;
-	yl = GLfloat(bbox.yl) - padding;
-	yu = GLfloat(bbox.yu) + padding;
+	// get bounding box
+	if (display_whole_model)
+	{
+		Rect bbox = model->get_bounding_box();
+		GLfloat xlen = GLfloat(bbox.xu - bbox.xl);
+		GLfloat ylen = GLfloat(bbox.yu - bbox.yl);
+		GLfloat padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
+		xl = GLfloat(bbox.xl) - padding;
+		xu = GLfloat(bbox.xu) + padding;
+		yl = GLfloat(bbox.yl) - padding;
+		yu = GLfloat(bbox.yu) + padding;
+	}
 
+	// viewport
 	set_viewport(wd, ht, xu - xl, yu - yl);
 
+	// view matrix
 	view_mat.setToIdentity();
 	view_mat.ortho(xl, xu, yl, yu, -1.0f, 1.0f);
-	shader_plain_2D.bind();
-	shader_plain_2D.setUniformValue("view_mat", view_mat);
-	shader_circle_insts.bind();
-	shader_circle_insts.setUniformValue("view_mat", view_mat);
+	shader_plain2D.bind();
+	shader_plain2D.setUniformValue("view_mat", view_mat);
+	shader_circles.bind();
+	shader_circles.setUniformValue("view_mat", view_mat);
 
 	// init bg_mesh
 	QVector3D gray(0.5f, 0.5f, 0.5f);
-	bg_mesh_obj.init(
+	bg_mesh_obj.init_from_edges(
 		model->get_nodes(),
 		model->get_node_num(),
 		model->get_edges(),
@@ -119,18 +125,18 @@ void QtSceneFromModel_2DMPM::draw()
 	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
 	gl.glClear(GL_COLOR_BUFFER_BIT);
 
-	shader_plain_2D.bind();
+	shader_plain2D.bind();
 
 	if (display_bg_mesh)
-		bg_mesh_obj.draw(shader_plain_2D);
+		bg_mesh_obj.draw(shader_plain2D);
 
-	shader_circle_insts.bind();
+	shader_circles.bind();
 
 	if (display_pcls)
-		pcls_obj.draw(shader_circle_insts);
+		pcls_obj.draw(shader_circles);
 
 	if (display_pts && pts && pt_num)
-		pts_obj.draw(shader_circle_insts);
+		pts_obj.draw(shader_circles);
 }
 
 void QtSceneFromModel_2DMPM::resize(int wd, int ht)

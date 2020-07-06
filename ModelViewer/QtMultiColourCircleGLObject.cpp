@@ -1,15 +1,15 @@
 #include "ModelViewer_pcp.h"
 
-#include "QtMonoColourCircleGLObject.h"
+#include "QtMultiColourCircleGLObject.h"
 
-QtMonoColourCircleGLObject::
-	QtMonoColourCircleGLObject(QOpenGLFunctions_3_3_Core& _gl) :
+QtMultiColourCircleGLObject::
+	QtMultiColourCircleGLObject(QOpenGLFunctions_3_3_Core& _gl) :
 	gl(_gl), vao(0), vbo_cs(0), veo_cs(0), vbo_pts(0),
     c_elem_node_num(0), pt_num(0) {}
 
-QtMonoColourCircleGLObject::~QtMonoColourCircleGLObject() { clear(); }
+QtMultiColourCircleGLObject::~QtMultiColourCircleGLObject() { clear(); }
 
-void QtMonoColourCircleGLObject::clear()
+void QtMultiColourCircleGLObject::clear()
 {
     if (veo_cs)
     {
@@ -33,9 +33,9 @@ void QtMonoColourCircleGLObject::clear()
     }
 }
 
-void QtMonoColourCircleGLObject::draw(QOpenGLShaderProgram& shader)
+void QtMultiColourCircleGLObject::draw(QOpenGLShaderProgram& shader)
 {
-    shader.setUniformValue("g_color", color);
+    (void)shader;
 
     gl.glBindVertexArray(vao);
     gl.glDrawElementsInstanced(
@@ -45,6 +45,70 @@ void QtMonoColourCircleGLObject::draw(QOpenGLShaderProgram& shader)
         (GLvoid*)0,
         pt_num
     );
+}
+
+int QtMultiColourCircleGLObject::init_gl_buffer(
+    PointData* pds,
+    size_t pd_num
+    )
+{
+    clear();
+
+    pt_num = pd_num;
+
+    gl.glGenVertexArrays(1, &vao);
+    if (vao == 0)
+        return -1;
+    gl.glBindVertexArray(vao);
+    
+    int res = init_circle_data();
+    if (res)
+        return res;
+
+    gl.glGenBuffers(1, &vbo_pts);
+    if (vbo_pts == 0)
+        return -1;
+    gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
+    gl.glBufferData(GL_ARRAY_BUFFER,
+        pd_num * sizeof(PointData),
+        pds,
+        GL_STREAM_DRAW
+        );
+
+    // pt_type
+    gl.glVertexAttribIPointer(1,
+        1, GL_UNSIGNED_INT,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, type)
+        );
+    gl.glEnableVertexAttribArray(1);
+    gl.glVertexAttribDivisor(1, 1);
+    // pt_pos
+    gl.glVertexAttribPointer(2,
+        2, GL_FLOAT, GL_FALSE,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, x)
+        );
+    gl.glEnableVertexAttribArray(2);
+    gl.glVertexAttribDivisor(2, 1);
+    // pt_radius
+    gl.glVertexAttribPointer(3,
+        1, GL_FLOAT, GL_FALSE,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, radius)
+        );
+    gl.glEnableVertexAttribArray(3);
+    gl.glVertexAttribDivisor(3, 1);
+    // point value
+    gl.glVertexAttribPointer(4,
+        1, GL_FLOAT, GL_FALSE,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, fld)
+        );
+    gl.glEnableVertexAttribArray(4);
+    gl.glVertexAttribDivisor(4, 1);
+
+    return 0;
 }
 
 static const GLfloat circle_nodes[] = {
@@ -111,68 +175,6 @@ static const GLfloat circle_nodes[] = {
     0.994522f, -0.104528f // node 60
 };
 
-int QtMonoColourCircleGLObject::init_gl_buffer(
-    PointData* pds,
-    size_t pd_num)
-{
-    clear();
-
-    pt_num = pd_num;
-
-    gl.glGenVertexArrays(1, &vao);
-    if (vao == 0)
-        return -1;
-    gl.glBindVertexArray(vao);
-
-    int res = init_circle_data();
-    if (res)
-        return res;
-
-    gl.glGenBuffers(1, &vbo_pts);
-    if (vbo_pts == 0)
-        return -1;
-    gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
-    gl.glBufferData(GL_ARRAY_BUFFER,
-        pd_num * sizeof(PointData),
-        pds,
-        GL_STREAM_DRAW
-    );
-
-    // pt_type
-    gl.glVertexAttribIPointer(1,
-        1, GL_UNSIGNED_INT,
-        sizeof(PointData),
-        (GLvoid*)offsetof(PointData, type)
-        );
-    gl.glEnableVertexAttribArray(1);
-    gl.glVertexAttribDivisor(1, 1);
-    // pt_pos
-    gl.glVertexAttribPointer(2,
-        2, GL_FLOAT, GL_FALSE,
-        sizeof(PointData),
-        (GLvoid*)offsetof(PointData, x)
-        );
-    gl.glEnableVertexAttribArray(2);
-    gl.glVertexAttribDivisor(2, 1);
-    // pt_radius
-    gl.glVertexAttribPointer(3,
-        1, GL_FLOAT, GL_FALSE,
-        sizeof(PointData),
-        (GLvoid*)offsetof(PointData, radius)
-        );
-    gl.glEnableVertexAttribArray(3);
-    gl.glVertexAttribDivisor(3, 1);
-    // point value (not used)
-    gl.glVertexAttribPointer(4,
-        1, GL_FLOAT, GL_FALSE,
-        0, (GLvoid*)0
-        );
-    gl.glEnableVertexAttribArray(4);
-    gl.glVertexAttribDivisor(4, 1);
-
-    return 0;
-}
-
 static const GLuint circle_elems[] = {
     0, 1, 2, // elem 0
     0, 2, 3, // elem 1
@@ -236,8 +238,10 @@ static const GLuint circle_elems[] = {
     0, 60, 1 // elem 59
 };
 
-int QtMonoColourCircleGLObject::init_circle_data()
+int QtMultiColourCircleGLObject::init_circle_data()
 {
+    c_elem_node_num = sizeof(circle_elems) / sizeof(circle_elems[0]);
+    
     gl.glGenBuffers(1, &vbo_cs);
     if (vbo_cs == 0)
         return -1;
@@ -260,8 +264,6 @@ int QtMonoColourCircleGLObject::init_circle_data()
         circle_elems,
         GL_STATIC_DRAW
         );
-
-    c_elem_node_num = sizeof(circle_elems) / sizeof(circle_elems[0]);
 
     return 0;
 }

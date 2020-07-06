@@ -23,7 +23,9 @@ protected:
 	QVector3D color;
 
 	void clear();
+
 	int init_circle_data();
+	int init_gl_buffer(PointData* pds, size_t pd_num);
 
 public:
 	QtMonoColourCircleGLObject(QOpenGLFunctions_3_3_Core& _gl);
@@ -50,17 +52,8 @@ int QtMonoColourCircleGLObject::init(
 {
 	clear();
 
-	gl.glGenVertexArrays(1, &vao);
-	gl.glBindVertexArray(vao);
-	
-	int res = init_circle_data();
-	if (res) return res;
-
 	color = c;
-	pt_num = pcl_num;
-	
-	gl.glGenBuffers(1, &vbo_cs);
-	gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_cs);
+
 	PointData* pt_datas = new PointData[pcl_num];
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
@@ -72,45 +65,8 @@ int QtMonoColourCircleGLObject::init(
 		pd.radius = sqrt(GLfloat(pcl.get_vol()) / 3.14159265359f)
 						* radius_scale;
 	}
-	gl.glBufferData(GL_ARRAY_BUFFER,
-		pcl_num * sizeof(PointData),
-		pt_datas,
-		GL_STREAM_DRAW
-		);
+	int res = init_gl_buffer(pt_datas, pcl_num);
 	delete[] pt_datas;
-
-	// pt_type
-	gl.glVertexAttribPointer(1,
-		1, GL_INT, GL_FALSE,
-		sizeof(PointData),
-		(GLvoid *)offsetof(PointData, type)
-		);
-	gl.glEnableVertexAttribArray(1);
-	gl.glVertexAttribDivisor(1, 1);
-	// pt_pos
-	gl.glVertexAttribPointer(2,
-		2, GL_FLOAT, GL_FALSE,
-		sizeof(PointData),
-		(GLvoid*)offsetof(PointData, x)
-		);
-	gl.glEnableVertexAttribArray(2);
-	gl.glVertexAttribDivisor(2, 1);
-	// pt_radius
-	gl.glVertexAttribPointer(3,
-		1, GL_FLOAT, GL_FALSE,
-		sizeof(PointData),
-		(GLvoid*)offsetof(PointData, radius)
-		);
-	gl.glEnableVertexAttribArray(3);
-	gl.glVertexAttribDivisor(3, 1);
-	// point value (not used)
-	gl.glVertexAttribPointer(4,
-		1, GL_FLOAT, GL_FALSE,
-		0, (GLvoid*)0
-		);
-	gl.glEnableVertexAttribArray(4);
-	gl.glVertexAttribDivisor(4, 1);
-
 	return 0;
 }
 
@@ -124,20 +80,10 @@ int QtMonoColourCircleGLObject::init(
 {
 	clear();
 
-	pt_num = _pt_num;
 	color = c;
 
-	gl.glGenVertexArrays(1, &vao);
-	gl.glBindVertexArray(vao);
-
-	int res = init_circle_data();
-	if (res)
-		return res;
-
-	gl.glGenBuffers(1, &vbo_cs);
-	gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_cs);
-	PointData* pt_datas = new PointData[pt_num];
-	for (size_t p_id = 0; p_id < pt_num; ++p_id)
+	PointData* pt_datas = new PointData[_pt_num];
+	for (size_t p_id = 0; p_id < _pt_num; ++p_id)
 	{
 		Point2D& pt = pts[p_id];
 		PointData& pd = pt_datas[p_id];
@@ -146,46 +92,9 @@ int QtMonoColourCircleGLObject::init(
 		pd.y = GLfloat(pt.y);
 		pd.radius = pt_radius;
 	}
-	gl.glBufferData(GL_ARRAY_BUFFER,
-		pt_num * sizeof(PointData),
-		pt_datas,
-		GL_STREAM_DRAW
-	);
+	int res = init_gl_buffer(pt_datas, _pt_num);
 	delete[] pt_datas;
-
-	// pt_type
-	gl.glVertexAttribPointer(1,
-		1, GL_INT, GL_FALSE,
-		sizeof(PointData),
-		(GLvoid*)offsetof(PointData, type)
-	);
-	gl.glEnableVertexAttribArray(1);
-	gl.glVertexAttribDivisor(1, 1);
-	// pt_pos
-	gl.glVertexAttribPointer(2,
-		2, GL_FLOAT, GL_FALSE,
-		sizeof(PointData),
-		(GLvoid*)offsetof(PointData, x)
-	);
-	gl.glEnableVertexAttribArray(2);
-	gl.glVertexAttribDivisor(2, 1);
-	// pt_radius
-	gl.glVertexAttribPointer(3,
-		1, GL_FLOAT, GL_FALSE,
-		sizeof(PointData),
-		(GLvoid*)offsetof(PointData, radius)
-	);
-	gl.glEnableVertexAttribArray(3);
-	gl.glVertexAttribDivisor(3, 1);
-	// point value (not used)
-	gl.glVertexAttribPointer(4,
-		1, GL_FLOAT, GL_FALSE,
-		0, (GLvoid*)0
-	);
-	gl.glEnableVertexAttribArray(4);
-	gl.glVertexAttribDivisor(4, 1);
-
-	return 0;
+	return res;
 }
 
 #endif

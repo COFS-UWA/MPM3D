@@ -236,6 +236,7 @@ protected:
 	}
 
 	inline void swap(double &a, double &b) { double c = a; a = b; b = c; }
+public:
 	// test if aligned-axis bounding box intersects triangle
 	bool detect_AABB_triangle_collision(Rect &aabb, MeshElement &e)
 	{
