@@ -98,7 +98,8 @@ int AnimationGenerationController::set_res_file(
 			pcl_vol_off = H5Tget_member_offset(pcl_dt_id, mem_id);
 			++init_mem_num;
 		}
-		else if (strcmp(mem_name, field_na) == 0)
+		
+		if (strcmp(mem_name, field_na) == 0)
 		{
 			field_name = field_na;
 			pcl_fld_off = H5Tget_member_offset(pcl_dt_id, mem_id);

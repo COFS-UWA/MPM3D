@@ -73,22 +73,23 @@ unsigned char* UniformColourMap::gen_1Dtexture(
 	struct Colour_ub
 	{
 		unsigned char r, g, b;
-	} *cur_tex = reinterpret_cast<Colour_ub *>(texture);
+	} *cur_tex;
+	cur_tex = reinterpret_cast<Colour_ub*>(texture);
 	float w1, w2;
 	float w_inv = 1.0f / float(inv_resolution);
 	for (size_t t_id = 0; t_id < tex_num; ++t_id)
 	{
 		Colour& c1 = colours[t_id];
 		Colour& c2 = colours[t_id+1];
-		w1 = 0.0f;
+		w2 = 0.0f;
 		for (size_t r_id = 0; r_id < inv_resolution; ++r_id)
 		{
-			w1 += w_inv;
-			w2 = 1.0f - w1;
+			w1 = 1.0f - w2;
 			cur_tex->r = unsigned char((w1 * c1.r + w2 * c2.r) * 255.0f);
 			cur_tex->g = unsigned char((w1 * c1.g + w2 * c2.g) * 255.0f);
 			cur_tex->b = unsigned char((w1 * c1.b + w2 * c2.b) * 255.0f);
 			++cur_tex;
+			w2 += w_inv;
 		}
 	}
 	cur_tex->r = unsigned char(colours[tex_num].r * 255.0f);

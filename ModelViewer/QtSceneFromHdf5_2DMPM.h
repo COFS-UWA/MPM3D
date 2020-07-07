@@ -4,6 +4,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
+#include "ItemArray.hpp"
 #include "ResultFile_hdf5.h"
 #include "QtTriangleMeshGLObject.h"
 #include "UniformColorMap_Abaqus.h"
@@ -33,6 +34,7 @@ protected:
 	std::string field_name;
 	size_t pcl_fld_off;
 	hid_t pcl_fld_type;
+	MemoryUtils::ItemArray<char> pcls_data_mem;
 
 	QOpenGLShaderProgram shader_plain2D;
 	QOpenGLShaderProgram shader_circles;
@@ -84,14 +86,19 @@ public:
 	inline void set_fld_range(double min, double max)
 	{ color_map.set_range(min, max); }
 
+	size_t get_frame_num();
+	double get_frame_time(size_t frame_id);
+	
 	int set_res_file(
 		ResultFile_hdf5& rf,
 		const char* th_na,
-		size_t frame_id,
 		const char* field_na
-	);
+		);
 
-	int initialize(int wd, int ht);
+	// create the scene, including bg mesh and pcls
+	int init_scene(int wd, int ht, size_t frame_id);
+	// only update pcls, for animation
+	void update_scene(size_t frame_id);
 	void draw();
 	void resize(int wd, int ht);
 };

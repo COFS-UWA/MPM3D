@@ -22,12 +22,34 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow() {}
 };
 
-QtApp_Posp_2DMPM::QtApp_Posp_2DMPM(int &argc, char **argv) :
-	app(argc, argv),
+QtApp_Posp_2DMPM::QtApp_Posp_2DMPM(
+	int &argc, char **argv,
+	Type tp) :
+	app(argc, argv), type(tp),
 	scene(window.get_view()),
-	controller(window.get_view(), scene) {}
+	pcontroller(nullptr)
+{
+	switch (tp)
+	{
+	case SingleFrame:
+		pcontroller = new QtController_Posp_Static(window.get_view(), scene);
+		break;
+	case Animation:
+		pcontroller = new QtController_Posp_Animation(window.get_view(), scene);
+		break;
+	default:
+		break;
+	}
+}
 
-QtApp_Posp_2DMPM::~QtApp_Posp_2DMPM() {}
+QtApp_Posp_2DMPM::~QtApp_Posp_2DMPM()
+{
+	if (pcontroller)
+	{
+		delete pcontroller;
+		pcontroller = nullptr;
+	}
+}
 
 int QtApp_Posp_2DMPM::start()
 {

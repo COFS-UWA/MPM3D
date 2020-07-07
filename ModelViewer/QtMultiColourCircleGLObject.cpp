@@ -111,6 +111,26 @@ int QtMultiColourCircleGLObject::init_gl_buffer(
     return 0;
 }
 
+int QtMultiColourCircleGLObject::update_gl_buffer(
+    PointData* pds,
+    size_t pd_num
+    )
+{
+    if (!vao || !vbo_pts)
+        return -1;
+
+    gl.glBindVertexArray(vao);
+
+    gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
+    gl.glBufferData(GL_ARRAY_BUFFER,
+        pd_num * sizeof(PointData),
+        pds,
+        GL_STREAM_DRAW
+        );
+
+    return 0;
+}
+
 static const GLfloat circle_nodes[] = {
     0.000000f, 0.000000f, // node 0
     1.000000f, 0.000000f, // node 1

@@ -8,6 +8,7 @@
 class QtController : public QObject
 {
 	Q_OBJECT
+
 protected:
 	QtGLView *view;
 

@@ -78,10 +78,33 @@ void QtSceneFromHdf5_2DMPM::set_viewport(
 	}
 }
 
+void QtSceneFromHdf5_2DMPM::draw()
+{
+	gl.glViewport(vp_x_pos, vp_y_pos, vp_x_size, vp_y_size);
+
+	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
+	gl.glClear(GL_COLOR_BUFFER_BIT);
+
+	shader_plain2D.bind();
+
+	if (display_bg_mesh)
+		bg_mesh_obj.draw(shader_plain2D);
+
+	shader_circles.bind();
+
+	if (display_pcls)
+		pcls_obj.draw(shader_circles);
+}
+
+void QtSceneFromHdf5_2DMPM::resize(int wd, int ht)
+{
+	set_viewport(wd, ht, xu - xl, yu - yl);
+}
+
+// ================== animation ==================
 int QtSceneFromHdf5_2DMPM::set_res_file(
 	ResultFile_hdf5& rf,
 	const char* th_na,
-	size_t frame_id,
 	const char* field_na
 	)
 {
@@ -97,14 +120,13 @@ int QtSceneFromHdf5_2DMPM::set_res_file(
 	}
 	th_id = rf.open_group(th_grp_id, th_na);
 
-	char frame[50];
-	snprintf(frame, 50, "frame_%zu", frame_id);
-	if (!rf.has_group(th_id, frame))
+	if (!rf.has_group(th_id, "frame_0"))
 	{
 		close_file();
 		return -2;
 	}
-	frame_grp_id = rf.open_group(th_id, frame);
+	frame_grp_id = rf.open_group(th_id, "frame_0");
+
 	hid_t pcl_grp_id = rf.open_group(frame_grp_id, "ParticleData");
 	hid_t pcl_dset_id = rf.open_dataset(pcl_grp_id, "field");
 
@@ -131,7 +153,7 @@ int QtSceneFromHdf5_2DMPM::set_res_file(
 			pcl_vol_off = H5Tget_member_offset(pcl_dt_id, mem_id);
 			++init_mem_num;
 		}
-		
+
 		if (strcmp(mem_name, field_na) == 0)
 		{
 			field_name = field_na;
@@ -151,14 +173,34 @@ int QtSceneFromHdf5_2DMPM::set_res_file(
 	return -3;
 }
 
+size_t QtSceneFromHdf5_2DMPM::get_frame_num()
+{
+	ResultFile_hdf5& rf = *res_file;
+	size_t frame_num;
+	rf.read_attribute(th_id, "output_num", frame_num);
+	return frame_num;
+}
 
-int QtSceneFromHdf5_2DMPM::initialize(int wd, int ht)
+double QtSceneFromHdf5_2DMPM::get_frame_time(size_t frame_id)
+{
+	ResultFile_hdf5& rf = *res_file;
+	double frame_time;
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	rf.read_attribute(frame_grp_id, "total_time", frame_time);
+	rf.close_group(frame_grp_id);
+	return frame_time;
+}
+
+int QtSceneFromHdf5_2DMPM::init_scene(int wd, int ht, size_t frame_id)
 {
 	using namespace Model_hdf5_utilities;
-	
+
 	if (!res_file || !res_file->is_open())
 		return -1;
 
+	int res;
 	ResultFile_hdf5& rf = *res_file;
 
 	// write model data to view
@@ -180,7 +222,7 @@ int QtSceneFromHdf5_2DMPM::initialize(int wd, int ht)
 	H5Tclose(elem_dt_id);
 	// init bg_mesh buffer
 	QVector3D gray(0.5f, 0.5f, 0.5f);
-	bg_mesh_obj.init_from_elements(
+	res = bg_mesh_obj.init_from_elements(
 		nodes_data,
 		node_num,
 		elems_data,
@@ -217,23 +259,30 @@ int QtSceneFromHdf5_2DMPM::initialize(int wd, int ht)
 	delete[] nodes_data;
 	delete[] elems_data;
 	rf.close_group(bg_mesh_id);
+	if (res)
+		return res;
 
-	// write particle data to view
-	hid_t frame_id = rf.open_group(th_id, "frame_0");
-	hid_t pcl_data_id = rf.open_group(frame_id, "ParticleData");
+	// init particle data buffer
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	hid_t pcl_data_id = rf.open_group(frame_grp_id, "ParticleData");
 	// pcl num
 	rf.read_attribute(pcl_data_id, "pcl_num", pcl_num);
 	// pcl data
-	char* pcls_data = new char[pcl_size * pcl_num];
-	rf.read_dataset(pcl_data_id, "field", pcl_num, (void*)pcls_data, pcl_dt_id);
+	pcls_data_mem.reserve(pcl_size * pcl_num);
+	char* pcls_data = pcls_data_mem.get_mem();
+	rf.read_dataset(pcl_data_id, "field", pcl_num, (void *)pcls_data, pcl_dt_id);
 	rf.close_group(pcl_data_id);
-	rf.close_group(frame_id);
+	rf.close_group(frame_grp_id);
 	// init pcl gl buffer
-	pcls_obj.init<double>(
+	res = pcls_obj.init<double>(
 		pcls_data, pcl_size, pcl_num,
 		pcl_x_off, pcl_y_off,
-		pcl_vol_off, 0.5, pcl_fld_off);
-	delete[] pcls_data;
+		pcl_vol_off, 0.5, pcl_fld_off
+		);
+	if (res)
+		return res;
 
 	// color map texture
 	size_t color_map_texture_size;
@@ -242,6 +291,8 @@ int QtSceneFromHdf5_2DMPM::initialize(int wd, int ht)
 	if (!color_map_texture_data || !color_map_texture_size)
 		return -2;
 	gl.glGenTextures(1, &color_map_texture);
+	if (color_map_texture == 0)
+		return -1;
 	gl.glBindTexture(GL_TEXTURE_1D, color_map_texture);
 	gl.glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	gl.glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -251,23 +302,23 @@ int QtSceneFromHdf5_2DMPM::initialize(int wd, int ht)
 		GL_UNSIGNED_BYTE, color_map_texture_data);
 	gl.glGenerateMipmap(GL_TEXTURE_1D);
 	delete[] color_map_texture_data;
-	
+
 	gl.glActiveTexture(GL_TEXTURE0);
 	gl.glBindTexture(GL_TEXTURE_1D, color_map_texture);
 
 	// viewport
 	set_viewport(wd, ht, xu - xl, yu - yl);
-	
+
 	// init shaders
 	// shader_plain2D
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_plain2D.vert"
-		);
+	);
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_plain2D.frag"
-		);
+	);
 	shader_plain2D.link();
 
 	// shader_circles
@@ -300,25 +351,25 @@ int QtSceneFromHdf5_2DMPM::initialize(int wd, int ht)
 	return 0;
 }
 
-void QtSceneFromHdf5_2DMPM::draw()
+void QtSceneFromHdf5_2DMPM::update_scene(size_t frame_id)
 {
-	gl.glViewport(vp_x_pos, vp_y_pos, vp_x_size, vp_y_size);
-
-	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
-	gl.glClear(GL_COLOR_BUFFER_BIT);
-
-	shader_plain2D.bind();
-
-	if (display_bg_mesh)
-		bg_mesh_obj.draw(shader_plain2D);
-
-	shader_circles.bind();
-
-	if (display_pcls)
-		pcls_obj.draw(shader_circles);
-}
-
-void QtSceneFromHdf5_2DMPM::resize(int wd, int ht)
-{
-	set_viewport(wd, ht, xu - xl, yu - yl);
+	ResultFile_hdf5 &rf = *res_file;
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	hid_t pcl_data_id = rf.open_group(frame_grp_id, "ParticleData");
+	// pcl num
+	rf.read_attribute(pcl_data_id, "pcl_num", pcl_num);
+	// pcl data
+	pcls_data_mem.reserve(pcl_size * pcl_num);
+	char* pcls_data = pcls_data_mem.get_mem();
+	rf.read_dataset(pcl_data_id, "field", pcl_num, (void*)pcls_data, pcl_dt_id);
+	rf.close_group(pcl_data_id);
+	rf.close_group(frame_grp_id);
+	// update pcl gl buffer
+	pcls_obj.update<double>(
+		pcls_data, pcl_size, pcl_num,
+		pcl_x_off, pcl_y_off,
+		pcl_vol_off, 0.5, pcl_fld_off
+		);
 }

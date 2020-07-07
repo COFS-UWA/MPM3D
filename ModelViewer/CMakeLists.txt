@@ -26,6 +26,7 @@ add_library(
     QtApp_Prep_2DMPM.h QtApp_Prep_2DMPM.cpp
     # post process module
     QtController_Posp_Static.h QtController_Posp_Static.cpp
+    QtController_Posp_Animation.h QtController_Posp_Animation.cpp
     QtSceneFromHdf5_2DMPM.h QtSceneFromHdf5_2DMPM.cpp
     QtApp_Posp_2DMPM.h QtApp_Posp_2DMPM.cpp
     ################## 3D MPM model display ######################

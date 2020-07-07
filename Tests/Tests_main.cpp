@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
 	//test_PospMPM3DApp(argc, argv);
 
 	//test_t2d_mpm_me_s_1d_compression(argc, argv);
-	test_t2d_me_s_1d_compression_result(argc, argv);
+	//test_t2d_me_s_1d_compression_static_result(argc, argv);
+	test_t2d_me_s_1d_compression_ani_result(argc, argv);
 
 	//test_t3d_me_s_1d_compression(argc, argv);
 	//test_t3d_me_s_1d_compression_result(argc, argv);
