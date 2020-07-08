@@ -8,7 +8,7 @@ add_library(
     # precomplied header
     FileUtils_pcp.h FileUtils_pcp.cpp
     #
-    common.h common.cpp
+    file_utils.h file_utils.cpp
     GifCreator.h GifCreator.cpp
     )
 

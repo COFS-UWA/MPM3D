@@ -4,15 +4,15 @@
 
 QtController_Posp_Static
 	::QtController_Posp_Static() :
-	view(nullptr), scene(nullptr), frame_id(0)
+	scene(nullptr), frame_id(0)
 {
 
 }
 
 QtController_Posp_Static::QtController_Posp_Static(
 	QtGLView& v,
-	QtSceneFromHdf5_2DMPM& s
-	) : frame_id(0)
+	QtSceneFromHdf5_2DMPM& s) :
+	scene(nullptr), frame_id(0)
 {
 	set_view(v);
 	set_scene(s);

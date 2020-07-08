@@ -13,7 +13,7 @@ protected:
 	QtGLView *view;
 
 public:
-	QtController() {}
+	QtController() : view(nullptr) {}
 	virtual ~QtController() {}
 
 	inline void set_view(QtGLView& v)

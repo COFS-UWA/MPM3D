@@ -28,7 +28,13 @@ protected:
 public:
 	MainWindow();
 	~MainWindow();
+
 	inline QtGLView& get_view() { return *model_view; }
+	// fixed window size
+	inline void set_fixed_size(int wd, int ht)
+	{
+		setFixedSize(wd, ht);
+	}
 };
 
 };
@@ -57,7 +63,13 @@ public:
 	
 	inline QtGLView& get_view() { return window.get_view(); }
 	
-	inline void set_win_size(int wd, int ht) { window.resize(wd, ht); }
+	inline void set_win_size(int wd, int ht)
+	{
+		if (type == Animation)
+			window.set_fixed_size(wd, ht);
+		else
+			window.resize(wd, ht);
+	}
 
 	inline void set_display_bg_mesh(bool op = true)
 	{ scene.set_display_bg_mesh(op); }
@@ -121,6 +133,22 @@ public:
 		QtController_Posp_Animation& pc
 			= *static_cast<QtController_Posp_Animation*>(pcontroller);
 		pc.set_end_frame(f_id);
+	}
+
+	inline void set_png_name(const char* name)
+	{
+		if (type != Animation) return;
+		QtController_Posp_Animation& pc
+			= *static_cast<QtController_Posp_Animation*>(pcontroller);
+		pc.set_png_name(name);
+	}
+
+	inline void set_gif_name(const char* name)
+	{
+		if (type != Animation) return;
+		QtController_Posp_Animation& pc
+			= *static_cast<QtController_Posp_Animation*>(pcontroller);
+		pc.set_gif_name(name);
 	}
 };
 

@@ -3,18 +3,20 @@
 #include <limits>
 #include <iostream>
 
+#include "file_utils.h"
+
 #include "QtController_Posp_Animation.h"
 
 QtController_Posp_Animation::QtController_Posp_Animation() :
-	view(nullptr), scene(nullptr)
+	scene(nullptr), has_frame_undrawed(false)
 {
 	init_self();
 }
 
 QtController_Posp_Animation::QtController_Posp_Animation(
 	QtGLView& v,
-	QtSceneFromHdf5_2DMPM& s
-	)
+	QtSceneFromHdf5_2DMPM& s) :
+	scene(nullptr), has_frame_undrawed(false)
 {
 	set_view(v);
 	set_scene(s);
@@ -28,16 +30,26 @@ void QtController_Posp_Animation::init_self()
 	cur_frame_id = 0;
 	end_frame_id = std::numeric_limits<size_t>::max();
 
-	ani_timer.setSingleShot(true);
-	connect(this, SIGNAL(render_next_frame_signal()),
+	ani_next_frame_timer.setSingleShot(true);
+	connect(&ani_next_frame_timer, SIGNAL(timeout()),
 			this, SLOT(render_next_frame()));
+
+	ani_timer.setSingleShot(true);
 	connect(&ani_timer, SIGNAL(timeout()),
-			this, SLOT(draw_cur_frame()));
+			view, SLOT(update()));
+
+	// output parameters
+	need_output_png = false;
+	png_name = "";
+
+	need_output_gif = false;
+	gif_name = "";
+	gif_file_is_init = false;
 }
 
 QtController_Posp_Animation::~QtController_Posp_Animation()
 {
-
+	close_gif_file();
 }
 
 int QtController_Posp_Animation::initialize(int wd, int ht)
@@ -58,54 +70,140 @@ int QtController_Posp_Animation::initialize(int wd, int ht)
 	min_md_delay = min_ani_delay / ani_div_md;
 	has_next_frame = true;
 
+	render_begin_time = std::chrono::system_clock::now();
+
+	// init png output
+	if (need_output_png)
+	{
+		make_dir(png_name.c_str());
+	}
+
 	// draw the first frame
-	return scene->init_scene(wd, ht, cur_frame_id);
+	int res = scene->init_scene(wd, ht, cur_frame_id);
+	has_frame_undrawed = true;
+
+	return res;
 }
 
 namespace
 {
 inline void print_frame_info(size_t cur_frame_id,
-	double cur_ani_time, double cur_md_time)
+	double cur_ani_time, double cur_md_time, double render_time)
 {
-	std::cout << "Display frame " << cur_frame_id
-		<< " at " << cur_ani_time / 1000.0
-		<< "s (model time: " << cur_md_time << ")\n";
+	std::cout << "Frame " << cur_frame_id
+		<< " at animation time: " << cur_ani_time / 1000.0
+		<< "s (model time: " << cur_md_time << "s), using "
+		<< render_time << "s\n";
 }
 }
 
 void QtController_Posp_Animation::draw_scene()
 {
-	print_frame_info(cur_frame_id, cur_ani_time, cur_md_time);
 	scene->draw();
-	if (has_next_frame)
+	if (has_frame_undrawed)
 	{
+		has_frame_undrawed = false;
 		prev_frame_time = std::chrono::system_clock::now();
-		emit render_next_frame_signal();
+		render_time = double(std::chrono::duration_cast<std::chrono::milliseconds>(prev_frame_time - render_begin_time).count())/1000.0;
+		print_frame_info(cur_frame_id, cur_ani_time, cur_md_time, render_time);
+		if (has_next_frame)
+			ani_next_frame_timer.start(0);
 	}
 }
 
-void QtController_Posp_Animation::resize_scene(int wd, int ht)
+namespace
 {
-	(void)wd; (void)ht; // fixed size win, do nothing here
+void from_bgra_to_rgba(uchar* dst, uchar* src, size_t width, size_t height)
+{
+	for (size_t h_id = 0; h_id < height; ++h_id)
+		for (size_t w_id = 0; w_id < width; ++w_id)
+		{
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+			dst[3] = 255;
+			dst += 4;
+			src += 4;
+		}
+}
 }
 
 void QtController_Posp_Animation::render_next_frame()
 {
-	if((has_next_frame = find_next_frame()) == false)
+	// output prev frame
+	char ss_name[256];
+	if (need_output_png)
+	{
+		snprintf(ss_name, 256, "%s\\frame_%zu.png",
+			png_name.c_str(), cur_frame_id);
+		screen_pixels = view->grab(view->geometry());
+		screen_pixels.save(ss_name, "png");
+	}
+
+	uchar* scr_data;
+	if (need_output_gif)
+	{
+		if (!gif_file_is_init)
+		{
+			gif_width = view->width();
+			gif_height = view->height();
+			GifCreator::GifBegin(&gif_file,
+				gif_name.c_str(),
+				gif_width, gif_height, true
+			);
+			gif_file_is_init = true;
+			screen_img_rgba.reserve(gif_width * gif_height * 4);
+		}
+		
+		ani_delay_100 = unsigned short(ani_delay / 10.0);
+		if (ani_delay_100 < 2)
+			ani_delay_100 = 2;
+		screen_pixels = view->grab(view->geometry());
+		screen_img = screen_pixels.toImage();
+		scr_data = screen_img_rgba.get_mem();
+		from_bgra_to_rgba(scr_data, screen_img.bits(), gif_width, gif_height);
+		GifCreator::GifWriteFrame(
+			&gif_file,
+			scr_data,
+			gif_width,
+			gif_height,
+			ani_delay_100
+		);
+	}
+
+	// has_next_frame
+	if ((has_next_frame = find_next_frame()) == false)
+	{
+		if (need_output_gif)
+		{
+			// output the last frame to gif
+			scr_data = screen_img_rgba.get_mem();
+			GifCreator::GifWriteFrame(
+				&gif_file,
+				scr_data,
+				gif_width,
+				gif_height,
+				200 // 2s
+				);
+			close_gif_file();
+		}
 		return;
+	}
 
 	scene->update_scene(cur_frame_id);
-	
+	has_frame_undrawed = true;
+
 	std::chrono::system_clock::time_point cur_time = std::chrono::system_clock::now();
 	std::chrono::milliseconds elapsed_time
 		= std::chrono::duration_cast<std::chrono::milliseconds>(cur_time - prev_frame_time);
-	double time_to_next_frame = ani_delay - double(elapsed_time.count());
+	// ANI_DELAY_ADJUSTMENT is an empirical number to make ani schedule more accurate
+#define ANI_DELAY_ADJUSTMENT 10.0
+	double time_to_next_frame = ani_delay - ANI_DELAY_ADJUSTMENT - double(elapsed_time.count());
+#undef  ANI_DELAY_ADJUSTMENT
 	if (time_to_next_frame < 0.0)
 		time_to_next_frame = 0.0;
 	ani_timer.start(time_to_next_frame);
 }
-
-void QtController_Posp_Animation::draw_cur_frame() { view->update(); }
 
 bool QtController_Posp_Animation::find_next_frame()
 {
@@ -128,4 +226,42 @@ bool QtController_Posp_Animation::find_next_frame()
 	}
 
 	return false;
+}
+
+void QtController_Posp_Animation::set_png_name(const char* fname)
+{
+	if (!fname || !strcmp(fname, ""))
+	{
+		need_output_png = false;
+		png_name = "";
+		return;
+	}
+	need_output_png = true;
+	png_name = fname;
+}
+
+void QtController_Posp_Animation::set_gif_name(const char* fname)
+{
+	if (!fname || !strcmp(fname, ""))
+	{
+		need_output_gif = false;
+		gif_name = "";
+		return;
+	}
+	need_output_gif = true;
+	gif_name = std::string(fname) + ".gif";
+}
+
+void QtController_Posp_Animation::close_gif_file()
+{
+	if (gif_file_is_init)
+	{
+		GifCreator::GifEnd(&gif_file);
+		gif_file_is_init = false;
+	}
+}
+
+void QtController_Posp_Animation::resize_scene(int wd, int ht)
+{
+	(void)wd; (void)ht; // fixed size win, do nothing
 }

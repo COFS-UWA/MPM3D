@@ -8,7 +8,6 @@
 class QtController_Posp_Static : public QtController
 {
 protected:
-	QtGLView *view;
 	QtSceneFromHdf5_2DMPM *scene;
 
 	size_t frame_id; // frame to be displayed

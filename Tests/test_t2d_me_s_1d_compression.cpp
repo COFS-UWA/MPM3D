@@ -128,5 +128,7 @@ void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv)
 	app.set_fld_range(0.0, 1.0);
 	app.set_res_file(rf, "compression", "y");
 	app.set_ani_time(5.0);
+	//app.set_png_name("1d_compression");
+	app.set_gif_name("1d_compression");
 	app.start();
 }

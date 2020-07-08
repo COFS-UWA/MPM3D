@@ -11,6 +11,7 @@ class QtGLView : public QOpenGLWidget,
 	public QOpenGLFunctions_3_3_Core
 {
 	Q_OBJECT
+
 protected:
 	QtController *controller;
 
