@@ -10,25 +10,39 @@ add_library(
     ModelViewer STATIC
     # Precomplied header
     ModelViewer_pcp.h ModelViewer_pcp.cpp
+    # architecture
+    QtGLView.h QtGLView.cpp
+    QtController.h
+    # prep processing
+    QtSceneFromModel.h
+    QtController_Prep.h QtController_Prep.cpp
+    # post processing
+    QtSceneFromHdf5.h
+    QtController_Posp_Static.h QtController_Posp_Static.cpp
+    QtController_Posp_Animation.h QtController_Posp_Animation.cpp
     # utilities
+    # color map
     UniformColourMap.h UniformColourMap.cpp
     UniformColorMap_Abaqus.h UniformColorMap_Abaqus.cpp
-    ################## 2D OpenGL Buffer Object ###################
+    ################## 2D MPM model display ######################
+    # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp
     QtMonoColourCircleGLObject.h QtMonoColourCircleGLObject.cpp
     QtMultiColourCircleGLObject.h QtMultiColourCircleGLObject.cpp
-    ################## 2D MPM model display ######################
-    QtGLView.h QtGLView.cpp
-    QtController.h
+    # Model_T2D_ME_s
     # prep process module
-    QtController_Prep.h QtController_Prep.cpp
-    QtSceneFromModel_2DMPM.h QtSceneFromModel_2DMPM.cpp
-    QtApp_Prep_2DMPM.h QtApp_Prep_2DMPM.cpp
+    QtSceneFromModel_T2D_ME_s.h QtSceneFromModel_T2D_ME_s.cpp
+    QtApp_Prep_T2D_ME_s.h QtApp_Prep_T2D_ME_s.cpp
     # post process module
-    QtController_Posp_Static.h QtController_Posp_Static.cpp
-    QtController_Posp_Animation.h QtController_Posp_Animation.cpp
-    QtSceneFromHdf5_2DMPM.h QtSceneFromHdf5_2DMPM.cpp
-    QtApp_Posp_2DMPM.h QtApp_Posp_2DMPM.cpp
+    QtSceneFromHdf5_T2D_ME_s.h QtSceneFromHdf5_T2D_ME_s.cpp
+    QtApp_Posp_T2D_ME_s.h QtApp_Posp_T2D_ME_s.cpp
+    # Model_T2D_CHM_s
+    # prep process module
+    QtSceneFromModel_T2D_CHM_s.h QtSceneFromModel_T2D_CHM_s.cpp
+    QtApp_Prep_T2D_CHM_s.h QtApp_Prep_T2D_CHM_s.cpp
+    # post process module
+    QtSceneFromHdf5_T2D_CHM_s.h QtSceneFromHdf5_T2D_CHM_s.cpp
+    QtApp_Posp_T2D_CHM_s.h QtApp_Posp_T2D_CHM_s.cpp
     ################## 3D MPM model display ######################
     MPM3DModelView.h MPM3DModelView.cpp
     # Mesh gl buffer

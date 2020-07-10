@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "Model_T2D_ME_s.h"
-#include "QtApp_Prep_2DMPM.h"
+#include "QtApp_Prep_T2D_ME_s.h"
 
 #include "ParticleGenerator2D.hpp"
 
@@ -122,7 +122,7 @@ void test_Model_T2D_ME_s_display(int argc, char** argv)
 		{ 0.8, 0.75 }
 	};
 
-	QtApp_Prep_2DMPM view_app(argc, argv);
+	QtApp_Prep_T2D_ME_s view_app(argc, argv);
 	view_app.set_win_size(1000, 1000);
 	view_app.set_model(model);
 	//view_app.set_pts(pts, 2, 0.15);

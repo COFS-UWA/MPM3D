@@ -210,3 +210,54 @@ int Model_T2D_ME_s::apply_contact_force_to_bg_mesh(double dtime)
 
 	return 0;
 }
+
+#include <fstream>
+
+void Model_T2D_ME_s::sum_vol_for_all_elements()
+{
+	// init elements
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		e.pcls = nullptr;
+		e.pcl_vol = 0.0;
+	}
+
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		Particle& pcl = pcls[p_id];
+		if (!(pcl.pe = find_in_which_element(pcl)))
+			continue;
+		pcl.pe->add_pcl(pcl);
+		pcl.vol = pcl.m / pcl.density;
+		pcl.pe->pcl_vol += pcl.vol;
+	}
+
+	std::fstream out_file;
+	out_file.open("area.txt", std::ios::binary | std::ios::out);
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		if (e.pcls)
+		{
+			if (e.pcl_vol > e.area)
+			{
+				out_file << "id: " << e.id << ", elem_a: " << e.area
+					<< ", pcl_a:" << e.pcl_vol
+					<< " * +" << (e.pcl_vol - e.area) / e.area * 100.0 << "% *\n";
+			}
+			else if (e.pcl_vol < e.area)
+			{
+				out_file << "id: " << e.id << ", elem_a: " << e.area
+					<< ", pcl_a:" << e.pcl_vol
+					<< " * -" << (e.area - e.pcl_vol) / e.area * 100.0 << "% *\n";
+			}
+			else
+			{
+				out_file << "id: " << e.id << ", elem_a: " << e.area
+					<< ", pcl_a:" << e.pcl_vol << "\n";
+			}
+		}
+	}
+	out_file.close();
+}

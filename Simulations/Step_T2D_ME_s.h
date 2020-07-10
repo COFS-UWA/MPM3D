@@ -1,5 +1,5 @@
-#ifndef __Step_T2D_ME_s_H__
-#define __Step_T2D_ME_s_H__
+#ifndef __Step_T2D_ME_s_h__
+#define __Step_T2D_ME_s_h__
 
 #include "Step.h"
 #include "Model_T2D_ME_s.h"

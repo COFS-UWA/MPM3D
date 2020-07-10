@@ -49,11 +49,16 @@ void test_searching_grid2d1()
 		1.0, 2.0,
 		2.0, 1.0,
 		2.0, 2.0,
+		// te4
+		0.1, 1.1,
+		1.1, 0.1,
+		1.2, 0.3
 	};
 	size_t elem_n_ids[] = {
 		0, 1, 2,
 		3, 4, 5,
-		6, 7, 8
+		6, 7, 8,
+		9, 10, 11
 	};
 	model.init_mesh(node_coords, sizeof(node_coords) / (sizeof(double) * 2),
 					elem_n_ids, sizeof(elem_n_ids) / (sizeof(size_t) * 3));
@@ -68,4 +73,6 @@ void test_searching_grid2d1()
 	model.detect_AABB_triangle_collision(grid_box, elems[1]);
 	// not contacct
 	model.detect_AABB_triangle_collision(grid_box, elems[2]);
+	// in contacct
+	model.detect_AABB_triangle_collision(grid_box, elems[3]);
 }

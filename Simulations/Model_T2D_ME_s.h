@@ -1,5 +1,5 @@
-#ifndef __Model_T2D_ME_s_H__
-#define __Model_T2D_ME_s_H__
+#ifndef __Model_T2D_ME_s_h__
+#define __Model_T2D_ME_s_h__
 
 #include "BCs.h"
 #include "macro_utils.h"
@@ -9,7 +9,6 @@
 #include "SearchingGrid2D.hpp"
 #include "ParticleGenerator2D.hpp"
 #include "RigidCircle.h"
-//#include "ParticleGenerator2D.hpp"
 
 namespace Model_T2D_ME_s_Internal
 {
@@ -81,7 +80,7 @@ struct Element
 	double dN2_dx, dN2_dy;
 	double dN3_dx, dN3_dy;
 
-	// particles list
+	// particle list
 	Particle* pcls;
 	inline void add_pcl(Particle& pcl) noexcept
 	{
@@ -103,6 +102,8 @@ typedef TriangleMeshTemplate<Node, Element, Edge> BgMesh;
 
 }
 
+class Step_T2D_ME_s_Geo;
+int solve_substep_T2D_ME_s_Geo(void* _self);
 class Step_T2D_ME_s;
 int solve_substep_T2D_ME_s(void* _self);
 
@@ -110,8 +111,11 @@ struct Model_T2D_ME_s : public Model,
 	public Model_T2D_ME_s_Internal::BgMesh,
 	public MatModel::MatModelContainer
 {
-	friend Step_T2D_ME_s;
+	friend class Step_T2D_ME_s_Geo;
+	friend int solve_substep_T2D_ME_s_Geo(void* _self);
+	friend class Step_T2D_ME_s;
 	friend int solve_substep_T2D_ME_s(void *_self);
+
 public:
 	typedef Model_T2D_ME_s_Internal::BgMesh BgMesh;
 	typedef Model_T2D_ME_s_Internal::Node Node;
@@ -180,8 +184,8 @@ public:
 	{
 		double a = e.a1 * p.x + e.b1 * p.y + e.coef1;
 		double b = e.a2 * p.x + e.b2 * p.y + e.coef2;
-		double c = e.a3 * p.x + e.b3 * p.y + e.coef3;
-		//double c = 1.0 - a - b;
+		//double c = e.a3 * p.x + e.b3 * p.y + e.coef3;
+		double c = 1.0 - a - b;
 		bool res = 0.0 <= a && a <= 1.0 &&
 				   0.0 <= b && b <= 1.0 &&
 				   0.0 <= c && c <= 1.0;
@@ -195,13 +199,15 @@ public:
 	}
 
 	// search using background grid
-	inline Element* find_in_which_element(Particle& pcl)
+	template <typename Point2D>
+	inline Element* find_in_which_element(Point2D& pcl)
 	{
-		return search_bg_grid.find_in_which_element<Particle>(pcl);
+		return search_bg_grid.find_in_which_element<Point2D>(pcl);
 	}
 
 	// brute force searching
-	inline Element* find_in_which_element_bf(Particle& pcl)
+	template <typename Point2D>
+	inline Element* find_in_which_element_bf(Point2D &pcl)
 	{
 		for (size_t e_id = 0; e_id < elem_num; ++e_id)
 		{
@@ -213,7 +219,7 @@ public:
 	}
 
 public: // interaction with rigid circle
-	inline RigidCircle& get_rigid_circle() noexcept { return rigid_circle; }
+	inline RigidCircle& get_rigid_circle() { return rigid_circle; }
 	inline void init_rigid_circle(double _r, double _x, double _y, double max_pcl_size)
 	{
 		rigid_circle.init(_r, _x, _y, max_pcl_size);
@@ -222,10 +228,13 @@ public: // interaction with rigid circle
 	{
 		rigid_circle.set_velocity(_vx, _vy, _w);
 	}
-	inline void set_contact_stiffness(double _K_cont) noexcept { K_cont = _K_cont; }
+	inline void set_contact_stiffness(double _K_cont) { K_cont = _K_cont; }
 
 protected:
 	int apply_contact_force_to_bg_mesh(double dtime);
+
+public: // for debug
+	void sum_vol_for_all_elements();
 };
 
 #endif

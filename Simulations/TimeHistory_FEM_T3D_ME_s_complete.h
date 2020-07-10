@@ -1,5 +1,5 @@
-#ifndef __Time_History_FEM_T3D_ME_s_complete_H__
-#define __Time_History_FEM_T3D_ME_s_complete_H__
+#ifndef __Time_History_FEM_T3D_ME_s_complete_h__
+#define __Time_History_FEM_T3D_ME_s_complete_h__
 
 #include "ResultFile_XML.h"
 #include "ResultFile_hdf5.h"

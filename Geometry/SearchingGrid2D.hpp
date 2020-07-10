@@ -259,32 +259,42 @@ public:
 			mesh->is_in_triangle(e, aabb.xu, aabb.yu))
 			return true;
 
+		// take grid centre as origin
+		double aabb_xc = (aabb.xl + aabb.xu) * 0.5;
+		double aabb_yc = (aabb.yl + aabb.yu) * 0.5;
+		double n_x0 = n1.x - aabb_xc;
+		double n_y0 = n1.y - aabb_yc;
+		double n_x1 = n2.x - aabb_xc;
+		double n_y1 = n2.y - aabb_yc;
+		double n_x2 = n3.x - aabb_xc;
+		double n_y2 = n3.y - aabb_yc;
+
 		double r, v_min, v_max;
 		// a31
-		r = (hx * abs(n2.y - n1.y) + hy * abs(n2.x - n1.x)) * 0.5;
-		v_min = n2.x * n1.y - n1.x * n2.y;
-		v_max = (n1.y - n2.y) * n3.x + (n2.x - n1.x) * n3.y;
+		r = (hx * abs(n_y1 - n_y0) + hy * abs(n_x1 - n_x0)) * 0.5;
+		v_min = n_x1 * n_y0 - n_x0 * n_y1;
+		v_max = (n_y0 - n_y1) * n_x2 + (n_x1 - n_x0) * n_y2;
 		if (v_min > v_max)
 			swap(v_min, v_max);
-		if (v_min >= r || v_max <= -r)
+		if (v_min > r || v_max < -r)
 			return false;
 		// a32
-		r = (hx * abs(n3.y - n2.y) + hy * abs(n3.x - n2.x)) * 0.5;
-		v_min = n3.x * n2.y - n2.x * n3.y;
-		v_max = (n2.y - n3.y) * n1.x + (n3.x - n2.x) * n1.y;
+		r = (hx * abs(n_y2 - n_y1) + hy * abs(n_x2 - n_x1)) * 0.5;
+		v_min = n_x2 * n_y1 - n_x1 * n_y2;
+		v_max = (n_y1 - n_y2) * n_x0 + (n_x2 - n_x1) * n_y0;
 		if (v_min > v_max)
 			swap(v_min, v_max);
-		if (v_min >= r || v_max <= -r)
+		if (v_min > r || v_max < -r)
 			return false;
 		// a33
-		r = (hx * abs(n1.y - n3.y) + hy * abs(n1.x - n3.x)) * 0.5;
-		v_min = n1.x * n3.y - n3.x * n1.y;
-		v_max = (n3.y - n1.y) * n2.x + (n1.x - n3.x) * n2.y;
+		r = (hx * abs(n_y0 - n_y2) + hy * abs(n_x0 - n_x2)) * 0.5;
+		v_min = n_x0 * n_y2 - n_x2 * n_y0;
+		v_max = (n_y2 - n_y0) * n_x1 + (n_x0 - n_x2) * n_y1;
 		if (v_min > v_max)
 			swap(v_min, v_max);
-		if (v_min >= r || v_max <= -r)
+		if (v_min > r || v_max < -r)
 			return false;
-
+		// no seperating axis
 		return true;
 	}
 };

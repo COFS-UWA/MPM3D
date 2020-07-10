@@ -1,5 +1,5 @@
-#ifndef __Model_T2D_CHM_s_H__
-#define __Model_T2D_CHM_s_H__
+#ifndef __Model_T2D_CHM_s_h__
+#define __Model_T2D_CHM_s_h__
 
 #include "BCs.h"
 #include "macro_utils.h"
@@ -53,7 +53,7 @@ struct Particle
 
 	double n; // porosity
 	double m_s; // mass of solid
-	double density_s, vol_s;
+	double density_s;
 	double density_f;
 
 	double e11, e22, e12;
@@ -62,10 +62,9 @@ struct Particle
 
 	// calculation variables
 	double x_ori, y_ori;
-	double vol, m_f;
+	double vol_s, vol, m_f;
+	
 	Element* pe;
-
-	// shape function value
 	double N1, N2, N3;
 
 	Particle* next; // used by Element
@@ -82,21 +81,24 @@ struct Particle
 
 struct Element
 {
-	// index
 	size_t id;
-	//topology
 	size_t n1, n2, n3;
-	double area, area_2; // 2 * A
+	double area;
 
-	// shape function of element centre
+	// for shape function calculation
+	// Ni = ai * p.x + bi * p.y + coefi
+	double a1, b1, coef1;
+	double a2, b2, coef2;
+	double a3, b3, coef3;
+	// shape function at element centre
+	// dN1_dx = a1, dN1_dy = b1
+	// dN2_dx = a2, dN2_dy = b2
+	// dN3_dx = a3, dN3_dy = b3
 	double dN1_dx, dN1_dy;
 	double dN2_dx, dN2_dy;
 	double dN3_dx, dN3_dy;
 
-	// calculation variables
-	double pcl_vol, pcl_n, s11, s22, s12, p;
-
-	// particles list
+	// particle list
 	Particle* pcls;
 	inline void add_pcl(Particle& pcl) noexcept
 	{
@@ -104,6 +106,9 @@ struct Element
 		pcls = &pcl;
 	}
 
+	// calculation variables
+	double pcl_vol, pcl_n, s11, s22, s12, p;
+	
 	// strain enhancement apprach
 	double dde11, dde22, de12;
 	double de_vol_s, de_vol_f;
@@ -112,8 +117,11 @@ struct Element
 struct Edge { size_t n1, n2; };
 
 typedef TriangleMeshTemplate<Node, Element, Edge> BgMesh;
+
 }
 
+class Step_T2D_CHM_s_Geo;
+int solve_substep_T2D_CHM_s_Geo(void* _self);
 class Step_T2D_CHM_s;
 int solve_substep_T2D_CHM_s(void* _self);
 
@@ -121,8 +129,11 @@ struct Model_T2D_CHM_s : public Model,
 	public Model_T2D_CHM_s_Internal::BgMesh,
 	public MatModel::MatModelContainer
 {
+	friend class Step_T2D_CHM_s_Geo;
+	friend int solve_substep_T2D_CHM_s_Geo(void* _self);
 	friend class Step_T2D_CHM_s;
 	friend int solve_substep_T2D_CHM_s(void *_self);
+
 public:
 	typedef Model_T2D_CHM_s_Internal::BgMesh BgMesh;
 	typedef Model_T2D_CHM_s_Internal::Node Node;
@@ -138,14 +149,12 @@ public:
 	BodyForceAtPcl *bfxs, *bfys;
 	size_t tx_num, ty_num;
 	TractionBCAtPcl *txs, *tys;
-	// solid phase
 	size_t asx_num, asy_num;
 	AccelerationBC *asxs, *asys;
-	size_t vsx_num, vsy_num;
-	VelocityBC *vsxs, *vsys;
-	// fluid phase
 	size_t afx_num, afy_num;
 	AccelerationBC *afxs, *afys;
+	size_t vsx_num, vsy_num;
+	VelocityBC* vsxs, * vsys;
 	size_t vfx_num, vfy_num;
 	VelocityBC *vfxs, *vfys;
 
@@ -160,8 +169,8 @@ public:
 	// rigid object
 	RigidCircle rigid_circle;
 	// contact stiffness
-	double Ks_cont;
-	double Kf_cont;
+	double Ks_cont; // solid - circle
+	double Kf_cont; // fluid - circle
 
 public:
 	Model_T2D_CHM_s();
@@ -210,38 +219,32 @@ public:
 
 	inline bool is_in_triangle(Element &e, Particle &p)
 	{
-		Node &n1 = nodes[e.n1];
-		Node &n2 = nodes[e.n2];
-		Node &n3 = nodes[e.n3];
-		double a = (n2.x - p.x) * (n3.y - p.y) - (n3.x - p.x) * (n2.y - p.y);
-		double b = (n3.x - p.x) * (n1.y - p.y) - (n1.x - p.x) * (n3.y - p.y);
-		double c = e.area_2 - a - b;
-		bool res = 0.0 <= a && a <= e.area_2
-				&& 0.0 <= b && b <= e.area_2
-				&& 0.0 <= c && c <= e.area_2;
+		double a = e.a1 * p.x + e.b1 * p.y + e.coef1;
+		double b = e.a2 * p.x + e.b2 * p.y + e.coef2;
+		//double c = e.a3 * p.x + e.b3 * p.y + e.coef3;
+		double c = 1.0 - a - b;
+		bool res = 0.0 <= a && a <= 1.0 &&
+			0.0 <= b && b <= 1.0 &&
+			0.0 <= c && c <= 1.0;
 		if (res)
 		{
-			p.N1 = a / e.area_2;
-			p.N2 = b / e.area_2;
-			p.N3 = 1.0 - p.N1 - p.N2;
-			if (p.N1 < N_tol)
-				p.N1 = N_tol;
-			if (p.N2 < N_tol)
-				p.N2 = N_tol;
-			if (p.N3 < N_tol)
-				p.N3 = N_tol;
+			p.N1 = a > N_tol ? a : N_tol;
+			p.N2 = b > N_tol ? b : N_tol;
+			p.N3 = c > N_tol ? c : N_tol;
 		}
 		return res;
 	}
 
 	// search using background grid
-	inline Element* find_in_which_element(Particle& pcl)
+	template <typename Point2D>
+	inline Element* find_in_which_element(Point2D& pcl)
 	{
-		return search_bg_grid.find_in_which_element<Particle>(pcl);
+		return search_bg_grid.find_in_which_element<Point2D>(pcl);
 	}
 
 	// brute force searching
-	inline Element* find_in_which_element_bf(Particle& pcl)
+	template <typename Point2D>
+	inline Element* find_in_which_element_bf(Point2D& pcl)
 	{
 		for (size_t e_id = 0; e_id < elem_num; ++e_id)
 		{
@@ -252,8 +255,8 @@ public:
 		return nullptr;
 	}
 
-public:
-	inline RigidCircle& get_rigid_circle() noexcept { return rigid_circle; }
+public: // interaction with rigid circle
+	inline RigidCircle& get_rigid_circle() { return rigid_circle; }
 	inline void init_rigid_circle(double _r, double _x, double _y, double max_pcl_size)
 	{
 		rigid_circle.init(_r, _x, _y, max_pcl_size);
@@ -262,7 +265,8 @@ public:
 	{
 		rigid_circle.set_velocity(_vx, _vy, _w);
 	}
-	inline void set_contact_stiffness(double _Ks_cont, double _Kf_cont) noexcept { Ks_cont = _Ks_cont; Kf_cont = _Kf_cont; }
+	inline void set_contact_stiffness(double _Ks_cont, double _Kf_cont)
+	{ Ks_cont = _Ks_cont; Kf_cont = _Kf_cont; }
 
 protected:
 	int apply_contact_force_to_bg_mesh(double dtime);

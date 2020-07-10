@@ -148,6 +148,15 @@ int load_background_mesh_from_hdf5_file(
 	}
 	delete[] elems_data;
 
+	md.init_mesh_properties_after_loading();
+
+	// init bg_grid
+	double bg_grid_hx, bg_grid_hy;
+	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hx", bg_grid_hx);
+	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hy", bg_grid_hy);
+	
+	md.init_search_grid(bg_grid_hx, bg_grid_hy);
+
 	rf.close_group(bg_mesh_grp_id);
 	return 0;
 }
@@ -385,7 +394,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_axs(md.ax_num);
 		abcds = new AccelerationBCData[md.ax_num];
-		rf.read_dataset(bc_id, "ax", md.ax_num, abcds, abc_dt_id);
+		rf.read_dataset(bc_id, "AccelerationBC_x", md.ax_num, abcds, abc_dt_id);
 		for (size_t a_id = 0; a_id < md.ax_num; ++a_id)
 		{
 			AccelerationBCData& abcd = abcds[a_id];
@@ -398,7 +407,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_ays(md.ay_num);
 		abcds = new AccelerationBCData[md.ay_num];
-		rf.read_dataset(bc_id, "asy", md.ay_num, abcds, abc_dt_id);
+		rf.read_dataset(bc_id, "AccelerationBC_y", md.ay_num, abcds, abc_dt_id);
 		for (size_t a_id = 0; a_id < md.ay_num; ++a_id)
 		{
 			AccelerationBCData& abcd = abcds[a_id];
@@ -417,7 +426,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_vxs(md.vx_num);
 		vbcds = new VelocityBCData[md.vx_num];
-		rf.read_dataset(bc_id, "vsx", md.vx_num, vbcds, vbc_dt_id);
+		rf.read_dataset(bc_id, "VelocityBC_x", md.vx_num, vbcds, vbc_dt_id);
 		for (size_t v_id = 0; v_id < md.vx_num; ++v_id)
 		{
 			VelocityBCData& vbcd = vbcds[v_id];
@@ -430,7 +439,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_vys(md.vy_num);
 		vbcds = new VelocityBCData[md.vy_num];
-		rf.read_dataset(bc_id, "vsy", md.vy_num, vbcds, vbc_dt_id);
+		rf.read_dataset(bc_id, "VelocityBC_y", md.vy_num, vbcds, vbc_dt_id);
 		for (size_t v_id = 0; v_id < md.vy_num; ++v_id)
 		{
 			VelocityBCData& vbcd = vbcds[v_id];
@@ -448,7 +457,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_txs(md.tx_num);
 		tbcds = new TractionBCAtPclData[md.tx_num];
-		rf.read_dataset(bc_id, "tx", md.tx_num, tbcds, tbc_dt_id);
+		rf.read_dataset(bc_id, "TractionBCAtPcl_x", md.tx_num, tbcds, tbc_dt_id);
 		for (size_t t_id = 0; t_id < md.tx_num; ++t_id)
 		{
 			TractionBCAtPclData& tbcd = tbcds[t_id];
@@ -461,7 +470,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_tys(md.ty_num);
 		tbcds = new TractionBCAtPclData[md.ty_num];
-		rf.read_dataset(bc_id, "ty", md.ty_num, tbcds, tbc_dt_id);
+		rf.read_dataset(bc_id, "TractionBCAtPcl_y", md.ty_num, tbcds, tbc_dt_id);
 		for (size_t t_id = 0; t_id < md.ty_num; ++t_id)
 		{
 			TractionBCAtPclData& tbcd = tbcds[t_id];
@@ -479,7 +488,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_bfxs(md.bfx_num);
 		bfds = new BodyForceAtPclData[md.bfx_num];
-		rf.read_dataset(bc_id, "bfx", md.bfx_num, bfds, bf_dt_id);
+		rf.read_dataset(bc_id, "BodyForceAtPcl_x", md.bfx_num, bfds, bf_dt_id);
 		for (size_t bf_id = 0; bf_id < md.bfx_num; ++bf_id)
 		{
 			BodyForceAtPclData& bfd = bfds[bf_id];
@@ -492,7 +501,7 @@ int load_boundary_condition_from_hdf5_file(
 	{
 		md.init_bfys(md.bfy_num);
 		bfds = new BodyForceAtPclData[md.bfy_num];
-		rf.read_dataset(bc_id, "bfy", md.bfy_num, bfds, bf_dt_id);
+		rf.read_dataset(bc_id, "BodyForceAtPcl_y", md.bfy_num, bfds, bf_dt_id);
 		for (size_t bf_id = 0; bf_id < md.bfy_num; ++bf_id)
 		{
 			BodyForceAtPclData& bfd = bfds[bf_id];
@@ -755,7 +764,7 @@ int output_rigid_circle_to_hdf5_file(
 	return 0;
 }
 
-int load_rigid_circle_to_hdf5_file(
+int load_rigid_circle_from_hdf5_file(
 	Model_T2D_ME_s& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
@@ -856,7 +865,7 @@ int load_me_s_model_from_hdf5_file(
 	// material model
 	load_material_model_from_hdf5_file(md, rf, th_frame_id);
 	// rigid object
-	output_rigid_circle_to_hdf5_file(md, rf, th_frame_id);
+	load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
 	rf.close_group(th_frame_id);
 	rf.close_group(th_id);
 

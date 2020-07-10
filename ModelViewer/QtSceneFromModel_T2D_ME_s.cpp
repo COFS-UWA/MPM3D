@@ -1,10 +1,10 @@
 #include "ModelViewer_pcp.h"
 
-#include "QtSceneFromModel_2DMPM.h"
+#include "QtSceneFromModel_T2D_ME_s.h"
 
-QtSceneFromModel_2DMPM::QtSceneFromModel_2DMPM(
+QtSceneFromModel_T2D_ME_s::QtSceneFromModel_T2D_ME_s(
 	QOpenGLFunctions_3_3_Core &_gl) :
-	gl(_gl), model(nullptr), pt_num(0), pts(nullptr),
+	QtSceneFromModel(_gl), model(nullptr), pt_num(0), pts(nullptr),
 	display_bg_mesh(true), display_pcls(true), display_pts(true),
 	bg_mesh_obj(_gl), pcls_obj(_gl), pts_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
@@ -13,12 +13,12 @@ QtSceneFromModel_2DMPM::QtSceneFromModel_2DMPM(
 
 }
 
-QtSceneFromModel_2DMPM::~QtSceneFromModel_2DMPM()
+QtSceneFromModel_T2D_ME_s::~QtSceneFromModel_T2D_ME_s()
 {
 
 }
 
-void QtSceneFromModel_2DMPM::set_viewport(
+void QtSceneFromModel_T2D_ME_s::set_viewport(
 	int wd, int ht, GLfloat xlen, GLfloat ylen)
 {
 	int wd2, ht2, padding;
@@ -42,7 +42,7 @@ void QtSceneFromModel_2DMPM::set_viewport(
 	}
 }
 
-int QtSceneFromModel_2DMPM::initialize(int wd, int ht)
+int QtSceneFromModel_T2D_ME_s::initialize(int wd, int ht)
 {
 	// init shaders
 	// shader_plain2D
@@ -118,7 +118,7 @@ int QtSceneFromModel_2DMPM::initialize(int wd, int ht)
 	return 0;
 }
 
-void QtSceneFromModel_2DMPM::draw()
+void QtSceneFromModel_T2D_ME_s::draw()
 {
 	gl.glViewport(vp_x_pos, vp_y_pos, vp_x_size, vp_y_size);
 
@@ -139,12 +139,12 @@ void QtSceneFromModel_2DMPM::draw()
 		pts_obj.draw(shader_circles);
 }
 
-void QtSceneFromModel_2DMPM::resize(int wd, int ht)
+void QtSceneFromModel_T2D_ME_s::resize(int wd, int ht)
 {
 	set_viewport(wd, ht, xu - xl, yu - yl);
 }
 
-int QtSceneFromModel_2DMPM::set_pts_from_pcl_id(
+int QtSceneFromModel_T2D_ME_s::set_pts_from_pcl_id(
 	size_t* ids, size_t id_num, float radius)
 {
 	if (!model || !ids || !id_num || radius <= 0.0f)
@@ -165,7 +165,7 @@ int QtSceneFromModel_2DMPM::set_pts_from_pcl_id(
 	return 0;
 }
 
-int QtSceneFromModel_2DMPM::set_pts_from_node_id(
+int QtSceneFromModel_T2D_ME_s::set_pts_from_node_id(
 	size_t* ids, size_t id_num, float radius)
 {
 	if (!model || !ids || !id_num || radius <= 0.0f)

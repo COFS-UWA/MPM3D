@@ -6,7 +6,21 @@ void test_solve_functions();
 void test_Model_T2D_ME_s_display(int argc, char** argv);
 void test_Model_T3D_ME_s_display(int argc, char **argv);
 
-void test_t2d_mpm_me_s_1d_compression(int argc, char **argv);
+void test_t2d_me_s_geostatic(int argc, char** argv);
+void test_t2d_chm_s_geostatic_mcc(int argc, char** argv);
+
+void test_t2d_me_s_1d_compression(int argc, char **argv);
+void test_t2d_chm_s_1d_consolidation(int argc, char** argv);
+
+void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv);
+void test_t2d_chm_s_t_bar_conference_restart1(int argc, char** argv);
+void test_t2d_chm_s_t_bar_conference_restart2(int argc, char** argv);
+
+void test_t2d_me_s_test_restart_geo_step(int argc, char** argv);
+void test_t2d_me_s_test_restart_penetration_step(int argc, char** argv);
+
+void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv);
+void test_t2d_chm_s_test_restart_consolidation_step(int argc, char** argv);
 
 void test_t3d_me_s_1d_compression(int argc, char **argv);
 void test_t3d_chm_s_1d_consolidation(int argc, char** argv);

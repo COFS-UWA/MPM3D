@@ -15,7 +15,7 @@ QtController_Posp_Animation::QtController_Posp_Animation() :
 
 QtController_Posp_Animation::QtController_Posp_Animation(
 	QtGLView& v,
-	QtSceneFromHdf5_2DMPM& s) :
+	QtSceneFromHdf5& s) :
 	scene(nullptr), has_frame_undrawed(false)
 {
 	set_view(v);

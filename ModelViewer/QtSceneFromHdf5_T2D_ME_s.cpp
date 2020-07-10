@@ -1,11 +1,11 @@
 #include "ModelViewer_pcp.h"
 
 #include "Model_hdf5_utilities.h"
-#include "QtSceneFromHdf5_2DMPM.h"
+#include "QtSceneFromHdf5_T2D_ME_s.h"
 
-QtSceneFromHdf5_2DMPM::QtSceneFromHdf5_2DMPM(
+QtSceneFromHdf5_T2D_ME_s::QtSceneFromHdf5_T2D_ME_s(
 	QOpenGLFunctions_3_3_Core &_gl) :
-	gl(_gl), res_file(nullptr),
+	QtSceneFromHdf5(_gl), res_file(nullptr),
 	frame_grp_id(-1), th_id(-1), pcl_dt_id(),
 	display_bg_mesh(true), display_pcls(true),
 	bg_mesh_obj(_gl), pcls_obj(_gl),
@@ -16,13 +16,13 @@ QtSceneFromHdf5_2DMPM::QtSceneFromHdf5_2DMPM(
 
 }
 
-QtSceneFromHdf5_2DMPM::~QtSceneFromHdf5_2DMPM()
+QtSceneFromHdf5_T2D_ME_s::~QtSceneFromHdf5_T2D_ME_s()
 {
 	close_file();
 	clear();
 }
 
-void QtSceneFromHdf5_2DMPM::close_file()
+void QtSceneFromHdf5_T2D_ME_s::close_file()
 {
 	if (!res_file)
 		return;
@@ -45,7 +45,7 @@ void QtSceneFromHdf5_2DMPM::close_file()
 	res_file = nullptr;
 }
 
-void QtSceneFromHdf5_2DMPM::clear()
+void QtSceneFromHdf5_T2D_ME_s::clear()
 {
 	if (color_map_texture)
 	{
@@ -54,7 +54,7 @@ void QtSceneFromHdf5_2DMPM::clear()
 	}
 }
 
-void QtSceneFromHdf5_2DMPM::set_viewport(
+void QtSceneFromHdf5_T2D_ME_s::set_viewport(
 	int wd, int ht, GLfloat xlen, GLfloat ylen)
 {
 	int wd2, ht2, padding;
@@ -78,7 +78,7 @@ void QtSceneFromHdf5_2DMPM::set_viewport(
 	}
 }
 
-void QtSceneFromHdf5_2DMPM::draw()
+void QtSceneFromHdf5_T2D_ME_s::draw()
 {
 	gl.glViewport(vp_x_pos, vp_y_pos, vp_x_size, vp_y_size);
 
@@ -96,13 +96,13 @@ void QtSceneFromHdf5_2DMPM::draw()
 		pcls_obj.draw(shader_circles);
 }
 
-void QtSceneFromHdf5_2DMPM::resize(int wd, int ht)
+void QtSceneFromHdf5_T2D_ME_s::resize(int wd, int ht)
 {
 	set_viewport(wd, ht, xu - xl, yu - yl);
 }
 
 // ================== animation ==================
-int QtSceneFromHdf5_2DMPM::set_res_file(
+int QtSceneFromHdf5_T2D_ME_s::set_res_file(
 	ResultFile_hdf5& rf,
 	const char* th_na,
 	const char* field_na
@@ -173,7 +173,7 @@ int QtSceneFromHdf5_2DMPM::set_res_file(
 	return -3;
 }
 
-size_t QtSceneFromHdf5_2DMPM::get_frame_num()
+size_t QtSceneFromHdf5_T2D_ME_s::get_frame_num()
 {
 	ResultFile_hdf5& rf = *res_file;
 	size_t frame_num;
@@ -181,7 +181,7 @@ size_t QtSceneFromHdf5_2DMPM::get_frame_num()
 	return frame_num;
 }
 
-double QtSceneFromHdf5_2DMPM::get_frame_time(size_t frame_id)
+double QtSceneFromHdf5_T2D_ME_s::get_frame_time(size_t frame_id)
 {
 	ResultFile_hdf5& rf = *res_file;
 	double frame_time;
@@ -193,7 +193,7 @@ double QtSceneFromHdf5_2DMPM::get_frame_time(size_t frame_id)
 	return frame_time;
 }
 
-int QtSceneFromHdf5_2DMPM::init_scene(int wd, int ht, size_t frame_id)
+int QtSceneFromHdf5_T2D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 {
 	using namespace Model_hdf5_utilities;
 
@@ -351,7 +351,7 @@ int QtSceneFromHdf5_2DMPM::init_scene(int wd, int ht, size_t frame_id)
 	return 0;
 }
 
-void QtSceneFromHdf5_2DMPM::update_scene(size_t frame_id)
+void QtSceneFromHdf5_T2D_ME_s::update_scene(size_t frame_id)
 {
 	ResultFile_hdf5 &rf = *res_file;
 	char frame_name[50];

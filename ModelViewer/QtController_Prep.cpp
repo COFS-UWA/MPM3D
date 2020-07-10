@@ -9,18 +9,13 @@ QtController_Prep::QtController_Prep() :
 }
 
 QtController_Prep::QtController_Prep(
-	QtGLView& v,
-	QtSceneFromModel_2DMPM& s
-	)
+	QtGLView& v, QtSceneFromModel& s)
 {
 	set_view(v);
 	set_scene(s);
 }
 
-QtController_Prep::~QtController_Prep()
-{
-
-}
+QtController_Prep::~QtController_Prep() {}
 
 int QtController_Prep::initialize(int wd, int ht)
 {

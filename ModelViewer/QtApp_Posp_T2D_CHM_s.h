@@ -1,5 +1,5 @@
-#ifndef __Qt_App_Posp_2DMPM_h__
-#define __Qt_App_Posp_2DMPM_h__
+#ifndef __Qt_App_Posp_T2D_CHM_s_h__
+#define __Qt_App_Posp_T2D_CHM_s_h__
 
 #include <QApplication>
 #include <QMainWindow>
@@ -7,20 +7,20 @@
 
 #include "ResultFile_hdf5.h"
 #include "QtGLView.h"
-#include "QtSceneFromHdf5_2DMPM.h"
+#include "QtSceneFromHdf5_T2D_CHM_s.h"
 #include "QtController_Posp_Static.h"
 #include "QtController_Posp_Animation.h"
 
-class QtApp_Posp_2DMPM;
+class QtApp_Posp_T2D_CHM_s;
 
-namespace QtApp_Posp_2DMPM_Internal
+namespace QtApp_Posp_T2D_CHM_s_Internal
 {
 
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 protected:
-	friend QtApp_Posp_2DMPM;
+	friend QtApp_Posp_T2D_CHM_s;
 
 	QtGLView *model_view;
 	QStatusBar *status_bar;
@@ -39,7 +39,7 @@ public:
 
 };
 
-class QtApp_Posp_2DMPM
+class QtApp_Posp_T2D_CHM_s
 {
 public:
 	enum Type
@@ -53,13 +53,13 @@ protected:
 
 	Type type;
 
-	QtApp_Posp_2DMPM_Internal::MainWindow window;
-	QtSceneFromHdf5_2DMPM scene;
+	QtApp_Posp_T2D_CHM_s_Internal::MainWindow window;
+	QtSceneFromHdf5_T2D_CHM_s scene;
 	QtController *pcontroller;
 
 public:
-	QtApp_Posp_2DMPM(int &argc, char **argv, Type tp = SingleFrame);
-	~QtApp_Posp_2DMPM();
+	QtApp_Posp_T2D_CHM_s(int &argc, char **argv, Type tp = SingleFrame);
+	~QtApp_Posp_T2D_CHM_s();
 	
 	inline QtGLView& get_view() { return window.get_view(); }
 	
@@ -70,6 +70,8 @@ public:
 		else
 			window.resize(wd, ht);
 	}
+	inline void set_display_range(double xl, double xu, double yl, double yu)
+	{ scene.set_display_range(xl, xu, yl, yu); }
 
 	inline void set_display_bg_mesh(bool op = true)
 	{ scene.set_display_bg_mesh(op); }
@@ -81,6 +83,22 @@ public:
 		scene.set_fld_range(min, max);
 	}
 
+	inline void set_png_name(const char* name)
+	{
+		if (type == SingleFrame)
+		{
+			QtController_Posp_Static& pc
+				= *static_cast<QtController_Posp_Static*>(pcontroller);
+			pc.set_png_name(name);
+		}
+		else if (type == Animation)
+		{
+			QtController_Posp_Animation& pc
+				= *static_cast<QtController_Posp_Animation*>(pcontroller);
+			pc.set_png_name(name);
+		}
+	}
+	
 	int start();
 	
 // ================= SingleFrame only =================
@@ -133,14 +151,6 @@ public:
 		QtController_Posp_Animation& pc
 			= *static_cast<QtController_Posp_Animation*>(pcontroller);
 		pc.set_end_frame(f_id);
-	}
-
-	inline void set_png_name(const char* name)
-	{
-		if (type != Animation) return;
-		QtController_Posp_Animation& pc
-			= *static_cast<QtController_Posp_Animation*>(pcontroller);
-		pc.set_png_name(name);
 	}
 
 	inline void set_gif_name(const char* name)

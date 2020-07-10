@@ -143,6 +143,16 @@ int load_background_mesh_from_hdf5_file(
 	}
 	delete[] elems_data;
 
+	md.init_mesh_properties_after_loading();
+
+	// init bg_grid
+	double bg_grid_hx, bg_grid_hy, bg_grid_hz;
+	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hx", bg_grid_hx);
+	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hy", bg_grid_hy);
+	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hz", bg_grid_hz);
+
+	md.init_search_grid(bg_grid_hx, bg_grid_hy, bg_grid_hz);
+
 	rf.close_group(bg_mesh_grp_id);
 	return 0;
 }

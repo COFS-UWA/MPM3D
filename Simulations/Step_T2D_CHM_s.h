@@ -1,5 +1,5 @@
-#ifndef __Step_T2D_CHM_s_H__
-#define __Step_T2D_CHM_s_H__
+#ifndef __Step_T2D_CHM_s_h__
+#define __Step_T2D_CHM_s_h__
 
 #include "Step.h"
 #include "Model_T2D_CHM_s.h"
@@ -39,7 +39,7 @@ public:
 		model = prev_step.model;
 	}
 
-	inline void set_damping_ratio(double _ratio) noexcept { damping_ratio = _ratio; }
+	inline void set_damping_ratio(double _ratio) { damping_ratio = _ratio; }
 };
 
 #endif

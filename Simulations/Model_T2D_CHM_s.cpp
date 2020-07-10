@@ -39,7 +39,33 @@ Model_T2D_CHM_s::~Model_T2D_CHM_s()
 
 void Model_T2D_CHM_s::init_mesh_shape_funcs()
 {
-	// ....
+	double area2;
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		Node& n1 = nodes[e.n1];
+		Node& n2 = nodes[e.n2];
+		Node& n3 = nodes[e.n3];
+		area2 = n1.x * n2.y - n2.x * n1.y
+			+ n2.x * n3.y - n3.x * n2.y
+			+ n3.x * n1.y - n1.x * n3.y;
+		e.a1 = (n2.y - n3.y) / area2;
+		e.b1 = (n3.x - n2.x) / area2;
+		e.coef1 = (n2.x * n3.y - n3.x * n2.y) / area2;
+		e.a2 = (n3.y - n1.y) / area2;
+		e.b2 = (n1.x - n3.x) / area2;
+		e.coef2 = (n3.x * n1.y - n1.x * n3.y) / area2;
+		e.a3 = (n1.y - n2.y) / area2;
+		e.b3 = (n2.x - n1.x) / area2;
+		e.coef3 = (n1.x * n2.y - n2.x * n1.y) / area2;
+		// shape function derivatives
+		e.dN1_dx = e.a1;
+		e.dN1_dy = e.b1;
+		e.dN2_dx = e.a2;
+		e.dN2_dy = e.b2;
+		e.dN3_dx = e.a3;
+		e.dN3_dy = e.b3;
+	}
 }
 
 int Model_T2D_CHM_s::init_mesh(

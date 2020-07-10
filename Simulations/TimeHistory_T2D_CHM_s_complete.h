@@ -22,12 +22,11 @@ protected:
 
 public:
 	TimeHistory_T2D_CHM_s_complete(const char *_name) : 
-		TimeHistory(_name, "TimeHistory_T2D_CHM_s_complete_complete"),
-		output_id(0), is_init(false),
-		th_id(-1) {}
+		TimeHistory(_name, "TimeHistory_T2D_CHM_s_complete"),
+		output_id(0), is_init(false), th_id(-1) {}
 	~TimeHistory_T2D_CHM_s_complete() { close(); }
 
-	int init_per_step() { return init(); }
+	int init_per_step() override { return init(); }
 
 	friend int time_history_output_func_t2d_chm_s_to_xml_res_file(TimeHistory &_self);
 	inline void set_res_file(ResultFile_XML &_res_file) noexcept

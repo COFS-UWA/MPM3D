@@ -2,10 +2,11 @@
 
 #include <QDesktopWidget>
 
-#include "QtApp_Posp_2DMPM.h"
+#include "QtApp_Posp_T2D_ME_s.h"
 
-namespace QtApp_Posp_2DMPM_Internal
+namespace QtApp_Posp_T2D_ME_s_Internal
 {
+
 MainWindow::MainWindow()
 {
 	setObjectName(QString::fromUtf8("model_view"));
@@ -20,9 +21,10 @@ MainWindow::MainWindow()
 }
 
 MainWindow::~MainWindow() {}
+
 };
 
-QtApp_Posp_2DMPM::QtApp_Posp_2DMPM(
+QtApp_Posp_T2D_ME_s::QtApp_Posp_T2D_ME_s(
 	int &argc, char **argv,
 	Type tp) :
 	app(argc, argv), type(tp),
@@ -42,7 +44,7 @@ QtApp_Posp_2DMPM::QtApp_Posp_2DMPM(
 	}
 }
 
-QtApp_Posp_2DMPM::~QtApp_Posp_2DMPM()
+QtApp_Posp_T2D_ME_s::~QtApp_Posp_T2D_ME_s()
 {
 	if (pcontroller)
 	{
@@ -51,7 +53,7 @@ QtApp_Posp_2DMPM::~QtApp_Posp_2DMPM()
 	}
 }
 
-int QtApp_Posp_2DMPM::start()
+int QtApp_Posp_T2D_ME_s::start()
 {
 	window.show();
 	return app.exec();

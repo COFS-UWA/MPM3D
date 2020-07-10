@@ -1,5 +1,5 @@
-#ifndef __Model_Data_FEM_T3D_ME_s_H__
-#define __Model_Data_FEM_T3D_ME_s_H__
+#ifndef __Model_Data_FEM_T3D_ME_s_h__
+#define __Model_Data_FEM_T3D_ME_s_h__
 
 #include <string>
 

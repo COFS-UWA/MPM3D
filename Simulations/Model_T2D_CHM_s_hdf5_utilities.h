@@ -1,5 +1,5 @@
-#ifndef __Model_T2D_CHM_s_hdf5_utilities_H__
-#define __Model_T2D_CHM_s_hdf5_utilities_H__
+#ifndef __Model_T2D_CHM_s_hdf5_utilities_h__
+#define __Model_T2D_CHM_s_hdf5_utilities_h__
 
 #include "hdf5.h"
 #include "ResultFile_hdf5.h"
@@ -113,7 +113,7 @@ int output_material_model_to_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf,
 int load_material_model_from_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 int output_rigid_circle_to_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_rigid_circle_to_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_circle_from_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 // output the whole model to ModelData
 int output_model_to_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf);

@@ -1,19 +1,17 @@
-#ifndef __Qt_Scene_From_Model_2D_MPM_h__
-#define __Qt_Scene_From_Model_2D_MPM_h__
+#ifndef __Qt_Scene_From_Model_T2D_ME_s_h__
+#define __Qt_Scene_From_Model_T2D_ME_s_h__
 
-#include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
 #include "ItemArray.hpp"
 #include "Model_T2D_ME_s.h"
 #include "QtTriangleMeshGLObject.h"
 #include "QtMonoColourCircleGLObject.h"
+#include "QtSceneFromModel.h"
 
-class QtSceneFromModel_2DMPM
+class QtSceneFromModel_T2D_ME_s : public QtSceneFromModel
 {
 protected:
-	QOpenGLFunctions_3_3_Core &gl;
-
 	struct PointData
 	{
 		GLfloat x;
@@ -58,8 +56,8 @@ protected:
 	}
 
 public:
-	QtSceneFromModel_2DMPM(QOpenGLFunctions_3_3_Core &_gl);
-	~QtSceneFromModel_2DMPM();
+	QtSceneFromModel_T2D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
+	~QtSceneFromModel_T2D_ME_s();
 
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }

@@ -20,8 +20,16 @@ add_executable(
     # 2D
     test_searching_grid2d.cpp
     test_Model_T2D_ME_s_display.cpp
+    test_t2d_me_s_geostatic.cpp
+    test_t2d_chm_s_geostatic_mcc.cpp
     test_t2d_me_s_1d_compression.cpp
     test_t2d_chm_s_1d_consolidation.cpp
+    test_t2d_me_s_test_restart.cpp
+    test_t2d_chm_s_test_restart.cpp
+    # t-bar penetration
+    test_t2d_chm_s_t_bar_conference_geo.cpp
+    test_t2d_chm_s_t_bar_conference_restart1.cpp
+    test_t2d_chm_s_t_bar_conference_restart2.cpp
     # 3D
     test_stack_and_link_list.cpp
     test_model_container.cpp

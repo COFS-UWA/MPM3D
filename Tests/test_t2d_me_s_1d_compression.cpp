@@ -7,11 +7,11 @@
 #include "ModelData_T2D_ME_s.h"
 #include "TimeHistory_T2D_ME_s_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
-#include "QtApp_Prep_2DMPM.h"
+#include "QtApp_Prep_T2D_ME_s.h"
 
 #include "test_simulations.h"
 
-void test_t2d_mpm_me_s_1d_compression(int argc, char **argv)
+void test_t2d_me_s_1d_compression(int argc, char **argv)
 {
 	Model_T2D_ME_s model;
 	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_mesh.h5");
@@ -102,7 +102,7 @@ void test_t2d_mpm_me_s_1d_compression(int argc, char **argv)
 	step.solve();
 }
 
-#include "QtApp_Posp_2DMPM.h"
+#include "QtApp_Posp_T2D_ME_s.h"
 
 #include "test_model_view.h"
 
@@ -111,10 +111,11 @@ void test_t2d_me_s_1d_compression_static_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_1d_compression.h5");
 
-	QtApp_Posp_2DMPM app(argc, argv);
+	QtApp_Posp_T2D_ME_s app(argc, argv);
 	app.set_win_size(900, 900);
 	app.set_fld_range(0.0, 1.0);
 	app.set_res_file(rf, "compression", 0, "y");
+	app.set_png_name("t2d_me_1d_compression");
 	app.start();
 }
 
@@ -123,12 +124,12 @@ void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_1d_compression.h5");
 
-	QtApp_Posp_2DMPM app(argc, argv, QtApp_Posp_2DMPM::Animation);
+	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_win_size(900, 900);
 	app.set_fld_range(0.0, 1.0);
 	app.set_res_file(rf, "compression", "y");
 	app.set_ani_time(5.0);
-	//app.set_png_name("1d_compression");
-	app.set_gif_name("1d_compression");
+	//app.set_png_name("t2d_me_1d_compression");
+	app.set_gif_name("t2d_me_1d_compression");
 	app.start();
 }

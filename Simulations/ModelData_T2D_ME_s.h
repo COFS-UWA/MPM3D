@@ -1,5 +1,5 @@
-#ifndef __Model_Data_T2D_ME_s_H__
-#define __Model_Data_T2D_ME_s_H__
+#ifndef __Model_Data_T2D_ME_s_h__
+#define __Model_Data_T2D_ME_s_h__
 
 #include <string>
 

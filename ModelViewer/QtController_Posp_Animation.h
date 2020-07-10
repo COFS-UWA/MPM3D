@@ -8,7 +8,7 @@
 #include "ItemArray.hpp"
 #include "GifCreator.h"
 
-#include "QtSceneFromHdf5_2DMPM.h"
+#include "QtSceneFromHdf5.h"
 #include "QtGLView.h"
 #include "QtController.h"
 
@@ -17,7 +17,7 @@ class QtController_Posp_Animation : public QtController
 	Q_OBJECT
 
 protected:
-	QtSceneFromHdf5_2DMPM *scene;
+	QtSceneFromHdf5 *scene;
 
 	// set by set_ani_time()
 	double ani_time; // in ms
@@ -57,10 +57,10 @@ protected:
 
 public:
 	QtController_Posp_Animation();
-	QtController_Posp_Animation(QtGLView &v, QtSceneFromHdf5_2DMPM &s);
+	QtController_Posp_Animation(QtGLView &v, QtSceneFromHdf5 &s);
 	~QtController_Posp_Animation();
 
-	inline void set_scene(QtSceneFromHdf5_2DMPM& s) { scene = &s; }
+	inline void set_scene(QtSceneFromHdf5& s) { scene = &s; }
 
 	inline void set_ani_time(double ani_t /* in second */) { ani_time = ani_t * 1000.0; }
 	inline void set_start_frame(size_t f_id) { cur_frame_id = f_id; }

@@ -2,7 +2,8 @@ import numpy as np
 import h5py as h5
 
 # Reformat .msh file created by Gmsh into hdf5 file
-# triangle mesh
+# Only 2D triangluar mesh
+
 class MeshParser:
     def __init__(self):
         self.node_num = 0
@@ -92,12 +93,13 @@ class MeshParser:
 
 
 if __name__ == "__main__":
+    msh_filename = "rect_t_bar_conference_mesh"
     # parse
-    msh_file_name = "../Asset/rect_mesh.msh"
+    msh_file_name = "../Asset/" + msh_filename + ".msh"
     msh_parser = MeshParser()
     msh_parser.parse(msh_file_name)
     # output to hdf5 file
-    h5_file = h5.File("../Asset/rect_mesh.h5", "w")
+    h5_file = h5.File("../Asset/" + msh_filename + ".h5", "w")
     mesh_grp = h5_file.create_group("Mesh")
     mesh_grp.attrs['type'] = "TriangleMesh"
     # write nodes

@@ -18,6 +18,7 @@ public:
 	protected:
 		friend ParticleGenerator2D;
 		LinkListPointer<Particle> pointer;
+		Particle *next2;
 	};
 
 protected:
@@ -114,8 +115,31 @@ public:
 		//
 	}
 
+// adjust particle size to fit elements
+protected: // helper functions and data structures
+	struct ElemInfo
+	{
+		size_t id;
+		double pcl_area;
+		size_t pcl_num;
+		Particle* pcls;
+		inline void init()
+		{
+			pcl_area = 0.0;
+			pcls = nullptr;
+			pcl_num = 0;
+		}
+		inline void add_pcl(Particle* pcl)
+		{
+			pcl_area += pcl->area;
+			pcl->next2 = pcls;
+			pcls = pcl;
+			++pcl_num;
+		}
+	};
+
 public:
-	//int adjust_pcl_size();
+	int adjust_pcl_size_to_fit_elems(TriangleMesh &mesh);
 };
 
 template <typename TriangleMesh>
@@ -164,8 +188,8 @@ template <typename TriangleMesh>
 void ParticleGenerator2D<TriangleMesh>::replace_with_pcls_in_grid_layout(
 	Rect& range, double pcl_dx, double pcl_dy)
 {
-	clear_pcls_in_cube(range);
-	generate_pcls_grid(range, pcl_dx, pcl_dy);
+	clear_pcls_in_rect(range);
+	generate_pcls_in_grid_layout(range, pcl_dx, pcl_dy);
 }
 
 /* =========== Generate particles from tetrahedron mesh =========== */
@@ -233,6 +257,64 @@ void ParticleGenerator2D<TriangleMesh>::generate_pcls(GeneratorFunc cur_generato
 		pg_param.area = elem.area;
 		(this->*cur_generator_func)();
 	}
+}
+
+template <typename TriangleMesh>
+int ParticleGenerator2D<TriangleMesh>::
+	adjust_pcl_size_to_fit_elems(TriangleMesh& mesh)
+{
+	typedef typename TriangleMesh::Element Element;
+
+	// init element info
+	size_t elem_num = mesh.get_elem_num();
+	if (!elem_num)
+		return -1;
+	ElemInfo *elem_infos = new ElemInfo[elem_num];
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		ElemInfo& ei = elem_infos[e_id];
+		ei.id = e_id;
+		ei.init();
+	}
+
+	Element* pe;
+	Particle* pcl_tmp;
+	Particle *pcl = first();
+	size_t pid = 0;
+	while (is_not_end(pcl))
+	{
+		++pid;
+		if (pid == 871)
+			pe = mesh.find_in_which_element_bf(*pcl);
+		pe = mesh.find_in_which_element(*pcl);
+		if (!pe)
+		{
+			pcl_tmp = pcl;
+			pcl = next(pcl);
+			del_pcl(*pcl_tmp);
+			continue;
+		}
+		elem_infos[pe->id].add_pcl(pcl);
+		pcl = next(pcl);
+	}
+
+	Element* elems = mesh.get_elems();
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		ElemInfo& ei = elem_infos[e_id];
+
+		if (ei.pcl_num == 0)
+			continue;
+
+		double area_ratio = e.area / ei.pcl_area;
+		for (Particle* pcl = ei.pcls; pcl; pcl = pcl->next2)
+			pcl->area *= area_ratio;
+	}
+
+	delete[] elem_infos;
+	
+	return 0;
 }
 
 #endif

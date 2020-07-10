@@ -153,48 +153,6 @@ public:
 		return false;
 	}
 
-public:
-	int init_mesh(double *node_coords, size_t node_num,	size_t *elem_indices, size_t elem_num)
-	{
-		if (node_num == 0 || elem_num == 0)
-			return -1;
-		clear();
-		// init nodes
-		alloc_nodes(node_num);
-		double *pnode_coord = node_coords;
-		for (size_t n_id = 0; n_id < node_num; ++n_id)
-		{
-			nodes[n_id].id = n_id;
-			nodes[n_id].x = *pnode_coord;
-			++pnode_coord;
-			nodes[n_id].y = *pnode_coord;
-			++pnode_coord;
-			nodes[n_id].z = *pnode_coord;
-			++pnode_coord;
-		}
-		// init elements
-		alloc_elements(elem_num);
-		size_t *pelem_index = elem_indices;
-		for (size_t e_id = 0; e_id < elem_num; ++e_id)
-		{
-			elems[e_id].id = e_id;
-			elems[e_id].n1 = *pelem_index;
-			++pelem_index;
-			elems[e_id].n2 = *pelem_index;
-			++pelem_index;
-			elems[e_id].n3 = *pelem_index;
-			++pelem_index;
-			elems[e_id].n4 = *pelem_index;
-			++pelem_index;
-		}
-		// pre process data
-		compress_node_and_elem_indices();
-		cal_area_and_reorder_node();
-		// init geometric properties
-		cal_bounding_box();
-		return 0;
-	}
-
 protected: // helper for load_mesh_from_hdf5()
 	struct NodeData
 	{
@@ -392,6 +350,56 @@ public:
 		// init geometric properties
 		cal_bounding_box();
 		return res;
+	}
+
+	int init_mesh(double* node_coords, size_t node_num, size_t* elem_indices, size_t elem_num)
+	{
+		if (node_num == 0 || elem_num == 0)
+			return -1;
+		clear();
+		// init nodes
+		alloc_nodes(node_num);
+		double* pnode_coord = node_coords;
+		for (size_t n_id = 0; n_id < node_num; ++n_id)
+		{
+			nodes[n_id].id = n_id;
+			nodes[n_id].x = *pnode_coord;
+			++pnode_coord;
+			nodes[n_id].y = *pnode_coord;
+			++pnode_coord;
+			nodes[n_id].z = *pnode_coord;
+			++pnode_coord;
+		}
+		// init elements
+		alloc_elements(elem_num);
+		size_t* pelem_index = elem_indices;
+		for (size_t e_id = 0; e_id < elem_num; ++e_id)
+		{
+			elems[e_id].id = e_id;
+			elems[e_id].n1 = *pelem_index;
+			++pelem_index;
+			elems[e_id].n2 = *pelem_index;
+			++pelem_index;
+			elems[e_id].n3 = *pelem_index;
+			++pelem_index;
+			elems[e_id].n4 = *pelem_index;
+			++pelem_index;
+		}
+		// pre process data
+		compress_node_and_elem_indices();
+		cal_area_and_reorder_node();
+		// init geometric properties
+		cal_bounding_box();
+		return 0;
+	}
+
+	// for restarting calculation from file
+	// initialize properties after loading
+	// nodes and elements from file  
+	void init_mesh_properties_after_loading()
+	{
+		cal_area_and_reorder_node();
+		cal_bounding_box();
 	}
 
 protected: // helpers for init edges

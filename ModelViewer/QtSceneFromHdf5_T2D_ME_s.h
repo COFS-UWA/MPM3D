@@ -1,7 +1,6 @@
-#ifndef __Qt_Scene_From_Hdf5_2D_MPM_h__
-#define __Qt_Scene_From_Hdf5_2D_MPM_h__
+#ifndef __Qt_Scene_From_Hdf5_T2D_ME_s_h__
+#define __Qt_Scene_From_Hdf5_T2D_ME_s_h__
 
-#include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
 #include "ItemArray.hpp"
@@ -9,12 +8,11 @@
 #include "QtTriangleMeshGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtMultiColourCircleGLObject.h"
+#include "QtSceneFromHdf5.h"
 
-class QtSceneFromHdf5_2DMPM
+class QtSceneFromHdf5_T2D_ME_s : public QtSceneFromHdf5
 {
 protected:
-	QOpenGLFunctions_3_3_Core &gl;
-
 	struct PointData
 	{
 		GLfloat x, y;
@@ -70,8 +68,8 @@ protected:
 	void clear();
 
 public:
-	QtSceneFromHdf5_2DMPM(QOpenGLFunctions_3_3_Core &_gl);
-	~QtSceneFromHdf5_2DMPM();
+	QtSceneFromHdf5_T2D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
+	~QtSceneFromHdf5_T2D_ME_s();
 	void close_file();
 
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
@@ -96,11 +94,11 @@ public:
 		);
 
 	// create the scene, including bg mesh and pcls
-	int init_scene(int wd, int ht, size_t frame_id);
+	int init_scene(int wd, int ht, size_t frame_id) override;
 	// only update pcls, for animation
-	void update_scene(size_t frame_id);
-	void draw();
-	void resize(int wd, int ht);
+	void update_scene(size_t frame_id) override;
+	void draw() override;
+	void resize(int wd, int ht) override;
 };
 
 #endif
