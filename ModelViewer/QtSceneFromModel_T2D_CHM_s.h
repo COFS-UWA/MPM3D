@@ -7,6 +7,7 @@
 #include "Model_T2D_CHM_s.h"
 #include "QtTriangleMeshGLObject.h"
 #include "QtMonoColourCircleGLObject.h"
+#include "QtRigidCircleObject.h"
 #include "QtSceneFromModel.h"
 
 class QtSceneFromModel_T2D_CHM_s : public QtSceneFromModel
@@ -29,13 +30,15 @@ protected:
 
 	bool display_bg_mesh;
 	bool display_pcls;
+	bool display_rigid_circle;
 	bool display_pts;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 	QtMonoColourCircleGLObject pcls_obj;
+	QtRigidCircleObject rc_obj;
 	// points to be high lighted
 	QtMonoColourCircleGLObject pts_obj;
-	
+
 	bool display_whole_model;
 	GLfloat xl, xu, yl, yu, padding_ratio;
 
@@ -61,7 +64,9 @@ public:
 
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }
+	inline void set_display_rc(bool op = true) { display_rigid_circle = op; }
 	inline void set_display_pts(bool op = true) { display_pts = op; }
+	
 	inline void set_display_whole_model() { display_whole_model = true; }
 	inline void set_display_range(double _xl, double _xu, double _yl, double _yu)
 	{

@@ -30,7 +30,7 @@ void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv)
 	size_t pcl_num = model.get_pcl_num();
 	Model_T2D_CHM_s::Particle* pcls = model.get_pcls();
 	// mcc
-	MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(model.pcl_num);
+	MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(pcl_num);
 	double K = 1.0 - sin(25.0 / 180.0 * 3.14159265359);
 	double ini_stress[6];
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
@@ -50,22 +50,29 @@ void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv)
 		pcl.set_mat_model(mm);
 	}
 
+	model.init_rigid_circle(150.0, 150.0, 0.1, 1.1, 0.1);
+	model.set_rigid_circle_velocity(0.0, 0.0, 0.0);
+	
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
 	find_2d_nodes_on_x_line(model, vx_bc_pt_array, 0.0);
 	find_2d_nodes_on_x_line(model, vx_bc_pt_array, 0.2, false);
 	size_t* vx_bc_n_id = vx_bc_pt_array.get_mem();
 	model.init_vsxs(vx_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vsx_num; ++v_id)
+	size_t vsx_num = model.get_vsx_num();
+	VelocityBC* vsxs = model.get_vsxs();
+	for (size_t v_id = 0; v_id < vsx_num; ++v_id)
 	{
-		VelocityBC& vbc = model.vsxs[v_id];
+		VelocityBC& vbc = vsxs[v_id];
 		vbc.node_id = vx_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
 	model.init_vfxs(vx_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vfx_num; ++v_id)
+	size_t vfx_num = model.get_vfx_num();
+	VelocityBC* vfxs = model.get_vfxs();
+	for (size_t v_id = 0; v_id < vfx_num; ++v_id)
 	{
-		VelocityBC& vbc = model.vfxs[v_id];
+		VelocityBC& vbc = vfxs[v_id];
 		vbc.node_id = vx_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
@@ -75,16 +82,20 @@ void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, 0.0);
 	size_t* vy_bc_n_id = vy_bc_pt_array.get_mem();
 	model.init_vsys(vy_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vsy_num; ++v_id)
+	size_t vsy_num = model.get_vsy_num();
+	VelocityBC* vsys = model.get_vsys();
+	for (size_t v_id = 0; v_id < vsy_num; ++v_id)
 	{
-		VelocityBC& vbc = model.vsys[v_id];
+		VelocityBC& vbc = vsys[v_id];
 		vbc.node_id = vy_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
 	model.init_vfys(vy_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vfy_num; ++v_id)
+	size_t vfy_num = model.get_vfy_num();
+	VelocityBC* vfys = model.get_vfys();
+	for (size_t v_id = 0; v_id < vfy_num; ++v_id)
 	{
-		VelocityBC& vbc = model.vfys[v_id];
+		VelocityBC& vbc = vfys[v_id];
 		vbc.node_id = vy_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
@@ -94,9 +105,11 @@ void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv)
 	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
 	size_t* tbc_pcl_id = tbc_pt_array.get_mem();
 	model.init_tys(tbc_pt_array.get_num());
-	for (size_t t_id = 0; t_id < model.ty_num; ++t_id)
+	size_t ty_num = model.get_ty_num();
+	TractionBCAtPcl* tys = model.get_tys();
+	for (size_t t_id = 0; t_id < ty_num; ++t_id)
 	{
-		TractionBCAtPcl& tbc = model.tys[t_id];
+		TractionBCAtPcl& tbc = tys[t_id];
 		tbc.pcl_id = tbc_pcl_id[t_id];
 		//tbc.t = 0.05 * -1.0;
 		tbc.t = 0.02 * -10.0;
@@ -105,6 +118,7 @@ void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv)
 	//QtApp_Prep_T2D_CHM_s md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
+	//md_disp.set_display_range(-0.05, 0.25, -0.05, 1.25);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
@@ -126,7 +140,7 @@ void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv)
 
 	Step_T2D_CHM_s_Geo step("geo_step");
 	step.set_model(model);
-	step.set_step_time(1.0);
+	step.set_step_time(1.0e-4);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
@@ -142,16 +156,19 @@ void test_t2d_chm_s_test_restart_consolidation_step(int argc, char** argv)
 		model,
 		"t2d_chm_s_test_restart_geo.h5",
 		"geostatic",
-		101
+		11
 		);
 
 	IndexArray vx_bc_n_id(50);
-	for (size_t v_id = 0; v_id < model.vsx_num; ++v_id)
-		vx_bc_n_id.add(model.vsxs[v_id].node_id);
+	size_t vsx_num = model.get_vsx_num();
+	VelocityBC* vsxs = model.get_vsxs();
+	for (size_t v_id = 0; v_id < vsx_num; ++v_id)
+		vx_bc_n_id.add(vsxs[v_id].node_id);
 
 	//QtApp_Prep_T2D_CHM_s md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
+	//md_disp.set_display_range(-0.0, 0.25, -0.05, 1.25);
 	//md_disp.set_pts_from_node_id(vx_bc_n_id.get_mem(), vx_bc_n_id.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
@@ -173,7 +190,7 @@ void test_t2d_chm_s_test_restart_consolidation_step(int argc, char** argv)
 
 	Step_T2D_CHM_s step("step1");
 	step.set_model(model);
-	step.set_step_time(5.0);
+	step.set_step_time(2.0e-5);
 	step.set_dtime(2.0e-6);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
@@ -193,6 +210,7 @@ void test_t2d_chm_s_test_restart_geo_step_result(int argc, char** argv)
 	app.set_fld_range(-12.0, -8.0);
 	app.set_res_file(rf, "geostatic", "s22");
 	app.set_ani_time(5.0);
+	app.set_display_range(-0.05, 0.25, -0.05, 1.25);
 	//app.set_png_name("t2d_chm_s_test_restart_consolidation");
 	//app.set_gif_name("t2d_chm_s_test_restart_consolidation");
 	app.start();
@@ -208,6 +226,7 @@ void test_t2d_chm_s_test_restart_consolidation_step_result(int argc, char** argv
 	app.set_fld_range(-12.0, -8.0);
 	app.set_res_file(rf, "penetration", "s22");
 	app.set_ani_time(5.0);
+	app.set_display_range(-0.05, 0.25, -0.05, 1.25);
 	//app.set_png_name("t2d_chm_s_test_restart_consolidation");
 	//app.set_gif_name("t2d_chm_s_test_restart_consolidation");
 	app.start();

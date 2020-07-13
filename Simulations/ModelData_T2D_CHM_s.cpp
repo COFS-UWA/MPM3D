@@ -66,11 +66,12 @@ int model_data_output_func_t2d_chm_s_to_xml_res_file(ModelData &_self)
 	file.write(mesh_info3, strlen(mesh_info3));
 
 	// material point object
+	size_t pcl_num = model.get_pcl_num();
 	const char *mp_obj_info = ""
 		"    <MaterialPointObject type = \"ME_2D\">\n"
 		"        <pcl_num> %zu </pcl_num>\n"
 		"    </MaterialPointObject>\n";
-	snprintf(str_buffer, sizeof(str_buffer) / sizeof(str_buffer[0]), mp_obj_info, model.pcl_num);
+	snprintf(str_buffer, sizeof(str_buffer) / sizeof(str_buffer[0]), mp_obj_info, pcl_num);
 	file.write(str_buffer, strlen(str_buffer));
 
 	// ending

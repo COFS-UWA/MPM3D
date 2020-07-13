@@ -38,9 +38,11 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 	find_2d_nodes_on_x_line(model, vx_bc_pt_array, 0.2, false);
 	size_t* vx_bc_n_id = vx_bc_pt_array.get_mem();
 	model.init_vxs(vx_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vx_num; ++v_id)
+	size_t vx_num = model.get_vx_num();
+	VelocityBC* vxs = model.get_vxs();
+	for (size_t v_id = 0; v_id < vx_num; ++v_id)
 	{
-		VelocityBC &vbc = model.vxs[v_id];
+		VelocityBC &vbc = vxs[v_id];
 		vbc.node_id = vx_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
@@ -50,9 +52,11 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, 0.0);
 	size_t* vy_bc_n_id = vy_bc_pt_array.get_mem();
 	model.init_vys(vy_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vy_num; ++v_id)
+	size_t vy_num = model.get_vy_num();
+	VelocityBC* vys = model.get_vys();
+	for (size_t v_id = 0; v_id < vy_num; ++v_id)
 	{
-		VelocityBC &vbc = model.vys[v_id];
+		VelocityBC &vbc = vys[v_id];
 		vbc.node_id = vy_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
@@ -62,16 +66,18 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
 	size_t* tbc_pcl_id = tbc_pt_array.get_mem();
 	model.init_tys(tbc_pt_array.get_num());
-	for (size_t t_id = 0; t_id < model.ty_num; ++t_id)
+	size_t ty_num = model.get_ty_num();
+	TractionBCAtPcl* tys = model.get_tys();
+	for (size_t t_id = 0; t_id < ty_num; ++t_id)
 	{
-		TractionBCAtPcl &tbc = model.tys[t_id];
+		TractionBCAtPcl &tbc = tys[t_id];
 		tbc.pcl_id = tbc_pcl_id[t_id];
 		//tbc.t = 0.05 * -1.0;
 		tbc.t = 0.02 * -10.0;
 	}
 
-	//QtApp_Prep_2DMPM md_disp(argc, argv);
-	//md_disp.set_win_size(1000, 1000);
+	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
@@ -80,7 +86,7 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_me_1d_compression.h5");
+	res_file_hdf5.create("t2d_me_s_1d_compression.h5");
 
 	// output model
 	ModelData_T2D_ME_s md;
@@ -103,33 +109,32 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 }
 
 #include "QtApp_Posp_T2D_ME_s.h"
-
 #include "test_model_view.h"
 
 void test_t2d_me_s_1d_compression_static_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_1d_compression.h5");
+	rf.open("t2d_me_s_1d_compression.h5");
 
 	QtApp_Posp_T2D_ME_s app(argc, argv);
 	app.set_win_size(900, 900);
 	app.set_fld_range(0.0, 1.0);
 	app.set_res_file(rf, "compression", 0, "y");
-	app.set_png_name("t2d_me_1d_compression");
+	app.set_png_name("t2d_me_s_1d_compression");
 	app.start();
 }
 
 void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_1d_compression.h5");
+	rf.open("t2d_me_s_1d_compression.h5");
 
 	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_win_size(900, 900);
 	app.set_fld_range(0.0, 1.0);
 	app.set_res_file(rf, "compression", "y");
 	app.set_ani_time(5.0);
-	//app.set_png_name("t2d_me_1d_compression");
-	app.set_gif_name("t2d_me_1d_compression");
+	//app.set_png_name("t2d_me_s_1d_compression");
+	app.set_gif_name("t2d_me_s_1d_compression");
 	app.start();
 }

@@ -13,7 +13,7 @@
 
 #include "test_simulations.h"
 
-void test_t2d_chm_s_t_bar_conference_restart2(int argc, char** argv)
+void test_t2d_chm_s_pipe_conference_restart2(int argc, char** argv)
 {
 	Model_T2D_CHM_s model;
 
@@ -57,7 +57,7 @@ void test_t2d_chm_s_t_bar_conference_restart2(int argc, char** argv)
 #include "QtApp_Posp_T2D_CHM_s.h"
 #include "test_model_view.h"
 
-void test_t2d_chm_s_t_bar_conference_restart2_result(int argc, char** argv)
+void test_t2d_chm_s_pipe_conference_restart2_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	rf.open("t2d_chm_s_t_bar_conference_restart2.h5");

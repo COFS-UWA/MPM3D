@@ -12,7 +12,7 @@
 
 #include "test_simulations.h"
 
-void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv)
+void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 {
 	Model_T2D_CHM_s model;
 	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_t_bar_conference_mesh.h5");
@@ -24,12 +24,12 @@ void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv)
 	pcl_generator.replace_with_pcls_in_grid_layout(Rect(-2.5, 2.5, -3.5, 0.0), 0.02, 0.02);
 	pcl_generator.adjust_pcl_size_to_fit_elems(model);
 	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e6, 1.0e-11, 1.0e-3);
-	std::cout << "pcl_num: " << model.pcl_num << "\n";
 
 	size_t pcl_num = model.get_pcl_num();
 	Model_T2D_CHM_s::Particle* pcls = model.get_pcls();
+	std::cout << "pcl_num: " << pcl_num << "\n";
 	// mcc
-	MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(model.pcl_num);
+	MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(pcl_num);
 	double K = 1.0 - sin(23.5 / 180.0 * 3.14159165359);
 	double ini_stress[6] = { -12025.0, -20000.0, -12025.0, 0.0, 0.0, 0.0 };
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
@@ -43,8 +43,7 @@ void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv)
 		pcl.set_mat_model(mm);
 	}
 
-	model.init_rigid_circle(0.5, 0.0, 0.5 - 0.014, 0.04);
-	model.set_contact_stiffness(1.0e5, 1.0e3);
+	model.init_rigid_circle(1.0e5, 1.0e3, 0.5, 0.0, 0.5 - 0.014);
 	//model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 	
 	// traction
@@ -60,15 +59,16 @@ void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv)
 	size_t left_right_tbc_num = left_right_tbc_pt_array.get_num();
 	
 	model.init_tys(mid_tbc_num + left_right_tbc_num);
+	TractionBCAtPcl* tys = model.get_tys();
 	for (size_t t_id = 0; t_id < mid_tbc_num; ++t_id)
 	{
-		TractionBCAtPcl &tbc = model.tys[t_id];
+		TractionBCAtPcl &tbc = tys[t_id];
 		tbc.pcl_id = mid_tbc_pcl_ids[t_id];
 		tbc.t = 0.02 * -20000.0;
 	}
 	for (size_t t_id = 0; t_id < left_right_tbc_num; ++t_id)
 	{
-		TractionBCAtPcl &tbc = model.tys[mid_tbc_num + t_id];
+		TractionBCAtPcl &tbc = tys[mid_tbc_num + t_id];
 		tbc.pcl_id = left_right_tbc_pcl_ids[t_id];
 		tbc.t = 0.04 * -20000.0;
 	}
@@ -78,9 +78,11 @@ void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv)
 	find_2d_nodes_on_x_line(model, left_right_bc_pt_array, 3.5, false);
 	size_t* left_right_bc_n_id = left_right_bc_pt_array.get_mem();
 	model.init_vsxs(left_right_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vsx_num; ++v_id)
+	size_t vsx_num = model.get_vsx_num();
+	VelocityBC* vsxs = model.get_vsxs();
+	for (size_t v_id = 0; v_id < vsx_num; ++v_id)
 	{
-		VelocityBC &vbc = model.vsxs[v_id];
+		VelocityBC &vbc = vsxs[v_id];
 		vbc.node_id = left_right_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
@@ -89,9 +91,11 @@ void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, bottom_bc_pt_array, -5.0);
 	size_t* bottom_bc_n_ids = bottom_bc_pt_array.get_mem();
 	model.init_vsys(bottom_bc_pt_array.get_num());
-	for (size_t v_id = 0; v_id < model.vsy_num; ++v_id)
+	size_t vsy_num = model.get_vsy_num();
+	VelocityBC* vsys = model.get_vsys();
+	for (size_t v_id = 0; v_id < vsy_num; ++v_id)
 	{
-		VelocityBC &vbc = model.vsys[v_id];
+		VelocityBC &vbc = vsys[v_id];
 		vbc.node_id = bottom_bc_n_ids[v_id];
 		vbc.v = 0.0;
 	}
@@ -140,7 +144,7 @@ void test_t2d_chm_s_t_bar_conference_geo(int argc, char** argv)
 #include "QtApp_Posp_T2D_CHM_s.h"
 #include "test_model_view.h"
 
-void test_t2d_chm_s_t_bar_conference_geo_result(int argc, char** argv)
+void test_t2d_chm_s_pipe_conference_geo_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	rf.open("t2d_chm_s_t_bar_conference_geo.h5");

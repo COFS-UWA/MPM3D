@@ -29,6 +29,7 @@ add_library(
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp
     QtMonoColourCircleGLObject.h QtMonoColourCircleGLObject.cpp
     QtMultiColourCircleGLObject.h QtMultiColourCircleGLObject.cpp
+    QtRigidCircleObject.h QtRigidCircleObject.cpp
     # Model_T2D_ME_s
     # prep process module
     QtSceneFromModel_T2D_ME_s.h QtSceneFromModel_T2D_ME_s.cpp

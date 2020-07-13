@@ -29,9 +29,6 @@ int output_background_mesh_to_hdf5_file(
 	rf.write_attribute(bg_mesh_grp_id, "node_num", node_num);
 	rf.write_attribute(bg_mesh_grp_id, "element_num", elem_num);
 
-	// contact properteis
-	rf.write_attribute(bg_mesh_grp_id, "K_cont", md.K_cont);
-
 	// bg grid properties
 	rf.write_attribute(bg_mesh_grp_id, "bg_grid_hx", md.get_bg_grid_hx());
 	rf.write_attribute(bg_mesh_grp_id, "bg_grid_hy", md.get_bg_grid_hy());
@@ -746,21 +743,47 @@ int output_rigid_circle_to_hdf5_file(
 	if (grp_id < 0)
 		return -1;
 
-	RigidCircle::State state = md.get_rigid_circle().get_state();
+	if (!md.rigid_circle_is_valid())
+		return 0;
 
-	hid_t rb_id = rf.create_group(grp_id, "RigidBody");
-	rf.write_attribute(rb_id, "radius", state.r);
-	rf.write_attribute(rb_id, "cen_x", state.cen_x);
-	rf.write_attribute(rb_id, "cen_y", state.cen_y);
-	rf.write_attribute(rb_id, "theta", state.theta);
-	rf.write_attribute(rb_id, "vx", state.vx);
-	rf.write_attribute(rb_id, "vy", state.vy);
-	rf.write_attribute(rb_id, "w", state.w);
-	rf.write_attribute(rb_id, "rfx", state.rfx);
-	rf.write_attribute(rb_id, "rfy", state.rfy);
-	rf.write_attribute(rb_id, "rm", state.rm);
+	hid_t rb_grp_id = rf.create_group(grp_id, "RigidCircle");
 
-	rf.close_group(rb_id);
+	rf.write_attribute(rb_grp_id, "K_cont", md.K_cont);
+
+	RigidCircle& rc = md.get_rigid_circle();
+	rf.write_attribute(rb_grp_id, "radius", rc.get_radius());
+	rf.write_attribute(rb_grp_id, "density", rc.get_density());
+	rf.write_attribute(rb_grp_id, "rfx", rc.get_rfx());
+	rf.write_attribute(rb_grp_id, "rfy", rc.get_rfy());
+	rf.write_attribute(rb_grp_id, "rm", rc.get_rm());
+	rf.write_attribute(rb_grp_id, "ax", rc.get_ax());
+	rf.write_attribute(rb_grp_id, "ay", rc.get_ay());
+	rf.write_attribute(rb_grp_id, "a_angle", rc.get_a_ang());
+	rf.write_attribute(rb_grp_id, "vx", rc.get_vx());
+	rf.write_attribute(rb_grp_id, "vy", rc.get_vy());
+	rf.write_attribute(rb_grp_id, "v_angle", rc.get_v_ang());
+	rf.write_attribute(rb_grp_id, "x", rc.get_x());
+	rf.write_attribute(rb_grp_id, "y", rc.get_y());
+	rf.write_attribute(rb_grp_id, "angle", rc.get_ang());
+
+	// boundary conditions
+	rf.write_attribute(rb_grp_id, "rfx_bc", rc.get_rfx_bc());
+	rf.write_attribute(rb_grp_id, "rfy_bc", rc.get_rfy_bc());
+	rf.write_attribute(rb_grp_id, "rm_bc", rc.get_rm_bc());
+	if (rc.has_ax_bc())
+		rf.write_attribute(rb_grp_id, "ax_bc", rc.get_ax_bc());
+	if (rc.has_ay_bc())
+		rf.write_attribute(rb_grp_id, "ay_bc", rc.get_ay_bc());
+	if (rc.has_a_ang_bc())
+		rf.write_attribute(rb_grp_id, "a_ang_bc", rc.get_a_ang_bc());
+	if (rc.has_vx_bc())
+		rf.write_attribute(rb_grp_id, "vx_bc", rc.get_vx_bc());
+	if (rc.has_vy_bc())
+		rf.write_attribute(rb_grp_id, "vy_bc", rc.get_vy_bc());
+	if (rc.has_v_ang_bc())
+		rf.write_attribute(rb_grp_id, "v_ang_bc", rc.get_v_ang());
+
+	rf.close_group(rb_grp_id);
 	return 0;
 }
 
@@ -773,27 +796,79 @@ int load_rigid_circle_from_hdf5_file(
 	if (grp_id < 0)
 		return -1;
 	
-	if (!rf.has_group(grp_id, "RigidBody"))
+	if (!rf.has_group(grp_id, "RigidCircle"))
 		return 0;
 
-	hid_t rb_id = rf.open_group(grp_id, "RigidBody");
+	hid_t rb_grp_id = rf.open_group(grp_id, "RigidCircle");
 
-	RigidCircle::State &rc_state
-		= const_cast<RigidCircle::State &>
-			(md.get_rigid_circle().get_state());
-	rf.read_attribute(rb_id, "radius", rc_state.r);
-	rc_state.r2 = rc_state.r * rc_state.r;
-	rf.read_attribute(rb_id, "cen_x", rc_state.cen_x);
-	rf.read_attribute(rb_id, "cen_y", rc_state.cen_y);
-	rf.read_attribute(rb_id, "theta", rc_state.theta);
-	rf.read_attribute(rb_id, "vx", rc_state.vx);
-	rf.read_attribute(rb_id, "vy", rc_state.vy);
-	rf.read_attribute(rb_id, "w", rc_state.w);
-	rf.read_attribute(rb_id, "rfx", rc_state.rfx);
-	rf.read_attribute(rb_id, "rfy", rc_state.rfy);
-	rf.read_attribute(rb_id, "rm", rc_state.rm);
+	double K_cont;
+	rf.read_attribute(rb_grp_id, "K_cont", K_cont);
 
-	rf.close_group(rb_id);
+	RigidCircle& rc = md.get_rigid_circle();
+	double rc_radius, rc_density;
+	double rc_ax, rc_ay, rc_a_ang;
+	double rc_vx, rc_vy, rc_v_ang;
+	double rc_x, rc_y, rc_ang;
+	
+	rf.read_attribute(rb_grp_id, "radius", rc_radius);
+	rf.read_attribute(rb_grp_id, "density", rc_density);
+	rf.read_attribute(rb_grp_id, "ax", rc_ax);
+	rf.read_attribute(rb_grp_id, "ay", rc_ay);
+	rf.read_attribute(rb_grp_id, "a_angle", rc_a_ang);
+	rf.read_attribute(rb_grp_id, "vx", rc_vx);
+	rf.read_attribute(rb_grp_id, "vy", rc_vy);
+	rf.read_attribute(rb_grp_id, "v_angle", rc_v_ang);
+	rf.read_attribute(rb_grp_id, "x", rc_x);
+	rf.read_attribute(rb_grp_id, "y", rc_y);
+	rf.read_attribute(rb_grp_id, "angle", rc_ang);
+	md.set_rigid_circle_state(
+		K_cont,
+		rc_x, rc_y, rc_ang,
+		rc_radius, rc_density,
+		rc_ax, rc_ay, rc_a_ang,
+		rc_vx, rc_vy, rc_v_ang
+		);
+
+	// boundary conditions
+	double bc_value;
+	rf.read_attribute(rb_grp_id, "rfx_bc", bc_value);
+	rc.add_rfx_bc(bc_value);
+	rf.read_attribute(rb_grp_id, "rfy_bc", bc_value);
+	rc.add_rfy_bc(bc_value);
+	rf.read_attribute(rb_grp_id, "rm_bc", bc_value);
+	rc.add_rm_bc(bc_value);
+	if (rf.has_attribute(rb_grp_id, "ax_bc"))
+	{
+		rf.read_attribute(rb_grp_id, "ax_bc", bc_value);
+		rc.set_ax_bc(bc_value);
+	}
+	if (rf.has_attribute(rb_grp_id, "ay_bc"))
+	{
+		rf.read_attribute(rb_grp_id, "ay_bc", bc_value);
+		rc.set_ay_bc(bc_value);
+	}
+	if (rf.has_attribute(rb_grp_id, "a_ang_bc"))
+	{
+		rf.read_attribute(rb_grp_id, "a_ang_bc", bc_value);
+		rc.set_a_ang_bc(bc_value);
+	}
+	if (rf.has_attribute(rb_grp_id, "vx_bc"))
+	{
+		rf.read_attribute(rb_grp_id, "vx_bc", bc_value);
+		rc.set_a_ang_bc(bc_value);
+	}
+	if (rf.has_attribute(rb_grp_id, "vy_bc"))
+	{
+		rf.read_attribute(rb_grp_id, "vy_bc", bc_value);
+		rc.set_a_ang_bc(bc_value);
+	}
+	if (rf.has_attribute(rb_grp_id, "v_ang_bc"))
+	{
+		rf.read_attribute(rb_grp_id, "v_ang_bc", bc_value);
+		rc.set_a_ang_bc(bc_value);
+	}
+	
+	rf.close_group(rb_grp_id);
 	return 0;
 }
 

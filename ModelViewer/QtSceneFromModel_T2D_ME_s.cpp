@@ -4,9 +4,17 @@
 
 QtSceneFromModel_T2D_ME_s::QtSceneFromModel_T2D_ME_s(
 	QOpenGLFunctions_3_3_Core &_gl) :
-	QtSceneFromModel(_gl), model(nullptr), pt_num(0), pts(nullptr),
-	display_bg_mesh(true), display_pcls(true), display_pts(true),
-	bg_mesh_obj(_gl), pcls_obj(_gl), pts_obj(_gl),
+	QtSceneFromModel(_gl),
+	model(nullptr),
+	pt_num(0), pts(nullptr),
+	display_bg_mesh(true),
+	display_pcls(true),
+	display_pts(true),
+	display_rigid_circle(true),
+	bg_mesh_obj(_gl),
+	pcls_obj(_gl),
+	pts_obj(_gl),
+	rc_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f)
 {
@@ -110,6 +118,20 @@ int QtSceneFromModel_T2D_ME_s::initialize(int wd, int ht)
 		0.5f
 		);
 
+	// init rigid circle
+	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
+	if (model->rigid_circle_is_valid())
+	{
+		RigidCircle &rc = model->get_rigid_circle();
+		rc_obj.init(
+			rc.get_x(),
+			rc.get_y(),
+			rc.get_radius(),
+			light_slate_blue,
+			3.0f
+			);
+	}
+
 	// init pts
 	QVector3D red(1.0f, 0.0f, 0.0f);
 	if (pts && pt_num)
@@ -129,6 +151,9 @@ void QtSceneFromModel_T2D_ME_s::draw()
 
 	if (display_bg_mesh)
 		bg_mesh_obj.draw(shader_plain2D);
+
+	if (display_rigid_circle && model->rigid_circle_is_valid())
+		rc_obj.draw(shader_plain2D);
 
 	shader_circles.bind();
 

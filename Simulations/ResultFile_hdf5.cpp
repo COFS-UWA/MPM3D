@@ -257,6 +257,14 @@ int ResultFile_hdf5::read_dataset(
 }
 
 // ============================ routines for attributes ========================
+bool ResultFile_hdf5::has_attribute(
+	hid_t grp_id,
+	const char* name
+	)
+{
+	return H5Aexists(grp_id, name) > 0 ? true : false;
+}
+
 int ResultFile_hdf5::write_attribute(
 	hid_t grp_id,
 	const char *name,

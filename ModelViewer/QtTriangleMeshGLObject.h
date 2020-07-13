@@ -1,7 +1,6 @@
 #ifndef __Qt_Triangle_Mesh_GL_Object_h__
 #define __Qt_Triangle_Mesh_GL_Object_h__
 
-#include <QColor>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 

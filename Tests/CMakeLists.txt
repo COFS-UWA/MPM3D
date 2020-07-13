@@ -18,18 +18,26 @@ add_executable(
     test_model_view.h
     # unit tests
     # 2D
+    # back ground searching grid
     test_searching_grid2d.cpp
+    # display model
     test_Model_T2D_ME_s_display.cpp
+    # geostatic calculation
     test_t2d_me_s_geostatic.cpp
     test_t2d_chm_s_geostatic_mcc.cpp
+    # deformation calculation
     test_t2d_me_s_1d_compression.cpp
     test_t2d_chm_s_1d_consolidation.cpp
+    # restart utilities
     test_t2d_me_s_test_restart.cpp
     test_t2d_chm_s_test_restart.cpp
-    # t-bar penetration
-    test_t2d_chm_s_t_bar_conference_geo.cpp
-    test_t2d_chm_s_t_bar_conference_restart1.cpp
-    test_t2d_chm_s_t_bar_conference_restart2.cpp
+    # rigid circle
+    test_t2d_me_s_test_rigid_circle.cpp
+    test_t2d_chm_s_test_rigid_circle.cpp
+    # shallow pipe embedment for conference
+    test_t2d_chm_s_pipe_conference_geo.cpp
+    test_t2d_chm_s_pipe_conference_restart1.cpp
+    test_t2d_chm_s_pipe_conference_restart2.cpp
     # 3D
     test_stack_and_link_list.cpp
     test_model_container.cpp

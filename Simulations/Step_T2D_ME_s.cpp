@@ -260,8 +260,9 @@ int solve_substep_T2D_ME_s(void *_self)
 		}
 	}
 
-	// contact detection
-	//md.apply_contact_force_to_bg_mesh(self.dtime);
+	// contact with rigid circle
+	if (md.rigid_circle_is_init)
+		md.apply_rigid_circle(self.dtime);
 
 	// apply velocity bc
 	for (size_t v_id = 0; v_id < md.vx_num; ++v_id)

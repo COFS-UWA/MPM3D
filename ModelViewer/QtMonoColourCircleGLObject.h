@@ -1,7 +1,6 @@
 #ifndef __Qt_Mono_Colour_Circle_GL_Object_h__
 #define __Qt_Mono_Colour_Circle_GL_Object_h__
 
-#include <QColor>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 

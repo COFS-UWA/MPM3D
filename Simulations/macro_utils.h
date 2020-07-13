@@ -2,7 +2,7 @@
 #define __macro_utils_h__
 
 #define INIT_BC_TEMPLATE(name, type)    \
-	void init_ ## name ## s(size_t num) \
+	inline void init_ ## name ## s(size_t num) \
 	{                                   \
 		if (name ## s)                  \
 		{                               \
@@ -17,7 +17,7 @@
 		name ## s = new type ## [num];  \
 		name ## _num = num;             \
 	}                                   \
-	void clear_ ## name ## s()      \
+	inline void clear_ ## name ## s()   \
 	{                                   \
 		if (name ## s)                  \
 		{                               \
@@ -25,8 +25,12 @@
 			name ## s = nullptr;        \
 		}                               \
 		name ## _num = 0;               \
-	}
-
+	}                                   \
+	inline type *get_ ## name ## s()    \
+	{ return name ## s; }               \
+	inline size_t get_ ## name ## _num() \
+	{ return name ## _num; }
+	
 #define N_tol (1.0e-10)
 
 #endif

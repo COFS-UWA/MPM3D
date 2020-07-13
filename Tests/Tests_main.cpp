@@ -51,18 +51,24 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_test_restart_geo_step(argc, argv);
 	//test_t2d_chm_s_test_restart_geo_step_result(argc, argv);
 	//test_t2d_chm_s_test_restart_consolidation_step(argc, argv);
-	test_t2d_chm_s_test_restart_consolidation_step_result(argc, argv);
+	//test_t2d_chm_s_test_restart_consolidation_step_result(argc, argv);
 
-	// t-bar simulation for conference
+	// rigid cicle
+	//test_t2d_me_s_test_rigid_circle(argc, argv);
+	//test_t2d_me_s_test_rigid_circle_result(argc, argv);
+	//test_t2d_chm_s_test_rigid_circle(argc, argv);
+	//test_t2d_chm_s_test_rigid_circle_result(argc, argv);
+
+	// pipe embedment simulation for conference
 	// geostatic step
-	//test_t2d_chm_s_t_bar_conference_geo(argc, argv);
-	//test_t2d_chm_s_t_bar_conference_geo_result(argc, argv);
+	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
+	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
 	// penetration step 1
-	//test_t2d_chm_s_t_bar_conference_restart1(argc, argv);
-	//test_t2d_chm_s_t_bar_conference_restart1_result(argc, argv);
+	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);
+	//test_t2d_chm_s_pipe_conference_restart1_result(argc, argv);
 	// penetration step 2
-	//test_t2d_chm_s_t_bar_conference_restart2(argc, argv);
-	//test_t2d_chm_s_t_bar_conference_restart2_result(argc, argv);
+	//test_t2d_chm_s_pipe_conference_restart2(argc, argv);
+	//test_t2d_chm_s_pipe_conference_restart2_result(argc, argv);
 
 	//test_t3d_me_s_1d_compression(argc, argv);
 	//test_t3d_me_s_1d_compression_result(argc, argv);

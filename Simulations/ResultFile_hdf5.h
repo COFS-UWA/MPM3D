@@ -53,6 +53,8 @@ public:
 		size_t row_num, size_t col_num, unsigned long long *data);
 
 	// attributes
+	// whether exists
+	bool has_attribute(hid_t grp_id, const char* name);
 	// write
 	int write_attribute(hid_t grp_id, const char *name, double value);
 	int write_attribute(hid_t grp_id, const char *name, size_t value);

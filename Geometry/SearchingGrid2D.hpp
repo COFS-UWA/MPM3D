@@ -51,6 +51,10 @@ public:
 
 	inline double get_hx() { return hx; }
 	inline double get_hy() { return hy; }
+	inline double get_x_min() { return x_min; }
+	inline double get_x_max() { return x_max; }
+	inline double get_y_min() { return y_min; }
+	inline double get_y_max() { return y_max; }
 	inline size_t get_grid_num() { return num; }
 	inline Grid *get_grids() { return grids; }
 

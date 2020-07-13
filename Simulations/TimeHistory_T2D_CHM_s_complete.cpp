@@ -76,7 +76,7 @@ int time_history_output_func_t2d_chm_s_to_xml_res_file(TimeHistory &_self)
 	file.write(str_buffer, strlen(str_buffer));
 
 	// output rigid body data
-	const RigidCircle::State &state = model.get_rigid_circle().get_state();
+	RigidCircle& rc = model.get_rigid_circle();
 	const char *rigid_body_info = ""
 			"    <RigidBody>\n"
 			"        <x> %16.10e </x>\n"
@@ -89,24 +89,26 @@ int time_history_output_func_t2d_chm_s_to_xml_res_file(TimeHistory &_self)
 			"        <rfy> %16.10e </rfy>\n"
 			"        <rm> %16.10e </rm>\n";
 	snprintf(str_buffer, str_buffer_len, rigid_body_info,
-			 state.cen_x, state.cen_y, state.theta,
-			 state.vx, state.vy, state.w, 
-			 state.rfx, state.rfy, state.rm);
+			 rc.get_x(), rc.get_y(), rc.get_ang(),
+			 rc.get_vx(), rc.get_vy(), rc.get_v_ang(), 
+			 rc.get_rfx(), rc.get_rfy(), rc.get_rm());
 	file.write(str_buffer, strlen(str_buffer));
 	file << "    </RigidBody>\n";
 
 	// output material points data
+	size_t pcl_num = model.get_pcl_num();
+	Model_T2D_CHM_s::Particle* pcls = model.get_pcls();
 	const char *material_point_info = ""
 		"    <MaterialPointObject>\n"
 		"        <pcl_num> %zu </pcl_num>\n";
-	snprintf(str_buffer, str_buffer_len, material_point_info, model.pcl_num);
+	snprintf(str_buffer, str_buffer_len, material_point_info, pcl_num);
 	file.write(str_buffer, strlen(str_buffer));
 	// field data: x, y, vol
 	file << "        <field>\n"
 			"        <!-- x, y, vol, n, s11, s22, s12, p -->\n";
-	for (size_t pcl_id = 0; pcl_id < model.pcl_num; ++pcl_id)
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		Model_T2D_CHM_s::Particle &pcl = model.pcls[pcl_id];
+		Model_T2D_CHM_s::Particle &pcl = pcls[pcl_id];
 		file << "        ";
 		snprintf(str_buffer, str_buffer_len, "%16.10e", pcl.x);
 		file << str_buffer << ", ";

@@ -8,6 +8,7 @@
 #include "QtTriangleMeshGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtMultiColourCircleGLObject.h"
+#include "QtRigidCircleObject.h"
 #include "QtSceneFromHdf5.h"
 
 class QtSceneFromHdf5_T2D_CHM_s : public QtSceneFromHdf5
@@ -39,12 +40,16 @@ protected:
 
 	bool display_bg_mesh;
 	bool display_pcls;
+	bool display_rc;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 
 	UniformColourMap_Abaqus color_map;
 	GLuint color_map_texture;
 	QtMultiColourCircleGLObject pcls_obj;
+	
+	bool has_rc_obj;
+	QtRigidCircleObject rc_obj;
 	
 	bool display_whole_model;
 	GLfloat xl, xu, yl, yu, padding_ratio;
@@ -74,6 +79,8 @@ public:
 
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }
+	inline void set_display_rc(bool op = true) { display_rc = op; }
+	
 	inline void set_display_whole_model() { display_whole_model = true; }
 	inline void set_display_range(double _xl, double _xu, double _yl, double _yu)
 	{

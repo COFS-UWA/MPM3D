@@ -74,10 +74,18 @@ public:
 			window.resize(wd, ht);
 	}
 
+	inline void set_display_whole_model()
+	{ scene.set_display_whole_model(); }
+	inline void set_display_range(double xl, double xu,
+								  double yl, double yu)
+	{ scene.set_display_range(xl, xu, yl, yu); }
+
 	inline void set_display_bg_mesh(bool op = true)
 	{ scene.set_display_bg_mesh(op); }
 	inline void set_display_pcls(bool op = true)
 	{ scene.set_display_pcls(op); }
+	inline void set_display_rc(bool op = true)
+	{ scene.set_display_rc(op); }
 
 	inline void set_fld_range(double min, double max)
 	{

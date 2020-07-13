@@ -7,8 +7,12 @@ QtSceneFromHdf5_T2D_CHM_s::QtSceneFromHdf5_T2D_CHM_s(
 	QOpenGLFunctions_3_3_Core &_gl) :
 	QtSceneFromHdf5(_gl), res_file(nullptr),
 	frame_grp_id(-1), th_id(-1), pcl_dt_id(),
-	display_bg_mesh(true), display_pcls(true),
-	bg_mesh_obj(_gl), pcls_obj(_gl),
+	display_bg_mesh(true),
+	display_pcls(true),
+	display_rc(true),
+	bg_mesh_obj(_gl),
+	pcls_obj(_gl),
+	rc_obj(_gl), has_rc_obj(false),
 	color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f)
@@ -89,6 +93,9 @@ void QtSceneFromHdf5_T2D_CHM_s::draw()
 
 	if (display_bg_mesh)
 		bg_mesh_obj.draw(shader_plain2D);
+
+	if (has_rc_obj && display_rc)
+		rc_obj.draw(shader_plain2D);
 
 	shader_circles.bind();
 
@@ -274,7 +281,6 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 	char* pcls_data = pcls_data_mem.get_mem();
 	rf.read_dataset(pcl_data_id, "field", pcl_num, (void *)pcls_data, pcl_dt_id);
 	rf.close_group(pcl_data_id);
-	rf.close_group(frame_grp_id);
 	// init pcl gl buffer
 	res = pcls_obj.init<double>(
 		pcls_data, pcl_size, pcl_num,
@@ -305,6 +311,23 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 
 	gl.glActiveTexture(GL_TEXTURE0);
 	gl.glBindTexture(GL_TEXTURE_1D, color_map_texture);
+
+	// rigid circle
+	if (rf.has_group(frame_grp_id, "RigidCircle"))
+	{
+		has_rc_obj = true;
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
+		double rc_radius, rc_x, rc_y;
+		rf.read_attribute(rb_grp_id, "radius", rc_radius);
+		rf.read_attribute(rb_grp_id, "x", rc_x);
+		rf.read_attribute(rb_grp_id, "y", rc_y);
+		QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
+		rc_obj.init(rc_x, rc_y, rc_radius, light_slate_blue, 3.0f);
+		rf.close_group(rb_grp_id);
+	}
+
+	// complete reading hdf5
+	rf.close_group(frame_grp_id);
 
 	// viewport
 	set_viewport(wd, ht, xu - xl, yu - yl);
@@ -357,19 +380,33 @@ void QtSceneFromHdf5_T2D_CHM_s::update_scene(size_t frame_id)
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	hid_t pcl_data_id = rf.open_group(frame_grp_id, "ParticleData");
-	// pcl num
-	rf.read_attribute(pcl_data_id, "pcl_num", pcl_num);
+	
 	// pcl data
+	hid_t pcl_data_id = rf.open_group(frame_grp_id, "ParticleData");
+	rf.read_attribute(pcl_data_id, "pcl_num", pcl_num);
 	pcls_data_mem.reserve(pcl_size * pcl_num);
 	char* pcls_data = pcls_data_mem.get_mem();
 	rf.read_dataset(pcl_data_id, "field", pcl_num, (void*)pcls_data, pcl_dt_id);
 	rf.close_group(pcl_data_id);
-	rf.close_group(frame_grp_id);
 	// update pcl gl buffer
 	pcls_obj.update<double>(
 		pcls_data, pcl_size, pcl_num,
 		pcl_x_off, pcl_y_off,
 		pcl_vol_off, 0.5, pcl_fld_off
 		);
+
+	// rigid circle
+	if (rf.has_group(frame_grp_id, "RigidCircle"))
+	{
+		has_rc_obj = true;
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
+		double rc_x, rc_y, rc_radius;
+		rf.read_attribute(rb_grp_id, "x", rc_x);
+		rf.read_attribute(rb_grp_id, "y", rc_y);
+		rf.read_attribute(rb_grp_id, "radius", rc_radius);
+		rc_obj.update(rc_x, rc_y, rc_radius);
+		rf.close_group(rb_grp_id);
+	}
+
+	rf.close_group(frame_grp_id);
 }

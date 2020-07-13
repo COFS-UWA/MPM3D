@@ -48,6 +48,9 @@ public:
 	inline QtGLView& get_view() { return window.get_view(); }
 	
 	inline void set_win_size(int wd, int ht) { window.resize(wd, ht); }
+	
+	inline void set_display_whole_model()
+	{ scene.set_display_whole_model(); }
 	inline void set_display_range(double xl, double xu, double yl, double yu)
 	{ scene.set_display_range(xl, xu, yl, yu); }
 
@@ -55,6 +58,8 @@ public:
 	{ scene.set_display_bg_mesh(op); }
 	inline void set_display_pcls(bool op = true)
 	{ scene.set_display_pcls(op); }
+	inline void set_display_rc(bool op = true)
+	{ scene.set_display_rc(op); }
 	inline void set_display_pts(bool op = true)
 	{ scene.set_display_pts(op); }
 
