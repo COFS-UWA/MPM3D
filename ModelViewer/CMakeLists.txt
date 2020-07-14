@@ -22,14 +22,17 @@ add_library(
     QtController_Posp_Animation.h QtController_Posp_Animation.cpp
     # utilities
     # color map
-    UniformColourMap.h UniformColourMap.cpp
+    UniformColorMap.h UniformColorMap.cpp
     UniformColorMap_Abaqus.h UniformColorMap_Abaqus.cpp
     ################## 2D MPM model display ######################
     # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp
-    QtMonoColourCircleGLObject.h QtMonoColourCircleGLObject.cpp
-    QtMultiColourCircleGLObject.h QtMultiColourCircleGLObject.cpp
+    QtMonoColorCircleGLObject.h QtMonoColorCircleGLObject.cpp
+    QtMultiColorCircleGLObject.h QtMultiColorCircleGLObject.cpp
     QtRigidCircleObject.h QtRigidCircleObject.cpp
+    # display chars
+    QtCharBitmapLoader.h QtCharBitmapLoader.cpp
+    QtUniformColorMapObject.h QtUniformColorMapObject.cpp
     # Model_T2D_ME_s
     # prep process module
     QtSceneFromModel_T2D_ME_s.h QtSceneFromModel_T2D_ME_s.cpp
@@ -85,6 +88,7 @@ target_include_directories(
     ${MODELVIEWER_INCLUDE_DIR}
     # External
     ${HDF5_INCLUDE_DIR}
+    ${FREETYPE_INCLUDE_DIR}
     )
 
 target_link_libraries(
@@ -93,6 +97,12 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::OpenGL
     ${HDF5_LIBRARIES}
+    )
+
+target_link_libraries(
+    ModelViewer
+    debug ${FREETYPE_DEBUG_LIBRARIES}
+    optimized ${FREETYPE_RELEASE_LIBRARIES}
     )
 
 if (MSVC)

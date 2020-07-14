@@ -97,14 +97,14 @@ void test_t2d_me_s_test_restart_geo_step(int argc, char** argv)
 		tbc.t = 0.02 * -10.0;
 	}
 
-	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
-	//md_disp.set_win_size(900, 900);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T2D_ME_s md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_s_test_restart_geo.h5");

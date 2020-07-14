@@ -1,14 +1,14 @@
 #ifndef __Uniform_Color_Map_Abaqus_h__
 #define __Uniform_Color_Map_Abaqus_h__
 
-#include "UniformColourMap.h"
+#include "UniformColorMap.h"
 
 // The style of this color map is obtained from abaqus 
-class UniformColourMap_Abaqus : public UniformColourMap
+class UniformColorMap_Abaqus : public UniformColorMap
 {
 public:
-	UniformColourMap_Abaqus();
-	~UniformColourMap_Abaqus();
+	UniformColorMap_Abaqus();
+	~UniformColorMap_Abaqus();
 };
 
 #endif

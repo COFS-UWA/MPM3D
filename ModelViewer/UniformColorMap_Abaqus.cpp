@@ -2,7 +2,7 @@
 
 #include "UniformColorMap_Abaqus.h"
 
-UniformColourMap_Abaqus::UniformColourMap_Abaqus()
+UniformColorMap_Abaqus::UniformColorMap_Abaqus()
 {
 	unsigned char abaqus_color_map[][3] = {
 		{ 0,   0,   255 },
@@ -19,11 +19,8 @@ UniformColourMap_Abaqus::UniformColourMap_Abaqus()
 		{ 255, 0,   0   }
 	};
 	size_t abaqus_color_num = sizeof(abaqus_color_map) / sizeof(abaqus_color_map[0]);
-	set_colour(abaqus_color_map, abaqus_color_num);
+	set_color(abaqus_color_map, abaqus_color_num);
 }
 
-UniformColourMap_Abaqus::~UniformColourMap_Abaqus()
-{
-
-}
+UniformColorMap_Abaqus::~UniformColorMap_Abaqus() {}
 

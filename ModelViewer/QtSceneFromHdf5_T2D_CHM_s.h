@@ -7,7 +7,7 @@
 #include "ResultFile_hdf5.h"
 #include "QtTriangleMeshGLObject.h"
 #include "UniformColorMap_Abaqus.h"
-#include "QtMultiColourCircleGLObject.h"
+#include "QtMultiColorCircleGLObject.h"
 #include "QtRigidCircleObject.h"
 #include "QtSceneFromHdf5.h"
 
@@ -44,9 +44,9 @@ protected:
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 
-	UniformColourMap_Abaqus color_map;
+	UniformColorMap_Abaqus color_map;
 	GLuint color_map_texture;
-	QtMultiColourCircleGLObject pcls_obj;
+	QtMultiColorCircleGLObject pcls_obj;
 	
 	bool has_rc_obj;
 	QtRigidCircleObject rc_obj;

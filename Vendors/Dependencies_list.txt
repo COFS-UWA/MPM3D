@@ -1,3 +1,4 @@
 hdf5
 Qt5 (include OpenGL)
 Eigen
+FreeType

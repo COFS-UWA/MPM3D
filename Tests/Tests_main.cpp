@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_1d_compression_ani_result(argc, argv);
 
 	// test me restart
-	//test_t2d_me_s_test_restart_geo_step(argc, argv);
+	test_t2d_me_s_test_restart_geo_step(argc, argv);
 	//test_t2d_me_s_test_restart_geo_step_result(argc, argv);
 	//test_t2d_me_s_test_restart_penetration_step(argc, argv);
 	//test_t2d_me_s_test_restart_penetration_step_result(argc, argv);

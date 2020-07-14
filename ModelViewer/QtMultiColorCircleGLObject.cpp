@@ -1,15 +1,15 @@
 #include "ModelViewer_pcp.h"
 
-#include "QtMultiColourCircleGLObject.h"
+#include "QtMulticolorCircleGLObject.h"
 
-QtMultiColourCircleGLObject::
-	QtMultiColourCircleGLObject(QOpenGLFunctions_3_3_Core& _gl) :
+QtMultiColorCircleGLObject::
+	QtMultiColorCircleGLObject(QOpenGLFunctions_3_3_Core& _gl) :
 	gl(_gl), vao(0), vbo_cs(0), veo_cs(0), vbo_pts(0),
     c_elem_node_num(0), pt_num(0) {}
 
-QtMultiColourCircleGLObject::~QtMultiColourCircleGLObject() { clear(); }
+QtMultiColorCircleGLObject::~QtMultiColorCircleGLObject() { clear(); }
 
-void QtMultiColourCircleGLObject::clear()
+void QtMultiColorCircleGLObject::clear()
 {
     if (veo_cs)
     {
@@ -33,7 +33,7 @@ void QtMultiColourCircleGLObject::clear()
     }
 }
 
-void QtMultiColourCircleGLObject::draw(QOpenGLShaderProgram& shader)
+void QtMultiColorCircleGLObject::draw(QOpenGLShaderProgram& shader)
 {
     (void)shader;
 
@@ -47,7 +47,7 @@ void QtMultiColourCircleGLObject::draw(QOpenGLShaderProgram& shader)
     );
 }
 
-int QtMultiColourCircleGLObject::init_gl_buffer(
+int QtMultiColorCircleGLObject::init_gl_buffer(
     PointData* pds,
     size_t pd_num
     )
@@ -111,7 +111,7 @@ int QtMultiColourCircleGLObject::init_gl_buffer(
     return 0;
 }
 
-int QtMultiColourCircleGLObject::update_gl_buffer(
+int QtMultiColorCircleGLObject::update_gl_buffer(
     PointData* pds,
     size_t pd_num
     )
@@ -122,10 +122,10 @@ int QtMultiColourCircleGLObject::update_gl_buffer(
     gl.glBindVertexArray(vao);
 
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
-    gl.glBufferData(GL_ARRAY_BUFFER,
+    gl.glBufferSubData(GL_ARRAY_BUFFER,
+        0,
         pd_num * sizeof(PointData),
-        pds,
-        GL_STREAM_DRAW
+        (GLvoid *)pds
         );
 
     return 0;
@@ -258,7 +258,7 @@ static const GLuint circle_elems[] = {
     0, 60, 1 // elem 59
 };
 
-int QtMultiColourCircleGLObject::init_circle_data()
+int QtMultiColorCircleGLObject::init_circle_data()
 {
     c_elem_node_num = sizeof(circle_elems) / sizeof(circle_elems[0]);
     

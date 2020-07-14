@@ -844,12 +844,12 @@ int QtRigidCircleObject::update(double x, double y, double r)
     }
 
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    gl.glBufferData(
-        GL_ARRAY_BUFFER,
+    gl.glBufferSubData(GL_ARRAY_BUFFER,
+        0,
         circle_node_num * sizeof(NodeData),
-        node_datas,
-        GL_STREAM_DRAW
-    );
+        (GLvoid *)node_datas
+        );
+
     return 0;
 }
 

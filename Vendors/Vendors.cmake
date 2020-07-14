@@ -3,7 +3,7 @@
 # External Dependencies
 #
 #===================================
-set(VENDORS_DIR ${CMAKE_SOURCE_DIR}/Vendors/)
+set(VENDORS_DIR "${CMAKE_SOURCE_DIR}/Vendors/")
 
 # Qt5
 find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL)
@@ -17,10 +17,27 @@ set(HDF5_USE_STATIC_LIBRARIES ON)
 find_package(HDF5 REQUIRED)
 
 # Eigen
-set(EIGEN_INCLUDE_DIR ${VENDORS_DIR}/Eigen/include/)
+set(EIGEN_INCLUDE_DIR "${VENDORS_DIR}/Eigen/include/")
 
 # OpenGL
 # find_library(OPENGL_LIB
     # NAMES opengl32.lib
     # )
 # set(OPENGL_LIBRARIES ${OPENGL_LIB})
+
+# FreeType
+set(FREETYPE_INCLUDE_DIR "${FREETYPE_DIR}include/freetype2/") # must to freetype2 dir
+# debug
+set(FREETYPE_DEBUG_LIBRARIES_DIR "${FREETYPE_DIR}lib_debug/")
+find_library(FREETYPE_DEBUG_LIBRARIES
+    NAMES freetyped
+    PATHS ${FREETYPE_DEBUG_LIBRARIES_DIR}
+    )
+unset(FREETYPE_DEBUG_LIBRARIES_DIR CACHE)
+# release
+set(FREETYPE_RELEASE_LIBRARIES_DIR "${FREETYPE_DIR}lib/")
+find_library(FREETYPE_RELEASE_LIBRARIES
+    NAMES freetype
+    PATHS ${FREETYPE_RELEASE_LIBRARIES_DIR}
+    )
+unset(FREETYPE_RELEASE_LIBRARIES_DIR CACHE)

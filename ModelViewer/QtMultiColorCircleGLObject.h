@@ -1,12 +1,12 @@
-#ifndef __Qt_Multi_Colour_Circle_GL_Object_h__
-#define __Qt_Multi_Colour_Circle_GL_Object_h__
+#ifndef __Qt_Multi_Color_Circle_GL_Object_h__
+#define __Qt_Multi_Color_Circle_GL_Object_h__
 
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
 #include "ItemArray.hpp"
 
-class QtMultiColourCircleGLObject
+class QtMultiColorCircleGLObject
 {
 protected:
 	QOpenGLFunctions_3_3_Core& gl;
@@ -31,8 +31,8 @@ protected:
 	int update_gl_buffer(PointData *pds, size_t pd_num);
 
 public:
-	QtMultiColourCircleGLObject(QOpenGLFunctions_3_3_Core& _gl);
-	~QtMultiColourCircleGLObject();
+	QtMultiColorCircleGLObject(QOpenGLFunctions_3_3_Core& _gl);
+	~QtMultiColorCircleGLObject();
 
 	template <typename FieldDataType>
 	int init(
@@ -54,7 +54,7 @@ public:
 };
 
 template <typename FieldDataType>
-int QtMultiColourCircleGLObject::init(
+int QtMultiColorCircleGLObject::init(
 	char* pcls_data, size_t pcl_size, size_t pcl_num,
 	size_t x_off, size_t y_off,
 	size_t vol_off, float radius_scale,
@@ -80,7 +80,7 @@ int QtMultiColourCircleGLObject::init(
 }
 
 template <typename FieldDataType>
-int QtMultiColourCircleGLObject::update(
+int QtMultiColorCircleGLObject::update(
 	char* pcls_data, size_t pcl_size, size_t pcl_num,
 	size_t x_off, size_t y_off,
 	size_t vol_off, float radius_scale,

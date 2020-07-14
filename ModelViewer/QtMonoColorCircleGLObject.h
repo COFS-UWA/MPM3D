@@ -1,10 +1,10 @@
-#ifndef __Qt_Mono_Colour_Circle_GL_Object_h__
-#define __Qt_Mono_Colour_Circle_GL_Object_h__
+#ifndef __Qt_Mono_Color_Circle_GL_Object_h__
+#define __Qt_Mono_Color_Circle_GL_Object_h__
 
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
-class QtMonoColourCircleGLObject
+class QtMonoColorCircleGLObject
 {
 protected:
 	QOpenGLFunctions_3_3_Core& gl;
@@ -27,8 +27,8 @@ protected:
 	int init_gl_buffer(PointData* pds, size_t pd_num);
 
 public:
-	QtMonoColourCircleGLObject(QOpenGLFunctions_3_3_Core& _gl);
-	~QtMonoColourCircleGLObject();
+	QtMonoColorCircleGLObject(QOpenGLFunctions_3_3_Core& _gl);
+	~QtMonoColorCircleGLObject();
 
 	// Particle2D has member x, y and area
 	template <typename Particle2D>
@@ -42,7 +42,7 @@ public:
 };
 
 template <typename Particle2D>
-int QtMonoColourCircleGLObject::init(
+int QtMonoColorCircleGLObject::init(
 	Particle2D* pcls,
 	size_t pcl_num,
 	QVector3D &c,
@@ -70,7 +70,7 @@ int QtMonoColourCircleGLObject::init(
 }
 
 template <typename Point2D>
-int QtMonoColourCircleGLObject::init(
+int QtMonoColorCircleGLObject::init(
 	Point2D* pts,
 	size_t _pt_num,
 	float pt_radius,
