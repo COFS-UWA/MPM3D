@@ -1,11 +1,12 @@
 #include "ModelViewer_pcp.h"
 
+#define KEEP_ID_TO_CHAR_NUM
 #include "QtCharBitmapLoader.h"
 
 QtCharBitmapLoader::QtCharBitmapLoader(QOpenGLFunctions_3_3_Core& _gl) :
 	gl(_gl), char_num(0), ft_is_init(false)
 {
-
+	memset(id_to_char, 0, sizeof(CharData*) * ID_TO_CHAR_NUM);
 }
 
 QtCharBitmapLoader::~QtCharBitmapLoader() { clear(); }
@@ -60,7 +61,7 @@ QtCharBitmapLoader::CharData* QtCharBitmapLoader::load_char_data(char c)
 	if (!ft_is_init)
 		return nullptr;
 
-	if (char_num >= 256) // exceed the uniform length limit
+	if (char_num >= ID_TO_CHAR_NUM) // exceed the uniform length limit
 		return nullptr;
 
 	FT_UInt char_index = FT_Get_Char_Index(ft_face, c);

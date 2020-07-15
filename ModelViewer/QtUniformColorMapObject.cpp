@@ -3,18 +3,19 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "Geometry.h"
 #include "QtUniformcolorMapObject.h"
 
 QtUniformColorMapObject::QtUniformColorMapObject(
-	QOpenGLFunctions_3_3_Core& _gl) : gl(_gl),
-	char_loader(_gl),
+	QOpenGLFunctions_3_3_Core& _gl) : gl(_gl), char_loader(_gl),
+	// geometry parameters
 	ht_margin_ratio(0.05f), wd_margin_ratio(0.05f),
 	gap_ratio(0.1f), title_ratio(1.5f),
 	cbox_as(1.28f), cbox_tick_ratio(0.15f), cbox_gap_ratio(0.1f),
-	line_width(2.0f),
+	// gl draw infos
+	line_width(2.0f), char_num(0),
 	line_vao(0), line_vbo(0), line_veo(0),
-	tri_vao(0), tri_vbo(0), tri_veo(0)
+	tri_vao(0), tri_vbo(0), tri_veo(0),
+	char_vao(0), char_vbo(0)
 {
 
 }
@@ -23,44 +24,105 @@ QtUniformColorMapObject::~QtUniformColorMapObject() { clear_gl_buffer(); }
 
 void QtUniformColorMapObject::clear_gl_buffer()
 {
-	if (line_veo)
+	if (vbos[0] || vbos[1] || vbos[2] || vbos[3] || vbos[4])
 	{
-		gl.glDeleteBuffers(1, &line_veo);
-		line_veo = 0;
+		gl.glDeleteBuffers(5, vbos);
+		vbos[0] = 0;
+		vbos[1] = 0;
+		vbos[2] = 0;
+		vbos[3] = 0;
+		vbos[4] = 0;
 	}
-	if (line_vbo)
+	if (vaos[0] || vaos[1] || vaos[2])
 	{
-		gl.glDeleteBuffers(1, &line_vbo);
-		line_vbo = 0;
+		gl.glDeleteVertexArrays(3, vaos);
+		vaos[0] = 0;
+		vaos[1] = 0;
+		vaos[2] = 0;
 	}
-	if (line_vao)
+}
+
+void QtUniformColorMapObject::cal_str_geometry(
+	const char *str,
+	QtCharBitmapLoader& loader,
+	GLuint& font_wd, GLuint& font_ht
+	)
+{
+	size_t str_len = strlen(str);
+	font_wd = 0;
+	font_ht = 0;
+	for (size_t c_id = 0; c_id < str_len; ++c_id)
 	{
-		gl.glDeleteVertexArrays(1, &line_vao);
-		line_vao = 0;
+		QtCharBitmapLoader::CharData* pcd
+			= loader.get_char_data(str[c_id]);
+		if (!pcd)
+			continue;
+		if (font_wd < pcd->get_advance_y())
+			font_wd = pcd->get_advance_y();
+		font_ht += pcd->get_advance_x();
 	}
-	if (tri_veo)
+}
+
+void QtUniformColorMapObject::get_mid_align_str_pos(
+	Rect& pos_rect,
+	GLfloat str_as,
+	Rect& str_rect
+	)
+{
+	GLfloat pos_wd = pos_rect.xu - pos_rect.xl;
+	GLfloat pos_ht = pos_rect.yu - pos_rect.yl;
+	GLfloat pos_as = pos_wd / pos_ht;
+	GLfloat pad;
+	if (pos_as > str_as)
 	{
-		gl.glDeleteBuffers(1, &tri_veo);
-		tri_veo = 0;
+		pad = (pos_wd - pos_ht * str_as) * 0.5;
+		str_rect.xl = pos_rect.xl + pad;
+		str_rect.xu = pos_rect.xu - pad;
+		str_rect.yl = pos_rect.yl;
+		str_rect.yu = pos_rect.yu;
 	}
-	if (tri_vbo)
+	else
 	{
-		gl.glDeleteBuffers(1, &tri_vbo);
-		tri_vbo = 0;
+		pad = (pos_ht - pos_wd / str_as) * 0.5;
+		str_rect.xl = pos_rect.xl;
+		str_rect.xu = pos_rect.xu;
+		str_rect.yl = pos_rect.yl + pad;
+		str_rect.yu = pos_rect.yu - pad;
 	}
-	if (tri_vao)
+}
+
+void QtUniformColorMapObject::get_left_align_str_pos(
+	Rect& pos_rect,
+	GLfloat str_as,
+	Rect& str_rect
+	)
+{
+	GLfloat pos_wd = pos_rect.xu - pos_rect.xl;
+	GLfloat pos_ht = pos_rect.yu - pos_rect.yl;
+	GLfloat pos_as = pos_wd / pos_ht;
+	if (pos_as > str_as)
 	{
-		gl.glDeleteVertexArrays(1, &tri_vao);
-		tri_vao = 0;
+		str_rect.xl = pos_rect.xl;
+		str_rect.xu = pos_rect.xl + pos_ht * str_as;
+		str_rect.yl = pos_rect.yl;
+		str_rect.yu = pos_rect.yu;
+	}
+	else
+	{
+		GLfloat pad = (pos_ht - pos_wd / str_as) * 0.5;
+		str_rect.xl = pos_rect.xl;
+		str_rect.xu = pos_rect.xu;
+		str_rect.yl = pos_rect.yl + pad;
+		str_rect.yu = pos_rect.yu - pad;
 	}
 }
 
 void QtUniformColorMapObject::add_line(
 	GLfloat x0, GLfloat y0,
 	GLfloat x1, GLfloat y1
-	)
+)
 {
-	MCNodeData nd;
+	Type0NodeData nd;
 	nd.type = 0;
 	nd.x = x0;
 	nd.y = y0;
@@ -74,12 +136,12 @@ void QtUniformColorMapObject::add_line(
 	line_elem_mem.add(n_id);
 }
 
-void QtUniformColorMapObject::add_rect_color(
-	Rect &rect,
+void QtUniformColorMapObject::add_rect(
+	Rect& rect,
 	QVector3D& color
-	)
+)
 {
-	NodeData nd;
+	Type1NodeData nd;
 	nd.type = 1;
 	nd.r = color.x();
 	nd.g = color.y();
@@ -113,98 +175,77 @@ void QtUniformColorMapObject::add_rect_color(
 }
 
 void QtUniformColorMapObject::add_char_texture(
-	Rect &rect,
-	GLint tex_id
+	Rect& rect,
+	GLuint tex_id
 	)
 {
-	NodeData nd;
-	nd.type = 2;
-	nd.tex_id = tex_id;
+	CharNodeData nd;
 	// n0
 	nd.x = rect.xl;
 	nd.y = rect.yu;
 	nd.tex_x = 0.0f;
 	nd.tex_y = 0.0f;
-	tri_node_mem.add(nd);
+	char_node_mem.add(nd);
 	// n1
+	nd.x = rect.xl;
 	nd.y = rect.yl;
 	nd.tex_x = 0.0f;
 	nd.tex_y = 1.0f;
-	tri_node_mem.add(nd);
+	char_node_mem.add(nd);
 	// n2
 	nd.x = rect.xu;
+	nd.y = rect.yl;
 	nd.tex_x = 1.0f;
 	nd.tex_y = 1.0f;
-	tri_node_mem.add(nd);
+	char_node_mem.add(nd);
 	// n3
+	nd.x = rect.xl;
+	nd.y = rect.yu;
+	nd.tex_x = 0.0f;
+	nd.tex_y = 0.0f;
+	char_node_mem.add(nd);
+	// n4
+	nd.x = rect.xu;
+	nd.y = rect.yl;
+	nd.tex_x = 1.0f;
+	nd.tex_y = 1.0f;
+	char_node_mem.add(nd);
+	// n5
+	nd.x = rect.xu;
 	nd.y = rect.yu;
 	nd.tex_x = 1.0f;
 	nd.tex_y = 0.0f;
-	tri_node_mem.add(nd);
+	char_node_mem.add(nd);
 
-	GLuint n_id0 = tri_elem_mem.get_num();
-	GLuint n_id1 = n_id0 + 1;
-	GLuint n_id2 = n_id0 + 2;
-	GLuint n_id3 = n_id0 + 3;
-	// 0, 1, 2
-	tri_elem_mem.add(n_id0);
-	tri_elem_mem.add(n_id1);
-	tri_elem_mem.add(n_id2);
-	// 0, 2, 3
-	tri_elem_mem.add(n_id0);
-	tri_elem_mem.add(n_id2);
-	tri_elem_mem.add(n_id3);
+	char_textures.add(tex_id);
+
+	++char_num;
 }
 
 void QtUniformColorMapObject::add_string_texture(
 	GLfloat xpos,
 	GLfloat ypos,
-	StrInfo& strif
+	GLfloat nr,
+	const char* str
 	)
 {
 	Rect char_pos;
-	GLfloat nr = strif.norm_ratio;
-	size_t str_len = strif.str.size();
-	const char* str = strif.str.c_str();
+	size_t str_len = strlen(str);
 	for (size_t c_id = 0; c_id < str_len; ++c_id)
 	{
-		QtCharBitmapLoader::CharData *cd = char_loader.get_char_data(str[c_id]);
+		QtCharBitmapLoader::CharData* cd
+			= char_loader.get_char_data(str[c_id]);
 		if (!cd)
 			continue;
-		
-		char_pos.xl = xpos + cd->get_bearing_x() * nr;
-		char_pos.yl = ypos + (cd->get_bearing_y() - cd->get_height()) * nr;
-		char_pos.xu = char_pos.xl + cd->get_width() * nr;
-		char_pos.yu = char_pos.yl + cd->get_height() * nr;
 
+		char_pos.xl = xpos + GLfloat(cd->get_bearing_x()) * nr;
+		char_pos.yl = ypos + GLfloat(cd->get_bearing_y() - cd->get_height()) * nr;
+		char_pos.xu = char_pos.xl + GLfloat(cd->get_width()) * nr;
+		char_pos.yu = char_pos.yl + GLfloat(cd->get_height()) * nr;
 		add_char_texture(char_pos, cd->get_texture_id());
 
-		xpos += cd->get_advance_x() * strif.norm_ratio;
+		xpos += cd->get_advance_x() * nr;
 	}
-}
-
-void QtUniformColorMapObject::get_str_size(
-	StrInfo& strif,
-	QtCharBitmapLoader& loader
-	)
-{
-	strif.bm_wd = 0;
-	strif.bm_ht = 0;
-	std::string& str = strif.str;
-	size_t str_len = str.size();
-	const char* str_chars = str.c_str();
-	for (size_t c_id = 0; c_id < str_len; ++c_id)
-	{
-		QtCharBitmapLoader::CharData *pcd = loader.get_char_data(str_chars[c_id]);
-		if (!pcd)
-			continue;
-		
-		if (strif.bm_wd < pcd->get_advance_y())
-			strif.bm_wd = pcd->get_advance_y();
-		
-		strif.bm_ht += pcd->get_advance_x();
-	}
-	strif.bm_as = GLfloat(strif.bm_wd) / GLfloat(strif.bm_ht);
 }
 
 int QtUniformColorMapObject::init(
@@ -212,14 +253,13 @@ int QtUniformColorMapObject::init(
 	UniformColorMap& color_map,
 	const char* title,
 	const char* num_format,
-	const char* ttf_filename,
-	int win_wd, int win_ht
+	const char* ttf_filename
 	)
 {
 	// ==== calculate size of each components ====
 	cmap_ht = ht;
 
-	// margin
+	// height margin
 	GLfloat margin_ht = cmap_ht * ht_margin_ratio;
 	content_ht = cmap_ht - 2.0f * margin_ht;
 
@@ -231,51 +271,54 @@ int QtUniformColorMapObject::init(
 	title_gap_ht = num_ht * gap_ratio;
 	cbox_ht = num_ht;
 
-	// color box geometry
+	// width color box
 	cbox_wd = cbox_ht * cbox_as;
 	cbox_tick_wd = cbox_wd * cbox_tick_ratio;
 	cbox_gap_wd = cbox_wd * cbox_gap_ratio;
 
-	// load string render
-	char_loader.load_ttf_file(ttf_filename, cbox_ht * win_ht);
-	(void)win_wd;
+	// load string render to get string info
+	char_loader.load_ttf_file(ttf_filename, 60);
 
+	GLuint str_wd, str_ht;
 	// title string size
 	title_str_info.str = title;
-	get_str_size(title_str_info, char_loader);
-	title_str_info.ht = title_ht;
-	title_str_info.wd = title_ht * title_str_info.bm_as;
+	cal_str_geometry(title, char_loader, str_wd, str_ht);
+	title_str_info.as = GLfloat(str_wd) / GLfloat(str_ht);
+	title_str_info.font_pixel_wd = str_wd;
+	title_wd = title_ht * title_str_info.as;
 
 	// number string size
-	num_str_infos.reserve(color_num);
+	entry_infos.reserve(color_num);
 	char num_str_buf[200];
-	float num_start, num_inv;
-	num_start = color_map.get_lower_bound();
-	num_inv = (color_map.get_upper_bound() - num_start)
-			/ float(color_num);
-	GLfloat num_wd = 0.0; // get longest number string
+	float num_start = color_map.get_lower_bound();
+	float num_inv = (color_map.get_upper_bound() - num_start)
+					/ float(color_num);
+	GLfloat num_wd_tmp;
+	num_wd = 0.0; // get longest number string
 	for (size_t c_id = 0; c_id < color_num; ++c_id)
 	{
-		StrInfo& num_si = num_str_infos[c_id];
-		// form str
-		num_si.number = num_start + float(c_id) * num_inv;
-		snprintf(num_str_buf, 200, num_format, num_si.number);
-		num_si.str = num_str_buf;
-		// get size
-		get_str_size(num_si, char_loader);
-		num_si.ht = cbox_ht;
-		num_si.wd = num_si.ht * num_si.bm_as;
-		num_si.norm_ratio = num_si.ht / GLfloat(num_si.bm_ht);
-		if (num_wd < num_si.wd)
-			num_wd = num_si.wd;
+		EntryInfo &ei = entry_infos[c_id];
+		StrInfo& si = ei.num_str_info;
+		// form num str
+		ei.number = num_start + float(c_id) * num_inv;
+		snprintf(num_str_buf, 200, num_format, ei.number);
+		si.str = num_str_buf;
+		// get num str geometry
+		cal_str_geometry(num_str_buf, char_loader, str_wd, str_ht);
+		si.as = GLfloat(str_wd) / GLfloat(str_ht);
+		si.font_pixel_wd = str_wd;
+		num_wd_tmp = num_ht * si.as;
+		if (num_wd < num_wd_tmp)
+			num_wd = num_wd_tmp;
 	}
 
 	content_wd = cbox_wd + cbox_tick_wd + cbox_gap_wd + num_wd;
-	content_wd = content_wd > title_wd ? content_wd : title_wd;
+	if (content_wd < title_wd)
+		content_wd = title_wd;
 	title_wd = content_wd;
 
+	cmap_wd = title_wd / (1.0 - 2.0f * wd_margin_ratio);
 	GLfloat margin_wd = cmap_wd * wd_margin_ratio;
-	cmap_wd = margin_wd * 2.0f + content_wd;
 
 	// ==== calculate position of each components ====
 	xpos = _xpos;
@@ -298,35 +341,49 @@ int QtUniformColorMapObject::init(
 	content_rect.xu = cmap_rect.xu - margin_wd;
 	content_rect.yl = cmap_rect.yl + margin_ht;
 	content_rect.yu = cmap_rect.yu - margin_ht;
+
 	title_rect.xl = content_rect.xl;
 	title_rect.xu = content_rect.xu;
 	title_rect.yu = content_rect.yu;
 	title_rect.yl = title_rect.yu - title_ht;
+	// title string
+	get_mid_align_str_pos(title_rect, title_str_info.as, title_str_rect);
+	title_str_info.nr = title_str_rect.width() / GLfloat(title_str_info.font_pixel_wd);
+
 	cbar_rect.xl = content_rect.xl;
 	cbar_rect.xu = cbar_rect.xl + cbox_wd;
 	cbar_rect.yl = content_rect.yl;
 	cbar_rect.yu = cbar_rect.yl + GLfloat(color_num) * cbox_ht;
-	cboxes_rect.reserve(color_num);
-	nums_rect.reserve(color_num);
+
 	for (size_t c_id = 0; c_id < color_num; ++c_id)
 	{
-		Rect& cbox_rect = cboxes_rect[c_id];
+		EntryInfo& ei = entry_infos[c_id];
+
+		Rect& cbox_rect = ei.cbox_rect;
 		cbox_rect.xl = cbar_rect.xl;
 		cbox_rect.xu = cbar_rect.xu;
 		cbox_rect.yl = content_rect.yl + GLfloat(c_id) * cbox_ht;
 		cbox_rect.yu = cbox_rect.yl + cbox_ht;
-		Rect& num_rect = nums_rect[c_id];
+
+		Rect& num_rect = ei.num_rect;
 		num_rect.xl = cbox_rect.xu + cbox_tick_wd + cbox_gap_wd;
 		num_rect.xu = num_rect.xl + num_wd;
 		num_rect.yl = cbox_rect.yl;
 		num_rect.yu = cbox_rect.yu;
+
+		Rect& num_str_rect = ei.num_str_rect;
+		StrInfo& si = ei.num_str_info;
+		get_left_align_str_pos(num_rect, si.as, num_str_rect);
+		si.nr = num_str_rect.width() / GLfloat(si.font_pixel_wd);
 	}
 
 	// form gl buffer
-	line_node_mem.reserve(color_num*10);
-	line_elem_mem.reserve(color_num*10);
-	tri_node_mem.reserve(color_num * 10);
-	tri_elem_mem.reserve(color_num * 10);
+	line_node_mem.reserve((7 + color_num) * 2);
+	line_elem_mem.reserve((7 + color_num) * 2);
+	tri_node_mem.reserve(color_num * 2 * 4);
+	tri_elem_mem.reserve(color_num * 2 * 6);
+	char_node_mem.reserve((color_num + 1) * 20 * 6);
+	char_textures.reserve((color_num + 1) * 20);
 
 	// outer frame
 	add_line(cmap_rect.xl, cmap_rect.yl, cmap_rect.xu, cmap_rect.yl);
@@ -334,62 +391,165 @@ int QtUniformColorMapObject::init(
 	add_line(cmap_rect.xu, cmap_rect.yu, cmap_rect.xl, cmap_rect.yu);
 	add_line(cmap_rect.xl, cmap_rect.yu, cmap_rect.xl, cmap_rect.yl);
 
+	// title string
+	add_string_texture(
+		title_str_rect.xl,
+		title_str_rect.yl,
+		title_str_info.nr,
+		title_str_info.str.c_str()
+		);
+	
 	// color boxes
 	UniformColorMap::Color *colors = color_map.get_colors();
 	GLfloat cbox_tick_xu = cbar_rect.xu + cbox_tick_wd;
 	add_line(cbar_rect.xl, cbar_rect.yl, cbar_rect.xl, cbar_rect.yu);
 	add_line(cbar_rect.xu, cbar_rect.yl, cbar_rect.xu, cbar_rect.yu);
 	add_line(cbar_rect.xl, cbar_rect.yl, cbox_tick_xu, cbar_rect.yl);
+	
 	QVector3D color_tmp;
 	for (size_t c_id = 0; c_id < color_num; ++c_id)
 	{
-		Rect& cbox_rect = cboxes_rect[c_id];
+		EntryInfo& ei = entry_infos[c_id];
+
+		// color boxes
+		Rect& cbox_rect = ei.cbox_rect;
 		add_line(cbar_rect.xl, cbox_rect.yu, cbox_tick_xu, cbox_rect.yu);
+		
 		UniformColorMap::Color &color = colors[c_id];
 		color_tmp.setX(color.r);
 		color_tmp.setY(color.g);
 		color_tmp.setZ(color.b);
-		add_rect_color(cbox_rect, color_tmp);
-	}
+		add_rect(cbox_rect, color_tmp);
 
-	// title
-	Rect title_str_rect;
-	// get_mid_align_str_pos(confined_rect, title_str_rect, 0.9f)
-	add_string_texture(
-		title_str_rect.xl,
-		title_str_rect.yl,
-		title_str_info
-		);
-
-	// numbers
-	Rect num_str_rect;
-	for (size_t c_id = 0; c_id < color_num; ++c_id)
-	{
-		// get_left_align_str_pos(confined_rect, num_str_rect, 0.9f);
+		// number strings
 		add_string_texture(
-			num_str_rect.xl,
-			num_str_rect.yl,
-			num_str_infos[c_id]
+			ei.num_str_rect.xl,
+			ei.num_str_rect.yl,
+			ei.num_str_info.nr,
+			ei.num_str_info.str.c_str()
 		);
 	}
 
 	// set up opengl buffer
 	clear_gl_buffer();
 
-	gl.glGenVertexArrays(1, &line_vao);
-	gl.glBindVertexArray(line_vao);
-	// ...
-	//GLuint line_vao, line_vbo, line_veo;
-	//GLuint tri_vao, tri_vbo, tri_veo;
+	gl.glGenVertexArrays(3, vaos);
+	gl.glGenBuffers(5, vbos);
 
+	// line gl buffer
+	gl.glBindVertexArray(line_vao);
+	gl.glBindBuffer(GL_ARRAY_BUFFER, line_vbo);
+	gl.glBufferData(GL_ARRAY_BUFFER,
+		line_node_mem.get_num() * sizeof(Type0NodeData),
+		(GLvoid *)line_node_mem.get_mem(),
+		GL_STREAM_DRAW
+		);
+
+	// type
+	gl.glVertexAttribIPointer(0, 1, GL_INT,
+		sizeof(Type0NodeData), (GLvoid*)0);
+	gl.glEnableVertexAttribArray(0);
+	// coordinates
+	gl.glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+		sizeof(Type0NodeData), (GLvoid*)offsetof(Type0NodeData, x));
+	gl.glEnableVertexAttribArray(1);
+	
+	gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, line_veo);
+	gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		line_elem_mem.get_num() * sizeof(GLuint),
+		(GLvoid *)line_elem_mem.get_mem(),
+		GL_STREAM_DRAW
+		);
+
+	// element gl buffer
+	gl.glBindVertexArray(tri_vao);
+	gl.glBindBuffer(GL_ARRAY_BUFFER, tri_vbo);
+	gl.glBufferData(GL_ARRAY_BUFFER,
+		tri_node_mem.get_num() * sizeof(Type1NodeData),
+		(GLvoid*)tri_node_mem.get_mem(),
+		GL_STREAM_DRAW
+		);
+
+	// type
+	gl.glVertexAttribIPointer(0, 1, GL_INT,
+		sizeof(Type1NodeData), (GLvoid*)0);
+	gl.glEnableVertexAttribArray(0);
+	// coordinates
+	gl.glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+		sizeof(Type1NodeData), (GLvoid*)offsetof(Type1NodeData, x));
+	gl.glEnableVertexAttribArray(1);
+	// color
+	gl.glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
+		sizeof(Type1NodeData), (GLvoid*)offsetof(Type1NodeData, r));
+	gl.glEnableVertexAttribArray(2);
+
+	gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_veo);
+	gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		tri_elem_mem.get_num() * sizeof(GLuint),
+		(GLvoid*)tri_elem_mem.get_mem(),
+		GL_STREAM_DRAW
+		);
+
+	// for character gl buffer
+	CharNodeData cnd[6];
+	gl.glBindVertexArray(char_vao);
+	gl.glBindBuffer(GL_ARRAY_BUFFER, char_vbo);
+	gl.glBufferData(GL_ARRAY_BUFFER,
+		6 * sizeof(CharNodeData),
+		(GLvoid *)&cnd,
+		GL_DYNAMIC_DRAW
+		);
+
+	// coordinates
+	gl.glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
+		sizeof(CharNodeData), (GLvoid*)0);
+	gl.glEnableVertexAttribArray(0);
+	// texture coordinates
+	gl.glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+		sizeof(CharNodeData), (GLvoid*)offsetof(CharNodeData, tex_x));
+	gl.glEnableVertexAttribArray(1);
 
 	return 0;
 }
 
 void QtUniformColorMapObject::draw(QOpenGLShaderProgram& shader)
 {
-	//shader.setUniformValue();
+	// line color
 	QVector3D white(1.0f, 1.0f, 1.0f);
+	shader.setUniformValue("g_color", white);
 
+	// draw rects
+	gl.glBindVertexArray(tri_vao);
+	gl.glDrawElements(GL_TRIANGLES,
+		tri_elem_mem.get_num(),
+		GL_UNSIGNED_INT,
+		(GLvoid*)0
+		);
 	
+	// draw lines
+	gl.glLineWidth(line_width);
+	gl.glBindVertexArray(line_vao);
+	gl.glDrawElements(GL_LINES,
+		line_elem_mem.get_num(),
+		GL_UNSIGNED_INT,
+		(GLvoid*)0
+		);
+	
+	// draw chars
+	gl.glEnable(GL_BLEND);
+	gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl.glBindVertexArray(char_vao);
+	gl.glBindTexture(GL_TEXTURE_2D, GL_TEXTURE0);
+	gl.glBindBuffer(GL_ARRAY_BUFFER, char_vbo);
+	CharNodeData *cnds = char_node_mem.get_mem();
+	GLuint* ctexs = char_textures.get_mem();
+	for (size_t c_id = 0; c_id < char_num; ++c_id)
+	{
+		gl.glBufferSubData(GL_ARRAY_BUFFER, 0,
+			sizeof(CharNodeData) * 6,
+			(GLvoid *)cnds);
+		gl.glBindTexture(GL_TEXTURE_2D, ctexs[c_id]);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 6);
+		cnds += 6;
+	}
 }

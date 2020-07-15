@@ -33,63 +33,105 @@ protected:
 	GLfloat cbox_tick_wd, cbox_gap_wd;
 	GLfloat num_wd, num_ht;
 
-	// strings in color map
 	QtCharBitmapLoader char_loader;
+	// cal font_wd (width), font_ht (height)
+	void cal_str_geometry(const char *str, QtCharBitmapLoader& loader,
+		GLuint &font_wd, GLuint &font_ht);
 
-	// position of each component
+	// get position of each component
+	struct Rect
+	{
+		GLfloat xl, xu, yl, yu;
+		inline GLfloat width() { return xu - xl; }
+		inline GLfloat height() { return yu - yl; }
+	};
+	
 	Rect cmap_rect;
 	Rect content_rect;
 	Rect title_rect;
 	Rect cbar_rect;
-	std::vector<Rect> cboxes_rect;
-	std::vector<Rect> nums_rect;
 
 	struct StrInfo
 	{
 		std::string str;
+		GLfloat as; // aspect ratio
+		GLuint font_pixel_wd;
+		GLfloat nr; // normalized ratio
+	};
+
+	StrInfo title_str_info;
+	Rect title_str_rect;
+
+	struct EntryInfo
+	{
+		Rect cbox_rect;
+		Rect num_rect;
+
 		float number;
-		GLuint bm_wd, bm_ht;
-		GLfloat bm_as;
-		GLfloat wd, ht;
-		GLfloat norm_ratio; // normalized ratio
+		StrInfo num_str_info;
+		Rect num_str_rect;
 	};
+	std::vector<EntryInfo> entry_infos;
 	
-	StrInfo title_str_info; // color map title
-	std::vector<StrInfo> num_str_infos; // color map number
-	
-	void get_str_size(StrInfo& strif, QtCharBitmapLoader& loader);
+	void get_mid_align_str_pos(Rect &pos_rect, GLfloat str_as, Rect &str_rect);
+	void get_left_align_str_pos(Rect& pos_rect, GLfloat str_as, Rect& str_rect);
 
-	// mono-color node data
-	struct MCNodeData
+	// form opengl buffer, single color
+	struct Type0NodeData
 	{
 		GLint type;
 		GLfloat x, y;
 	};
 
-	struct NodeData
-	{
-		GLint type;
-		GLfloat x, y;
-		union
-		{
-			struct { GLfloat r, g, b; };
-			struct { GLint tex_id; GLfloat tex_x, tex_y; };
-		};
-	};
-
-	MemoryUtils::ItemArray<MCNodeData> line_node_mem;
+	MemoryUtils::ItemArray<Type0NodeData> line_node_mem;
 	MemoryUtils::ItemArray<GLuint> line_elem_mem;
 	void add_line(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1);
+
+	// node data of type 1, multi-color
+	struct Type1NodeData
+	{
+		GLint type;
+		GLfloat x, y;
+		GLfloat r, g, b;
+	};
 	
-	MemoryUtils::ItemArray<NodeData> tri_node_mem;
+	MemoryUtils::ItemArray<Type1NodeData> tri_node_mem;
 	MemoryUtils::ItemArray<GLuint> tri_elem_mem;
-	void add_rect_color(Rect &rect, QVector3D &color);
-	void add_char_texture(Rect &rect, GLint tex_id);
-	void add_string_texture(GLfloat xpos, GLfloat ypos, StrInfo& strif);
+	void add_rect(Rect &rect, QVector3D &color);
+
+	struct CharNodeData
+	{
+		GLfloat x, y;
+		GLfloat tex_x, tex_y; // texture coordinates
+	};
+	size_t char_num;
+	MemoryUtils::ItemArray<CharNodeData> char_node_mem;
+	MemoryUtils::ItemArray<GLuint> char_textures;
+	void add_char_texture(Rect &rect, GLuint tex_id);
+	void add_string_texture(GLfloat xpos, GLfloat ypos, GLfloat nr, const char *str);
 
 	GLfloat line_width;
-	GLuint line_vao, line_vbo, line_veo;
-	GLuint tri_vao, tri_vbo, tri_veo;
+
+	union
+	{
+		struct
+		{
+			GLuint line_vao;
+			GLuint tri_vao;
+			GLuint char_vao;
+		};
+		GLuint vaos[3];
+	};
+	union
+	{
+		struct
+		{
+			GLuint line_vbo, line_veo;
+			GLuint tri_vbo, tri_veo;
+			GLuint char_vbo;
+		};
+		GLuint vbos[5];
+	};
 
 public:
 	QtUniformColorMapObject(QOpenGLFunctions_3_3_Core &_gl);
@@ -100,8 +142,7 @@ public:
 		UniformColorMap& color_map,
 		const char* title,
 		const char* num_format,
-		const char* ttf_filename,
-		int win_wd, int win_ht);
+		const char* ttf_filename);
 
 	void draw(QOpenGLShaderProgram &shader);
 };

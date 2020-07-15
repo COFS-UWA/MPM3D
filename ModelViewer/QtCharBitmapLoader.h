@@ -61,7 +61,8 @@ protected:
 	size_t char_num;
 	typedef std::unordered_map<char, CharData> CharDataMap;
 	CharDataMap char_map;
-	CharData *id_to_char[256];
+#define ID_TO_CHAR_NUM 256
+	CharData *id_to_char[ID_TO_CHAR_NUM];
 
 	bool ft_is_init;
 	FT_Library ft_lib;
@@ -77,8 +78,11 @@ public:
 
 	int load_ttf_file(const char *filename, unsigned int font_ht);
 
+	inline size_t get_char_data_num() { return char_num; }
 	CharData *get_char_data(char c);
-	
+
+	inline size_t get_char_data_id_array_len() { return ID_TO_CHAR_NUM; }
+	inline CharData** get_char_data_id_array() { return id_to_char; }
 	inline CharData* get_char_data_by_id(size_t id)
 	{
 		if (id < char_num)
@@ -86,5 +90,9 @@ public:
 		return nullptr;
 	}
 };
+
+#ifndef KEEP_ID_TO_CHAR_NUM
+#undef ID_TO_CHAR_NUM
+#endif
 
 #endif
