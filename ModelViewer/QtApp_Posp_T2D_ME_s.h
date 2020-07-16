@@ -88,9 +88,9 @@ public:
 	{ scene.set_display_rc(op); }
 
 	inline void set_fld_range(double min, double max)
-	{
-		scene.set_fld_range(min, max);
-	}
+	{ scene.set_fld_range(min, max); }
+	inline void set_color_map_pos(float xpos, float ypos, float ht)
+	{ scene.set_color_map_pos(xpos, ypos, ht); }
 
 	inline void set_png_name(const char* name)
 	{

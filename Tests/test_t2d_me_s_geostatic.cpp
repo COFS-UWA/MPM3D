@@ -126,12 +126,22 @@ void test_t2d_me_s_geostatic_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_s_geostatic.h5");
 
-	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	// single frame
+	QtApp_Posp_T2D_ME_s app(argc, argv);
 	app.set_win_size(900, 900);
+	app.set_res_file(rf, "geostatic", 0, "s22");
 	app.set_fld_range(-11.0, -9.0);
-	app.set_res_file(rf, "geostatic", "s22");
-	app.set_ani_time(5.0);
+	app.set_color_map_pos(0.6, 0.45, 0.5); // color map legend
 	//app.set_png_name("t2d_me_1d_compression");
-	//app.set_gif_name("t2d_me_1d_compression");
 	app.start();
+
+	//QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	//app.set_win_size(900, 900);
+	//app.set_res_file(rf, "geostatic", "s22");
+	//app.set_ani_time(5.0);
+	//app.set_fld_range(-11.0, -9.0);
+	//app.set_color_map_pos(0.75, 0.5, 0.2); // color map legend
+	////app.set_png_name("t2d_me_1d_compression");
+	////app.set_gif_name("t2d_me_1d_compression");
+	//app.start();
 }

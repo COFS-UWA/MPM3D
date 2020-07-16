@@ -72,7 +72,9 @@ protected:
 		Rect num_str_rect;
 	};
 	std::vector<EntryInfo> entry_infos;
-	
+
+	void scale_rect_height(Rect& ori_rect, GLfloat sc, Rect& new_rect);
+
 	void get_mid_align_str_pos(Rect &pos_rect, GLfloat str_as, Rect &str_rect);
 	void get_left_align_str_pos(Rect& pos_rect, GLfloat str_as, Rect& str_rect);
 
@@ -144,7 +146,8 @@ public:
 		const char* num_format,
 		const char* ttf_filename);
 
-	void draw(QOpenGLShaderProgram &shader);
+	void draw(QOpenGLShaderProgram& shader_plain2D,
+			  QOpenGLShaderProgram& shader_char);
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+// current version only support loading < 300 chars
 class QtCharBitmapLoader
 {
 public:
@@ -44,15 +45,15 @@ public:
 				texture_id = 0;
 			}
 		}
-		inline unsigned char get_id() { return id; }
-		inline char get_char() { return c; }
-		inline GLuint get_texture_id() { return texture_id; }
-		inline GLuint get_width() { return width; }
-		inline GLuint get_height() { return height; }
-		inline GLuint get_bearing_x() { return bearing_x; }
-		inline GLuint get_bearing_y() { return bearing_y; }
-		inline GLint get_advance_x() { return advance_x; }
-		inline GLint get_advance_y() { return advance_y; }
+		inline unsigned char get_id() const { return id; }
+		inline char get_char() const { return c; }
+		inline GLuint get_texture_id() const { return texture_id; }
+		inline GLuint get_width() const { return width; }
+		inline GLuint get_height() const { return height; }
+		inline GLuint get_bearing_x() const { return bearing_x; }
+		inline GLuint get_bearing_y() const { return bearing_y; }
+		inline GLint get_advance_x() const { return advance_x; }
+		inline GLint get_advance_y() const { return advance_y; }
 	};
 
 protected:
@@ -61,7 +62,7 @@ protected:
 	size_t char_num;
 	typedef std::unordered_map<char, CharData> CharDataMap;
 	CharDataMap char_map;
-#define ID_TO_CHAR_NUM 256
+#define ID_TO_CHAR_NUM 300
 	CharData *id_to_char[ID_TO_CHAR_NUM];
 
 	bool ft_is_init;
@@ -78,12 +79,12 @@ public:
 
 	int load_ttf_file(const char *filename, unsigned int font_ht);
 
-	inline size_t get_char_data_num() { return char_num; }
-	CharData *get_char_data(char c);
+	inline size_t get_char_data_num() const { return char_num; }
+	const CharData *get_char_data(char c);
 
-	inline size_t get_char_data_id_array_len() { return ID_TO_CHAR_NUM; }
-	inline CharData** get_char_data_id_array() { return id_to_char; }
-	inline CharData* get_char_data_by_id(size_t id)
+	inline size_t get_char_data_id_array_len() const { return ID_TO_CHAR_NUM; }
+	inline CharData * const*get_char_data_id_array() const { return id_to_char; }
+	inline const CharData* get_char_data_by_id(size_t id) const
 	{
 		if (id < char_num)
 			return id_to_char[id];

@@ -55,8 +55,8 @@ int QtCharBitmapLoader::load_ttf_file(
 
 QtCharBitmapLoader::CharData* QtCharBitmapLoader::load_char_data(char c)
 {
-	if (c <= 31 || c == 127)
-		return nullptr;
+	//if (c <= 31 || c == 127)
+	//	return nullptr;
 
 	if (!ft_is_init)
 		return nullptr;
@@ -64,8 +64,9 @@ QtCharBitmapLoader::CharData* QtCharBitmapLoader::load_char_data(char c)
 	if (char_num >= ID_TO_CHAR_NUM) // exceed the uniform length limit
 		return nullptr;
 
-	FT_UInt char_index = FT_Get_Char_Index(ft_face, c);
-	if (FT_Load_Char(ft_face, char_index, FT_LOAD_RENDER))
+	gl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // necessary!
+
+	if (FT_Load_Char(ft_face, c, FT_LOAD_RENDER))
 		return nullptr;
 	CharData cd;
 	cd.id = char_num;
@@ -74,11 +75,11 @@ QtCharBitmapLoader::CharData* QtCharBitmapLoader::load_char_data(char c)
 	cd.bearing_x = char_glyph->bitmap_left;
 	cd.bearing_y = char_glyph->bitmap_top;
 	FT_Bitmap& char_bitmap = char_glyph->bitmap;
-	cd.height = char_bitmap.rows;
 	cd.width = char_bitmap.width;
+	cd.height = char_bitmap.rows;
 	FT_Vector& adv = char_glyph->advance;
 	cd.advance_x = adv.x >> 6; // 1/64 pixels
-	cd.advance_y = adv.y >> 6;
+	cd.advance_y = cd.height;
 	// generate bitmap
 	gl.glGenTextures(1, &cd.texture_id);
 	gl.glBindTexture(GL_TEXTURE_2D, cd.texture_id);
@@ -97,9 +98,9 @@ QtCharBitmapLoader::CharData* QtCharBitmapLoader::load_char_data(char c)
 		GL_UNSIGNED_BYTE,
 		char_bitmap.buffer
 		);
-	gl.glGenerateMipmap(GL_TEXTURE_2D);
+	//gl.glGenerateMipmap(GL_TEXTURE_2D); // need mip map??
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	gl.glBindTexture(GL_TEXTURE_2D, 0);
 
 	auto res = char_map.emplace(c, cd);
 	CharData* res_cd = &res.first->second;
@@ -108,7 +109,7 @@ QtCharBitmapLoader::CharData* QtCharBitmapLoader::load_char_data(char c)
 	return res_cd;
 }
 
-QtCharBitmapLoader::CharData* QtCharBitmapLoader::get_char_data(char c)
+const QtCharBitmapLoader::CharData* QtCharBitmapLoader::get_char_data(char c)
 {
 	CharDataMap::iterator iter = char_map.find(c);
 	if (iter != char_map.end())
