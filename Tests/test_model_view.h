@@ -4,6 +4,8 @@
 void test_PospMPM3DApp(int argc, char **argv);
 void test_PospSingleFrame_display(int argc, char **argv);
 
+void test_random_point_for_Model_T2D_ME_s_result(int argc, char** argv);
+
 void test_t2d_me_s_geostatic_result(int argc, char** argv);
 void test_t2d_chm_s_geostatic_mcc_result(int argc, char** argv);
 

@@ -1,21 +1,22 @@
 #ifndef __Particle_Generator_2D_hpp__
 #define __Particle_Generator_2D_hpp__
 
+#include <unordered_map>
+
 #include "ItemArray.hpp"
 #include "ItemBuffer.hpp"
 #include "LinkList.hpp"
 #include "Geometry.h"
 #include "PDSBgGrid2D.hpp"
 #include "RandNumGenerator.h"
-#include "RandomPointQueue.h"
 
 template <typename TriangleMesh>
 class ParticleGenerator2D
 {
 public:
-	typedef typename TriangleMesh::Edge Edge;
 	typedef typename TriangleMesh::Node Node;
 	typedef typename TriangleMesh::Element Element;
+	typedef typename TriangleMesh::Edge Edge;
 
 	struct Particle
 	{
@@ -26,7 +27,6 @@ public:
 	protected:
 		LinkListPointer<Particle> pointer;
 		Particle *next2;
-		Particle* next3; // for pds bg grid
 	};
 
 protected:
@@ -64,6 +64,7 @@ public:
 		res->x = pcl.x;
 		res->y = pcl.y;
 		res->area = pcl.area;
+		res->pe = pcl.pe;
 		pcl_list.append(res);
 		return *res;
 	}
@@ -114,18 +115,23 @@ public:
 // ============ generate randomly distributed particle ============ 
 // using poisson disk sampling method
 protected:
-	double g_pt_dist; // global point distance
 	struct PDSNodeInfo
 	{
 		size_t id;
 		double l_pt_dist; // local point distance
 	};
+	// random point queue
+	class PDSRandomPointQueue;
+
+	double g_pt_dist; // global point distance
+	double min_pt_dist;
 	size_t pds_node_info_num;
 	PDSNodeInfo *pds_node_infos;
-	double min_pt_dist;
+	
 	void init_node_info();
 	double get_l_pt_size_at_pcl(Particle& pcl);
-	Particle gen_rand_point_around(Particle& pcl, double dist);
+	bool pcl_is_almost_in_mesh(Particle& pcl);
+	void gen_rand_pcl_around_this_pcl(Particle& pcl, double dist, Particle &res_pcl);
 
 public:
 	void generate_randomly_distributed_pcls(TriangleMesh& _mesh, double g_dist);
@@ -178,12 +184,12 @@ void ParticleGenerator2D<TriangleMesh>::generate_pcls_in_grid_layout(Rect& range
 	size_t x_num, y_num;
 	// x direction
 	x_len = range.xu - range.xl;
-	x_num = size_t(ceil(x_len / pcl_dx));
+	x_num = size_t(x_len / pcl_dx);
 	pcl_dx = x_len / double(x_num);
 	start_x = range.xl + pcl_dx * 0.5f;
 	// y direction
 	y_len = range.yu - range.yl;
-	y_num = size_t(ceil(y_len / pcl_dy));
+	y_num = size_t(y_len / pcl_dy);
 	pcl_dy = y_len / double(y_num);
 	start_y = range.yl + pcl_dy * 0.5f;
 	// generate particle
@@ -328,7 +334,6 @@ int ParticleGenerator2D<TriangleMesh>::
 	}
 
 	delete[] elem_infos;
-	
 	return 0;
 }
 
@@ -342,7 +347,7 @@ void ParticleGenerator2D<TriangleMesh>::init_node_info()
 	{
 		PDSNodeInfo& ni = pds_node_infos[n_id];
 		ni.id = n_id;
-		ni.l_pt_size = std::numeric_limits<double>::max();
+		ni.l_pt_dist = std::numeric_limits<double>::max();
 	}
 
 	size_t edge_num = mesh->get_edge_num();
@@ -357,11 +362,11 @@ void ParticleGenerator2D<TriangleMesh>::init_node_info()
 		Node& n2 = nodes[e.n2];
 		edge_len = cal_distance_2D(n1, n2);
 		PDSNodeInfo& ni1 = pds_node_infos[e.n1];
-		if (ni1.l_pt_size > edge_len)
-			ni1.l_pt_size = edge_len;
+		if (ni1.l_pt_dist > edge_len)
+			ni1.l_pt_dist = edge_len;
 		PDSNodeInfo& ni2 = pds_node_infos[e.n2];
-		if (ni2.l_pt_size > edge_len)
-			ni2.l_pt_size = edge_len;
+		if (ni2.l_pt_dist > edge_len)
+			ni2.l_pt_dist = edge_len;
 		if (min_pt_dist > edge_len)
 			min_pt_dist = edge_len;
 	}
@@ -369,9 +374,9 @@ void ParticleGenerator2D<TriangleMesh>::init_node_info()
 	for (size_t n_id = 0; n_id < pds_node_info_num; ++n_id)
 	{
 		PDSNodeInfo& ni = pds_node_infos[n_id];
-		ni.l_pt_size *= g_pt_dist;
+		ni.l_pt_dist *= g_pt_dist;
 	}
-	min_pt_size *= g_pt_dist;
+	min_pt_dist *= g_pt_dist;
 }
 
 template <typename TriangleMesh>
@@ -381,28 +386,104 @@ double ParticleGenerator2D<TriangleMesh>::get_l_pt_size_at_pcl(Particle &pcl)
 	double N1 = mesh->cal_N1(e, pcl.x, pcl.y);
 	double N2 = mesh->cal_N2(e, pcl.x, pcl.y);
 	double N3 = mesh->cal_N3(e, pcl.x, pcl.y);
-	PDSNodeInfo& ni1 = nodes[e.n1];
-	PDSNodeInfo& ni2 = nodes[e.n2];
-	PDSNodeInfo& ni3 = nodes[e.n3];
-	return N1 * ni1.l_pt_size + N2 * ni2.l_pt_size + N3 * ni3.l_pt_size;
+	PDSNodeInfo& ni1 = pds_node_infos[e.n1];
+	PDSNodeInfo& ni2 = pds_node_infos[e.n2];
+	PDSNodeInfo& ni3 = pds_node_infos[e.n3];
+	return N1 * ni1.l_pt_dist + N2 * ni2.l_pt_dist + N3 * ni3.l_pt_dist;
 }
 
 template <typename TriangleMesh>
-ParticleGenerator2D<TriangleMesh>::Particle
-	ParticleGenerator2D<TriangleMesh>::gen_rand_point_around(Particle& pcl, double dist)
+void ParticleGenerator2D<TriangleMesh>::gen_rand_pcl_around_this_pcl(Particle &pcl, double dist, Particle &res_pcl)
 {
 	double radius = dist * (1.0 + RandNumGenerator::get_double());
 	double angle = 2.0 * 3.14159265359 * RandNumGenerator::get_double();
-	Particle res;
-	res.x = pcl.x + radius * cos(angle);
-	res.y = pcl.y + radius * sin(angle);
-	return res;
+	res_pcl.x = pcl.x + radius * cos(angle);
+	res_pcl.y = pcl.y + radius * sin(angle);
 }
 
-#define NEW_POINTS_COUNT 30
 template <typename TriangleMesh>
-void ParticleGenerator2D<TriangleMesh>
-	::generate_randomly_distributed_pcls(
+class ParticleGenerator2D<TriangleMesh>::PDSRandomPointQueue
+{
+protected:
+	typedef ParticleGenerator2D<TriangleMesh>::Particle Particle;
+	struct IntParticle { double x, y, min_dist; };
+	typedef std::unordered_map<size_t, IntParticle> ParticleBuffer;
+	ParticleBuffer pcl_buf;
+	size_t pcl_num;
+public:
+	PDSRandomPointQueue() :
+		pcl_num(0) {}
+	~PDSRandomPointQueue() {}
+	inline bool is_empty() { return pcl_num != 0; }
+	inline void add_pcl(Particle& pcl)
+	{
+		IntParticle ip;
+		ip.x = pcl.x;
+		ip.y = pcl.y;
+		ip.min_dist = pcl.area;
+		pcl_buf.emplace(pcl_num, ip);
+		++pcl_num;
+	}
+	bool get_pcl(Particle& pcl)
+	{
+		if (pcl_num == 0)
+			return false;
+
+		size_t p_id = RandNumGenerator::get_int(pcl_num - 1);
+		auto p_iter = pcl_buf.find(p_id);
+		IntParticle ip = p_iter->second;
+		pcl_buf.erase(p_iter);
+		if (p_id != pcl_num - 1)
+		{
+			// swap the last item with this one
+			auto lst_iter = pcl_buf.find(pcl_num - 1);
+			IntParticle& lst_p = lst_iter->second;
+			pcl_buf.emplace(p_id, lst_p);
+			pcl_buf.erase(lst_iter);
+		}
+		--pcl_num;
+		pcl.x = ip.x;
+		pcl.y = ip.y;
+		pcl.area = ip.min_dist;
+		return true;
+	}
+};
+
+template <typename TriangleMesh>
+bool ParticleGenerator2D<TriangleMesh>::pcl_is_almost_in_mesh(Particle &pcl)
+{
+#define Scale_Factor 0.6
+	double hlen = pcl.area * 0.5 * Scale_Factor;
+#undef Scale_Factor
+	double xl = pcl.x - hlen;
+	double xu = pcl.x + hlen;
+	double yl = pcl.y - hlen;
+	double yu = pcl.y + hlen;
+	Point2D pt;
+	// point1
+	pt.x = xl;
+	pt.y = yl;
+	if (!(mesh->find_in_which_element(pt)))
+		return nullptr;
+	// point2
+	pt.x = xu;
+	if (!(mesh->find_in_which_element(pt)))
+		return nullptr;
+	// point3
+	pt.y = yu;
+	if (!(mesh->find_in_which_element(pt)))
+		return nullptr;
+	// point 4
+	pt.x = xl;
+	if (!(mesh->find_in_which_element(pt)))
+		return nullptr;
+	return mesh->find_in_which_element(pt);
+}
+
+#define NEW_POINTS_COUNT 50
+template <typename TriangleMesh>
+void ParticleGenerator2D<TriangleMesh>::
+	generate_randomly_distributed_pcls(
 	TriangleMesh& _mesh,
 	double g_dist
 	)
@@ -411,14 +492,14 @@ void ParticleGenerator2D<TriangleMesh>
 	g_pt_dist = g_dist;
 	init_node_info();
 	
-	double cell_size = min_pt_size / sqrt(2.0);
-	double bg_grid_xl = mesh->get_xl();
-	double bg_grid_xu = mesh->get_xu();
-	double bg_grid_yl = mesh->get_yl();
-	double bg_grid_yu = mesh->get_yu();
+	double cell_size = min_pt_dist / sqrt(2.0);
+	double bg_grid_xl = mesh->get_bg_grid_xl();
+	double bg_grid_xu = mesh->get_bg_grid_xu();
+	double bg_grid_yl = mesh->get_bg_grid_yl();
+	double bg_grid_yu = mesh->get_bg_grid_yu();
 	size_t bg_grid_x_num = size_t(ceil((bg_grid_xu - bg_grid_xl) / cell_size));
 	size_t bg_grid_y_num = size_t(ceil((bg_grid_yu - bg_grid_yl) / cell_size));
-	PDSBgGrid2D<Particle, offsetof(Particle, next3)> bg_grid;
+	PDSBgGrid2D<Particle, offsetof(Particle, next2)> bg_grid;
 	bg_grid.init(
 		bg_grid_xl,
 		bg_grid_xu,
@@ -428,53 +509,58 @@ void ParticleGenerator2D<TriangleMesh>
 		bg_grid_y_num
 		);
 
-	RandomPointQueue random_point_queue;
+	PDSRandomPointQueue random_point_queue;
 
 	// generate the first point
 	Particle pcl_tmp;
 	double pcl_min_dist;
 	Element* pe;
-	do
+	for (size_t i = 0; i < 1000; ++i)
 	{
 		pcl_tmp.x = RandNumGenerator::get_double(bg_grid_xl, bg_grid_xu);
 		pcl_tmp.y = RandNumGenerator::get_double(bg_grid_yl, bg_grid_yu);
-		pe = mesh->find_in_which_element(pcl_tmp);
-	} while (!pe);
-	pcl_tmp.pe = pe;
-	pcl_tmp.area = get_l_pt_size_at_pcl(pcl_tmp);
-	random_point_queue.add_point(pcl_tmp);
-	add_pcl(pcl_tmp);
-	bg_grid.add_point(pcl_tmp);
-	
+		pcl_tmp.pe = mesh->find_in_which_element(pcl_tmp);
+		if (pcl_tmp.pe)
+		{
+			pcl_tmp.area = get_l_pt_size_at_pcl(pcl_tmp);
+			if (pcl_is_almost_in_mesh(pcl_tmp))
+				break;
+		}
+	}
+	Particle &first_pcl= add_pcl(pcl_tmp);
+	bg_grid.add_point(first_pcl);
+	random_point_queue.add_pcl(first_pcl);
+
 	Particle cur_pcl;
-	while (random_point_queue.get_point(cur_pcl))
+	while (random_point_queue.get_pcl(cur_pcl))
 	{
 		for (size_t i = 0; i < NEW_POINTS_COUNT; ++i)
 		{
-			pcl_tmp = gen_rand_point_around(cur_pcl, pcl_min_dist.area);
-			if (!(pe = mesh->find_in_which_element(pcl_tmp))
+			gen_rand_pcl_around_this_pcl(cur_pcl, cur_pcl.area, pcl_tmp);
+			pcl_tmp.pe = mesh->find_in_which_element(pcl_tmp);
+			if (!pcl_tmp.pe)
 				continue;
-
-			pcl_tmp.pe = pe;
 			pcl_tmp.area = get_l_pt_size_at_pcl(pcl_tmp);
+			if (!pcl_is_almost_in_mesh(pcl_tmp))
+				continue;
 			if (!bg_grid.has_point_nearby(pcl_tmp, pcl_tmp.area))
 			{
-				random_point_queue.add_point(pcl_tmp);
-				add_pcl(pcl_tmp);
-				bg_grid.add_point(pcl_tmp);
+				Particle &new_pcl = add_pcl(pcl_tmp);
+				bg_grid.add_point(new_pcl);
+				random_point_queue.add_pcl(new_pcl);
 			}
 		}
 	}
+
+	delete[] pds_node_infos;
 
 	double pcl_len;
 	for (Particle *piter = first(); is_not_end(piter); piter = next(piter))
 	{
 		pcl_len = piter->area;
-		piter->area = pcl_len;
+		piter->area = pcl_len * pcl_len;
 	}
-	adjust_pcl_size_to_fit_elems(); // adjust pcl size
-
-	delete[] pds_nodes_infos;
+	adjust_pcl_size_to_fit_elems(_mesh); // adjust pcl size
 }
 #undef NEW_POINTS_COUNT
 

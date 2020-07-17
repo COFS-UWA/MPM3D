@@ -160,6 +160,10 @@ public:
 	Model_T2D_ME_s();
 	~Model_T2D_ME_s();
 
+	inline double get_bg_grid_xl() { return search_bg_grid.get_x_min(); }
+	inline double get_bg_grid_xu() { return search_bg_grid.get_x_max(); }
+	inline double get_bg_grid_yl() { return search_bg_grid.get_y_min(); }
+	inline double get_bg_grid_yu() { return search_bg_grid.get_y_max(); }
 	inline double get_bg_grid_hx() { return search_bg_grid.get_hx(); }
 	inline double get_bg_grid_hy() { return search_bg_grid.get_hy(); }
 	
@@ -191,6 +195,13 @@ protected: // helper functions
 	void init_mesh_shape_funcs();
 
 public:
+	inline double cal_N1(Element& e, double x, double y)
+	{ return e.a1 * x + e.b1 * y + e.coef1; }
+	inline double cal_N2(Element& e, double x, double y)
+	{ return e.a2 * x + e.b2 * y + e.coef2; }
+	inline double cal_N3(Element& e, double x, double y)
+	{ return e.a3 * x + e.b3 * y + e.coef3; }
+
 	using BgMesh::is_in_triangle;
 
 	inline bool is_in_triangle(Element &e, Particle &p)

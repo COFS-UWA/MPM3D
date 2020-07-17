@@ -15,7 +15,7 @@ add_library(
     TriangleMesh.h
     SearchingGrid2D.hpp
     PDSBgGrid2D.hpp
-    RandomPointQueue.h RandomPointQueue.cpp
+    #RandomPointQueue.h RandomPointQueue.cpp
     ParticleGenerator2D.hpp
     # 3D geometry
     TetrahedronMeshTemplate.hpp

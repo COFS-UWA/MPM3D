@@ -3,6 +3,8 @@
 
 void test_solve_functions();
 
+void test_random_point_for_Model_T2D_ME_s(int argc, char** argv);
+
 void test_Model_T2D_ME_s_display(int argc, char** argv);
 void test_Model_T3D_ME_s_display(int argc, char **argv);
 

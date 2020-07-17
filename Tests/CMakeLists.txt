@@ -20,6 +20,8 @@ add_executable(
     # 2D
     # back ground searching grid
     test_searching_grid2d.cpp
+    # random point generation
+    test_random_point_for_Model_T2D_ME_s.cpp
     # display model
     test_Model_T2D_ME_s_display.cpp
     # geostatic calculation

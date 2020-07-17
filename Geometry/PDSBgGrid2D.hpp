@@ -97,8 +97,8 @@ public:
 		if (pxu > xu)
 			pxu = xu;
 		size_t xu_id = size_t(ceil(pxu - xl) / hx);
-		if (xu_id > x_num - 1)
-			xu_id = x_num - 1;
+		if (xu_id > x_num)
+			xu_id = x_num;
 
 		double pyl = p.y - dist;
 		if (pyl < yl)
@@ -111,8 +111,8 @@ public:
 		if (pyu > yu)
 			pyu = yu;
 		size_t yu_id = size_t(ceil(pyu - yl) / hy);
-		if (yu_id > y_num - 1)
-			yu_id = y_num - 1;
+		if (yu_id > y_num)
+			yu_id = y_num;
 
 		double dist2 = dist * dist;
 		double dx, dy, dd2;

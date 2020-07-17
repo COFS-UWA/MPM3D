@@ -21,6 +21,9 @@ int main(int argc, char *argv[])
 	//test_searching_grid3d2();
 	//test_searching_grid3d3();
 
+	//test_random_point_for_Model_T2D_ME_s(argc, argv);
+	test_random_point_for_Model_T2D_ME_s_result(argc, argv);
+
 	//test_Model_T2D_ME_s_display(argc, argv);
 	//test_Model_T3D_ME_s_display(argc, argv);
 
@@ -28,7 +31,7 @@ int main(int argc, char *argv[])
 	//test_PospMPM3DApp(argc, argv);
 
 	//test_t2d_me_s_geostatic(argc, argv);
-	test_t2d_me_s_geostatic_result(argc, argv);
+	//test_t2d_me_s_geostatic_result(argc, argv);
 
 	//test_t2d_chm_s_geostatic_mcc(argc, argv);
 	//test_t2d_chm_s_geostatic_mcc_result(argc, argv);
