@@ -30,6 +30,8 @@ add_executable(
     # deformation calculation
     test_t2d_me_s_1d_compression.cpp
     test_t2d_chm_s_1d_consolidation.cpp
+    test_t2d_me_p_test.cpp
+    test_t2d_me_p_1d_compression.cpp
     # restart utilities
     test_t2d_me_s_test_restart.cpp
     test_t2d_chm_s_test_restart.cpp

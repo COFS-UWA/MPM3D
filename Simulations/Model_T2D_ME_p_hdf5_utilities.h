@@ -1,13 +1,13 @@
-#ifndef __Model_T2D_ME_s_hdf5_utilities_h__
-#define __Model_T2D_ME_s_hdf5_utilities_h__
+#ifndef __Model_T2D_ME_p_hdf5_utilities_h__
+#define __Model_T2D_ME_p_hdf5_utilities_h__
 
 #include "hdf5.h"
 #include "ResultFile_hdf5.h"
 #include "MatModelContainer.h"
 #include "RigidCircle.h"
-#include "Model_T2D_ME_s.h"
+#include "Model_T2D_ME_p.h"
 
-namespace Model_T2D_ME_s_hdf5_utilities
+namespace Model_T2D_ME_p_hdf5_utilities
 {
 struct ParticleData
 {
@@ -25,7 +25,7 @@ struct ParticleData
 	double e11;
 	double e22;
 	double e12;
-	void from_pcl(Model_T2D_ME_s::Particle &pcl)
+	void from_pcl(Model_T2D_ME_p::Particle &pcl)
 	{
 		id = pcl.id;
 		m = pcl.m;
@@ -42,7 +42,7 @@ struct ParticleData
 		e22 = pcl.e22;
 		e12 = pcl.e12;
 	}
-	void to_pcl(Model_T2D_ME_s::Particle &pcl)
+	void to_pcl(Model_T2D_ME_p::Particle &pcl)
 	{
 		pcl.id = id;
 		pcl.m = m;
@@ -80,29 +80,29 @@ inline hid_t get_pcl_dt_id()
 	return res;
 }
 
-int output_background_mesh_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_background_mesh_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_background_mesh_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_background_mesh_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int output_boundary_condition_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_boundary_condition_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_boundary_condition_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_boundary_condition_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int output_pcl_data_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_pcl_data_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_pcl_data_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_pcl_data_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int output_material_model_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_material_model_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_material_model_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_material_model_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int output_rigid_circle_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_rigid_circle_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_rigid_circle_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_circle_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 // output the whole model to ModelData
-int output_model_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf);
+int output_model_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf);
 
 // output the particle data and material models to hdf5 (used by time history)
-int time_history_complete_output_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t frame_grp_id);
+int time_history_complete_output_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t frame_grp_id);
 
 // load model data from hdf5 to model data
-int load_me_s_model_from_hdf5_file(Model_T2D_ME_s &md, const char *hdf5_name, const char *th_name,	size_t frame_id);
+int load_me_s_model_from_hdf5_file(Model_T2D_ME_p &md, const char *hdf5_name, const char *th_name,	size_t frame_id);
 };
 
 #endif

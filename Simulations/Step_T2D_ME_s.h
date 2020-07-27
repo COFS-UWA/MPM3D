@@ -6,7 +6,7 @@
 
 int solve_substep_T2D_ME_s(void *_self);
 
-// for single object only
+// serialized version
 class Step_T2D_ME_s : public Step
 {
 public:

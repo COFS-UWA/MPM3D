@@ -1,37 +1,32 @@
 #include "Tests_pcp.h"
 
-#include "Model_T2D_ME_s.h"
-#include "QtApp_Prep_T2D_ME_s.h"
-#include "Step_T2D_ME_s.h"
-#include "ModelData_T2D_ME_s.h"
-#include "TimeHistory_T2D_ME_s_complete.h"
-#include "TimeHistory_ConsoleProgressBar.h"
+#include "ItemArray.hpp"
 #include "utils.h"
+#include "Model_T2D_ME_p.h"
+#include "Step_T2D_ME_p.h"
+#include "ModelData_T2D_ME_p.h"
+#include "TimeHistory_T2D_ME_p_complete.h"
+#include "TimeHistory_ConsoleProgressBar.h"
+#include "QtApp_Prep_T2D_ME_p.h"
 
 #include "test_simulations.h"
 
-void test_random_point_for_Model_T2D_ME_s(int argc, char** argv)
+void test_t2d_me_p_1d_compression(int argc, char** argv)
 {
-	Model_T2D_ME_s model;
-	model.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
+	Model_T2D_ME_p model;
+	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_mesh.h5");
 	model.init_search_grid(0.05, 0.05);
 
-	// generate particles
-	ParticleGenerator2D<Model_T2D_ME_s> pcl_gen;
-	pcl_gen.generate_randomly_distributed_pcls(model, 0.1);
-	double pcl_r = 0.01; // for traction force
-	pcl_gen.replace_with_pcls_in_grid_layout(Rect(0.0, 0.2, 1.0-pcl_r, 1.0), pcl_r, pcl_r);
-	pcl_gen.adjust_pcl_size_to_fit_elems(model);
-	model.init_pcls(pcl_gen, 10.0);
-	std::cout << "pcl num: " << model.get_pcl_num() << "\n";
-	//model.sum_vol_for_all_elements();
+	ParticleGenerator2D<Model_T2D_ME_p> pcl_generator;
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
+	model.init_pcls(pcl_generator, 10.0);
 
 	size_t pcl_num = model.get_pcl_num();
-	Model_T2D_ME_s::Particle* pcls = model.get_pcls();
+	Model_T2D_ME_p::Particle* pcls = model.get_pcls();
 	MatModel::LinearElasticity* mms = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		Model_T2D_ME_s::Particle& pcl = pcls[pcl_id];
+		Model_T2D_ME_p::Particle& pcl = pcls[pcl_id];
 		MatModel::LinearElasticity& mm = mms[pcl_id];
 		mm.set_param(1000.0, 0.0);
 		pcl.set_mat_model(mm);
@@ -68,7 +63,7 @@ void test_random_point_for_Model_T2D_ME_s(int argc, char** argv)
 
 	// traction bc
 	IndexArray tbc_pt_array(50);
-	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.99, 1.0));
+	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
 	size_t* tbc_pcl_id = tbc_pt_array.get_mem();
 	model.init_tys(tbc_pt_array.get_num());
 	size_t ty_num = model.get_ty_num();
@@ -77,55 +72,57 @@ void test_random_point_for_Model_T2D_ME_s(int argc, char** argv)
 	{
 		TractionBCAtPcl& tbc = tys[t_id];
 		tbc.pcl_id = tbc_pcl_id[t_id];
-		tbc.t = 0.01 * -10.0;
+		//tbc.t = 0.05 * -1.0;
+		tbc.t = 0.02 * -10.0;
 	}
 
-	QtApp_Prep_T2D_ME_s view_app(argc, argv);
-	view_app.set_win_size(1000, 1000);
-	view_app.set_model(model);
-	//view_app.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.005);
-	//view_app.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.005);
-	//view_app.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.0025);
-	view_app.start();
-	return;
+	//QtApp_Prep_T2D_ME_p md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_pds_me_s_1d_compression.h5");
+	res_file_hdf5.create("t2d_me_p_1d_compression.h5");
 
 	// output model
-	ModelData_T2D_ME_s md;
+	ModelData_T2D_ME_p md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T2D_ME_s_complete out1("compression");
+	TimeHistory_T2D_ME_p_complete out1("compression");
 	out1.set_interval_num(100);
 	out1.set_res_file(res_file_hdf5);
 	out1.set_output_init_state();
 
 	TimeHistory_ConsoleProgressBar out_pb;
 
-	Step_T2D_ME_s step("step1");
+	Step_T2D_ME_p step("step1");
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();
 }
 
-#include "QtApp_Posp_T2D_ME_s.h"
+#include "QtApp_Posp_T2D_ME_p.h"
 #include "test_model_view.h"
 
-void test_random_point_for_Model_T2D_ME_s_result(int argc, char** argv)
+void test_t2d_me_p_1d_compression_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_pds_me_s_1d_compression.h5");
+	rf.open("t2d_me_p_1d_compression.h5");
 
-	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	QtApp_Posp_T2D_ME_p app(argc, argv, QtApp_Posp_T2D_ME_p::Animation);
 	app.set_win_size(900, 900);
-	app.set_fld_range(-20.0, 0.0);
-	app.set_res_file(rf, "compression", "s22");
+	app.set_fld_range(0.0, 1.0);
+	app.set_res_file(rf, "compression", "y");
 	app.set_ani_time(5.0);
-	//app.set_png_name("t2d_pds_me_s_1d_compression");
-	app.set_gif_name("t2d_pds_me_s_1d_compression");
+	//app.set_png_name("t2d_me_s_1d_compression");
+	app.set_gif_name("t2d_me_p_1d_compression");
 	app.start();
 }

@@ -1,14 +1,14 @@
 #include "Simulations_pcp.h"
 
-#include "Model_T2D_CHM_s.h"
-#include "Model_T2D_CHM_s_hdf5_utilities.h"
+#include "Model_T2D_ME_p.h"
+#include "Model_T2D_ME_p_hdf5_utilities.h"
 
-#include "ModelData_T2D_CHM_s.h"
+#include "ModelData_T2D_ME_p.h"
 
-int model_data_output_func_t2d_chm_s_to_xml_res_file(ModelData &_self)
+int model_data_output_func_t2d_me_p_to_xml_res_file(ModelData &_self)
 {
-	ModelData_T2D_CHM_s &md = static_cast<ModelData_T2D_CHM_s &>(_self);
-	Model_T2D_CHM_s &model = static_cast<Model_T2D_CHM_s &>(*md.model);
+	ModelData_T2D_ME_p &md = static_cast<ModelData_T2D_ME_p &>(_self);
+	Model_T2D_ME_p &model = static_cast<Model_T2D_ME_p &>(*md.model);
 	ResultFile_XML &rf = static_cast<ResultFile_XML &>(*md.res_file);
 	std::fstream &file = rf.get_file();
 
@@ -25,9 +25,9 @@ int model_data_output_func_t2d_chm_s_to_xml_res_file(ModelData &_self)
 
 	// mesh
 	size_t node_num = model.get_node_num();
-	Model_T2D_CHM_s::Node *nodes = model.get_nodes();
+	Model_T2D_ME_p::Node* nodes = model.get_nodes();
 	size_t elem_num = model.get_elem_num();
-	Model_T2D_CHM_s::Element* elems = model.get_elems();
+	Model_T2D_ME_p::Element* elems = model.get_elems();
 	const char *mesh_info1 = ""
 		"    <BackGroundMesh type = \"T2D\">\n"
 		"        <Nodes>\n"
@@ -38,7 +38,7 @@ int model_data_output_func_t2d_chm_s_to_xml_res_file(ModelData &_self)
 	const char *mesh_coords = "            %le, %le\n";
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
-		Model_T2D_CHM_s::Node &n = nodes[n_id];
+		Model_T2D_ME_p::Node &n = nodes[n_id];
 		snprintf(str_buffer, sizeof(str_buffer) / sizeof(str_buffer[0]), mesh_coords, n.x, n.y);
 		file.write(str_buffer, strlen(str_buffer));
 	}
@@ -53,7 +53,7 @@ int model_data_output_func_t2d_chm_s_to_xml_res_file(ModelData &_self)
 	const char *mesh_indices = "            %zu, %zu, %zu\n";
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
-		Model_T2D_CHM_s::Element &e = elems[e_id];
+		Model_T2D_ME_p::Element &e = elems[e_id];
 		snprintf(str_buffer, sizeof(str_buffer) / sizeof(str_buffer[0]), mesh_indices, e.n1, e.n2, e.n3);
 		file.write(str_buffer, strlen(str_buffer));
 	}
@@ -78,14 +78,13 @@ int model_data_output_func_t2d_chm_s_to_xml_res_file(ModelData &_self)
 	return 0;
 }
 
-
-int model_data_output_func_t2d_chm_s_to_hdf5_res_file(ModelData &_self)
+int model_data_output_func_t2d_me_p_to_hdf5_res_file(ModelData &_self)
 {
-	ModelData_T2D_CHM_s &md = static_cast<ModelData_T2D_CHM_s &>(_self);
-	Model_T2D_CHM_s &model = static_cast<Model_T2D_CHM_s &>(*md.model);
+	ModelData_T2D_ME_p &md = static_cast<ModelData_T2D_ME_p &>(_self);
+	Model_T2D_ME_p &model = static_cast<Model_T2D_ME_p &>(*md.model);
 	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(*md.res_file);
-	
-	using Model_T2D_CHM_s_hdf5_utilities::output_model_to_hdf5_file;
+
+	using Model_T2D_ME_p_hdf5_utilities::output_model_to_hdf5_file;
 	output_model_to_hdf5_file(model, rf);
 	return 0;
 }

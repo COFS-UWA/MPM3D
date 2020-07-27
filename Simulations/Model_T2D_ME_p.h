@@ -1,5 +1,5 @@
-#ifndef __Model_T2D_ME_s_h__
-#define __Model_T2D_ME_s_h__
+#ifndef __Model_T2D_ME_p_h__
+#define __Model_T2D_ME_p_h__
 
 #include "BCs.h"
 #include "macro_utils.h"
@@ -10,55 +10,52 @@
 #include "ParticleGenerator2D.hpp"
 #include "RigidCircle.h"
 
-namespace Model_T2D_ME_s_Internal
+namespace Model_T2D_ME_p_Internal
 {
+
+struct NodeToElem
+{
+	size_t e_id;
+	unsigned char n_id;
+};
+
 struct Node
 {
 	size_t id;
 	double x, y;
 
+	// elements that this node associated with
+	size_t n2e_num;
+	NodeToElem* n2es;
+
+	// calculation varibles
 	bool has_mp;
 	double m;
 	double ax, ay;
 	double vx, vy;
+	double vx_ori, vy_ori;
 	double dux, duy;
-	double fx_ext, fy_ext;
-	double fx_int, fy_int;
+
+	double fx, fy; // nodal force
 
 	// strain enhancement
-	double pcl_vol, de_vol;
+	double pcl_vol, de_vol_by_3;
 };
 
-struct Element;
-struct Particle
+struct NodeVarAtElem
 {
-	size_t id;
-	double x, y;
-
-	double ux, uy;
+	double m;
 	double vx, vy;
-
-	double m, density;
-
-	double e11, e22, e12;
-	double s11, s22, s12;
-
-	// calculation variables
-	double vol;
-	inline double get_vol() { return m / density; }
-	
-	double x_ori, y_ori;
-	
-	Element* pe;
-	double N1, N2, N3;
-	
-	Particle* next; // used by Element
-
-	MatModel::MaterialModel* mm;
-	inline void set_mat_model(MatModel::MaterialModel& _mm)
+	double fx, fy;
+	double pcl_vol;
+	inline void init()
 	{
-		_mm.ext_data = this;
-		mm = &_mm;
+		m = 0.0;
+		vx = 0.0;
+		vy = 0.0;
+		fx = 0.0;
+		fy = 0.0;
+		pcl_vol = 0.0;
 	}
 };
 
@@ -81,67 +78,98 @@ struct Element
 	double dN2_dx, dN2_dy;
 	double dN3_dx, dN3_dy;
 
-	// particle list
-	Particle* pcls;
-	inline void add_pcl(Particle& pcl) noexcept
-	{
-		pcl.next = pcls;
-		pcls = &pcl;
-	}
+	// calculation varibles
+	bool has_mp;
 
 	// mixed integration
 	double pcl_vol, s11, s22, s12;
 
 	// strain enhancement apprach
 	double dde11, dde22, de12;
-	double de_vol;
+	double de_vol_by_3;
+
+	NodeVarAtElem node_vars[3];
 };
 
 struct Edge { size_t n1, n2; };
 
 typedef TriangleMeshTemplate<Node, Element, Edge> BgMesh;
 
-}
-
-class Model_T2D_ME_s;
-
-class Step_T2D_ME_s_Geo;
-int solve_substep_T2D_ME_s_Geo(void* _self);
-class Step_T2D_ME_s;
-int solve_substep_T2D_ME_s(void* _self);
-
-class ResultFile_hdf5;
-namespace Model_T2D_ME_s_hdf5_utilities
+struct Particle
 {
-int output_background_mesh_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_background_mesh_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_boundary_condition_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_boundary_condition_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_pcl_data_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_pcl_data_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_material_model_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_material_model_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_rigid_circle_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_rigid_circle_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	size_t id;
+	double x, y;
+
+	double ux, uy;
+	double vx, vy;
+
+	double m, density;
+
+	double e11, e22, e12;
+	double s11, s22, s12;
+
+	// calculation variables
+	double vol;
+	inline double get_vol() { return m / density; }
+
+	double x_ori, y_ori;
+
+	Element* pe;
+	double N1, N2, N3;
+
+	// material model
+	MatModel::MaterialModel* mm;
+	inline void set_mat_model(MatModel::MaterialModel& _mm)
+	{
+		_mm.ext_data = this;
+		mm = &_mm;
+	}
+
+	Particle* next_pcl_in_elem;
+
+	bool has_fx_ext, has_fy_ext;
+	double fx_ext, fy_ext;
+};
+
 }
 
-struct Model_T2D_ME_s : public Model,
-	public Model_T2D_ME_s_Internal::BgMesh,
+class Model_T2D_ME_p;
+class ResultFile_hdf5;
+namespace Model_T2D_ME_p_hdf5_utilities
+{
+int output_background_mesh_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_background_mesh_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_boundary_condition_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_boundary_condition_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_pcl_data_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_pcl_data_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_material_model_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_material_model_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_rigid_circle_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_circle_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+}
+
+class Step_T2D_ME_p;
+int solve_substep_T2D_ME_p(void* _self);
+
+struct Model_T2D_ME_p : public Model,
+	public Model_T2D_ME_p_Internal::BgMesh,
 	public MatModel::MatModelContainer
 {
-	friend class Step_T2D_ME_s_Geo;
-	friend int solve_substep_T2D_ME_s_Geo(void* _self);
-	friend class Step_T2D_ME_s;
-	friend int solve_substep_T2D_ME_s(void *_self);
+	friend class Step_T2D_ME_p;
+	friend int solve_substep_T2D_ME_p(void* _self);
 
 public:
-	typedef Model_T2D_ME_s_Internal::BgMesh BgMesh;
-	typedef Model_T2D_ME_s_Internal::Node Node;
-	typedef Model_T2D_ME_s_Internal::Element Element;
-	typedef Model_T2D_ME_s_Internal::Particle Particle;
-	typedef Model_T2D_ME_s_Internal::Edge Edge;
+	typedef Model_T2D_ME_p_Internal::NodeToElem NodeToElem;
+	typedef Model_T2D_ME_p_Internal::Node Node;
+	typedef Model_T2D_ME_p_Internal::Element Element;
+	typedef Model_T2D_ME_p_Internal::Edge Edge;
+	typedef Model_T2D_ME_p_Internal::BgMesh BgMesh;
+	typedef Model_T2D_ME_p_Internal::Particle Particle;
 
 protected:
+	NodeToElem *node2elems;
+
 	size_t pcl_num;
 	Particle *pcls;
 	
@@ -156,12 +184,15 @@ protected:
 	VelocityBC* vxs, * vys;
 
 	// background grid to accelerate searching
-	SearchingGrid2D<Model_T2D_ME_s> search_bg_grid;
-	
-public:
-	Model_T2D_ME_s();
-	~Model_T2D_ME_s();
+	SearchingGrid2D<Model_T2D_ME_p> search_bg_grid;
 
+public:
+	explicit Model_T2D_ME_p();
+	~Model_T2D_ME_p();
+
+	Model_T2D_ME_p(const Model_T2D_ME_p& other) = delete;
+	Model_T2D_ME_p& operator=(const Model_T2D_ME_p& other) = delete;
+	
 	inline double get_bg_grid_xl() { return search_bg_grid.get_x_min(); }
 	inline double get_bg_grid_xu() { return search_bg_grid.get_x_max(); }
 	inline double get_bg_grid_yl() { return search_bg_grid.get_y_min(); }
@@ -179,7 +210,7 @@ public:
 	int init_search_grid(double _hx, double _hy);
 
 	int init_pcls(size_t num, double m, double density);
-	int init_pcls(ParticleGenerator2D<Model_T2D_ME_s>& pg, double density);
+	int init_pcls(ParticleGenerator2D<Model_T2D_ME_p>& pg, double density);
 
 	void alloc_pcls(size_t num);
 	void clear_pcls();
@@ -195,6 +226,12 @@ public:
 
 protected: // helper functions
 	void init_mesh_shape_funcs();
+	void init_node_to_elem_info();
+
+public:
+	void alloc_n2e_info(size_t num);
+	void clear_n2e_info();
+	void init_bcs();
 
 public:
 	inline double cal_N1(Element& e, double x, double y)
@@ -227,9 +264,7 @@ public:
 	// search using background grid
 	template <typename Point2D>
 	inline Element* find_in_which_element(Point2D& pcl)
-	{
-		return search_bg_grid.find_in_which_element<Point2D>(pcl);
-	}
+	{ return search_bg_grid.find_in_which_element<Point2D>(pcl); }
 
 	// brute force searching
 	template <typename Point2D>
@@ -262,7 +297,6 @@ public: // interaction with rigid circle
 	}
 	inline void set_rigid_circle_velocity(double vx, double vy, double v_ang)
 	{ rigid_circle.set_v_bc(vx, vy, v_ang); }
-	
 	// for hdf5 utilities
 	inline void set_rigid_circle_state(
 		double _K_cont,
@@ -282,16 +316,16 @@ public: // interaction with rigid circle
 	}
 
 protected:
-	friend int Model_T2D_ME_s_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::output_boundary_condition_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::load_boundary_condition_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::output_pcl_data_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::output_material_model_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::load_material_model_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::output_rigid_circle_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_s_hdf5_utilities::load_rigid_circle_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::output_boundary_condition_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::load_boundary_condition_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::output_pcl_data_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::output_material_model_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::load_material_model_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::output_rigid_circle_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_p_hdf5_utilities::load_rigid_circle_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 public: // for debug
 	void sum_vol_for_all_elements();

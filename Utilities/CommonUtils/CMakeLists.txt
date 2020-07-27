@@ -11,6 +11,7 @@ add_library(
     LinkList.hpp
     StackList.hpp
     RandNumGenerator.h RandNumGenerator.cpp
+    ThreadBarrierFixedNum.h
     )
 
 set(COMMONUTILS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

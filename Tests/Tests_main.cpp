@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 	//test_searching_grid3d3();
 
 	//test_random_point_for_Model_T2D_ME_s(argc, argv);
-	test_random_point_for_Model_T2D_ME_s_result(argc, argv);
+	//test_random_point_for_Model_T2D_ME_s_result(argc, argv);
 
 	//test_Model_T2D_ME_s_display(argc, argv);
 	//test_Model_T3D_ME_s_display(argc, argv);
@@ -81,6 +81,13 @@ int main(int argc, char *argv[])
 
 	//test_fem_t3d_me_s_1d_compression(argc, argv);
 	//test_fem_t3d_me_s_1d_compression2(argc, argv);
+
+	// parallelism
+	//test_t2d_me_p_test(argc, argv);
+	//test_t2d_me_p_test_result(argc, argv);
+
+	test_t2d_me_p_1d_compression(argc, argv);
+	test_t2d_me_p_1d_compression_result(argc, argv);
 
 	//system("pause");
 	return 0;
