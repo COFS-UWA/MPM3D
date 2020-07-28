@@ -543,7 +543,7 @@ void Model_T2D_ME_p::sum_vol_for_all_elements()
 					<< ", pcl_a:" << etd.pcl_vol
 					<< " * +" << (etd.pcl_vol - e.area) / e.area * 100.0 << "% *\n";
 			}
-			else if (e.pcl_vol < e.area)
+			else if (e.mi_pcl_vol < e.area)
 			{
 				out_file << "id: " << e.id << ", elem_a: " << e.area
 					<< ", pcl_a:" << etd.pcl_vol

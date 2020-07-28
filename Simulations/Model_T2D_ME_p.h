@@ -12,6 +12,7 @@
 
 namespace Model_T2D_ME_p_Internal
 {
+class Particle;
 
 struct NodeToElem
 {
@@ -39,7 +40,7 @@ struct Node
 	double fx, fy; // nodal force
 
 	// strain enhancement
-	double pcl_vol, de_vol_by_3;
+	double se_pcl_vol, de_vol_by_3;
 };
 
 struct NodeVarAtElem
@@ -47,7 +48,9 @@ struct NodeVarAtElem
 	double m;
 	double vx, vy;
 	double fx, fy;
-	double pcl_vol;
+	// strain enhancement
+	double de_vol_by_3;
+	double se_pcl_vol;
 	inline void init()
 	{
 		m = 0.0;
@@ -55,7 +58,8 @@ struct NodeVarAtElem
 		vy = 0.0;
 		fx = 0.0;
 		fy = 0.0;
-		pcl_vol = 0.0;
+		de_vol_by_3 = 0.0;
+		se_pcl_vol = 0.0;
 	}
 };
 
@@ -80,9 +84,13 @@ struct Element
 
 	// calculation varibles
 	bool has_mp;
+	Particle* pcls;
+	inline Particle* first_pcl() { return pcls; }
+	Particle* next_pcl(Particle* pcl);
+	inline bool not_last_pcl(Particle *pcl) { return pcl != nullptr; }
 
 	// mixed integration
-	double pcl_vol, s11, s22, s12;
+	double mi_pcl_vol, s11, s22, s12;
 
 	// strain enhancement apprach
 	double dde11, dde22, de12;
@@ -131,6 +139,8 @@ struct Particle
 	double fx_ext, fy_ext;
 };
 
+inline Particle* Element::next_pcl(Particle* pcl) { return pcl->next_pcl_in_elem; }
+
 }
 
 class Model_T2D_ME_p;
@@ -151,13 +161,15 @@ int load_rigid_circle_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hi
 
 class Step_T2D_ME_p;
 int solve_substep_T2D_ME_p(void* _self);
+int solve_substep_T2D_ME_p_RigidCircle(void* _self);
 
 struct Model_T2D_ME_p : public Model,
 	public Model_T2D_ME_p_Internal::BgMesh,
 	public MatModel::MatModelContainer
 {
 	friend class Step_T2D_ME_p;
-	friend int solve_substep_T2D_ME_p(void* _self);
+	friend int solve_substep_T2D_ME_p(void *_self);
+	friend int solve_substep_T2D_ME_p_RigidCircle(void *_self);
 
 public:
 	typedef Model_T2D_ME_p_Internal::NodeToElem NodeToElem;

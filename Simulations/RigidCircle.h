@@ -7,6 +7,23 @@
 
 #define PI 3.14159265359
 
+class RigidCircle;
+struct RigidCircleForce
+{
+protected:
+	friend class RigidCircle;
+	double fx, fy, m;
+
+public:
+	inline void reset_rf() { fx = 0.0; fy = 0.0; m = 0.0; }
+	inline void add_rf(double _x, double _y,
+		double _fx, double _fy, double rc_x, double rc_y)
+	{
+		fx += _fx; fy += _fy;
+		m += (_x - rc_x) * _fy - (_y - rc_y) * _fx;
+	}
+};
+
 // for t-bar penetration and pipe embedment
 class RigidCircle
 {
@@ -19,8 +36,8 @@ protected:
 	double vx, vy, v_ang; // velocity
 	double x, y, ang; // position and angle
 
-	double* pax, * pay, * pa_ang;
-	double* pvx, * pvy, * pv_ang;
+	double *pax, *pay, *pa_ang;
+	double *pvx, *pvy, *pv_ang;
 
 	// boundary condition
 	double rfx_bc;
@@ -119,7 +136,7 @@ public:
 		double _x, double _y, double _ang);
 
 public: // helper function for calculation
-	inline Rect get_bounding_box(double exp_size = 0.0)
+	inline Rect get_bbox(double exp_size = 0.0)
 	{
 		return Rect(x - r - exp_size, x + r + exp_size,
 					y - r - exp_size, y + r + exp_size);
@@ -131,6 +148,12 @@ public: // helper function for calculation
 	{
 		rfx += fx; rfy += fy;
 		rm += (_x - x) * fy - (_y - y) * fx;
+	}
+
+	// for parallelsim
+	inline void add_rc_f(RigidCircleForce& rcf)
+	{
+		rfx += rcf.fx; rfy += rcf.fy; rm += rcf.m;
 	}
 
 	inline bool is_in_circle(double _x, double _y)

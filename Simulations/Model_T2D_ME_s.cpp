@@ -172,7 +172,7 @@ int Model_T2D_ME_s::apply_rigid_circle(double dt)
 			fx_cont = f_cont * norm_x;
 			fy_cont = f_cont * norm_y;
 			// add reaction force to rigid object
-			rigid_circle.add_rf(pcl.x, pcl.y, fx_cont, fy_cont);
+			rigid_circle.add_rf(pcl.x, pcl.y, -fx_cont, -fy_cont);
 			// adjust velocity at nodes
 			Element &e = *pcl.pe;
 			// node 1

@@ -35,7 +35,7 @@ add_library(
     Model_T2D_ME_p.h Model_T2D_ME_p.cpp
     Model_T2D_ME_p_hdf5_utilities.h Model_T2D_ME_p_hdf5_utilities.cpp
     ModelData_T2D_ME_p.h ModelData_T2D_ME_p.cpp
-    Step_T2D_ME_p.h Step_T2D_ME_p.cpp
+    Step_T2D_ME_p.h Step_T2D_ME_p.cpp Step_T2D_ME_p_RigidCircle.cpp
     TimeHistory_T2D_ME_p_complete.h TimeHistory_T2D_ME_p_complete.cpp
     # 2D CHM MPM
     Model_T2D_CHM_s.h Model_T2D_CHM_s.cpp

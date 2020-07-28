@@ -10,6 +10,7 @@
 #include "ThreadBarrierFixedNum.h"
 
 int solve_substep_T2D_ME_p(void* _self);
+int solve_substep_T2D_ME_p_RigidCircle(void* _self);
 
 // parallelism version
 class Step_T2D_ME_p : public Step
@@ -21,15 +22,6 @@ public:
 	typedef Model_T2D_ME_p::Element Element;
 	typedef Model_T2D_ME_p::Particle Particle;
 	
-protected:
-	Model_T2D_ME_p* model;
-
-	int init_calculation() override;
-	friend int solve_substep_T2D_ME_p(void* _self);
-	int finalize_calculation() override;
-
-	double damping_ratio;
-
 public:
 	Step_T2D_ME_p(const char* _name);
 	~Step_T2D_ME_p();
@@ -40,7 +32,6 @@ public:
 		model = &md;
 	}
 
-	// Restart from previous step
 	inline void set_prev_step(Step_T2D_ME_p& prev_step)
 	{
 		Step::set_prev_step(prev_step);
@@ -48,36 +39,75 @@ public:
 	}
 
 	inline void set_damping_ratio(double _ratio) noexcept { damping_ratio = _ratio; }
+	
+	inline void set_thread_num(unsigned int num) { thread_num = num; }
 
-protected: // helper structures and functions for parallelism
-	unsigned int thread_num; // core number - 1
-	std::vector<std::thread> cal_threads;
+protected:
+	Model_T2D_ME_p* model;
+	double damping_ratio;
+
+	int init_calculation() override;
+	friend int solve_substep_T2D_ME_p(void* _self);
+	friend int solve_substep_T2D_ME_p_RigidCircle(void* _self);
+	int finalize_calculation() override;
+
+	// helper structures and functions for parallelism
+	class ThreadData;
+	void cal_thread_func(unsigned int th_id);
+	void cal_thread_func_RigidCircle(unsigned int th_id);
+
+	void spawn_all_threads();
+	void join_all_threads();
+
+	// global data
+	unsigned int thread_num;
+	bool not_yet_completed;
 	ThreadBarrierFixedNum step_barrier;
 	ThreadBarrierFixedNum cal_barrier;
-	bool not_yet_completed;
-
-	// terminate all other threads
-	void join_thread_and_exit();
-	// used by thread
-	void cal_thread_func(unsigned int th_id);
-
-	struct ThreadElemData
-	{
-		Particle *pcls;
-		inline void init() { pcls = nullptr; }
-		inline void add_pcl(Particle &pcl)
-		{
-			pcl.next_pcl_in_elem = pcls;
-			pcls = &pcl;
-		}
-	};
-	ThreadElemData *ted_mem;
-	ThreadElemData **pteds;
-	void alloc_thread_elem_data(size_t elem_num);
-	void clear_thread_elem_data();
-
+	std::vector<std::thread> cal_threads;
 	// for debug
 	std::mutex cout_mutex;
+
+	// thread-wise data
+	struct ThreadElemData
+	{
+	protected:
+		// particle stack
+		Particle *top_pcl;
+		Particle *last_pcl;
+
+	public:
+		inline Particle* get_top_pcl() { return top_pcl; }
+		inline void init() { top_pcl = nullptr; }
+		inline void add_pcl(Particle &pcl)
+		{
+			if (!top_pcl) // insert the first pcl
+				last_pcl = &pcl;
+			pcl.next_pcl_in_elem = top_pcl;
+			top_pcl = &pcl;
+		}
+		inline void combine(ThreadElemData &other)
+		{
+			if (other.top_pcl)
+			{
+				other.last_pcl->next_pcl_in_elem = top_pcl;
+				top_pcl = other.top_pcl;
+			}
+		}
+	};
+
+	struct ThreadData
+	{
+		RigidCircleForce rcf;
+		bool elem_data_is_combined;
+	};
+	
+	char *thread_data_mem; // main memory
+	ThreadData **pth_datas;
+	ThreadElemData **pth_elem_datas;
+
+	void alloc_thread_data();
+	void clear_thread_data();
 
 	// actual parallelized calculation
 	std::atomic<size_t> cur_pcl_id;
@@ -88,16 +118,15 @@ protected: // helper structures and functions for parallelism
 	std::atomic<size_t> cur_vx_bc_id;
 	std::atomic<size_t> cur_vy_bc_id;
 
+	void init_cal_vars(unsigned int th_id);
 	void find_pcls_in_which_elems(unsigned int th_id);
 	void map_pcl_vars_to_nodes_at_elems(unsigned int th_id);
+	void cal_contact_force(unsigned int th_id); // only for rigid body
 	void update_node_a_and_v(unsigned int th_id);
 	void apply_a_and_v_bcs(unsigned int th_id);
 	void cal_de_at_elem(unsigned int th_id);
 	void map_de_vol_from_elem_to_node(unsigned int th_id);
 	void update_pcl_vars(unsigned int th_id);
-
-public:
-	inline void set_thread_num(unsigned int num) { thread_num = num; }
 };
 
 #endif

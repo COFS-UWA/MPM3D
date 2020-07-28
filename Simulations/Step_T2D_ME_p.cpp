@@ -9,16 +9,15 @@
 Step_T2D_ME_p::Step_T2D_ME_p(const char* _name) :
 	Step(_name, "Step_T2D_ME_p", &solve_substep_T2D_ME_p),
 	model(nullptr), damping_ratio(0.0),
-	thread_num(0), not_yet_completed(false),
-	ted_mem(nullptr), pteds(nullptr)
+	thread_num(0), not_yet_completed(false), thread_data_mem(nullptr)
 {
 
 }
 
 Step_T2D_ME_p::~Step_T2D_ME_p()
 {
-	join_thread_and_exit();
-	clear_thread_elem_data();
+	join_all_threads();
+	clear_thread_data();
 }
 
 int Step_T2D_ME_p::init_calculation()
@@ -41,63 +40,98 @@ int Step_T2D_ME_p::init_calculation()
 		pcl.uy = 0.0;
 	}
 
-	// start cal thread
-	not_yet_completed = true;
+	// start calculation
 	if (thread_num == 0)
 		thread_num = std::thread::hardware_concurrency();
-	if (thread_num > 1)
-	{
-		cal_threads.resize(thread_num-1);
-		for (unsigned int th_id = 0; th_id < thread_num-1; ++th_id)
-			cal_threads[th_id] = std::thread(&Step_T2D_ME_p::cal_thread_func, this, th_id + 1);
-	}
+
+	// init global data
+	not_yet_completed = true;
 	step_barrier.set_thread_num(thread_num);
 	cal_barrier.set_thread_num(thread_num);
-	
-	alloc_thread_elem_data(md.elem_num);
-	step_barrier.wait_for_others();
+	// init thread wise data
+	alloc_thread_data();
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		pth_datas[th_id]->elem_data_is_combined = false;
 
+	// spawn threads
+	spawn_all_threads();
+	
+	step_barrier.wait_for_others();
 	return 0;
 }
 
 int Step_T2D_ME_p::finalize_calculation()
 {
-	join_thread_and_exit();
-	clear_thread_elem_data();
+	join_all_threads();
+	clear_thread_data();
 	return 0;
 }
 
-void Step_T2D_ME_p::join_thread_and_exit()
+void Step_T2D_ME_p::spawn_all_threads()
+{
+	Model_T2D_ME_p& md = *model;
+	if (!md.rigid_circle_is_valid()) // no rigid circle
+	{
+		cal_substep_func = &solve_substep_T2D_ME_p;
+		if (thread_num > 1)
+		{
+			size_t spawn_thread_num = thread_num - 1;
+			cal_threads.resize(spawn_thread_num);
+			for (unsigned int th_id = 0; th_id < spawn_thread_num; ++th_id)
+				cal_threads[th_id] = std::thread(&Step_T2D_ME_p::cal_thread_func, this, th_id + 1);
+		}
+	}
+	else // has rigid circle
+	{
+		cal_substep_func = &solve_substep_T2D_ME_p_RigidCircle;
+		if (thread_num > 1)
+		{
+			size_t spawn_thread_num = thread_num - 1;
+			cal_threads.resize(spawn_thread_num);
+			for (unsigned int th_id = 0; th_id < spawn_thread_num; ++th_id)
+				cal_threads[th_id] = std::thread(&Step_T2D_ME_p::cal_thread_func_RigidCircle, this, th_id + 1);
+		}
+	}
+}
+
+void Step_T2D_ME_p::join_all_threads()
 {
 	if (not_yet_completed)
 	{
 		not_yet_completed = false;
 		step_barrier.lift_barrier();
-		for (unsigned int th_id = 0; th_id < thread_num-1; ++th_id)
+		size_t join_thread_num = thread_num - 1;
+		for (unsigned int th_id = 0; th_id < join_thread_num; ++th_id)
 			cal_threads[th_id].join();
 	}
 }
 
-void Step_T2D_ME_p::alloc_thread_elem_data(size_t elem_num)
+void Step_T2D_ME_p::alloc_thread_data()
 {
-	clear_thread_elem_data();
-	ted_mem = new ThreadElemData[thread_num * elem_num];
-	pteds = new ThreadElemData*[thread_num];
+	Model_T2D_ME_p& md = *model;
+	size_t th_data_pt_size = sizeof(ThreadData **) * thread_num;
+	size_t th_elem_data_pt_size = sizeof(ThreadElemData **) * thread_num;
+	size_t thread_data_size = sizeof(ThreadData) + sizeof(ThreadElemData) * md.elem_num;
+	size_t total_data_size = th_data_pt_size + th_elem_data_pt_size
+						   + thread_data_size * thread_num;
+	thread_data_mem = new char[total_data_size];
+
+	pth_datas = (ThreadData **)thread_data_mem;
+	pth_elem_datas = (ThreadElemData **)(thread_data_mem + th_data_pt_size);
+	char* data_address = thread_data_mem + th_data_pt_size + th_elem_data_pt_size;
 	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		pteds[th_id] = ted_mem + th_id * elem_num;
+	{
+		pth_datas[th_id] = (ThreadData *)(data_address + thread_data_size * th_id);
+		pth_elem_datas[th_id] = (ThreadElemData *)((char *)(pth_datas[th_id]) + sizeof(ThreadData));
+	}
 }
 
-void Step_T2D_ME_p::clear_thread_elem_data()
+void Step_T2D_ME_p::clear_thread_data()
 {
-	if (ted_mem)
+	if (thread_data_mem)
 	{
-		delete[] ted_mem;
-		ted_mem = nullptr;
-	}
-	if (pteds)
-	{
-		delete[] pteds;
-		pteds = nullptr;
+		delete[] thread_data_mem;
+		thread_data_mem = nullptr;
 	}
 }
 
@@ -107,6 +141,9 @@ void Step_T2D_ME_p::cal_thread_func(unsigned int th_id)
 
 	while (not_yet_completed)
 	{
+		init_cal_vars(th_id);
+		cal_barrier.wait();
+
 		find_pcls_in_which_elems(th_id);
 		cal_barrier.wait();
 
@@ -135,28 +172,20 @@ int solve_substep_T2D_ME_p(void* _self)
 	typedef Model_T2D_ME_p::Node Node;
 	typedef Model_T2D_ME_p::Element Element;
 	typedef Model_T2D_ME_p::Particle Particle;
+	typedef Step_T2D_ME_p::ThreadData ThreadData;
+	typedef Step_T2D_ME_p::ThreadElemData ThreadElemData;
 
 	Step_T2D_ME_p &self = *static_cast<Step_T2D_ME_p *>(_self);
-	Model_T2D_ME_p& md = static_cast<Model_T2D_ME_p &>(self.get_model());
+	Model_T2D_ME_p &md = static_cast<Model_T2D_ME_p &>(self.get_model());
 
-	// init calculation globally
-	// init nodes
-	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
-	{
-		Node& n = md.nodes[n_id];
-		n.has_mp = false;
-	}
-
-	// init elements
-	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
-	{
-		Element& e = md.elems[e_id];
-		e.has_mp = false;
-	}
+	self.cur_node_id.store(0);
+	self.cur_elem_id.store(0);
+	self.step_barrier.lift_barrier();
+	self.init_cal_vars(0);
+	self.cal_barrier.wait_for_others();
 
 	self.cur_pcl_id.store(0);
-
-	self.step_barrier.lift_barrier();
+	self.cal_barrier.lift_barrier();
 	self.find_pcls_in_which_elems(0);
 	self.cal_barrier.wait_for_others();
 
@@ -197,13 +226,33 @@ int solve_substep_T2D_ME_p(void* _self)
 	return 0;
 }
 
-void Step_T2D_ME_p::find_pcls_in_which_elems(unsigned int th_id)
+void Step_T2D_ME_p::init_cal_vars(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	ThreadElemData* teds = pteds[th_id];
+	// init nodes
+	for (size_t n_id = cur_node_id++; n_id < md.node_num; n_id = cur_node_id++)
+	{
+		Node& n = md.nodes[n_id];
+		n.has_mp = false;
+	}
+
+	// init elements
+	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
+	{
+		Element& e = md.elems[e_id];
+		e.has_mp = false;
+	}
+}
+
+void Step_T2D_ME_p::find_pcls_in_which_elems(unsigned int th_id)
+{
+	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
+	ThreadData& th_data = *pth_datas[th_id];
+	ThreadElemData *th_elem_datas = pth_elem_datas[th_id];
+
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
-		teds[e_id].init();
+		th_elem_datas[e_id].init();
 	
 	size_t pe_id;
 	for (size_t pcl_id = cur_pcl_id++; pcl_id < md.pcl_num; pcl_id = cur_pcl_id++)
@@ -218,9 +267,37 @@ void Step_T2D_ME_p::find_pcls_in_which_elems(unsigned int th_id)
 			continue;
 		
 		pe_id = pcl.pe->id;
-		teds[pe_id].add_pcl(pcl);
-		md.elems[pe_id].has_mp = true;
+		th_elem_datas[pe_id].add_pcl(pcl);
+
+		Element& e = md.elems[pe_id];
+		e.has_mp = true;
 	}
+
+	// combine the pcl list in each element
+	size_t stride = 2;
+	size_t half_stride = 1;
+	size_t oth_id;
+	while (half_stride < thread_num)
+	{
+		if (th_id & (stride - 1))
+			break;
+
+		oth_id = th_id + half_stride;
+		if (oth_id < thread_num)
+		{
+			ThreadData& oth_data = *pth_datas[oth_id];
+			ThreadElemData* oth_elem_data = pth_elem_datas[oth_id];
+			while (oth_data.elem_data_is_combined == false);
+			// combine the data
+			for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+				th_elem_datas[e_id].combine(oth_elem_data[e_id]);
+		}
+
+		stride = stride << 1;
+		half_stride = half_stride << 1;
+	}
+
+	th_data.elem_data_is_combined = true;
 }
 
 void Step_T2D_ME_p::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
@@ -234,86 +311,85 @@ void Step_T2D_ME_p::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
 		if (!e.has_mp)
 			continue;
 		
+		e.mi_pcl_vol = 0.0;
+		e.s11 = 0.0;
+		e.s22 = 0.0;
+		e.s12 = 0.0;
+		
 		Node &n1 = md.nodes[e.n1];
 		Node &n2 = md.nodes[e.n2];
 		Node &n3 = md.nodes[e.n3];
-		NodeVarAtElem& nv1 = e.node_vars[0];
-		NodeVarAtElem& nv2 = e.node_vars[1];
-		NodeVarAtElem& nv3 = e.node_vars[2];
-
 		n1.has_mp = true;
 		n2.has_mp = true;
 		n3.has_mp = true;
 		
-		//e.pcls = nullptr;
-		e.pcl_vol = 0.0;
-		e.s11 = 0.0;
-		e.s22 = 0.0;
-		e.s12 = 0.0;
+		NodeVarAtElem& nv1 = e.node_vars[0];
+		NodeVarAtElem& nv2 = e.node_vars[1];
+		NodeVarAtElem& nv3 = e.node_vars[2];
 		nv1.init();
 		nv2.init();
 		nv3.init();
-		for (size_t th_id = 0; th_id < thread_num; ++th_id)
+
+		e.pcls = pth_elem_datas[0][e_id].get_top_pcl();
+		for (Particle * ppcl = e.first_pcl(); e.not_last_pcl(ppcl);
+			 ppcl = e.next_pcl(ppcl))
 		{
-			ThreadElemData &ted = pteds[th_id][e_id];
-			for (Particle* ppcl = ted.pcls; ppcl; ppcl = ppcl->next_pcl_in_elem)
+			Particle& pcl = *ppcl;
+
+			// mixed integration
+			pcl.vol = pcl.m / pcl.density;
+			e.mi_pcl_vol += pcl.vol;
+			e.s11 += pcl.s11 * pcl.vol;
+			e.s22 += pcl.s22 * pcl.vol;
+			e.s12 += pcl.s12 * pcl.vol;
+
+			// map velocity
+			double mvx = pcl.m * pcl.vx;
+			double mvy = pcl.m * pcl.vy;
+			// node 1
+			nv1.m += pcl.N1 * pcl.m;
+			nv1.vx += pcl.N1 * mvx;
+			nv1.vy += pcl.N1 * mvy;
+			// node 2
+			nv2.m += pcl.N2 * pcl.m;
+			nv2.vx += pcl.N2 * mvx;
+			nv2.vy += pcl.N2 * mvy;
+			// node 3
+			nv3.m += pcl.N3 * pcl.m;
+			nv3.vx += pcl.N3 * mvx;
+			nv3.vy += pcl.N3 * mvy;
+
+			// external load
+			if (pcl.has_fx_ext)
 			{
-				// mixed integration
-				Particle& pcl = *ppcl;
-				pcl.vol = pcl.m / pcl.density;
-				e.pcl_vol += pcl.vol;
-				e.s11 += pcl.s11 * pcl.vol;
-				e.s22 += pcl.s22 * pcl.vol;
-				e.s12 += pcl.s12 * pcl.vol;
-
-				// map velocity
-				double mvx = pcl.m * pcl.vx;
-				double mvy = pcl.m * pcl.vy;
-				// node 1
-				nv1.m += pcl.N1 * pcl.m;
-				nv1.vx += pcl.N1 * mvx;
-				nv1.vy += pcl.N1 * mvy;
-				// node 2
-				nv2.m += pcl.N2 * pcl.m;
-				nv2.vx += pcl.N2 * mvx;
-				nv2.vy += pcl.N2 * mvy;
-				// node 3
-				nv3.m += pcl.N3 * pcl.m;
-				nv3.vx += pcl.N3 * mvx;
-				nv3.vy += pcl.N3 * mvy;
-
-				// external load
-				if (pcl.has_fx_ext)
-				{
-					nv1.fx += pcl.N1 * pcl.fx_ext;
-					nv2.fx += pcl.N2 * pcl.fx_ext;
-					nv3.fx += pcl.N3 * pcl.fx_ext;
-				}
-				if (pcl.has_fy_ext)
-				{
-					nv1.fy += pcl.N1 * pcl.fy_ext;
-					nv2.fy += pcl.N2 * pcl.fy_ext;
-					nv3.fy += pcl.N3 * pcl.fy_ext;
-				}
+				nv1.fx += pcl.N1 * pcl.fx_ext;
+				nv2.fx += pcl.N2 * pcl.fx_ext;
+				nv3.fx += pcl.N3 * pcl.fx_ext;
+			}
+			if (pcl.has_fy_ext)
+			{
+				nv1.fy += pcl.N1 * pcl.fy_ext;
+				nv2.fy += pcl.N2 * pcl.fy_ext;
+				nv3.fy += pcl.N3 * pcl.fy_ext;
 			}
 		}
 
-		e.s11 /= e.pcl_vol;
-		e.s22 /= e.pcl_vol;
-		e.s12 /= e.pcl_vol;
-		if (e.pcl_vol > e.area)
-			e.pcl_vol = e.area;
+		e.s11 /= e.mi_pcl_vol;
+		e.s22 /= e.mi_pcl_vol;
+		e.s12 /= e.mi_pcl_vol;
+		if (e.mi_pcl_vol > e.area)
+			e.mi_pcl_vol = e.area;
 
 		// internal force
 		// node 1
-		nv1.fx -= (e.dN1_dx * e.s11 + e.dN1_dy * e.s12) * e.pcl_vol;
-		nv1.fy -= (e.dN1_dx * e.s12 + e.dN1_dy * e.s22) * e.pcl_vol;
+		nv1.fx -= (e.dN1_dx * e.s11 + e.dN1_dy * e.s12) * e.mi_pcl_vol;
+		nv1.fy -= (e.dN1_dx * e.s12 + e.dN1_dy * e.s22) * e.mi_pcl_vol;
 		// node 2
-		nv2.fx -= (e.dN2_dx * e.s11 + e.dN2_dy * e.s12) * e.pcl_vol;
-		nv2.fy -= (e.dN2_dx * e.s12 + e.dN2_dy * e.s22) * e.pcl_vol;
+		nv2.fx -= (e.dN2_dx * e.s11 + e.dN2_dy * e.s12) * e.mi_pcl_vol;
+		nv2.fy -= (e.dN2_dx * e.s12 + e.dN2_dy * e.s22) * e.mi_pcl_vol;
 		// node 3
-		nv3.fx -= (e.dN3_dx * e.s11 + e.dN3_dy * e.s12) * e.pcl_vol;
-		nv3.fy -= (e.dN3_dx * e.s12 + e.dN3_dy * e.s22) * e.pcl_vol;
+		nv3.fx -= (e.dN3_dx * e.s11 + e.dN3_dy * e.s12) * e.mi_pcl_vol;
+		nv3.fy -= (e.dN3_dx * e.s12 + e.dN3_dy * e.s22) * e.mi_pcl_vol;
 	}
 }
 
@@ -416,6 +492,29 @@ void Step_T2D_ME_p::cal_de_at_elem(unsigned int th_id)
 		e.dde22 = de22 - e.de_vol_by_3;
 		e.de12 = (n1.dux * e.dN1_dy + n2.dux * e.dN2_dy + n3.dux * e.dN3_dy
 				+ n1.duy * e.dN1_dx + n2.duy * e.dN2_dx + n3.duy * e.dN3_dx) * 0.5;
+	
+		// strain enhancement
+		NodeVarAtElem& nv1 = e.node_vars[0];
+		NodeVarAtElem& nv2 = e.node_vars[1];
+		NodeVarAtElem& nv3 = e.node_vars[2];
+		double N_vol;
+		for (Particle* ppcl = e.first_pcl(); e.not_last_pcl(ppcl);
+			 ppcl = e.next_pcl(ppcl))
+		{
+			Particle& pcl = *ppcl;
+			// node 1
+			N_vol = pcl.N1 * pcl.vol;
+			nv1.de_vol_by_3 += e.de_vol_by_3 * N_vol;
+			nv1.se_pcl_vol += N_vol;
+			// node 2
+			N_vol = pcl.N2 * pcl.vol;
+			nv2.de_vol_by_3 += e.de_vol_by_3 * N_vol;
+			nv2.se_pcl_vol += N_vol;
+			// node 3
+			N_vol = pcl.N3 * pcl.vol;
+			nv3.de_vol_by_3 += e.de_vol_by_3 * N_vol;
+			nv3.se_pcl_vol += N_vol;
+		}
 	}
 }
 
@@ -431,15 +530,16 @@ void Step_T2D_ME_p::map_de_vol_from_elem_to_node(unsigned int th_id)
 			continue;
 		
 		n.de_vol_by_3 = 0.0;
-		n.pcl_vol = 0.0;
+		n.se_pcl_vol = 0.0;
 		for (size_t e_id = 0; e_id < n.n2e_num; ++e_id)
 		{
 			NodeToElem& n2e = n.n2es[e_id];
 			Element& e = md.elems[n2e.e_id];
-			n.de_vol_by_3 += e.de_vol_by_3 * e.pcl_vol / 3.0;
-			n.pcl_vol += e.pcl_vol / 3.0;
+			NodeVarAtElem& nv = e.node_vars[n2e.n_id];
+			n.de_vol_by_3 += nv.de_vol_by_3;
+			n.se_pcl_vol += nv.se_pcl_vol;
 		}
-		n.de_vol_by_3 /= n.pcl_vol;
+		n.de_vol_by_3 /= n.se_pcl_vol;
 	}
 }
 

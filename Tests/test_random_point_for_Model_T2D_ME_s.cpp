@@ -24,7 +24,6 @@ void test_random_point_for_Model_T2D_ME_s(int argc, char** argv)
 	pcl_gen.adjust_pcl_size_to_fit_elems(model);
 	model.init_pcls(pcl_gen, 10.0);
 	std::cout << "pcl num: " << model.get_pcl_num() << "\n";
-	//model.sum_vol_for_all_elements();
 
 	size_t pcl_num = model.get_pcl_num();
 	Model_T2D_ME_s::Particle* pcls = model.get_pcls();
