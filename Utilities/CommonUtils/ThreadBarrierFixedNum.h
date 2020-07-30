@@ -9,7 +9,7 @@ class ThreadBarrierFixedNum
 {
 protected:
 	unsigned int thread_num;
-	size_t generation;
+	std::atomic<size_t> generation;
 	// number of threads left to wait for
 	std::atomic<unsigned int> thread_left_num;
 
@@ -21,6 +21,9 @@ public:
 	ThreadBarrierFixedNum &operator=(const ThreadBarrierFixedNum &other) = delete;
 
 	inline unsigned int get_thread_num() { return thread_num; }
+	inline size_t get_generation() { return generation.load(); } // for debug
+	inline unsigned int get_thread_left_num() { return thread_left_num.load(); } // for debug
+
 	inline void set_thread_num(unsigned int num)
 	{
 		thread_num = num;
@@ -31,7 +34,7 @@ public:
 	{
 		const size_t cur_generation = generation;
 		--thread_left_num;
-		while (generation == cur_generation);
+		while (generation.load() == cur_generation);
 	}
 
 	inline void wait_for_others()

@@ -71,7 +71,11 @@ protected:
 	// thread-wise data
 	struct ThreadElemData
 	{
+		friend Step_T2D_ME_p;
 	protected:
+#ifdef _DEBUG
+		size_t elem_id;
+#endif
 		// particle stack
 		Particle *top_pcl;
 		Particle *last_pcl;
@@ -86,12 +90,20 @@ protected:
 			pcl.next_pcl_in_elem = top_pcl;
 			top_pcl = &pcl;
 		}
-		inline void combine(ThreadElemData &other)
+		inline void combine(ThreadElemData& other)
 		{
 			if (other.top_pcl)
 			{
-				other.last_pcl->next_pcl_in_elem = top_pcl;
-				top_pcl = other.top_pcl;
+				if (top_pcl)
+				{
+					other.last_pcl->next_pcl_in_elem = top_pcl;
+					top_pcl = other.top_pcl;
+				}
+				else
+				{
+					top_pcl = other.top_pcl;
+					last_pcl = other.last_pcl;
+				}
 			}
 		}
 	};
@@ -99,7 +111,7 @@ protected:
 	struct ThreadData
 	{
 		RigidCircleForce rcf;
-		bool elem_data_is_combined;
+		std::atomic_flag not_combined_yet;
 	};
 	
 	char *thread_data_mem; // main memory

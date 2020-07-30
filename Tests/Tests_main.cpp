@@ -87,8 +87,11 @@ int main(int argc, char *argv[])
 	//test_t2d_me_p_test_result(argc, argv);
 
 	//test_t2d_me_p_1d_compression(argc, argv);
-	test_t2d_me_p_1d_compression_result(argc, argv);
-	
-	//system("pause");
+	//test_t2d_me_p_1d_compression_result(argc, argv);
+
+	test_t2d_me_p_rigid_circle_penetration(argc, argv);
+	//test_t2d_me_p_rigid_circle_penetration_result(argc, argv);
+
+	system("pause");
 	return 0;
 }

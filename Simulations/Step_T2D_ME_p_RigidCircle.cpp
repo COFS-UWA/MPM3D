@@ -70,6 +70,8 @@ int solve_substep_T2D_ME_p_RigidCircle(void *_self)
 	self.cal_barrier.wait_for_others();
 
 	// rigid circle
+	self.cur_elem_id.store(0);
+	self.cal_barrier.lift_barrier();
 	self.cal_contact_force(0);
 	// accumulate contact force on rigid circle
 	rc.reset_rf();
@@ -78,9 +80,8 @@ int solve_substep_T2D_ME_p_RigidCircle(void *_self)
 		ThreadData &th_data = *(self.pth_datas[th_id]);
 		rc.add_rc_f(th_data.rcf);
 	}
-	// update motion
 	rc.update_motion(self.dtime);
-	self.cal_barrier.wait();
+	self.cal_barrier.wait_for_others();
 
 	self.cur_node_id.store(0);
 	self.cal_barrier.lift_barrier();

@@ -51,7 +51,10 @@ int Step_T2D_ME_p::init_calculation()
 	// init thread wise data
 	alloc_thread_data();
 	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		pth_datas[th_id]->elem_data_is_combined = false;
+	{
+		ThreadData& th_data = *pth_datas[th_id];
+		th_data.not_combined_yet.test_and_set();
+	}
 
 	// spawn threads
 	spawn_all_threads();
@@ -116,13 +119,19 @@ void Step_T2D_ME_p::alloc_thread_data()
 						   + thread_data_size * thread_num;
 	thread_data_mem = new char[total_data_size];
 
-	pth_datas = (ThreadData **)thread_data_mem;
-	pth_elem_datas = (ThreadElemData **)(thread_data_mem + th_data_pt_size);
+	pth_datas = reinterpret_cast<ThreadData**>(thread_data_mem);
+	pth_elem_datas = reinterpret_cast<ThreadElemData **>(thread_data_mem + th_data_pt_size);
 	char* data_address = thread_data_mem + th_data_pt_size + th_elem_data_pt_size;
 	for (size_t th_id = 0; th_id < thread_num; ++th_id)
 	{
-		pth_datas[th_id] = (ThreadData *)(data_address + thread_data_size * th_id);
-		pth_elem_datas[th_id] = (ThreadElemData *)((char *)(pth_datas[th_id]) + sizeof(ThreadData));
+		pth_datas[th_id] = reinterpret_cast<ThreadData *>(data_address + thread_data_size * th_id);
+		pth_elem_datas[th_id] = reinterpret_cast<ThreadElemData *>((char *)(pth_datas[th_id]) + sizeof(ThreadData));
+		
+#ifdef _DEBUG
+		ThreadElemData *cur_elem_datas = pth_elem_datas[th_id];
+		for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+			cur_elem_datas[e_id].elem_id = e_id;
+#endif
 	}
 }
 
@@ -283,11 +292,12 @@ void Step_T2D_ME_p::find_pcls_in_which_elems(unsigned int th_id)
 			break;
 
 		oth_id = th_id + half_stride;
+
 		if (oth_id < thread_num)
 		{
 			ThreadData& oth_data = *pth_datas[oth_id];
 			ThreadElemData* oth_elem_data = pth_elem_datas[oth_id];
-			while (oth_data.elem_data_is_combined == false);
+			while (oth_data.not_combined_yet.test_and_set());
 			// combine the data
 			for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 				th_elem_datas[e_id].combine(oth_elem_data[e_id]);
@@ -297,7 +307,7 @@ void Step_T2D_ME_p::find_pcls_in_which_elems(unsigned int th_id)
 		half_stride = half_stride << 1;
 	}
 
-	th_data.elem_data_is_combined = true;
+	th_data.not_combined_yet.clear();
 }
 
 void Step_T2D_ME_p::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
@@ -414,12 +424,15 @@ void Step_T2D_ME_p::update_node_a_and_v(unsigned int th_id)
 		{
 			NodeToElem& n2e = n.n2es[e_id];
 			Element& e = md.elems[n2e.e_id];
-			NodeVarAtElem& nv = e.node_vars[n2e.n_id];
-			n.m += nv.m;
-			n.vx_ori += nv.vx;
-			n.vy_ori += nv.vy;
-			n.fx += nv.fx;
-			n.fy += nv.fy;
+			if (e.has_mp)
+			{
+				NodeVarAtElem& nv = e.node_vars[n2e.n_id];
+				n.m += nv.m;
+				n.vx_ori += nv.vx;
+				n.vy_ori += nv.vy;
+				n.fx += nv.fx;
+				n.fy += nv.fy;
+			}
 		}
 
 		n.ax = n.fx / n.m;
@@ -481,7 +494,7 @@ void Step_T2D_ME_p::cal_de_at_elem(unsigned int th_id)
 		
 		if (!e.has_mp)
 			continue;
-
+	
 		Node& n1 = md.nodes[e.n1];
 		Node& n2 = md.nodes[e.n2];
 		Node& n3 = md.nodes[e.n3];
@@ -528,16 +541,19 @@ void Step_T2D_ME_p::map_de_vol_from_elem_to_node(unsigned int th_id)
 		
 		if (!n.has_mp)
 			continue;
-		
+
 		n.de_vol_by_3 = 0.0;
 		n.se_pcl_vol = 0.0;
 		for (size_t e_id = 0; e_id < n.n2e_num; ++e_id)
 		{
 			NodeToElem& n2e = n.n2es[e_id];
-			Element& e = md.elems[n2e.e_id];
-			NodeVarAtElem& nv = e.node_vars[n2e.n_id];
-			n.de_vol_by_3 += nv.de_vol_by_3;
-			n.se_pcl_vol += nv.se_pcl_vol;
+			Element &e = md.elems[n2e.e_id];
+			if (e.has_mp)
+			{
+				NodeVarAtElem& nv = e.node_vars[n2e.n_id];
+				n.de_vol_by_3 += nv.de_vol_by_3;
+				n.se_pcl_vol += nv.se_pcl_vol;
+			}
 		}
 		n.de_vol_by_3 /= n.se_pcl_vol;
 	}

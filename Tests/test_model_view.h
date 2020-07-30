@@ -33,5 +33,6 @@ void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv);
 
 void test_t2d_me_p_test_result(int argc, char** argv);
 void test_t2d_me_p_1d_compression_result(int argc, char** argv);
+void test_t2d_me_p_rigid_circle_penetration_result(int argc, char** argv);
 
 #endif

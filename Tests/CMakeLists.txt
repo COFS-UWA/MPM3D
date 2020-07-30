@@ -30,8 +30,6 @@ add_executable(
     # deformation calculation
     test_t2d_me_s_1d_compression.cpp
     test_t2d_chm_s_1d_consolidation.cpp
-    test_t2d_me_p_test.cpp
-    test_t2d_me_p_1d_compression.cpp
     # restart utilities
     test_t2d_me_s_test_restart.cpp
     test_t2d_chm_s_test_restart.cpp
@@ -42,6 +40,10 @@ add_executable(
     test_t2d_chm_s_pipe_conference_geo.cpp
     test_t2d_chm_s_pipe_conference_restart1.cpp
     test_t2d_chm_s_pipe_conference_restart2.cpp
+    # parallel version
+    test_t2d_me_p_test.cpp
+    test_t2d_me_p_1d_compression.cpp
+    test_t2d_me_p_rigid_circle_penetration.cpp
     # 3D
     test_stack_and_link_list.cpp
     test_model_container.cpp

@@ -39,5 +39,6 @@ void test_fem_t3d_me_s_1d_compression2(int argc, char** argv);
 // parallelsim
 void test_t2d_me_p_test(int argc, char** argv);
 void test_t2d_me_p_1d_compression(int argc, char** argv);
+void test_t2d_me_p_rigid_circle_penetration(int argc, char** argv);
 
 #endif
