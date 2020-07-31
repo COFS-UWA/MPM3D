@@ -20,10 +20,6 @@ void test_t2d_me_s_test_restart_penetration_step(int argc, char** argv);
 void test_t2d_me_s_test_rigid_circle(int argc, char** argv);
 void test_t2d_chm_s_test_rigid_circle(int argc, char** argv);
 
-void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv);
-void test_t2d_chm_s_pipe_conference_restart1(int argc, char** argv);
-void test_t2d_chm_s_pipe_conference_restart2(int argc, char** argv);
-
 void test_t2d_chm_s_test_restart_geo_step(int argc, char** argv);
 void test_t2d_chm_s_test_restart_consolidation_step(int argc, char** argv);
 
@@ -37,8 +33,19 @@ void test_fem_t3d_me_s_1d_compression(int argc, char** argv);
 void test_fem_t3d_me_s_1d_compression2(int argc, char** argv);
 
 // parallelsim
+void test_t2d_me_p_geostatic(int argc, char** argv);
 void test_t2d_me_p_test(int argc, char** argv);
 void test_t2d_me_p_1d_compression(int argc, char** argv);
 void test_t2d_me_p_rigid_circle_penetration(int argc, char** argv);
+
+// shallow pipe embedment
+// chm simulation
+void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv);
+void test_t2d_chm_s_pipe_conference_restart1(int argc, char** argv);
+void test_t2d_chm_s_pipe_conference_restart2(int argc, char** argv);
+
+// me simulation
+void test_t2d_me_s_pipe_conference_geo(int argc, char** argv);
+void test_t2d_me_s_pipe_conference_restart(int argc, char** argv);
 
 #endif

@@ -33,19 +33,19 @@ public:
 	inline void wait()
 	{
 		const size_t cur_generation = generation;
-		--thread_left_num;
-		while (generation.load() == cur_generation);
+		thread_left_num.fetch_sub(1, std::memory_order_relaxed);
+		while (generation.load(std::memory_order_relaxed) == cur_generation);
 	}
 
 	inline void wait_for_others()
 	{
-		while (thread_left_num.load() > 1);
+		while (thread_left_num.load(std::memory_order_relaxed) > 1);
 	}
 
 	inline void lift_barrier()
 	{
-		thread_left_num.store(thread_num);
-		++generation;
+		thread_left_num.store(thread_num, std::memory_order_relaxed);
+		generation.fetch_add(1, std::memory_order_relaxed);
 	}
 };
 

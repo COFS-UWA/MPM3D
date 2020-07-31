@@ -4,6 +4,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 #include "Step.h"
 #include "Model_T2D_ME_p.h"
@@ -22,8 +23,7 @@ public:
 	typedef Model_T2D_ME_p::Element Element;
 	typedef Model_T2D_ME_p::Particle Particle;
 	
-public:
-	Step_T2D_ME_p(const char* _name);
+	explicit Step_T2D_ME_p(const char* _name);
 	~Step_T2D_ME_p();
 
 	inline void set_model(Model_T2D_ME_p& md)
@@ -52,7 +52,6 @@ protected:
 	int finalize_calculation() override;
 
 	// helper structures and functions for parallelism
-	class ThreadData;
 	void cal_thread_func(unsigned int th_id);
 	void cal_thread_func_RigidCircle(unsigned int th_id);
 
@@ -61,7 +60,7 @@ protected:
 
 	// global data
 	unsigned int thread_num;
-	bool not_yet_completed;
+	std::atomic<bool> not_yet_completed;
 	ThreadBarrierFixedNum step_barrier;
 	ThreadBarrierFixedNum cal_barrier;
 	std::vector<std::thread> cal_threads;

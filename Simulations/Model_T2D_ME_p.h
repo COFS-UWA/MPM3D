@@ -88,6 +88,7 @@ struct Element
 	inline Particle* first_pcl() { return pcls; }
 	Particle* next_pcl(Particle* pcl);
 	inline bool not_last_pcl(Particle *pcl) { return pcl != nullptr; }
+	void add_pcl(Particle& pcl);
 
 	// mixed integration
 	double mi_pcl_vol, s11, s22, s12;
@@ -141,6 +142,12 @@ struct Particle
 
 inline Particle* Element::next_pcl(Particle* pcl) { return pcl->next_pcl_in_elem; }
 
+inline void Element::add_pcl(Particle& pcl)
+{
+	pcl.next_pcl_in_elem = pcls;
+	pcls = &pcl;
+}
+
 }
 
 class Model_T2D_ME_p;
@@ -162,6 +169,8 @@ int load_rigid_circle_from_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hi
 class Step_T2D_ME_p;
 int solve_substep_T2D_ME_p(void* _self);
 int solve_substep_T2D_ME_p_RigidCircle(void* _self);
+class Step_T2D_ME_p_Geo;
+int solve_substep_T2D_ME_p_geo(void* _self);
 
 struct Model_T2D_ME_p : public Model,
 	public Model_T2D_ME_p_Internal::BgMesh,
@@ -170,6 +179,8 @@ struct Model_T2D_ME_p : public Model,
 	friend class Step_T2D_ME_p;
 	friend int solve_substep_T2D_ME_p(void *_self);
 	friend int solve_substep_T2D_ME_p_RigidCircle(void *_self);
+	friend class Step_T2D_ME_p_Geo;
+	friend int solve_substep_T2D_ME_p_geo(void *_self);
 
 public:
 	typedef Model_T2D_ME_p_Internal::NodeToElem NodeToElem;

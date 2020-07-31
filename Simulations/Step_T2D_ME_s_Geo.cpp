@@ -7,7 +7,11 @@
 
 Step_T2D_ME_s_Geo::Step_T2D_ME_s_Geo(const char* _name) :
 	Step(_name, "Step_T2D_ME_s_Geo", &solve_substep_T2D_ME_s_Geo),
-	model(nullptr), damping_ratio(0.0) {}
+	model(nullptr), damping_ratio(0.0),
+	f_ub_ratio_bound(0.0), e_kin_ratio_bound(0.0)
+{
+
+}
 
 Step_T2D_ME_s_Geo::~Step_T2D_ME_s_Geo() {}
 
@@ -27,15 +31,11 @@ int Step_T2D_ME_s_Geo::init_calculation()
 	// convergence criteria
 	// unbalanced force
 	init_f_ub = 0.0;
-	init_f_ub_is_init = false;
 	f_ub_ratio = 1.0;
 	// kinematic energy
 	e_kin_max = 0.0;
-	e_kin_max_is_init = false;
 	e_kin_prev = 0.0;
 	e_kin_ratio = 1.0;
-
-	//out_file.open("ratio_res.txt", std::ios::out | std::ios::binary);
 
 	return 0;
 }
@@ -49,9 +49,10 @@ int Step_T2D_ME_s_Geo::finalize_calculation()
 		Particle &pcl = md.pcls[pcl_id];
 		pcl.vx = 0.0;
 		pcl.vy = 0.0;
+		pcl.e11 = 0.0;
+		pcl.e22 = 0.0;
+		pcl.e12 = 0.0;
 	}
-
-	//out_file.close();
 
 	return 0;
 }
@@ -284,41 +285,36 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 		n.ay = 0.0;
 	}
 
-	double f_ub = 0.0;
+	// cal unbalanced nodal force and kinetic energy
+	self.f_ub = 0.0;
+	self.e_kin = 0.0;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
-			f_ub += n.m * n.m * (n.ax * n.ax + n.ay * n.ay);
-	}
-	// initial unbalanced force
-	if (!self.init_f_ub_is_init)
-	{
-		self.init_f_ub_is_init = true;
-		self.init_f_ub = f_ub;
+		{
+			self.f_ub += n.m * n.m * (n.ax * n.ax + n.ay * n.ay);
+			self.e_kin += n.m * (n.vx * n.vx + n.vy * n.vy);
+		}
 	}
 
-	if (self.init_f_ub_is_init)
-		self.f_ub_ratio = sqrt(f_ub / self.init_f_ub);
-	
-	// cal kinetic energy
-	double e_kin = 0.0;
-	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	if (self.substep_index == 0) // first step
 	{
-		Node &n = md.nodes[n_id];
-		if (n.has_mp)
-			e_kin += n.m * (n.vx * n.vx + n.vy * n.vy);
+		self.init_f_ub = self.f_ub;
+		self.e_kin_max = self.e_kin;
 	}
+	else // not first step
+	{
+		if (self.e_kin_max < self.e_kin)
+			self.e_kin_max = self.e_kin;
+	}
+
+	self.f_ub_ratio = sqrt(self.f_ub / self.init_f_ub);
+	self.e_kin_ratio = sqrt(self.e_kin_prev / self.e_kin_max);
 
 	// kinetic damping
-	if (e_kin < self.e_kin_prev)
+	if (self.e_kin < self.e_kin_prev)
 	{
-		if (!self.e_kin_max_is_init)
-		{
-			self.e_kin_max_is_init = true;
-			self.e_kin_max = self.e_kin_prev;
-		}
-
 		// reset pcl velocity
 		for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
 		{
@@ -327,32 +323,14 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 			pcl.vy = 0.0;
 		}
 		self.e_kin_prev = 0.0;
+
+		//if (self.e_kin_ratio < self.e_kin_ratio_bound &&
+		//	self.f_ub_ratio < self.f_ub_ratio_bound)
+		//	return 2;
+		return 1;
 	}
-	else
-	{
-		self.e_kin_prev = e_kin;
-	}
-
-	if (self.e_kin_max_is_init)
-		self.e_kin_ratio = sqrt(self.e_kin_prev / self.e_kin_max);
-
-	//// output to file
-	//if (self.substep_num % 100 == 1)
-	//{
-	//	const char *rcd_str = "%lf, %lf, %lf, %lf, %lf, %lf\n";
-	//	char rcd[100];
-	//	snprintf(rcd, sizeof(rcd) / sizeof(rcd[0]), rcd_str,
-	//		self.current_time, self.f_ub_ratio, self.e_kin_ratio, f_ub, e_kin,
-	//		md.pcls[20].s22);
-	//	self.out_file.write(rcd, strlen(rcd));
-	//}
-
-	if (e_kin < self.e_kin_prev)
-		if (self.e_kin_ratio < self.e_kin_ratio_bound &&
-			self.f_ub_ratio  < self.f_ub_ratio_bound)
-			return 2;
-		else
-			return 1;
+	
+	self.e_kin_prev = self.e_kin;
 	
 	// update displacement increment of both phases
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)

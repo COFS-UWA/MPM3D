@@ -24,15 +24,23 @@ void test_t2d_chm_s_test_restart_consolidation_step_result(int argc, char** argv
 void test_t2d_me_s_test_rigid_circle_result(int argc, char** argv);
 void test_t2d_chm_s_test_rigid_circle_result(int argc, char** argv);
 
+void test_t3d_me_s_1d_compression_result(int argc, char **argv);
+void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv);
+
+// parallelism
+void test_t2d_me_p_geostatic_result(int argc, char** argv);
+void test_t2d_me_p_test_result(int argc, char** argv);
+void test_t2d_me_p_1d_compression_result(int argc, char** argv);
+void test_t2d_me_p_rigid_circle_penetration_result(int argc, char** argv);
+
+// shallow pipe embedment
+// chm
 void test_t2d_chm_s_pipe_conference_geo_result(int argc, char** argv);
 void test_t2d_chm_s_pipe_conference_restart1_result(int argc, char** argv);
 void test_t2d_chm_s_pipe_conference_restart2_result(int argc, char** argv);
 
-void test_t3d_me_s_1d_compression_result(int argc, char **argv);
-void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv);
-
-void test_t2d_me_p_test_result(int argc, char** argv);
-void test_t2d_me_p_1d_compression_result(int argc, char** argv);
-void test_t2d_me_p_rigid_circle_penetration_result(int argc, char** argv);
+// completely drained or undrained
+void test_t2d_me_s_pipe_conference_geo_result(int argc, char** argv);
+void test_t2d_me_s_pipe_conference_restart_result(int argc, char** argv);
 
 #endif

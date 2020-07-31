@@ -1,12 +1,12 @@
 #include "Simulations_pcp.h"
 
-#include "Model_T2D_ME_s.h"
-#include "Step_T2D_ME_s_Geo.h"
-#include "Model_T2D_ME_s_hdf5_utilities.h"
+#include "Model_T2D_ME_p.h"
+#include "Step_T2D_ME_p_Geo.h"
+#include "Model_T2D_ME_p_hdf5_utilities.h"
 
-#include "TimeHistory_T2D_ME_s_Geo_complete.h"
+#include "TimeHistory_T2D_ME_p_Geo_complete.h"
 
-int TimeHistory_T2D_ME_s_Geo_complete::init()
+int TimeHistory_T2D_ME_p_Geo_complete::init()
 {
 	if (is_init)
 		return 0;
@@ -31,7 +31,7 @@ int TimeHistory_T2D_ME_s_Geo_complete::init()
 	return 0;
 }
 
-void TimeHistory_T2D_ME_s_Geo_complete::close()
+void TimeHistory_T2D_ME_p_Geo_complete::close()
 {
 	const char* res_file_type = res_file->get_type();
 	if (!strcmp(res_file_type, "ResultFile_XML"))
@@ -51,12 +51,12 @@ void TimeHistory_T2D_ME_s_Geo_complete::close()
 	is_init = false;
 }
 
-int time_history_output_func_t2d_me_s_geo_complete_to_xml_res_file(TimeHistory &_self)
+int time_history_output_func_t2d_me_p_geo_complete_to_xml_res_file(TimeHistory &_self)
 {
-	TimeHistory_T2D_ME_s_Geo_complete &th
-		= static_cast<TimeHistory_T2D_ME_s_Geo_complete &>(_self);
-	Model_T2D_ME_s& model = static_cast<Model_T2D_ME_s&>(th.get_model());
-	Step_T2D_ME_s_Geo &step = static_cast<Step_T2D_ME_s_Geo &>(th.get_step());
+	TimeHistory_T2D_ME_p_Geo_complete &th
+		= static_cast<TimeHistory_T2D_ME_p_Geo_complete &>(_self);
+	Model_T2D_ME_p& model = static_cast<Model_T2D_ME_p&>(th.get_model());
+	Step_T2D_ME_p_Geo &step = static_cast<Step_T2D_ME_p_Geo &>(th.get_step());
 	ResultFile_XML &rf = static_cast<ResultFile_XML &>(*th.res_file);
 	std::fstream &file = rf.get_file();
 	
@@ -77,7 +77,7 @@ int time_history_output_func_t2d_me_s_geo_complete_to_xml_res_file(TimeHistory &
 	
 	//  material points data
 	size_t pcl_num = model.get_pcl_num();
-	Model_T2D_ME_s::Particle *pcls = model.get_pcls();
+	Model_T2D_ME_p::Particle *pcls = model.get_pcls();
 	const char *material_point_info = ""
 		"    <MaterialPointObject>\n"
 		"        <pcl_num> %zu </pcl_num>\n";
@@ -88,7 +88,7 @@ int time_history_output_func_t2d_me_s_geo_complete_to_xml_res_file(TimeHistory &
 			"        <!-- x, y, vol, p, n, s11, s22, s12 -->\n";
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		Model_T2D_ME_s::Particle &pcl = pcls[pcl_id];
+		Model_T2D_ME_p::Particle &pcl = pcls[pcl_id];
 		file << "        ";
 		snprintf(str_buffer, str_buffer_len, "%16.10e", pcl.x);
 		file << str_buffer << ", ";
@@ -112,17 +112,17 @@ int time_history_output_func_t2d_me_s_geo_complete_to_xml_res_file(TimeHistory &
 	return 0;
 }
 
-int time_history_output_func_t2d_me_s_geo_complete_to_hdf5_res_file(TimeHistory &_self)
+int time_history_output_func_t2d_me_p_geo_complete_to_hdf5_res_file(TimeHistory &_self)
 {
-	TimeHistory_T2D_ME_s_Geo_complete &th = static_cast<TimeHistory_T2D_ME_s_Geo_complete &>(_self);
-	Step_T2D_ME_s_Geo &step = static_cast<Step_T2D_ME_s_Geo &>(th.get_step());
-	Model_T2D_ME_s &md = static_cast<Model_T2D_ME_s &>(step.get_model());
+	TimeHistory_T2D_ME_p_Geo_complete &th = static_cast<TimeHistory_T2D_ME_p_Geo_complete &>(_self);
+	Step_T2D_ME_p_Geo &step = static_cast<Step_T2D_ME_p_Geo &>(th.get_step());
+	Model_T2D_ME_p &md = static_cast<Model_T2D_ME_p &>(step.get_model());
 	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(*th.res_file);
 
 	char frame_name[30];
 	snprintf(frame_name, 30, "frame_%zu", th.output_id);
 	hid_t frame_grp_id = rf.create_group(th.th_id, frame_name);
-
+	
 	rf.write_attribute(frame_grp_id, "current_time", step.get_current_time());
 	rf.write_attribute(frame_grp_id, "total_time", step.get_total_time());
 	rf.write_attribute(frame_grp_id, "substep_num", step.get_substep_index());
@@ -133,7 +133,7 @@ int time_history_output_func_t2d_me_s_geo_complete_to_hdf5_res_file(TimeHistory 
 	rf.write_attribute(frame_grp_id, "kinetic_energy", step.get_kinetic_energy());
 	rf.write_attribute(frame_grp_id, "kinetic_energy_ratio", step.get_kinetic_energy_ratio());
 
-	using Model_T2D_ME_s_hdf5_utilities::time_history_complete_output_to_hdf5_file;
+	using Model_T2D_ME_p_hdf5_utilities::time_history_complete_output_to_hdf5_file;
 	time_history_complete_output_to_hdf5_file(md, rf, frame_grp_id);
 
 	rf.close_group(frame_grp_id);
@@ -141,7 +141,7 @@ int time_history_output_func_t2d_me_s_geo_complete_to_hdf5_res_file(TimeHistory 
 	return 0;
 }
 
-void TimeHistory_T2D_ME_s_Geo_complete::finalize_per_step()
+void TimeHistory_T2D_ME_p_Geo_complete::finalize_per_step()
 {
 	// output the last frame
 	output();

@@ -40,26 +40,33 @@ public:
 		model = prev_step.model;
 	}
 
+	// convergence criteria
+	inline void set_unbalanced_nodal_force_ratio_bound(double bound = 0.0) { f_ub_ratio_bound = bound; }
+	inline void set_kinetic_energy_ratio_bound(double bound = 0.0) { e_kin_ratio_bound = bound; }
+
 	inline void set_damping_ratio(double _ratio) noexcept { damping_ratio = _ratio; }
+
+	// unbalanced nodal force
+	inline double get_nf_ub() const noexcept { return sqrt(f_ub); }
+	inline double get_nf_ub_ratio() const noexcept { return f_ub_ratio; }
+	// kinetic energy
+	inline double get_kinetic_energy() const noexcept { return 0.5 * e_kin; }
+	inline double get_kinetic_energy_ratio() const noexcept { return e_kin_ratio; }
 
 protected:
 	// convergence criteria
 	// unbalanced force
+	double f_ub;
 	double init_f_ub;
-	bool init_f_ub_is_init;
 	double f_ub_ratio;
 	// maximum kinematic energy
+	double e_kin;
 	double e_kin_max;
-	bool e_kin_max_is_init;
 	double e_kin_prev;
 	double e_kin_ratio;
 
 	double f_ub_ratio_bound;
 	double e_kin_ratio_bound;
-
-	// for debugging
-//public:
-//	std::fstream out_file;
 };
 
 #endif

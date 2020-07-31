@@ -55,7 +55,7 @@ int Step::solve()
 	return 0;
 }
 
-int solve_substep_base(void *_self) { return 0; }
+//int solve_substep_base(void *_self) { return 0; }
 
 int Step::init_time_history()
 {

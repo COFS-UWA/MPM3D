@@ -62,17 +62,6 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_test_rigid_circle(argc, argv);
 	//test_t2d_chm_s_test_rigid_circle_result(argc, argv);
 
-	// pipe embedment simulation for conference
-	// geostatic step
-	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
-	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
-	// penetration step 1
-	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);
-	//test_t2d_chm_s_pipe_conference_restart1_result(argc, argv);
-	// penetration step 2
-	//test_t2d_chm_s_pipe_conference_restart2(argc, argv);
-	//test_t2d_chm_s_pipe_conference_restart2_result(argc, argv);
-
 	//test_t3d_me_s_1d_compression(argc, argv);
 	//test_t3d_me_s_1d_compression_result(argc, argv);
 
@@ -83,15 +72,36 @@ int main(int argc, char *argv[])
 	//test_fem_t3d_me_s_1d_compression2(argc, argv);
 
 	// parallelism
+	//test_t2d_me_p_geostatic(argc, argv);
+	test_t2d_me_p_geostatic_result(argc, argv);
+
 	//test_t2d_me_p_test(argc, argv);
 	//test_t2d_me_p_test_result(argc, argv);
 
 	//test_t2d_me_p_1d_compression(argc, argv);
 	//test_t2d_me_p_1d_compression_result(argc, argv);
 
-	test_t2d_me_p_rigid_circle_penetration(argc, argv);
+	//test_t2d_me_p_rigid_circle_penetration(argc, argv);
 	//test_t2d_me_p_rigid_circle_penetration_result(argc, argv);
 
-	system("pause");
+	// pipe embedment simulation for conference
+	// coupled hydro-mechanics
+	// geostatic step
+	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
+	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
+	// penetration step 1
+	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);
+	//test_t2d_chm_s_pipe_conference_restart1_result(argc, argv);
+	// penetration step 2
+	//test_t2d_chm_s_pipe_conference_restart2(argc, argv);
+	//test_t2d_chm_s_pipe_conference_restart2_result(argc, argv);
+
+	// completely drained
+	//test_t2d_me_s_pipe_conference_geo(argc, argv);
+	//test_t2d_me_s_pipe_conference_geo_result(argc, argv);
+	//test_t2d_me_s_pipe_conference_restart(argc, argv);
+	//test_t2d_me_s_pipe_conference_restart_result(argc, argv);
+
+	//system("pause");
 	return 0;
 }

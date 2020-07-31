@@ -1,26 +1,25 @@
 #include "Simulations_pcp.h"
 
 #include <cmath>
-#include <iostream>
 
 #include "MaterialModel.h"
-#include "Step_T2D_ME_p.h"
+#include "Step_T2D_ME_p_Geo.h"
 
-Step_T2D_ME_p::Step_T2D_ME_p(const char* _name) :
-	Step(_name, "Step_T2D_ME_p", &solve_substep_T2D_ME_p),
+Step_T2D_ME_p_Geo::Step_T2D_ME_p_Geo(const char* _name) :
+	Step(_name, "Step_T2D_ME_p_Geo", &solve_substep_T2D_ME_p_geo),
 	model(nullptr), damping_ratio(0.0),
-	thread_num(0), not_yet_completed(false), thread_data_mem(nullptr)
+	f_ub_ratio_bound(0.0), e_kin_ratio_bound(0.0),
+	thread_num(0), not_yet_completed(false)
 {
 
 }
 
-Step_T2D_ME_p::~Step_T2D_ME_p()
+Step_T2D_ME_p_Geo::~Step_T2D_ME_p_Geo()
 {
 	join_all_threads();
-	clear_thread_data();
 }
 
-int Step_T2D_ME_p::init_calculation()
+int Step_T2D_ME_p_Geo::init_calculation()
 {
 	Model_T2D_ME_p &md = *model;
 
@@ -29,16 +28,41 @@ int Step_T2D_ME_p::init_calculation()
 		md.init_bcs();
 	}
 
+	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+	{
+		Element& e = md.elems[e_id];
+		e.pcls = nullptr;
+	}
+
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle& pcl = md.pcls[pcl_id];
-		pcl.pe = md.elems;
+		pcl.pe = md.find_in_which_element(pcl);
+		if (!pcl.pe)
+			continue;
+
 		pcl.vol = pcl.m / pcl.density;
-		pcl.x_ori = pcl.x;
-		pcl.y_ori = pcl.y;
-		pcl.ux = 0.0;
-		pcl.uy = 0.0;
+		
+		Element& e = *pcl.pe;
+		e.has_mp = true;
+		e.add_pcl(pcl);
+
+		Node& n1 = md.nodes[e.n1];
+		n1.has_mp = true;
+		Node& n2 = md.nodes[e.n2];
+		n2.has_mp = true;
+		Node& n3 = md.nodes[e.n3];
+		n3.has_mp = true;
 	}
+
+	// convergence criteria
+	// unbalanced force
+	init_f_ub = 0.0;
+	f_ub_ratio = 1.0;
+	// kinematic energy
+	e_kin_max = 0.0;
+	e_kin_prev = 0.0;
+	e_kin_ratio = 1.0;
 
 	// start calculation
 	if (thread_num == 0)
@@ -48,56 +72,45 @@ int Step_T2D_ME_p::init_calculation()
 	not_yet_completed.store(true, std::memory_order_relaxed);
 	step_barrier.set_thread_num(thread_num);
 	cal_barrier.set_thread_num(thread_num);
-	// init thread wise data
-	alloc_thread_data();
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-	{
-		ThreadData& th_data = *pth_datas[th_id];
-		th_data.not_combined_yet.test_and_set(std::memory_order_relaxed);
-	}
 
 	// spawn threads
 	spawn_all_threads();
-	
 	step_barrier.wait_for_others();
+
 	return 0;
 }
 
-int Step_T2D_ME_p::finalize_calculation()
+int Step_T2D_ME_p_Geo::finalize_calculation()
 {
 	join_all_threads();
-	clear_thread_data();
+
+	Model_T2D_ME_p& md = *model;
+	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
+	{
+		Particle &pcl = md.pcls[pcl_id];
+		pcl.vx = 0.0;
+		pcl.vy = 0.0;
+		pcl.e11 = 0.0;
+		pcl.e22 = 0.0;
+		pcl.e12 = 0.0;
+	}
+
 	return 0;
 }
 
-void Step_T2D_ME_p::spawn_all_threads()
+void Step_T2D_ME_p_Geo::spawn_all_threads()
 {
 	Model_T2D_ME_p& md = *model;
-	if (!md.rigid_circle_is_valid()) // no rigid circle
+	if (thread_num > 1)
 	{
-		cal_substep_func = &solve_substep_T2D_ME_p;
-		if (thread_num > 1)
-		{
-			size_t spawn_thread_num = thread_num - 1;
-			cal_threads.resize(spawn_thread_num);
-			for (unsigned int th_id = 0; th_id < spawn_thread_num; ++th_id)
-				cal_threads[th_id] = std::thread(&Step_T2D_ME_p::cal_thread_func, this, th_id + 1);
-		}
-	}
-	else // has rigid circle
-	{
-		cal_substep_func = &solve_substep_T2D_ME_p_RigidCircle;
-		if (thread_num > 1)
-		{
-			size_t spawn_thread_num = thread_num - 1;
-			cal_threads.resize(spawn_thread_num);
-			for (unsigned int th_id = 0; th_id < spawn_thread_num; ++th_id)
-				cal_threads[th_id] = std::thread(&Step_T2D_ME_p::cal_thread_func_RigidCircle, this, th_id + 1);
-		}
+		size_t spawn_thread_num = thread_num - 1;
+		cal_threads.resize(spawn_thread_num);
+		for (unsigned int th_id = 0; th_id < spawn_thread_num; ++th_id)
+			cal_threads[th_id] = std::thread(&Step_T2D_ME_p_Geo::cal_thread_func, this, th_id + 1);
 	}
 }
 
-void Step_T2D_ME_p::join_all_threads()
+void Step_T2D_ME_p_Geo::join_all_threads()
 {
 	if (not_yet_completed.load(std::memory_order_relaxed))
 	{
@@ -109,53 +122,12 @@ void Step_T2D_ME_p::join_all_threads()
 	}
 }
 
-void Step_T2D_ME_p::alloc_thread_data()
-{
-	Model_T2D_ME_p& md = *model;
-	size_t th_data_pt_size = sizeof(ThreadData **) * thread_num;
-	size_t th_elem_data_pt_size = sizeof(ThreadElemData **) * thread_num;
-	size_t thread_data_size = sizeof(ThreadData) + sizeof(ThreadElemData) * md.elem_num;
-	size_t total_data_size = th_data_pt_size + th_elem_data_pt_size
-						   + thread_data_size * thread_num;
-	thread_data_mem = new char[total_data_size];
-
-	pth_datas = reinterpret_cast<ThreadData**>(thread_data_mem);
-	pth_elem_datas = reinterpret_cast<ThreadElemData **>(thread_data_mem + th_data_pt_size);
-	char* data_address = thread_data_mem + th_data_pt_size + th_elem_data_pt_size;
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-	{
-		pth_datas[th_id] = reinterpret_cast<ThreadData *>(data_address + thread_data_size * th_id);
-		pth_elem_datas[th_id] = reinterpret_cast<ThreadElemData *>((char *)(pth_datas[th_id]) + sizeof(ThreadData));
-		
-#ifdef _DEBUG
-		ThreadElemData *cur_elem_datas = pth_elem_datas[th_id];
-		for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
-			cur_elem_datas[e_id].elem_id = e_id;
-#endif
-	}
-}
-
-void Step_T2D_ME_p::clear_thread_data()
-{
-	if (thread_data_mem)
-	{
-		delete[] thread_data_mem;
-		thread_data_mem = nullptr;
-	}
-}
-
-void Step_T2D_ME_p::cal_thread_func(unsigned int th_id)
+void Step_T2D_ME_p_Geo::cal_thread_func(unsigned int th_id)
 {
 	step_barrier.wait();
 
 	while (not_yet_completed.load(std::memory_order_relaxed))
 	{
-		init_cal_vars(th_id);
-		cal_barrier.wait();
-
-		find_pcls_in_which_elems(th_id);
-		cal_barrier.wait();
-
 		map_pcl_vars_to_nodes_at_elems(th_id);
 		cal_barrier.wait();
 
@@ -165,9 +137,15 @@ void Step_T2D_ME_p::cal_thread_func(unsigned int th_id)
 		apply_a_and_v_bcs(th_id);
 		cal_barrier.wait();
 
+		if (terminate_this_substep.load(std::memory_order_relaxed))
+		{
+			step_barrier.wait();
+			continue;
+		}
+
 		cal_de_at_elem(th_id);
 		cal_barrier.wait();
-		
+
 		map_de_vol_from_elem_to_node(th_id);
 		cal_barrier.wait();
 
@@ -176,57 +154,94 @@ void Step_T2D_ME_p::cal_thread_func(unsigned int th_id)
 	}
 }
 
-int solve_substep_T2D_ME_p(void* _self)
+int solve_substep_T2D_ME_p_geo(void *_self)
 {
 	typedef Model_T2D_ME_p::Node Node;
 	typedef Model_T2D_ME_p::Element Element;
 	typedef Model_T2D_ME_p::Particle Particle;
-	typedef Step_T2D_ME_p::ThreadData ThreadData;
-	typedef Step_T2D_ME_p::ThreadElemData ThreadElemData;
 
-	Step_T2D_ME_p &self = *static_cast<Step_T2D_ME_p *>(_self);
-	Model_T2D_ME_p &md = static_cast<Model_T2D_ME_p &>(self.get_model());
+	Step_T2D_ME_p_Geo &self = *(Step_T2D_ME_p_Geo *)(_self);
+	Model_T2D_ME_p &md = *self.model;
 
-	self.cur_node_id.store(0);
-	self.cur_elem_id.store(0);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.step_barrier.lift_barrier();
-	self.init_cal_vars(0);
-	self.cal_barrier.wait_for_others();
-
-	self.cur_pcl_id.store(0);
-	self.cal_barrier.lift_barrier();
-	self.find_pcls_in_which_elems(0);
-	self.cal_barrier.wait_for_others();
-
-	self.cur_elem_id.store(0);
-	self.cal_barrier.lift_barrier();
 	self.map_pcl_vars_to_nodes_at_elems(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_node_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.update_node_a_and_v(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_ax_bc_id.store(0);
-	self.cur_ay_bc_id.store(0);
-	self.cur_vx_bc_id.store(0);
-	self.cur_vy_bc_id.store(0);
+	self.cur_ax_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_ay_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_vx_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_vy_bc_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.apply_a_and_v_bcs(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_elem_id.store(0);
+	// unbalanced nodal force and kinetic energy
+	self.f_ub = 0.0;
+	self.e_kin = 0.0;
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	{
+		Node& n = md.nodes[n_id];
+		if (n.has_mp)
+		{
+			self.f_ub += n.m * n.m * (n.ax * n.ax + n.ay * n.ay);
+			self.e_kin += n.m * (n.vx * n.vx + n.vy * n.vy);
+		}
+	}
+
+	if (self.substep_index == 0) // initial step
+	{
+		self.init_f_ub = self.f_ub;
+		self.e_kin_max = self.e_kin;
+	}
+	else
+	{
+		if (self.e_kin_max < self.e_kin)
+			self.e_kin_max = self.e_kin;
+	}
+
+	self.f_ub_ratio = sqrt(self.f_ub / self.init_f_ub);
+	self.e_kin_ratio = sqrt(self.e_kin / self.e_kin_max);
+
+	self.terminate_this_substep.store(false, std::memory_order_relaxed);
+	if (self.e_kin < self.e_kin_prev)
+	{
+		// reset pcl velocity
+		for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+		{
+			Particle& pcl = md.pcls[p_id];
+			pcl.vx = 0.0;
+			pcl.vy = 0.0;
+		}
+		self.e_kin_prev = 0.0;
+
+		//if (self.e_kin_ratio < self.e_kin_ratio_bound &&
+		//	  self.f_ub_ratio < self.f_ub_ratio_bound)
+		//		return
+		self.terminate_this_substep.store(true, std::memory_order_relaxed);
+		self.cal_barrier.lift_barrier();
+		self.step_barrier.wait_for_others();
+		return 0;
+	}
+	
+	self.e_kin_prev = self.e_kin;
+
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.cal_de_at_elem(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_node_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.map_de_vol_from_elem_to_node(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_pcl_id.store(0);
+	self.cur_pcl_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.update_pcl_vars(0);
 
@@ -234,104 +249,24 @@ int solve_substep_T2D_ME_p(void* _self)
 	return 0;
 }
 
-void Step_T2D_ME_p::init_cal_vars(unsigned int th_id)
+void Step_T2D_ME_p_Geo::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	// init nodes
-	for (size_t n_id = cur_node_id++; n_id < md.node_num; n_id = cur_node_id++)
-	{
-		Node& n = md.nodes[n_id];
-		n.has_mp = false;
-	}
-
-	// init elements
-	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
+	for (size_t e_id = cur_elem_id.fetch_add(1, std::memory_order_relaxed);
+		 e_id < md.elem_num;
+		 e_id = cur_elem_id.fetch_add(1, std::memory_order_relaxed))
 	{
 		Element& e = md.elems[e_id];
-		e.has_mp = false;
-	}
-}
-
-void Step_T2D_ME_p::find_pcls_in_which_elems(unsigned int th_id)
-{
-	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
-	ThreadData& th_data = *pth_datas[th_id];
-	ThreadElemData *th_elem_datas = pth_elem_datas[th_id];
-
-	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
-		th_elem_datas[e_id].init();
-	
-	size_t pe_id;
-	for (size_t pcl_id = cur_pcl_id++; pcl_id < md.pcl_num; pcl_id = cur_pcl_id++)
-	{
-		Particle &pcl = md.pcls[pcl_id];
-		
-		if (pcl.pe == nullptr)
-			continue;
-
-		pcl.pe = md.find_in_which_element(pcl);
-		if (pcl.pe == nullptr)
-			continue;
-		
-		pe_id = pcl.pe->id;
-		th_elem_datas[pe_id].add_pcl(pcl);
-
-		Element& e = md.elems[pe_id];
-		e.has_mp = true;
-	}
-
-	// combine the pcl list in each element
-	size_t stride = 2;
-	size_t half_stride = 1;
-	size_t oth_id;
-	while (half_stride < thread_num)
-	{
-		if (th_id & (stride - 1))
-			break;
-
-		oth_id = th_id + half_stride;
-
-		if (oth_id < thread_num)
-		{
-			ThreadData& oth_data = *pth_datas[oth_id];
-			ThreadElemData* oth_elem_data = pth_elem_datas[oth_id];
-			while (oth_data.not_combined_yet.test_and_set(std::memory_order_relaxed));
-			// combine the data
-			for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
-				th_elem_datas[e_id].combine(oth_elem_data[e_id]);
-		}
-
-		stride = stride << 1;
-		half_stride = half_stride << 1;
-	}
-
-	th_data.not_combined_yet.clear(std::memory_order_relaxed);
-}
-
-void Step_T2D_ME_p::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
-{
-	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
-	
-	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
-	{
-		Element &e = md.elems[e_id];
 
 		if (!e.has_mp)
 			continue;
-		
+
 		e.mi_pcl_vol = 0.0;
 		e.s11 = 0.0;
 		e.s22 = 0.0;
 		e.s12 = 0.0;
-		
-		Node &n1 = md.nodes[e.n1];
-		Node &n2 = md.nodes[e.n2];
-		Node &n3 = md.nodes[e.n3];
-		n1.has_mp = true;
-		n2.has_mp = true;
-		n3.has_mp = true;
-		
+
 		NodeVarAtElem& nv1 = e.node_vars[0];
 		NodeVarAtElem& nv2 = e.node_vars[1];
 		NodeVarAtElem& nv3 = e.node_vars[2];
@@ -339,8 +274,7 @@ void Step_T2D_ME_p::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
 		nv2.init();
 		nv3.init();
 
-		e.pcls = pth_elem_datas[0][e_id].get_top_pcl();
-		for (Particle * ppcl = e.first_pcl(); e.not_last_pcl(ppcl);
+		for (Particle* ppcl = e.first_pcl(); e.not_last_pcl(ppcl);
 			 ppcl = e.next_pcl(ppcl))
 		{
 			Particle& pcl = *ppcl;
@@ -402,13 +336,15 @@ void Step_T2D_ME_p::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
 	}
 }
 
-void Step_T2D_ME_p::update_node_a_and_v(unsigned int th_id)
+void Step_T2D_ME_p_Geo::update_node_a_and_v(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	for (size_t n_id = cur_node_id++; n_id < md.node_num; n_id = cur_node_id++)
+	for (size_t n_id = cur_node_id.fetch_add(1, std::memory_order_relaxed);
+		 n_id < md.node_num;
+		 n_id = cur_node_id.fetch_add(1, std::memory_order_relaxed))
 	{
-		Node &n = md.nodes[n_id];
+		Node& n = md.nodes[n_id];
 
 		if (!n.has_mp)
 			continue;
@@ -445,11 +381,13 @@ void Step_T2D_ME_p::update_node_a_and_v(unsigned int th_id)
 	}
 }
 
-void Step_T2D_ME_p::apply_a_and_v_bcs(unsigned int th_id)
+void Step_T2D_ME_p_Geo::apply_a_and_v_bcs(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	for (size_t a_id = cur_ax_bc_id++; a_id < md.ax_num; a_id = cur_ax_bc_id++)
+	for (size_t a_id = cur_ax_bc_id.fetch_add(1, std::memory_order_relaxed);
+		 a_id < md.ax_num;
+		 a_id = cur_ax_bc_id.fetch_add(1, std::memory_order_relaxed))
 	{
 		Node& n = md.nodes[md.axs[a_id].node_id];
 		n.ax = md.axs[a_id].a;
@@ -457,7 +395,9 @@ void Step_T2D_ME_p::apply_a_and_v_bcs(unsigned int th_id)
 		n.dux = n.vx * dtime;
 	}
 
-	for (size_t a_id = cur_ay_bc_id++; a_id < md.ay_num; a_id = cur_ay_bc_id++)
+	for (size_t a_id = cur_ay_bc_id.fetch_add(1, std::memory_order_relaxed);
+		 a_id < md.ay_num;
+		 a_id = cur_ay_bc_id.fetch_add(1, std::memory_order_relaxed))
 	{
 		Node& n = md.nodes[md.ays[a_id].node_id];
 		n.ay = md.ays[a_id].a;
@@ -465,7 +405,9 @@ void Step_T2D_ME_p::apply_a_and_v_bcs(unsigned int th_id)
 		n.duy = n.vy * dtime;
 	}
 
-	for (size_t v_id = cur_vx_bc_id++; v_id < md.vx_num; v_id = cur_vx_bc_id++)
+	for (size_t v_id = cur_vx_bc_id.fetch_add(1, std::memory_order_relaxed);
+		 v_id < md.vx_num;
+		 v_id = cur_vx_bc_id.fetch_add(1, std::memory_order_relaxed))
 	{
 		Node& n = md.nodes[md.vxs[v_id].node_id];
 		n.ax = 0.0;
@@ -473,7 +415,9 @@ void Step_T2D_ME_p::apply_a_and_v_bcs(unsigned int th_id)
 		n.dux = n.vx * dtime;
 	}
 
-	for (size_t v_id = cur_vy_bc_id++; v_id < md.vy_num; v_id = cur_vy_bc_id++)
+	for (size_t v_id = cur_vy_bc_id.fetch_add(1, std::memory_order_relaxed);
+		 v_id < md.vy_num;
+		 v_id = cur_vy_bc_id.fetch_add(1, std::memory_order_relaxed))
 	{
 		Node& n = md.nodes[md.vys[v_id].node_id];
 		n.ay = 0.0;
@@ -482,18 +426,20 @@ void Step_T2D_ME_p::apply_a_and_v_bcs(unsigned int th_id)
 	}
 }
 
-void Step_T2D_ME_p::cal_de_at_elem(unsigned int th_id)
+void Step_T2D_ME_p_Geo::cal_de_at_elem(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
 	double de11, de22;
-	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
+	for (size_t e_id = cur_elem_id.fetch_add(1, std::memory_order_relaxed);
+		 e_id < md.elem_num;
+		 e_id = cur_elem_id.fetch_add(1, std::memory_order_relaxed))
 	{
-		Element &e = md.elems[e_id];
-		
+		Element& e = md.elems[e_id];
+
 		if (!e.has_mp)
 			continue;
-	
+
 		Node& n1 = md.nodes[e.n1];
 		Node& n2 = md.nodes[e.n2];
 		Node& n3 = md.nodes[e.n3];
@@ -504,14 +450,14 @@ void Step_T2D_ME_p::cal_de_at_elem(unsigned int th_id)
 		e.dde22 = de22 - e.de_vol_by_3;
 		e.de12 = (n1.dux * e.dN1_dy + n2.dux * e.dN2_dy + n3.dux * e.dN3_dy
 				+ n1.duy * e.dN1_dx + n2.duy * e.dN2_dx + n3.duy * e.dN3_dx) * 0.5;
-	
+
 		// strain enhancement
 		NodeVarAtElem& nv1 = e.node_vars[0];
 		NodeVarAtElem& nv2 = e.node_vars[1];
 		NodeVarAtElem& nv3 = e.node_vars[2];
 		double N_vol;
 		for (Particle* ppcl = e.first_pcl(); e.not_last_pcl(ppcl);
-			 ppcl = e.next_pcl(ppcl))
+			ppcl = e.next_pcl(ppcl))
 		{
 			Particle& pcl = *ppcl;
 			// node 1
@@ -530,14 +476,16 @@ void Step_T2D_ME_p::cal_de_at_elem(unsigned int th_id)
 	}
 }
 
-void Step_T2D_ME_p::map_de_vol_from_elem_to_node(unsigned int th_id)
+void Step_T2D_ME_p_Geo::map_de_vol_from_elem_to_node(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	for (size_t n_id = cur_node_id++; n_id < md.node_num; n_id = cur_node_id++)
+	for (size_t n_id = cur_node_id.fetch_add(1, std::memory_order_relaxed);
+		 n_id < md.node_num;
+		 n_id = cur_node_id.fetch_add(1, std::memory_order_relaxed))
 	{
 		Node& n = md.nodes[n_id];
-		
+
 		if (!n.has_mp)
 			continue;
 
@@ -546,7 +494,7 @@ void Step_T2D_ME_p::map_de_vol_from_elem_to_node(unsigned int th_id)
 		for (size_t e_id = 0; e_id < n.n2e_num; ++e_id)
 		{
 			NodeToElem& n2e = n.n2es[e_id];
-			Element &e = md.elems[n2e.e_id];
+			Element& e = md.elems[n2e.e_id];
 			if (e.has_mp)
 			{
 				NodeVarAtElem& nv = e.node_vars[n2e.n_id];
@@ -558,12 +506,14 @@ void Step_T2D_ME_p::map_de_vol_from_elem_to_node(unsigned int th_id)
 	}
 }
 
-void Step_T2D_ME_p::update_pcl_vars(unsigned int th_id)
+void Step_T2D_ME_p_Geo::update_pcl_vars(unsigned int th_id)
 {
-	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p *>(model);
-	
+	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
+
 	double de_vol_by_3, de11, de22, de12;
-	for (size_t pcl_id = cur_pcl_id++; pcl_id < md.pcl_num; pcl_id = cur_pcl_id++)
+	for (size_t pcl_id = cur_pcl_id.fetch_add(1, std::memory_order_relaxed);
+		 pcl_id < md.pcl_num;
+		 pcl_id = cur_pcl_id.fetch_add(1, std::memory_order_relaxed))
 	{
 		Particle& pcl = md.pcls[pcl_id];
 		if (!pcl.pe)
@@ -578,16 +528,7 @@ void Step_T2D_ME_p::update_pcl_vars(unsigned int th_id)
 		pcl.vx += (n1.ax * pcl.N1 + n2.ax * pcl.N2 + n3.ax * pcl.N3) * dtime;
 		pcl.vy += (n1.ay * pcl.N1 + n2.ay * pcl.N2 + n3.ay * pcl.N3) * dtime;
 
-		// displacement
-		pcl.ux += n1.dux * pcl.N1 + n2.dux * pcl.N2 + n3.dux * pcl.N3;
-		pcl.uy += n1.duy * pcl.N1 + n2.duy * pcl.N2 + n3.duy * pcl.N3;
-
-		// update position
-		pcl.x = pcl.x_ori + pcl.ux;
-		pcl.y = pcl.y_ori + pcl.uy;
-
 		// strain
-		//de_vol_by_3 = n1.de_vol_by_3 * pcl.N1 + n2.de_vol_by_3 * pcl.N2 + n3.de_vol_by_3 * pcl.N3;
 		de_vol_by_3 = (n1.de_vol_by_3 + n2.de_vol_by_3 + n3.de_vol_by_3) / 3.0;
 		de11 = e.dde11 + de_vol_by_3;
 		de22 = e.dde22 + de_vol_by_3;
@@ -604,8 +545,5 @@ void Step_T2D_ME_p::update_pcl_vars(unsigned int th_id)
 		pcl.s11 += dstress[0];
 		pcl.s22 += dstress[1];
 		pcl.s12 += dstress[3];
-
-		// density
-		pcl.density /= 1.0 + de_vol_by_3 * 3.0;
 	}
 }

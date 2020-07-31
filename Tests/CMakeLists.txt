@@ -36,14 +36,18 @@ add_executable(
     # rigid circle
     test_t2d_me_s_test_rigid_circle.cpp
     test_t2d_chm_s_test_rigid_circle.cpp
+    # parallel version
+    test_t2d_me_p_geostatic.cpp
+    test_t2d_me_p_test.cpp
+    test_t2d_me_p_1d_compression.cpp
+    test_t2d_me_p_rigid_circle_penetration.cpp
     # shallow pipe embedment for conference
     test_t2d_chm_s_pipe_conference_geo.cpp
     test_t2d_chm_s_pipe_conference_restart1.cpp
     test_t2d_chm_s_pipe_conference_restart2.cpp
-    # parallel version
-    test_t2d_me_p_test.cpp
-    test_t2d_me_p_1d_compression.cpp
-    test_t2d_me_p_rigid_circle_penetration.cpp
+    # parallel
+    test_t2d_me_s_pipe_conference_geo.cpp
+    test_t2d_me_s_pipe_conference_restart.cpp
     # 3D
     test_stack_and_link_list.cpp
     test_model_container.cpp
