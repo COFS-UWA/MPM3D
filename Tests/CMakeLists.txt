@@ -17,6 +17,13 @@ add_executable(
     test_simulations.h
     test_model_view.h
     # unit tests
+    # utilities
+    test_stack_and_link_list.cpp
+    test_solve_functions.cpp
+    # material models
+    test_model_container.cpp
+    test_mcc_get_Su.cpp
+    test_mcc_compression.cpp
     # 2D
     # back ground searching grid
     test_searching_grid2d.cpp
@@ -49,10 +56,6 @@ add_executable(
     test_t2d_me_s_pipe_conference_geo.cpp
     test_t2d_me_s_pipe_conference_restart.cpp
     # 3D
-    test_stack_and_link_list.cpp
-    test_model_container.cpp
-    test_mcc_get_Su.cpp
-    test_solve_functions.cpp
     test_tetrahedron_mesh.cpp
     test_Model_T3D_ME_s_display.cpp
     test_searching_grid3d.cpp

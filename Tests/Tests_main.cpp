@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 	//test_stack_and_link_list();
 
 	//test_model_container();
+	test_mcc_compression();
 
 	//test_solve_functions();
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
 
 	// parallelism
 	//test_t2d_me_p_geostatic(argc, argv);
-	test_t2d_me_p_geostatic_result(argc, argv);
+	//test_t2d_me_p_geostatic_result(argc, argv);
 
 	//test_t2d_me_p_test(argc, argv);
 	//test_t2d_me_p_test_result(argc, argv);

@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "ModifiedCamClay.h"
+#include "test_material_models.h"
 
 void test_mcc_get_Su()
 {

@@ -11,5 +11,4 @@ void main()
 {
     float frag_alpha = texture(char_texture, obj_tex).r;
     frag_color = vec4(g_color, frag_alpha);
-    //frag_color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 }

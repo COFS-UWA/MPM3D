@@ -113,19 +113,19 @@ void QtController_Posp_Animation::draw_scene()
 
 namespace
 {
-void from_bgra_to_rgba(uchar* dst, uchar* src, size_t width, size_t height)
-{
-	for (size_t h_id = 0; h_id < height; ++h_id)
-		for (size_t w_id = 0; w_id < width; ++w_id)
-		{
-			dst[0] = src[2];
-			dst[1] = src[1];
-			dst[2] = src[0];
-			dst[3] = 255;
-			dst += 4;
-			src += 4;
-		}
-}
+	void from_bgra_to_rgba(uchar* dst, uchar* src, size_t width, size_t height)
+	{
+		for (size_t h_id = 0; h_id < height; ++h_id)
+			for (size_t w_id = 0; w_id < width; ++w_id)
+			{
+				dst[0] = src[2];
+				dst[1] = src[1];
+				dst[2] = src[0];
+				dst[3] = src[3];
+				dst += 4;
+				src += 4;
+			}
+	}
 }
 
 void QtController_Posp_Animation::render_next_frame()
@@ -135,12 +135,10 @@ void QtController_Posp_Animation::render_next_frame()
 	if (need_output_png)
 	{
 		snprintf(ss_name, 256, "%s\\frame_%zu.png",
-			png_name.c_str(), cur_frame_id);
-		screen_pixels = view->grab(view->geometry());
-		screen_pixels.save(ss_name, "png");
+				 png_name.c_str(), cur_frame_id);
+		view->grabFramebuffer().save(ss_name, "png");
 	}
 
-	uchar* scr_data;
 	if (need_output_gif)
 	{
 		if (!gif_file_is_init)
@@ -158,13 +156,16 @@ void QtController_Posp_Animation::render_next_frame()
 		ani_delay_100 = unsigned short(ani_delay / 10.0);
 		if (ani_delay_100 < 2)
 			ani_delay_100 = 2;
-		screen_pixels = view->grab(view->geometry());
-		screen_img = screen_pixels.toImage();
-		scr_data = screen_img_rgba.get_mem();
-		from_bgra_to_rgba(scr_data, screen_img.bits(), gif_width, gif_height);
+		screen_img = view->grabFramebuffer();
+		from_bgra_to_rgba(
+			screen_img_rgba.get_mem(),
+			screen_img.bits(),
+			gif_width,
+			gif_height
+			);
 		GifCreator::GifWriteFrame(
 			&gif_file,
-			scr_data,
+			screen_img_rgba.get_mem(),
 			gif_width,
 			gif_height,
 			ani_delay_100
@@ -177,10 +178,9 @@ void QtController_Posp_Animation::render_next_frame()
 		if (need_output_gif)
 		{
 			// output the last frame to gif
-			scr_data = screen_img_rgba.get_mem();
 			GifCreator::GifWriteFrame(
 				&gif_file,
-				scr_data,
+				screen_img_rgba.get_mem(),
 				gif_width,
 				gif_height,
 				200 // 2s

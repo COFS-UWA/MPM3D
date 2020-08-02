@@ -21,8 +21,6 @@ void test_t2d_me_s_geostatic(int argc, char** argv)
 	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	pcl_generator.adjust_pcl_size_to_fit_elems(model);
 	model.init_pcls(pcl_generator, 10.0);
-	//model.sum_vol_for_all_elements();
-	//return;
 
 	size_t pcl_num = model.get_pcl_num();
 	Model_T2D_ME_s::Particle* pcls = model.get_pcls();
@@ -127,21 +125,22 @@ void test_t2d_me_s_geostatic_result(int argc, char** argv)
 	rf.open("t2d_me_s_geostatic.h5");
 
 	// single frame
-	QtApp_Posp_T2D_ME_s app(argc, argv);
-	app.set_win_size(900, 900);
-	app.set_res_file(rf, "geostatic", 0, "s22");
-	app.set_fld_range(-11.0, -9.0);
-	app.set_color_map_pos(0.6, 0.45, 0.5); // color map legend
-	//app.set_png_name("t2d_me_1d_compression");
-	app.start();
-
-	//QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	//QtApp_Posp_T2D_ME_s app(argc, argv);
 	//app.set_win_size(900, 900);
-	//app.set_res_file(rf, "geostatic", "s22");
-	//app.set_ani_time(5.0);
+	//app.set_res_file(rf, "geostatic", 0, "s22");
 	//app.set_fld_range(-11.0, -9.0);
-	//app.set_color_map_pos(0.75, 0.5, 0.2); // color map legend
-	////app.set_png_name("t2d_me_1d_compression");
-	////app.set_gif_name("t2d_me_1d_compression");
+	//app.set_color_map_pos(0.7, 0.45, 0.5); // color map legend
+	////app.set_png_name("t2d_me_s_geostatic");
 	//app.start();
+
+	// animation
+	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	app.set_win_size(900, 900);
+	app.set_res_file(rf, "geostatic", "s22");
+	app.set_ani_time(5.0);
+	app.set_fld_range(-11.0, -9.0);
+	app.set_color_map_pos(0.7, 0.45, 0.5); // color map legend
+	//app.set_png_name("t2d_me_s_geostatic");
+	app.set_gif_name("t2d_me_s_geostatic");
+	app.start();
 }

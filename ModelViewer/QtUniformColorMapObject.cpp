@@ -554,6 +554,7 @@ void QtUniformColorMapObject::draw(
 
 	gl.glEnable(GL_BLEND);
 	gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	gl.glBindVertexArray(char_vao);
 	gl.glBindBuffer(GL_ARRAY_BUFFER, char_vbo);
 	gl.glActiveTexture(GL_TEXTURE_2D);
@@ -568,6 +569,7 @@ void QtUniformColorMapObject::draw(
 		gl.glDrawArrays(GL_TRIANGLES, 0, 6);
 		cnds += 6;
 	}
+
 	gl.glDisable(GL_BLEND);
 
 	shader_plain2D.bind();

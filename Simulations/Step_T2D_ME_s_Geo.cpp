@@ -30,9 +30,11 @@ int Step_T2D_ME_s_Geo::init_calculation()
 
 	// convergence criteria
 	// unbalanced force
+	f_ub = 0.0;
 	init_f_ub = 0.0;
 	f_ub_ratio = 1.0;
 	// kinematic energy
+	e_kin = 0.0;
 	e_kin_max = 0.0;
 	e_kin_prev = 0.0;
 	e_kin_ratio = 1.0;

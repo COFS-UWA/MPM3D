@@ -86,7 +86,6 @@ protected: // output utilities
 	GifCreator::GifWriter gif_file;
 	size_t gif_width, gif_height;
 	unsigned short ani_delay_100;
-	QPixmap screen_pixels;
 	QImage screen_img;
 	MemoryUtils::ItemArray<uchar> screen_img_rgba;
 
