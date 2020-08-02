@@ -42,5 +42,7 @@ void test_t2d_chm_s_pipe_conference_restart2_result(int argc, char** argv);
 // completely drained or undrained
 void test_t2d_me_s_pipe_conference_geo_result(int argc, char** argv);
 void test_t2d_me_s_pipe_conference_restart_result(int argc, char** argv);
+void test_t2d_me_p_pipe_conference_geo_result(int argc, char** argv);
+void test_t2d_me_p_pipe_conference_restart_result(int argc, char** argv);
 
 #endif

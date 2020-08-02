@@ -3,22 +3,22 @@
 #include "ItemArray.hpp"
 #include "utils.h"
 #include "ModifiedCamClay.h"
-#include "Model_T2D_ME_s.h"
-#include "ModelData_T2D_ME_s.h"
-#include "Step_T2D_ME_s_Geo.h"
-#include "TimeHistory_T2D_ME_s_Geo_complete.h"
+#include "Model_T2D_ME_p.h"
+#include "ModelData_T2D_ME_p.h"
+#include "Step_T2D_ME_p_Geo.h"
+#include "TimeHistory_T2D_ME_p_Geo_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
-#include "QtApp_Prep_T2D_ME_s.h"
+#include "QtApp_Prep_T2D_ME_p.h"
 
 #include "test_simulations.h"
 
-void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
+void test_t2d_me_p_pipe_conference_geo(int argc, char** argv)
 {
-	Model_T2D_ME_s model;
+	Model_T2D_ME_p model;
 	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_t_bar_conference_mesh.h5");
 	model.init_search_grid(0.05, 0.05);
 
-	ParticleGenerator2D<Model_T2D_ME_s> pcl_generator;
+	ParticleGenerator2D<Model_T2D_ME_p> pcl_generator;
 	pcl_generator.generate_pcls_in_grid_layout(Rect(-3.5, 3.5, -3.5, 0.0), 0.04, 0.04);
 	pcl_generator.generate_pcls_in_grid_layout(Rect(-3.5, 3.5, -5.0, -3.5), 0.04, 0.04);
 	pcl_generator.replace_with_pcls_in_grid_layout(Rect(-2.5, 2.5, -3.5, 0.0), 0.02, 0.02);
@@ -26,7 +26,7 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 	model.init_pcls(pcl_generator, 2650.0);
 
 	size_t pcl_num = model.get_pcl_num();
-	Model_T2D_ME_s::Particle* pcls = model.get_pcls();
+	Model_T2D_ME_p::Particle* pcls = model.get_pcls();
 	std::cout << "pcl_num: " << pcl_num << "\n";
 	// mcc
 	MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(pcl_num);
@@ -34,7 +34,7 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 	double ini_stress[6] = { -12025.0, -20000.0, -12025.0, 0.0, 0.0, 0.0 };
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		Model_T2D_ME_s::Particle& pcl = pcls[p_id];
+		Model_T2D_ME_p::Particle& pcl = pcls[p_id];
 		pcl.s11 = ini_stress[0];
 		pcl.s22 = ini_stress[1];
 		pcl.s12 = 0.0;
@@ -72,7 +72,7 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 		tbc.pcl_id = left_right_tbc_pcl_ids[t_id];
 		tbc.t = 0.04 * -20000.0;
 	}
-	
+
 	IndexArray left_right_bc_pt_array(50);
 	find_2d_nodes_on_x_line(model, left_right_bc_pt_array, -3.5);
 	find_2d_nodes_on_x_line(model, left_right_bc_pt_array, 3.5, false);
@@ -100,36 +100,36 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 		vbc.v = 0.0;
 	}
 
-	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
-	//md_disp.set_win_size(900, 900);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
-	////md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
-	////md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
+	QtApp_Prep_T2D_ME_p md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
+	//md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
+	//md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
 	//md_disp.set_pts_from_pcl_id(left_right_tbc_pt_array.get_mem(), left_right_tbc_pt_array.get_num(), 0.015);
-	//// all
-	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
-	//// left
+	// all
+	//md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	// left
 	//md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
-	//// middle
-	////md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
-	//// right
-	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
-	//md_disp.start();
-	//return;
+	// middle
+	md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
+	// right
+	//md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_me_s_pipe_conference_geo.h5");
+	res_file_hdf5.create("t2d_me_p_pipe_conference_geo.h5");
 
-	ModelData_T2D_ME_s md;
+	ModelData_T2D_ME_p md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T2D_ME_s_Geo_complete out("geostatic");
+	TimeHistory_T2D_ME_p_Geo_complete out("geostatic");
 	out.set_res_file(res_file_hdf5);
 	out.set_output_init_state();
 	TimeHistory_ConsoleProgressBar out_pb;
 	
-	Step_T2D_ME_s_Geo step_gs("geo_step");
+	Step_T2D_ME_p_Geo step_gs("geo_step");
 	step_gs.set_model(model);
 	step_gs.set_step_time(1.0);
 	step_gs.set_dtime(1.0e-5);
@@ -141,15 +141,15 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 	step_gs.solve();
 }
 
-#include "QtApp_Posp_T2D_ME_s.h"
+#include "QtApp_Posp_T2D_ME_p.h"
 #include "test_model_view.h"
 
-void test_t2d_me_s_pipe_conference_geo_result(int argc, char** argv)
+void test_t2d_me_p_pipe_conference_geo_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_s_pipe_conference_geo.h5");
+	rf.open("t2d_me_p_pipe_conference_geo.h5");
 
-	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	QtApp_Posp_T2D_ME_p app(argc, argv, QtApp_Posp_T2D_ME_p::Animation);
 	app.set_win_size(900, 900);
 	app.set_res_file(rf, "geostatic", "s22");
 	app.set_ani_time(5.0);

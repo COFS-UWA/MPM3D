@@ -49,12 +49,15 @@ add_executable(
     test_t2d_me_p_1d_compression.cpp
     test_t2d_me_p_rigid_circle_penetration.cpp
     # shallow pipe embedment for conference
+    # coupled hydro-mechanics
     test_t2d_chm_s_pipe_conference_geo.cpp
     test_t2d_chm_s_pipe_conference_restart1.cpp
     test_t2d_chm_s_pipe_conference_restart2.cpp
-    # parallel
+    # completely drained
     test_t2d_me_s_pipe_conference_geo.cpp
     test_t2d_me_s_pipe_conference_restart.cpp
+    test_t2d_me_p_pipe_conference_geo.cpp
+    test_t2d_me_p_pipe_conference_restart.cpp
     # 3D
     test_tetrahedron_mesh.cpp
     test_Model_T3D_ME_s_display.cpp
