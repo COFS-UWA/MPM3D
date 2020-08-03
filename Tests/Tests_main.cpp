@@ -11,7 +11,9 @@ int main(int argc, char *argv[])
 	//test_stack_and_link_list();
 
 	//test_model_container();
+	//test_mcc_get_Su();
 	//test_mcc_compression();
+	//test_undrained_mcc();
 
 	//test_solve_functions();
 

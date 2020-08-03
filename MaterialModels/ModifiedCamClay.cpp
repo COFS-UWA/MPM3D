@@ -4,7 +4,6 @@
 
 namespace MatModel
 {
-
 	// return value:
 	//     = 0 - elstic
 	//     > 0 - plastic
@@ -22,8 +21,8 @@ namespace MatModel
 		{
 			// stress
 			dstress[i] = De_mat[i][0] * dstrain[0] + De_mat[i][1] * dstrain[1]
-				+ De_mat[i][2] * dstrain[2] + De_mat[i][3] * dstrain[3]
-				+ De_mat[i][4] * dstrain[4] + De_mat[i][5] * dstrain[5];
+					   + De_mat[i][2] * dstrain[2] + De_mat[i][3] * dstrain[3]
+					   + De_mat[i][4] * dstrain[4] + De_mat[i][5] * dstrain[5];
 			stress[i] += dstress[i];
 			// strain
 			dstrain_e[i] = dstrain[i];
@@ -76,8 +75,8 @@ namespace MatModel
 			// correct stress
 			for (size_t i = 0; i < 6; ++i)
 				ds_cor[i] = De_mat[i][0] * dep_cor[0] + De_mat[i][1] * dep_cor[1]
-				+ De_mat[i][2] * dep_cor[2] + De_mat[i][3] * dep_cor[3]
-				+ De_mat[i][4] * dep_cor[4] + De_mat[i][5] * dep_cor[5];
+						  + De_mat[i][2] * dep_cor[2] + De_mat[i][3] * dep_cor[3]
+						  + De_mat[i][4] * dep_cor[4] + De_mat[i][5] * dep_cor[5];
 			dstress[0] -= ds_cor[0];
 			dstress[1] -= ds_cor[1];
 			dstress[2] -= ds_cor[2];
@@ -120,5 +119,4 @@ namespace MatModel
 		self.form_Dep_mat(dg_ds, divider);
 		return -1;
 	}
-
 }

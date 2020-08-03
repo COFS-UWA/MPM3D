@@ -15,6 +15,8 @@ add_library(
     LinearElasticity.h LinearElasticity.cpp
     # Modified Cam Clay
     ModifiedCamClay.h ModifiedCamClay.cpp
+    # Modified Cam Clay for completely undrained deformation
+    UndrainedModifiedCamClay.h UndrainedModifiedCamClay.cpp
     )
 
 set(MATERIALMODELS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

@@ -24,6 +24,7 @@ add_executable(
     test_model_container.cpp
     test_mcc_get_Su.cpp
     test_mcc_compression.cpp
+    test_undrained_mcc.cpp
     # 2D
     # back ground searching grid
     test_searching_grid2d.cpp

@@ -93,9 +93,6 @@ int Step_T2D_ME_p_Geo::finalize_calculation()
 		Particle &pcl = md.pcls[pcl_id];
 		pcl.vx = 0.0;
 		pcl.vy = 0.0;
-		pcl.e11 = 0.0;
-		pcl.e22 = 0.0;
-		pcl.e12 = 0.0;
 	}
 
 	return 0;
@@ -535,9 +532,6 @@ void Step_T2D_ME_p_Geo::update_pcl_vars(unsigned int th_id)
 		de11 = e.dde11 + de_vol_by_3;
 		de22 = e.dde22 + de_vol_by_3;
 		de12 = e.de12;
-		pcl.e11 += de11;
-		pcl.e22 += de22;
-		pcl.e12 += de12;
 
 		// stress
 		// update stress using constitutive model
