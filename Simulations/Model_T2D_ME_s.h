@@ -26,7 +26,7 @@ struct Node
 	double fx_int, fy_int;
 
 	// strain enhancement
-	double pcl_vol, de_vol;
+	double se_pcl_vol, de_vol_by_3;
 };
 
 struct Element;
@@ -90,11 +90,11 @@ struct Element
 	}
 
 	// mixed integration
-	double pcl_vol, s11, s22, s12;
+	double mi_pcl_vol, s11, s22, s12;
 
 	// strain enhancement apprach
 	double dde11, dde22, de12;
-	double de_vol;
+	double de_vol_by_3;
 };
 
 struct Edge { size_t n1, n2; };

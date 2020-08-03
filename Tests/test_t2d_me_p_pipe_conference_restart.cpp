@@ -10,7 +10,6 @@
 #include "TimeHistory_T2D_ME_p_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T2D_ME_p.h"
-
 #include "test_simulations.h"
 
 void test_t2d_me_p_pipe_conference_restart(int argc, char** argv)
@@ -27,19 +26,43 @@ void test_t2d_me_p_pipe_conference_restart(int argc, char** argv)
 
 	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 
-	//DisplayModel_T2D disp_model;
-	//disp_model.init_win();
-	//disp_model.init_model(model);
-	//disp_model.init_rigid_circle(model.get_rigid_circle());
-	//disp_model.init_points(pt_array.get_mem(), pt_array.get_num() / 3);
+	//IndexArray left_right_bc_pt_array;
+	//left_right_bc_pt_array.reserve(model.get_vx_num());
+	//for (size_t v_id = 0; v_id < model.get_vx_num(); ++v_id)
+	//	left_right_bc_pt_array.add(model.get_vxs()[v_id].node_id);
+
+	//IndexArray bottom_bc_pt_array;
+	//bottom_bc_pt_array.reserve(model.get_vy_num());
+	//for (size_t v_id = 0; v_id < model.get_vy_num(); ++v_id)
+	//	bottom_bc_pt_array.add(model.get_vys()[v_id].node_id);
+
+	//IndexArray mid_tbc_pt_array, left_right_tbc_pt_array;
+	//mid_tbc_pt_array.reserve(100);
+	//left_right_tbc_pt_array.reserve(100);
+	//for (size_t t_id = 0; t_id < model.get_ty_num(); ++t_id)
+	//{
+	//	if (model.get_tys()[t_id].t > -500)
+	//		mid_tbc_pt_array.add(model.get_tys()[t_id].pcl_id);
+	//	else
+	//		left_right_tbc_pt_array.add(model.get_tys()[t_id].pcl_id);
+	//}
+
+	//QtApp_Prep_T2D_ME_p md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
+	////md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
+	//md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_pcl_id(left_right_tbc_pt_array.get_mem(), left_right_tbc_pt_array.get_num(), 0.015);
 	//// all
-	//disp_model.display(-3.6, 3.6, -5.1, 1.1);
+	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//// left
-	////disp_model.display(-3.8, -2.2, -1.0, 1.0);
+	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
 	//// middle
-	////disp_model.display(2.3, 2.7, -0.25, 0.25);
+	////md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
 	//// right
-	////disp_model.display(2.2, 3.8, -1.0, 1.0);
+	//md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
+	//md_disp.start();
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;

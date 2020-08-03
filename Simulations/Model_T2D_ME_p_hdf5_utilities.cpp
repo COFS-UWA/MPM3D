@@ -146,7 +146,7 @@ int load_background_mesh_from_hdf5_file(
 	delete[] elems_data;
 
 	md.init_mesh_properties_after_loading();
-	
+	md.init_mesh_shape_funcs();
 	md.init_node_to_elem_info();
 
 	// init bg_grid

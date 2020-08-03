@@ -87,7 +87,7 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element &e = md.elems[e_id];
-		e.pcl_vol = 0.0;
+		e.mi_pcl_vol = 0.0;
 		e.s11 = 0.0;
 		e.s22 = 0.0;
 		e.s12 = 0.0;
@@ -102,7 +102,7 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 		{
 			Element &e = *pcl.pe;
 			e.add_pcl(pcl);
-			e.pcl_vol += pcl.vol;
+			e.mi_pcl_vol += pcl.vol;
 			e.s11 += pcl.vol * pcl.s11;
 			e.s22 += pcl.vol * pcl.s22;
 			e.s12 += pcl.vol * pcl.s12;
@@ -135,24 +135,24 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 		Element &e = md.elems[e_id];
 		if (e.pcls)
 		{
-			e.s11 /= e.pcl_vol;
-			e.s22 /= e.pcl_vol;
-			e.s12 /= e.pcl_vol;
-			if (e.pcl_vol > e.area)
-				e.pcl_vol = e.area;
+			e.s11 /= e.mi_pcl_vol;
+			e.s22 /= e.mi_pcl_vol;
+			e.s12 /= e.mi_pcl_vol;
+			if (e.mi_pcl_vol > e.area)
+				e.mi_pcl_vol = e.area;
 
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
 			// node 1
-			n1.fx_int += (e.dN1_dx * e.s11 + e.dN1_dy * e.s12) * e.pcl_vol;
-			n1.fy_int += (e.dN1_dx * e.s12 + e.dN1_dy * e.s22) * e.pcl_vol;
+			n1.fx_int += (e.dN1_dx * e.s11 + e.dN1_dy * e.s12) * e.mi_pcl_vol;
+			n1.fy_int += (e.dN1_dx * e.s12 + e.dN1_dy * e.s22) * e.mi_pcl_vol;
 			// node 2
-			n2.fx_int += (e.dN2_dx * e.s11 + e.dN2_dy * e.s12) * e.pcl_vol;
-			n2.fy_int += (e.dN2_dx * e.s12 + e.dN2_dy * e.s22) * e.pcl_vol;
+			n2.fx_int += (e.dN2_dx * e.s11 + e.dN2_dy * e.s12) * e.mi_pcl_vol;
+			n2.fy_int += (e.dN2_dx * e.s12 + e.dN2_dy * e.s22) * e.mi_pcl_vol;
 			// node 3
-			n3.fx_int += (e.dN3_dx * e.s11 + e.dN3_dy * e.s12) * e.pcl_vol;
-			n3.fy_int += (e.dN3_dx * e.s12 + e.dN3_dy * e.s22) * e.pcl_vol;
+			n3.fx_int += (e.dN3_dx * e.s11 + e.dN3_dy * e.s12) * e.mi_pcl_vol;
+			n3.fy_int += (e.dN3_dx * e.s12 + e.dN3_dy * e.s22) * e.mi_pcl_vol;
 		}
 	}
 

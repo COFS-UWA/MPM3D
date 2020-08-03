@@ -131,9 +131,9 @@ void test_t2d_me_p_pipe_conference_geo(int argc, char** argv)
 	
 	Step_T2D_ME_p_Geo step_gs("geo_step");
 	step_gs.set_model(model);
-	step_gs.set_step_time(1.0e-4);
+	step_gs.set_step_time(1.0);
 	step_gs.set_dtime(1.0e-5);
-	step_gs.set_thread_num(1);
+	step_gs.set_thread_num(6);
 	// out
 	out.set_interval_num(100);
 	step_gs.add_time_history(out);
@@ -155,7 +155,7 @@ void test_t2d_me_p_pipe_conference_geo_result(int argc, char** argv)
 	app.set_res_file(rf, "geostatic", "s22");
 	app.set_ani_time(5.0);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	app.set_fld_range(-20010.0, -19990.0);
+	app.set_fld_range(-20100.0, -19900.0);
 	app.set_color_map_pos(0.6, 0.45, 0.5);
 	//app.set_png_name("t2d_me_p_pipe_conference_geo");
 	//app.set_gif_name("t2d_me_p_pipe_conference_geo");

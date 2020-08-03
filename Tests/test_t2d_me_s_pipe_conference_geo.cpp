@@ -147,14 +147,25 @@ void test_t2d_me_s_pipe_conference_geo_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_s_pipe_conference_geo.h5");
 
-	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	// single frame
+	QtApp_Posp_T2D_ME_s app(argc, argv);
 	app.set_win_size(900, 900);
-	app.set_res_file(rf, "geostatic", "s22");
-	app.set_ani_time(5.0);
-	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	app.set_fld_range(-20010.0, -19990.0);
-	app.set_color_map_pos(0.6, 0.45, 0.5); // color map legend
+	app.set_res_file(rf, "geostatic", 100, "s22");
+	app.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	app.set_fld_range(-20100.0, -19900.0);
+	app.set_color_map_pos(0.8, 0.65, 0.3);
 	//app.set_png_name("t2d_me_s_pipe_conference_geo");
-	//app.set_gif_name("t2d_me_s_pipe_conference_geo");
 	app.start();
+
+	//// animation
+	//QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	//app.set_win_size(900, 900);
+	//app.set_res_file(rf, "geostatic", "s22");
+	//app.set_ani_time(5.0);
+	//app.set_display_range(-3.6, 3.6, -5.1, 0.6);
+	//app.set_fld_range(-21000.0, -19000.0);
+	//app.set_color_map_pos(0.8, 0.65, 0.3);
+	////app.set_png_name("t2d_me_s_pipe_conference_geo");
+	////app.set_gif_name("t2d_me_s_pipe_conference_geo");
+	//app.start();
 }

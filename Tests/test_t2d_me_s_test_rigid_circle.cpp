@@ -69,14 +69,14 @@ void test_t2d_me_s_test_rigid_circle(int argc, char** argv)
 		vbc.v = 0.0;
 	}
 
-	QtApp_Prep_T2D_ME_s md_disp(argc, argv);
-	md_disp.set_win_size(900, 900);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_s_test_rigid_circle.h5");
@@ -109,10 +109,11 @@ void test_t2d_me_s_test_rigid_circle_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_s_test_rigid_circle.h5");
 
-	QtApp_Posp_T2D_ME_s app(argc, argv);
+	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_win_size(900, 900);
-	app.set_fld_range(0.0, 1.0);
-	app.set_res_file(rf, "circle_penetration", 0, "y");
+	app.set_ani_time(2.0);
+	app.set_fld_range(-80.0, 0.0);
+	app.set_res_file(rf, "circle_penetration", "s22");
 	//app.set_png_name("t2d_me_s_test_rigid_circle");
 	app.start();
 }

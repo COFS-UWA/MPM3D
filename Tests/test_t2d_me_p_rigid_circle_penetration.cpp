@@ -89,7 +89,7 @@ void test_t2d_me_p_rigid_circle_penetration(int argc, char** argv)
 	step.set_model(model);
 	step.set_step_time(1.0); // 3.0
 	step.set_dtime(5.0e-6);
-	step.set_thread_num(4);
+	step.set_thread_num(6);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();

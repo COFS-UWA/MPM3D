@@ -153,6 +153,7 @@ int load_background_mesh_from_hdf5_file(
 	delete[] elems_data;
 
 	md.init_mesh_properties_after_loading();
+	md.init_mesh_shape_funcs();
 
 	// init bg_grid
 	double bg_grid_hx, bg_grid_hy;

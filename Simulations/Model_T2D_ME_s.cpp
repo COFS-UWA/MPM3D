@@ -221,7 +221,7 @@ void Model_T2D_ME_s::sum_vol_for_all_elements()
 	{
 		Element& e = elems[e_id];
 		e.pcls = nullptr;
-		e.pcl_vol = 0.0;
+		e.mi_pcl_vol = 0.0;
 	}
 
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
@@ -231,7 +231,7 @@ void Model_T2D_ME_s::sum_vol_for_all_elements()
 			continue;
 		pcl.pe->add_pcl(pcl);
 		pcl.vol = pcl.m / pcl.density;
-		pcl.pe->pcl_vol += pcl.vol;
+		pcl.pe->mi_pcl_vol += pcl.vol;
 	}
 
 	std::fstream out_file;
@@ -241,22 +241,22 @@ void Model_T2D_ME_s::sum_vol_for_all_elements()
 		Element& e = elems[e_id];
 		if (e.pcls)
 		{
-			if (e.pcl_vol > e.area)
+			if (e.mi_pcl_vol > e.area)
 			{
 				out_file << "id: " << e.id << ", elem_a: " << e.area
-					<< ", pcl_a:" << e.pcl_vol
-					<< " * +" << (e.pcl_vol - e.area) / e.area * 100.0 << "% *\n";
+					<< ", pcl_a:" << e.mi_pcl_vol
+					<< " * +" << (e.mi_pcl_vol - e.area) / e.area * 100.0 << "% *\n";
 			}
-			else if (e.pcl_vol < e.area)
+			else if (e.mi_pcl_vol < e.area)
 			{
 				out_file << "id: " << e.id << ", elem_a: " << e.area
-					<< ", pcl_a:" << e.pcl_vol
-					<< " * -" << (e.area - e.pcl_vol) / e.area * 100.0 << "% *\n";
+					<< ", pcl_a:" << e.mi_pcl_vol
+					<< " * -" << (e.area - e.mi_pcl_vol) / e.area * 100.0 << "% *\n";
 			}
 			else
 			{
 				out_file << "id: " << e.id << ", elem_a: " << e.area
-					<< ", pcl_a:" << e.pcl_vol << "\n";
+					<< ", pcl_a:" << e.mi_pcl_vol << "\n";
 			}
 		}
 	}
