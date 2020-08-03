@@ -311,7 +311,6 @@ protected:
 
 public: // interaction with rigid circle
 	inline bool rigid_circle_is_valid() { return rigid_circle_is_init; }
-	inline RigidCircle& get_rigid_circle() { return rigid_circle; }
 	inline void init_rigid_circle(double _K_cont, double x, double y, double r, double density = 1.0)
 	{
 		rigid_circle_is_init = true;
@@ -320,23 +319,8 @@ public: // interaction with rigid circle
 	}
 	inline void set_rigid_circle_velocity(double vx, double vy, double v_ang)
 	{ rigid_circle.set_v_bc(vx, vy, v_ang); }
-	// for hdf5 utilities
-	inline void set_rigid_circle_state(
-		double _K_cont,
-		double x, double y, double ang,
-		double radius, double density,
-		double ax, double ay, double a_ang,
-		double vx, double vy, double v_ang)
-	{
-		rigid_circle_is_init = true;
-		K_cont = _K_cont;
-		rigid_circle.set_init_state(
-			radius, density,
-			ax, ay, a_ang,
-			vx, vy, v_ang,
-			x, y, ang
-			);
-	}
+
+	inline RigidCircle& get_rigid_circle() { return rigid_circle; }
 
 protected:
 	friend int Model_T2D_ME_p_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);

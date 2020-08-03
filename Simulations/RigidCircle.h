@@ -131,6 +131,7 @@ public:
 	void init(double _x, double _y, double _r, double _density = 1.0);
 
 	void set_init_state(double _r, double _density,
+		double _rfx, double _rfy, double _rm,
 		double _ax, double _ay, double _a_ang,
 		double _vx, double _vy, double _v_ang,
 		double _x, double _y, double _ang);
@@ -209,7 +210,6 @@ public: // helper function for calculation
 		ang += v_ang * dt;
 	}
 };
-
 
 #undef PI
 

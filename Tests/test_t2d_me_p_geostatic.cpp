@@ -127,9 +127,9 @@ void test_t2d_me_p_geostatic_result(int argc, char** argv)
 	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_win_size(900, 900);
 	app.set_res_file(rf, "geostatic", "s22");
-	app.set_ani_time(5.0);
 	app.set_fld_range(-11.0, -9.0);
 	app.set_color_map_pos(0.65, 0.45, 0.5);
+	app.set_ani_time(5.0);
 	//app.set_png_name("t2d_me_p_geostatic");
 	//app.set_gif_name("t2d_me_p_geostatic");
 	app.start();

@@ -43,7 +43,7 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 		pcl.set_mat_model(mm);
 	}
 
-	model.init_rigid_circle(1.0e5, 1.0e3, 0.5, 0.0, 0.5 - 0.014);
+	model.init_rigid_circle(1.0e5, 0.0, 0.5 - 0.014, 0.5);
 	//model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 	
 	// traction
@@ -126,6 +126,7 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 
 	TimeHistory_T2D_ME_s_Geo_complete out("geostatic");
 	out.set_res_file(res_file_hdf5);
+	out.set_interval_num(100);
 	out.set_output_init_state();
 	TimeHistory_ConsoleProgressBar out_pb;
 	
@@ -133,10 +134,7 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 	step_gs.set_model(model);
 	step_gs.set_step_time(1.0);
 	step_gs.set_dtime(1.0e-5);
-	// out
-	out.set_interval_num(100);
 	step_gs.add_time_history(out);
-	// out_pb
 	step_gs.add_time_history(out_pb);
 	step_gs.solve();
 }

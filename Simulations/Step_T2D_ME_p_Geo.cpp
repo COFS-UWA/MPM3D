@@ -31,6 +31,7 @@ int Step_T2D_ME_p_Geo::init_calculation()
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element& e = md.elems[e_id];
+		e.has_mp = false;
 		e.pcls = nullptr;
 	}
 
@@ -513,9 +514,8 @@ void Step_T2D_ME_p_Geo::update_pcl_vars(unsigned int th_id)
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
 	double de_vol_by_3, de11, de22, de12;
-	for (size_t pcl_id = cur_pcl_id.fetch_add(1, std::memory_order_relaxed);
-		 pcl_id < md.pcl_num;
-		 pcl_id = cur_pcl_id.fetch_add(1, std::memory_order_relaxed))
+	size_t pcl_id;
+	while ((pcl_id = cur_pcl_id.fetch_add(1, std::memory_order_relaxed)) < md.pcl_num)
 	{
 		Particle& pcl = md.pcls[pcl_id];
 		if (!pcl.pe)

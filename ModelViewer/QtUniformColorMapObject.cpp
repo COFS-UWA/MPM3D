@@ -264,7 +264,7 @@ void QtUniformColorMapObject::add_string_texture(
 			continue;
 
 		char_pos.xl = xpos + GLfloat(cd->get_bearing_x()) * nr;
-		char_pos.yl = ypos + GLfloat(cd->get_bearing_y() - cd->get_height()) * nr;
+		char_pos.yl = ypos + (GLfloat(cd->get_bearing_y()) - GLfloat(cd->get_height())) * nr;
 		char_pos.xu = char_pos.xl + GLfloat(cd->get_width()) * nr;
 		char_pos.yu = char_pos.yl + GLfloat(cd->get_height()) * nr;
 		add_char_texture(char_pos, cd->get_texture_id());

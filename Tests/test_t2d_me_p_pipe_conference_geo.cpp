@@ -43,7 +43,7 @@ void test_t2d_me_p_pipe_conference_geo(int argc, char** argv)
 		pcl.set_mat_model(mm);
 	}
 
-	model.init_rigid_circle(1.0e5, 1.0e3, 0.5, 0.0, 0.5 - 0.014);
+	model.init_rigid_circle(1.0e5, 0.0, 0.5 - 0.014, 0.5);
 	//model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 	
 	// traction
@@ -100,23 +100,23 @@ void test_t2d_me_p_pipe_conference_geo(int argc, char** argv)
 		vbc.v = 0.0;
 	}
 
-	QtApp_Prep_T2D_ME_p md_disp(argc, argv);
-	md_disp.set_win_size(900, 900);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
-	//md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
-	//md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_pcl_id(left_right_tbc_pt_array.get_mem(), left_right_tbc_pt_array.get_num(), 0.015);
-	// all
-	//md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
-	// left
-	//md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
-	// middle
-	md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
-	// right
-	//md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T2D_ME_p md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
+	////md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
+	////md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_pcl_id(left_right_tbc_pt_array.get_mem(), left_right_tbc_pt_array.get_num(), 0.015);
+	//// all
+	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	//// left
+	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
+	//// middle
+	//md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
+	//// right
+	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_p_pipe_conference_geo.h5");
@@ -131,8 +131,9 @@ void test_t2d_me_p_pipe_conference_geo(int argc, char** argv)
 	
 	Step_T2D_ME_p_Geo step_gs("geo_step");
 	step_gs.set_model(model);
-	step_gs.set_step_time(1.0);
+	step_gs.set_step_time(1.0e-4);
 	step_gs.set_dtime(1.0e-5);
+	step_gs.set_thread_num(1);
 	// out
 	out.set_interval_num(100);
 	step_gs.add_time_history(out);
@@ -155,8 +156,8 @@ void test_t2d_me_p_pipe_conference_geo_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
 	app.set_fld_range(-20010.0, -19990.0);
-	app.set_color_map_pos(0.6, 0.45, 0.5); // color map legend
-	//app.set_png_name("t2d_me_s_pipe_conference_geo");
-	//app.set_gif_name("t2d_me_s_pipe_conference_geo");
+	app.set_color_map_pos(0.6, 0.45, 0.5);
+	//app.set_png_name("t2d_me_p_pipe_conference_geo");
+	//app.set_gif_name("t2d_me_p_pipe_conference_geo");
 	app.start();
 }

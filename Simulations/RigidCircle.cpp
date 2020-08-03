@@ -17,6 +17,7 @@ void RigidCircle::init(
 
 void RigidCircle::set_init_state(
 	double _r, double _density,
+	double _rfx, double _rfy, double _rm,
 	double _ax, double _ay, double _a_ang,
 	double _vx, double _vy, double _v_ang,
 	double _x, double _y, double _ang
@@ -24,6 +25,9 @@ void RigidCircle::set_init_state(
 {
 	r = _r;
 	density = _density;
+	rfx = _rfx;
+	rfy = _rfy;
+	rm = _rm;
 	ax = _ax;
 	ay = _ay;
 	a_ang = _a_ang;

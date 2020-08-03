@@ -121,7 +121,8 @@ void test_t2d_me_p_1d_compression_result(int argc, char** argv)
 	app.set_fld_range(0.0, 1.0);
 	app.set_res_file(rf, "compression", "y");
 	app.set_ani_time(5.0);
-	//app.set_png_name("t2d_me_s_1d_compression");
-	app.set_gif_name("t2d_me_p_1d_compression");
+	app.set_color_map_pos(0.65, 0.45, 0.5);
+	//app.set_png_name("t2d_me_p_1d_compression");
+	//app.set_gif_name("t2d_me_p_1d_compression");
 	app.start();
 }

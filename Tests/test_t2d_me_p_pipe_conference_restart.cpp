@@ -22,7 +22,7 @@ void test_t2d_me_p_pipe_conference_restart(int argc, char** argv)
 		model,
 		"t2d_me_p_pipe_conference_geo.h5",
 		"geostatic",
-		101
+		11
 		);
 
 	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
@@ -56,8 +56,9 @@ void test_t2d_me_p_pipe_conference_restart(int argc, char** argv)
 
 	Step_T2D_ME_p step("step1");
 	step.set_model(model);
-	step.set_step_time(5.0);
+	step.set_step_time(5.0e-5);
 	step.set_dtime(2.0e-6);
+	step.set_thread_num(1);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -78,7 +79,7 @@ void test_t2d_me_p_pipe_conference_restart_result(int argc, char** argv)
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
 	app.set_fld_range(-20010.0, -19990.0);
 	app.set_color_map_pos(0.6, 0.45, 0.5);
-	//app.set_png_name("t2d_me_s_pipe_conference_restart");
-	//app.set_gif_name("t2d_me_s_pipe_conference_restart");
+	//app.set_png_name("t2d_me_p_pipe_conference_restart");
+	//app.set_gif_name("t2d_me_p_pipe_conference_restart");
 	app.start();
 }

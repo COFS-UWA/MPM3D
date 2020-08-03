@@ -5,7 +5,7 @@ project(SimpleMPM3)
 
 # External dependencies (user defined part)
 # Qt5
-set(Qt5_DIR "D:/Softwares/Qt/5.14.1/msvc2015_64/")
+set(Qt5_DIR "D:/Softwares/Qt/5.15.0/msvc2019_64/lib/cmake/Qt5")
 # hdf5
 set(HDF5_DIR "D:/Vendors/HDF5-1.12.0-win64/cmake/hdf5/")
 # free type

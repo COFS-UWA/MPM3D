@@ -17,7 +17,7 @@ add_library(
     ResultFile.h
     ResultFile_hdf5.h ResultFile_hdf5.cpp
     ResultFile_XML.h
-    Model_hdf5_utilities.h
+    Model_hdf5_utilities.h Model_hdf5_utilities.cpp
     BCs.h # boundary conditions
     # Rigid circle
     RigidCircle.h RigidCircle.cpp
