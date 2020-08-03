@@ -4,5 +4,6 @@
 void test_model_container();
 void test_mcc_get_Su();
 void test_mcc_compression();
+void test_undrained_mcc();
 
 #endif

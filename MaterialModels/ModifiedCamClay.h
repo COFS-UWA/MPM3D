@@ -1,5 +1,5 @@
-#ifndef __Modified_Cam_Clay_H__
-#define __Modified_Cam_Clay_H__
+#ifndef __Modified_Cam_Clay_h__
+#define __Modified_Cam_Clay_h__
 
 #include <cmath>
 
@@ -128,16 +128,16 @@ namespace MatModel
 			}
 		}
 
-		inline double get_p(void)  noexcept { return cal_p(); }
-		inline double get_q(void)  noexcept { return cal_q(); }
-		inline double get_pc(void) noexcept { return pc; }
-		inline double get_e_by_strain(void)  noexcept { return e; }
-		inline double get_e_by_model(void) noexcept
+		inline double get_p() const noexcept { return cal_p(); }
+		inline double get_q() const noexcept { return cal_q(); }
+		inline double get_pc() const noexcept { return pc; }
+		inline double get_e_by_strain() const noexcept { return e; }
+		inline double get_e_by_model() const noexcept
 		{
 			return N - lambda * log(pc) + kappa * log(-pc / cal_p());
 		}
-		inline double get_f(void) noexcept { return cal_f(cal_p(), cal_q()); }
-		inline double get_norm_f(void) noexcept { return cal_norm_f(cal_p(), cal_q()); }
+		inline double get_f() const noexcept { return cal_f(cal_p(), cal_q()); }
+		inline double get_norm_f() const noexcept { return cal_norm_f(cal_p(), cal_q()); }
 
 	protected:
 		// form elastic stiffness matrix
@@ -192,7 +192,7 @@ namespace MatModel
 			De_mat[5][3] = 0.0;
 			De_mat[5][4] = 0.0;
 		}
-		inline void form_Dep_mat(void) noexcept
+		inline void form_Dep_mat() noexcept
 		{
 			memcpy(Dep_mat, De_mat, 6 * 6 * sizeof(double));
 		}
@@ -208,11 +208,11 @@ namespace MatModel
 					Dep_mat[i][j] = De_mat[i][j] - De_dg_ds[i] * De_dg_ds[j] / divider;
 		}
 
-		inline double cal_p(void) noexcept
+		inline double cal_p() const noexcept
 		{
 			return (s11 + s22 + s33) / 3.0;
 		}
-		inline double cal_q(void) noexcept
+		inline double cal_q() const noexcept
 		{
 			double s11_s22_diff = s11 - s22;
 			double s22_s33_diff = s22 - s33;
@@ -224,20 +224,20 @@ namespace MatModel
 			return sqrt(q2);
 		}
 		// equivalent pre-consolidation stress
-		inline double cal_pc(double p, double q) noexcept
+		inline double cal_pc(double p, double q) const noexcept
 		{
 			return -(q * q / (M2 * p) + p);
 		}
-		inline double cal_f(double p, double q) noexcept
+		inline double cal_f(double p, double q) const noexcept
 		{
 			return q * q + M2 * p * (p + pc);
 		}
 		// normalized f - covergence craterion
-		inline double cal_norm_f(double f, double p) noexcept
+		inline double cal_norm_f(double f, double p) const noexcept
 		{
 			return -f / (M2 * p * pc);
 		}
-		void cal_dg_stress(double p, double q, double dg_ds[6], double& dg_dpc)
+		void cal_dg_stress(double p, double q, double dg_ds[6], double& dg_dpc) const noexcept
 		{
 			double dg_dp, dg_dq;
 			dg_dp = M2 * (2.0 * p + pc);
@@ -260,11 +260,11 @@ namespace MatModel
 			dg_ds[4] = dg_dq * dq_ds23;               // dg_ds23
 			dg_ds[5] = dg_dq * dq_ds31;               // dg_ds31
 		}
-		inline double cal_A_pc(double dg_ds[6]) noexcept
+		inline double cal_A_pc(double dg_ds[6]) const noexcept
 		{
 			return -(1.0 + e) * pc / (lambda - kappa) * (dg_ds[0] + dg_ds[1] + dg_ds[2]);
 		}
-		inline double cal_divider(double dg_ds[6], double dg_dpc, double A_pc) noexcept
+		inline double cal_divider(double dg_ds[6], double dg_dpc, double A_pc) const noexcept
 		{
 			double divider = 0.0;
 			for (size_t i = 0; i < 6; i++)

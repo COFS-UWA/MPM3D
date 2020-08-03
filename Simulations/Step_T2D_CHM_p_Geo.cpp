@@ -3,17 +3,17 @@
 #include <cmath>
 
 #include "MaterialModel.h"
-#include "Step_T2D_CHM_s_Geo.h"
+#include "Step_T2D_CHM_p_Geo.h"
 
-Step_T2D_CHM_s_Geo::Step_T2D_CHM_s_Geo(const char* _name) :
-	Step(_name, "Step_T2D_CHM_s_Geo", &solve_substep_T2D_CHM_s_Geo),
+Step_T2D_CHM_p_Geo::Step_T2D_CHM_p_Geo(const char* _name) :
+	Step(_name, "Step_T2D_CHM_p_Geo", &solve_substep_T2D_CHM_p_Geo),
 	model(nullptr), damping_ratio(0.0) {}
 
-Step_T2D_CHM_s_Geo::~Step_T2D_CHM_s_Geo() {}
+Step_T2D_CHM_p_Geo::~Step_T2D_CHM_p_Geo() {}
 
-int Step_T2D_CHM_s_Geo::init_calculation()
+int Step_T2D_CHM_p_Geo::init_calculation()
 {
-	Model_T2D_CHM_s &md = *model;
+	Model_T2D_CHM_p &md = *model;
 
 	if (is_first_step) {}
 
@@ -42,9 +42,9 @@ int Step_T2D_CHM_s_Geo::init_calculation()
 	return 0;
 }
 
-int Step_T2D_CHM_s_Geo::finalize_calculation()
+int Step_T2D_CHM_p_Geo::finalize_calculation()
 {
-	Model_T2D_CHM_s &md = *model;
+	Model_T2D_CHM_p &md = *model;
 
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
@@ -61,13 +61,13 @@ int Step_T2D_CHM_s_Geo::finalize_calculation()
 	return 0;
 }
 
-int solve_substep_T2D_CHM_s_Geo(void *_self)
+int solve_substep_T2D_CHM_p_Geo(void *_self)
 {
-	typedef Model_T2D_CHM_s::Particle Particle;
-	typedef Model_T2D_CHM_s::Element Element;
-	typedef Model_T2D_CHM_s::Node Node;
-	Step_T2D_CHM_s_Geo &self = *(Step_T2D_CHM_s_Geo *)(_self);
-	Model_T2D_CHM_s &md = *self.model;
+	typedef Model_T2D_CHM_p::Particle Particle;
+	typedef Model_T2D_CHM_p::Element Element;
+	typedef Model_T2D_CHM_p::Node Node;
+	Step_T2D_CHM_p_Geo &self = *(Step_T2D_CHM_p_Geo *)(_self);
+	Model_T2D_CHM_p &md = *self.model;
 
 	// init nodes
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)

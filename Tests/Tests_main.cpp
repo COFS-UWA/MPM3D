@@ -11,7 +11,9 @@ int main(int argc, char *argv[])
 	//test_stack_and_link_list();
 
 	//test_model_container();
+	//test_mcc_get_Su();
 	//test_mcc_compression();
+	//test_undrained_mcc();
 
 	//test_solve_functions();
 
@@ -98,7 +100,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_pipe_conference_restart2_result(argc, argv);
 
 	// completely drained
-	test_t2d_me_s_pipe_conference_geo(argc, argv);
+	//test_t2d_me_s_pipe_conference_geo(argc, argv);
 	//test_t2d_me_s_pipe_conference_geo_result(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart_result(argc, argv);

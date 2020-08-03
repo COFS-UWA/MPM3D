@@ -51,9 +51,6 @@ int Step_T2D_ME_s_Geo::finalize_calculation()
 		Particle &pcl = md.pcls[pcl_id];
 		pcl.vx = 0.0;
 		pcl.vy = 0.0;
-		pcl.e11 = 0.0;
-		pcl.e22 = 0.0;
-		pcl.e12 = 0.0;
 	}
 
 	return 0;

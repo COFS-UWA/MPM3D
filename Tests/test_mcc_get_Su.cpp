@@ -14,6 +14,7 @@ void test_mcc_get_Su()
 		Consolidation = 2
 	};
 
+	//AnalysisType tp = AnalysisType::TriaxialDrained;
 	AnalysisType tp = AnalysisType::TriaxialUndrained;
 	double de = -0.5;
 	size_t inc_num = 50000;
