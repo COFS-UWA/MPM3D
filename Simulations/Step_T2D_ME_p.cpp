@@ -187,50 +187,50 @@ int solve_substep_T2D_ME_p(void* _self)
 	Step_T2D_ME_p &self = *static_cast<Step_T2D_ME_p *>(_self);
 	Model_T2D_ME_p &md = static_cast<Model_T2D_ME_p &>(self.get_model());
 
-	self.cur_node_id.store(0);
-	self.cur_elem_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.step_barrier.lift_barrier();
 	self.init_cal_vars(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_pcl_id.store(0);
+	self.cur_pcl_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.find_pcls_in_which_elems(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_elem_id.store(0);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.map_pcl_vars_to_nodes_at_elems(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_node_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.update_node_a_and_v(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_ax_bc_id.store(0);
-	self.cur_ay_bc_id.store(0);
-	self.cur_vx_bc_id.store(0);
-	self.cur_vy_bc_id.store(0);
+	self.cur_ax_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_ay_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_vx_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_vy_bc_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.apply_a_and_v_bcs(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_elem_id.store(0);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.cal_de_at_elem(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_node_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.map_de_vol_from_elem_to_node(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_pcl_id.store(0);
+	self.cur_pcl_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.update_pcl_vars(0);
-
 	self.step_barrier.wait_for_others();
+
 	return 0;
 }
 
@@ -239,14 +239,16 @@ void Step_T2D_ME_p::init_cal_vars(unsigned int th_id)
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
 	// init nodes
-	for (size_t n_id = cur_node_id++; n_id < md.node_num; n_id = cur_node_id++)
+	size_t n_id;
+	while ((n_id = ATOM_INC(cur_node_id)) < md.node_num)
 	{
 		Node& n = md.nodes[n_id];
 		n.has_mp = false;
 	}
 
 	// init elements
-	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
+	size_t e_id;
+	while ((e_id = ATOM_INC(cur_elem_id)) < md.elem_num)
 	{
 		Element& e = md.elems[e_id];
 		e.has_mp = false;
@@ -262,8 +264,8 @@ void Step_T2D_ME_p::find_pcls_in_which_elems(unsigned int th_id)
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 		th_elem_datas[e_id].init();
 	
-	size_t pe_id;
-	for (size_t pcl_id = cur_pcl_id++; pcl_id < md.pcl_num; pcl_id = cur_pcl_id++)
+	size_t pcl_id, pe_id;
+	while ((pcl_id = ATOM_INC(cur_pcl_id)) < md.pcl_num)
 	{
 		Particle &pcl = md.pcls[pcl_id];
 		
@@ -313,7 +315,8 @@ void Step_T2D_ME_p::map_pcl_vars_to_nodes_at_elems(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 	
-	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
+	size_t e_id;
+	while ((e_id = ATOM_INC(cur_elem_id)) < md.elem_num)
 	{
 		Element &e = md.elems[e_id];
 
@@ -406,7 +409,8 @@ void Step_T2D_ME_p::update_node_a_and_v(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	for (size_t n_id = cur_node_id++; n_id < md.node_num; n_id = cur_node_id++)
+	size_t n_id;
+	while ((n_id = ATOM_INC(cur_node_id)) < md.node_num)
 	{
 		Node &n = md.nodes[n_id];
 
@@ -449,15 +453,15 @@ void Step_T2D_ME_p::apply_a_and_v_bcs(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	for (size_t a_id = cur_ax_bc_id++; a_id < md.ax_num; a_id = cur_ax_bc_id++)
+	size_t a_id;
+	while ((a_id = ATOM_INC(cur_ax_bc_id)) < md.ax_num)
 	{
 		Node& n = md.nodes[md.axs[a_id].node_id];
 		n.ax = md.axs[a_id].a;
 		n.vx = n.vx_ori + n.ax * dtime;
 		n.dux = n.vx * dtime;
 	}
-
-	for (size_t a_id = cur_ay_bc_id++; a_id < md.ay_num; a_id = cur_ay_bc_id++)
+	while ((a_id = ATOM_INC(cur_ay_bc_id)) < md.ay_num)
 	{
 		Node& n = md.nodes[md.ays[a_id].node_id];
 		n.ay = md.ays[a_id].a;
@@ -465,15 +469,15 @@ void Step_T2D_ME_p::apply_a_and_v_bcs(unsigned int th_id)
 		n.duy = n.vy * dtime;
 	}
 
-	for (size_t v_id = cur_vx_bc_id++; v_id < md.vx_num; v_id = cur_vx_bc_id++)
+	size_t v_id;
+	while ((v_id = ATOM_INC(cur_vx_bc_id)) < md.vx_num)
 	{
 		Node& n = md.nodes[md.vxs[v_id].node_id];
 		n.ax = 0.0;
 		n.vx = md.vxs[v_id].v;
 		n.dux = n.vx * dtime;
 	}
-
-	for (size_t v_id = cur_vy_bc_id++; v_id < md.vy_num; v_id = cur_vy_bc_id++)
+	while ((v_id = ATOM_INC(cur_vy_bc_id)) < md.vy_num)
 	{
 		Node& n = md.nodes[md.vys[v_id].node_id];
 		n.ay = 0.0;
@@ -487,7 +491,8 @@ void Step_T2D_ME_p::cal_de_at_elem(unsigned int th_id)
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
 	double de11, de22;
-	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
+	size_t e_id;
+	while ((e_id = ATOM_INC(cur_elem_id)) < md.elem_num)
 	{
 		Element &e = md.elems[e_id];
 		
@@ -534,7 +539,8 @@ void Step_T2D_ME_p::map_de_vol_from_elem_to_node(unsigned int th_id)
 {
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p*>(model);
 
-	for (size_t n_id = cur_node_id++; n_id < md.node_num; n_id = cur_node_id++)
+	size_t n_id;
+	while ((n_id = ATOM_INC(cur_node_id)) < md.node_num)
 	{
 		Node& n = md.nodes[n_id];
 		
@@ -563,7 +569,8 @@ void Step_T2D_ME_p::update_pcl_vars(unsigned int th_id)
 	Model_T2D_ME_p& md = *static_cast<Model_T2D_ME_p *>(model);
 	
 	double de_vol_by_3, de11, de22, de12;
-	for (size_t pcl_id = cur_pcl_id++; pcl_id < md.pcl_num; pcl_id = cur_pcl_id++)
+	size_t pcl_id;
+	while ((pcl_id = ATOM_INC(cur_pcl_id)) < md.pcl_num)
 	{
 		Particle& pcl = md.pcls[pcl_id];
 		if (!pcl.pe)

@@ -7,6 +7,8 @@ void test_PospSingleFrame_display(int argc, char **argv);
 void test_random_point_for_Model_T2D_ME_s_result(int argc, char** argv);
 
 void test_t2d_me_s_geostatic_result(int argc, char** argv);
+void test_t2d_me_s_geostatic_restart_result(int argc, char** argv);
+
 void test_t2d_chm_s_geostatic_mcc_result(int argc, char** argv);
 
 void test_t2d_me_s_1d_compression_static_result(int argc, char** argv);
@@ -42,6 +44,8 @@ void test_t2d_chm_s_pipe_conference_restart2_result(int argc, char** argv);
 // completely drained or undrained
 void test_t2d_me_s_pipe_conference_geo_result(int argc, char** argv);
 void test_t2d_me_s_pipe_conference_restart_result(int argc, char** argv);
+void test_t2d_me_s_pipe_conference_restart_result2(int argc, char** argv);
+
 void test_t2d_me_p_pipe_conference_geo_result(int argc, char** argv);
 void test_t2d_me_p_pipe_conference_restart_result(int argc, char** argv);
 

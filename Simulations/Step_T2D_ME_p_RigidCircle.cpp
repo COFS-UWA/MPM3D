@@ -9,7 +9,7 @@ void Step_T2D_ME_p::cal_thread_func_RigidCircle(unsigned int th_id)
 {
 	step_barrier.wait();
 
-	while (not_yet_completed)
+	while (not_yet_completed.load(std::memory_order_relaxed))
 	{
 		init_cal_vars(th_id);
 		cal_barrier.wait();
@@ -51,65 +51,64 @@ int solve_substep_T2D_ME_p_RigidCircle(void *_self)
 	
 	Step_T2D_ME_p& self = *static_cast<Step_T2D_ME_p*>(_self);
 	Model_T2D_ME_p& md = static_cast<Model_T2D_ME_p&>(self.get_model());
-	RigidCircle& rc = md.rigid_circle;
 
-	self.cur_node_id.store(0);
-	self.cur_elem_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.step_barrier.lift_barrier();
 	self.init_cal_vars(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_pcl_id.store(0);
+	self.cur_pcl_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.find_pcls_in_which_elems(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_elem_id.store(0);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.map_pcl_vars_to_nodes_at_elems(0);
 	self.cal_barrier.wait_for_others();
 
 	// rigid circle
-	self.cur_elem_id.store(0);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.cal_contact_force(0);
 	// accumulate contact force on rigid circle
+	RigidCircle& rc = md.rigid_circle;
 	rc.reset_rf();
 	for (size_t th_id = 0; th_id < self.thread_num; ++th_id)
 	{
 		ThreadData &th_data = *(self.pth_datas[th_id]);
-		rc.add_rc_f(th_data.rcf);
+		rc.add_rcf(th_data.rcf);
 	}
 	rc.update_motion(self.dtime);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_node_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.update_node_a_and_v(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_ax_bc_id.store(0);
-	self.cur_ay_bc_id.store(0);
-	self.cur_vx_bc_id.store(0);
-	self.cur_vy_bc_id.store(0);
+	self.cur_ax_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_ay_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_vx_bc_id.store(0, std::memory_order_relaxed);
+	self.cur_vy_bc_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.apply_a_and_v_bcs(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_elem_id.store(0);
+	self.cur_elem_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.cal_de_at_elem(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_node_id.store(0);
+	self.cur_node_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.map_de_vol_from_elem_to_node(0);
 	self.cal_barrier.wait_for_others();
 
-	self.cur_pcl_id.store(0);
+	self.cur_pcl_id.store(0, std::memory_order_relaxed);
 	self.cal_barrier.lift_barrier();
 	self.update_pcl_vars(0);
-
 	self.step_barrier.wait_for_others();
 
 	return 0;
@@ -124,7 +123,8 @@ void Step_T2D_ME_p::cal_contact_force(unsigned int th_id)
 	double rc_x = rc.get_x(), rc_y = rc.get_y();
 	rcf.reset_rf();
 	double dist, norm_x, norm_y, f_cont, fx_cont, fy_cont;
-	for (size_t e_id = cur_elem_id++; e_id < md.elem_num; e_id = cur_elem_id++)
+	size_t e_id;
+	while ((e_id = ATOM_INC(cur_elem_id)) < md.elem_num)
 	{
 		Element& e = md.elems[e_id];
 

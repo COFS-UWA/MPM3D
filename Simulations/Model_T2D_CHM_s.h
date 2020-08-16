@@ -44,6 +44,7 @@ struct Particle
 {
 	size_t id;
 	double x, y;
+	double x_f, y_f;
 
 	double ux_s, uy_s;
 	double vx_s, vy_s;
@@ -62,8 +63,10 @@ struct Particle
 
 	// calculation variables
 	double x_ori, y_ori;
+	double x_f_ori, y_f_ori;
 	double vol_s, vol, m_f;
-	
+	inline double get_vol() { return m_s / (density_s * (1.0 - n)); }
+
 	Element* pe;
 	double N1, N2, N3;
 
@@ -75,8 +78,6 @@ struct Particle
 		_mm.ext_data = this;
 		mm = &_mm;
 	}
-
-	inline double get_vol() { return m_s / (density_s * (1.0 - n)); }
 };
 
 struct Element
@@ -187,6 +188,10 @@ public:
 	Model_T2D_CHM_s();
 	~Model_T2D_CHM_s();
 	
+	inline double get_bg_grid_xl() { return search_bg_grid.get_x_min(); }
+	inline double get_bg_grid_xu() { return search_bg_grid.get_x_max(); }
+	inline double get_bg_grid_yl() { return search_bg_grid.get_y_min(); }
+	inline double get_bg_grid_yu() { return search_bg_grid.get_y_max(); }
 	inline double get_bg_grid_hx() { return search_bg_grid.get_hx(); }
 	inline double get_bg_grid_hy() { return search_bg_grid.get_hy(); }
 

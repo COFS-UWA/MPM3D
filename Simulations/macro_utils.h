@@ -33,4 +33,6 @@
 	
 #define N_tol (1.0e-10)
 
+#define ATOM_INC(var) ((var).fetch_add(1, std::memory_order_relaxed))
+
 #endif

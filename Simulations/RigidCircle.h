@@ -8,6 +8,7 @@
 #define PI 3.14159265359
 
 class RigidCircle;
+
 struct RigidCircleForce
 {
 protected:
@@ -15,12 +16,22 @@ protected:
 	double fx, fy, m;
 
 public:
-	inline void reset_rf() { fx = 0.0; fy = 0.0; m = 0.0; }
-	inline void add_rf(double _x, double _y,
-		double _fx, double _fy, double rc_x, double rc_y)
+	inline void reset_rf() noexcept { fx = 0.0; fy = 0.0; m = 0.0; }
+	inline void add_rf(
+		double _x,   double _y,
+		double _fx,  double _fy,
+		double rc_x, double rc_y
+		) noexcept
 	{
-		fx += _fx; fy += _fy;
+		fx += _fx;
+		fy += _fy;
 		m += (_x - rc_x) * _fy - (_y - rc_y) * _fx;
+	}
+	inline void combine(const RigidCircleForce &other) noexcept
+	{
+		fx += other.fx;
+		fy += other.fy;
+		m += other.m;
 	}
 };
 
@@ -152,9 +163,14 @@ public: // helper function for calculation
 	}
 
 	// for parallelsim
-	inline void add_rc_f(RigidCircleForce& rcf)
+	inline void add_rcf(RigidCircleForce& rcf)
 	{
 		rfx += rcf.fx; rfy += rcf.fy; rm += rcf.m;
+	}
+
+	inline void set_rcf(RigidCircleForce& rcf)
+	{
+		rfx = rcf.fx; rfy = rcf.fy; rm = rcf.m;
 	}
 
 	inline bool is_in_circle(double _x, double _y)

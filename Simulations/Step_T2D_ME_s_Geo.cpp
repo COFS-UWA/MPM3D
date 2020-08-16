@@ -8,7 +8,8 @@
 Step_T2D_ME_s_Geo::Step_T2D_ME_s_Geo(const char* _name) :
 	Step(_name, "Step_T2D_ME_s_Geo", &solve_substep_T2D_ME_s_Geo),
 	model(nullptr), damping_ratio(0.0),
-	f_ub_ratio_bound(0.0), e_kin_ratio_bound(0.0)
+	f_ub_ratio_bound(0.0), e_kin_ratio_bound(0.0),
+	node_has_a_or_v_bc(nullptr)
 {
 
 }
@@ -21,16 +22,51 @@ int Step_T2D_ME_s_Geo::init_calculation()
 
 	if (is_first_step) {}
 
+	node_has_a_or_v_bc = new bool[md.node_num];
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	{
+		Node& n = md.nodes[n_id];
+		n.has_mp = false;
+		node_has_a_or_v_bc[n_id] = false;
+	}
+
+	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+	{
+		Element& e = md.elems[e_id];
+		e.pcls = nullptr;
+	}
+	
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
 		pcl.pe = md.find_in_which_element(pcl);
-		pcl.vol = pcl.m / pcl.density;
+		if (pcl.pe)
+		{
+			Element &e = *pcl.pe;
+			e.add_pcl(pcl);
+			Node& n1 = md.nodes[e.n1];
+			n1.has_mp = true;
+			Node& n2 = md.nodes[e.n2];
+			n2.has_mp = true;
+			Node& n3 = md.nodes[e.n3];
+			n3.has_mp = true;
+			pcl.vol = pcl.m / pcl.density;
+		}
 	}
+
+	for (size_t a_id = 0; a_id < md.ax_num; ++a_id)
+		node_has_a_or_v_bc[md.axs[a_id].node_id] = true;
+	for (size_t a_id = 0; a_id < md.ay_num; ++a_id)
+		node_has_a_or_v_bc[md.ays[a_id].node_id] = true;
+	for (size_t v_id = 0; v_id < md.vx_num; ++v_id)
+		node_has_a_or_v_bc[md.vxs[v_id].node_id] = true;
+	for (size_t v_id = 0; v_id < md.vy_num; ++v_id)
+		node_has_a_or_v_bc[md.vys[v_id].node_id] = true;
 
 	// convergence criteria
 	// unbalanced force
 	f_ub = 0.0;
+	max_f_ub = 0.0;
 	init_f_ub = 0.0;
 	f_ub_ratio = 1.0;
 	// kinematic energy
@@ -53,6 +89,9 @@ int Step_T2D_ME_s_Geo::finalize_calculation()
 		pcl.vy = 0.0;
 	}
 
+	delete[] node_has_a_or_v_bc;
+	node_has_a_or_v_bc = nullptr;
+
 	return 0;
 }
 
@@ -69,8 +108,6 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
-		// material point
-		n.has_mp = false;
 		n.m = 0.0;
 		n.vx = 0.0;
 		n.vy = 0.0;
@@ -78,6 +115,8 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 		n.fy_ext = 0.0;
 		n.fx_int = 0.0;
 		n.fy_int = 0.0;
+		n.de_vol_by_3 = 0.0;
+		n.se_pcl_vol = 0.0;
 	}
 
 	// init elements
@@ -88,7 +127,6 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 		e.s11 = 0.0;
 		e.s22 = 0.0;
 		e.s12 = 0.0;
-		e.pcls = nullptr;
 	}
 
 	// init particles
@@ -98,29 +136,25 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 		if (pcl.pe)
 		{
 			Element &e = *pcl.pe;
-			e.add_pcl(pcl);
-			e.mi_pcl_vol += pcl.vol;
 			e.s11 += pcl.vol * pcl.s11;
 			e.s22 += pcl.vol * pcl.s22;
 			e.s12 += pcl.vol * pcl.s12;
+			e.mi_pcl_vol += pcl.vol;
 
 			double mvx = pcl.m * pcl.vx;
 			double mvy = pcl.m * pcl.vy;
 			// node 1
 			Node &n1 = md.nodes[e.n1];
-			n1.has_mp = true;
 			n1.m  += pcl.N1 * pcl.m;
 			n1.vx += pcl.N1 * mvx;
 			n1.vy += pcl.N1 * mvy;
 			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.has_mp = true;
 			n2.m  += pcl.N2 * pcl.m;
 			n2.vx += pcl.N2 * mvx;
 			n2.vy += pcl.N2 * mvy;
 			// node 3
 			Node &n3 = md.nodes[e.n3];
-			n3.has_mp = true;
 			n3.m  += pcl.N3 * pcl.m;
 			n3.vx += pcl.N3 * mvx;
 			n3.vy += pcl.N3 * mvy;
@@ -233,15 +267,16 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 	}
 
 	// update nodal acceleration of fluid pahse
+	double nf;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
 		{
-			// fx
-			n.ax = (n.fx_ext - n.fx_int) / n.m;
-			// fy
-			n.ay = (n.fy_ext - n.fy_int) / n.m;
+			nf = n.fx_ext - n.fx_int;
+			n.ax = (nf - self.damping_ratio * abs(nf) * get_sign(n.vx)) / n.m;
+			nf = n.fy_ext - n.fy_int;
+			n.ay = (nf - self.damping_ratio * abs(nf) * get_sign(n.vy)) / n.m;
 		}
 	}
 
@@ -274,17 +309,19 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 	for (size_t v_id = 0; v_id < md.vx_num; ++v_id)
 	{
 		Node &n = md.nodes[md.vxs[v_id].node_id];
-		n.vx = md.vxs[v_id].v;
 		n.ax = 0.0;
+		n.vx = md.vxs[v_id].v;
 	}
 	for (size_t v_id = 0; v_id < md.vy_num; ++v_id)
 	{
 		Node &n = md.nodes[md.vys[v_id].node_id];
-		n.vy = md.vys[v_id].v;
 		n.ay = 0.0;
+		n.vy = md.vys[v_id].v;
 	}
 
 	// cal unbalanced nodal force and kinetic energy
+	double nfx_ub, nfy_ub, nf_ub;
+	self.max_f_ub = 0.0;
 	self.f_ub = 0.0;
 	self.e_kin = 0.0;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
@@ -292,7 +329,16 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
 		{
-			self.f_ub += n.m * n.m * (n.ax * n.ax + n.ay * n.ay);
+			if (!self.node_has_a_or_v_bc[n_id])
+			{
+				nfx_ub = n.fx_ext - n.fx_int;
+				nfy_ub = n.fy_ext - n.fy_int;
+				nf_ub = nfx_ub * nfx_ub + nfy_ub * nfy_ub;
+				self.f_ub += nf_ub;
+				nf_ub = sqrt(nf_ub);
+				if (self.max_f_ub < nf_ub)
+					self.max_f_ub = nf_ub;
+			}
 			self.e_kin += n.m * (n.vx * n.vx + n.vy * n.vy);
 		}
 	}
@@ -343,7 +389,60 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 	}
 
 	// map variables back to particles and update their variables
-	double de11, de22, de12, ds11, ds22, ds12;
+	double de11, de22, de12, de_vol_by_3;
+	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+	{
+		Element& e = md.elems[e_id];
+		if (e.pcls)
+		{
+			Node& n1 = md.nodes[e.n1];
+			Node& n2 = md.nodes[e.n2];
+			Node& n3 = md.nodes[e.n3];
+
+			// strain increment
+			de11 = n1.dux * e.dN1_dx + n2.dux * e.dN2_dx + n3.dux * e.dN3_dx;
+			de22 = n1.duy * e.dN1_dy + n2.duy * e.dN2_dy + n3.duy * e.dN3_dy;
+			de12 = (n1.dux * e.dN1_dy + n2.dux * e.dN2_dy + n3.dux * e.dN3_dy
+				  + n1.duy * e.dN1_dx + n2.duy * e.dN2_dx + n3.duy * e.dN3_dx) * 0.5;
+			de_vol_by_3 = (de11 + de22) / 3.0;
+			e.dde11 = de11 - de_vol_by_3;
+			e.dde22 = de22 - de_vol_by_3;
+			e.de12 = de12;
+			e.de_vol_by_3 = de_vol_by_3;
+		}
+	}
+
+	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
+	{
+		Particle& pcl = md.pcls[pcl_id];
+		if (pcl.pe)
+		{
+			Element& e = *pcl.pe;
+			double vol_de_vol_by_3 = pcl.vol * e.de_vol_by_3;
+			// node 1
+			Node& n1 = md.nodes[e.n1];
+			n1.de_vol_by_3 += pcl.N1 * vol_de_vol_by_3;
+			n1.se_pcl_vol += pcl.N1 * pcl.vol;
+			// node 2
+			Node& n2 = md.nodes[e.n2];
+			n2.de_vol_by_3 += pcl.N2 * vol_de_vol_by_3;
+			n2.se_pcl_vol += pcl.N2 * pcl.vol;
+			// node 3
+			Node& n3 = md.nodes[e.n3];
+			n3.de_vol_by_3 += pcl.N3 * vol_de_vol_by_3;
+			n3.se_pcl_vol += pcl.N3 * pcl.vol;
+		}
+	}
+	
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	{
+		Node& n = md.nodes[n_id];
+		if (n.has_mp)
+			n.de_vol_by_3 /= n.se_pcl_vol;
+	}
+	
+	// map variables back to particles and update their variables
+	double ds11, ds22, ds12;
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
@@ -359,13 +458,16 @@ int solve_substep_T2D_ME_s_Geo(void *_self)
 			pcl.vy += (n1.ay * pcl.N1 + n2.ay * pcl.N2 + n3.ay * pcl.N3) * self.dtime;
 
 			// strain
-			de11 = n1.dux * e.dN1_dx + n2.dux * e.dN2_dx + n3.dux * e.dN3_dx;
-			de22 = n1.duy * e.dN1_dy + n2.duy * e.dN2_dy + n3.duy * e.dN3_dy;
-			de12 = (n1.dux * e.dN1_dy + n2.dux * e.dN2_dy + n3.dux * e.dN3_dy
-				  + n1.duy * e.dN1_dx + n2.duy * e.dN2_dx + n3.duy * e.dN3_dx) * 0.5;
+			//de11 = n1.dux * e.dN1_dx + n2.dux * e.dN2_dx + n3.dux * e.dN3_dx;
+			//de22 = n1.duy * e.dN1_dy + n2.duy * e.dN2_dy + n3.duy * e.dN3_dy;
+			//de12 = (n1.dux * e.dN1_dy + n2.dux * e.dN2_dy + n3.dux * e.dN3_dy
+			//	  + n1.duy * e.dN1_dx + n2.duy * e.dN2_dx + n3.duy * e.dN3_dx) * 0.5;
+			de_vol_by_3 = (n1.de_vol_by_3 + n2.de_vol_by_3 + n3.de_vol_by_3) / 3.0;
+			de11 = e.dde11 + de_vol_by_3;
+			de22 = e.dde22 + de_vol_by_3;
+			de12 = e.de12;
 
 			// stress
-			// update stress using constitutive model
 			double dstrain[6] = { de11, de22, 0.0, de12, 0.0, 0.0 };
 			pcl.mm->integrate(dstrain);
 			const double *dstress = pcl.mm->get_dstress();

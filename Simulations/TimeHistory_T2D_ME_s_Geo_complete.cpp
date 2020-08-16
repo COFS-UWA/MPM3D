@@ -128,6 +128,7 @@ int time_history_output_func_t2d_me_s_geo_complete_to_hdf5_res_file(TimeHistory 
 	rf.write_attribute(frame_grp_id, "substep_num", step.get_substep_index());
 	rf.write_attribute(frame_grp_id, "total_substep_num", step.get_total_substep_index());
 	
+	rf.write_attribute(frame_grp_id, "max_unbalanced_nodal_force", step.get_max_nf_ub());
 	rf.write_attribute(frame_grp_id, "unbalanced_nodal_force", step.get_nf_ub());
 	rf.write_attribute(frame_grp_id, "unbalanced_nodal_force_ratio", step.get_nf_ub_ratio());
 	rf.write_attribute(frame_grp_id, "kinetic_energy", step.get_kinetic_energy());

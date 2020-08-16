@@ -3,7 +3,7 @@
 #include "ItemArray.hpp"
 #include "utils.h"
 #include "Model_T2D_ME_p.h"
-#include "Step_T2D_ME_p.h"
+#include "Step_T2D_ME_p_tbb.h"
 #include "ModelData_T2D_ME_p.h"
 #include "TimeHistory_T2D_ME_p_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
@@ -98,11 +98,11 @@ void test_t2d_me_p_1d_compression(int argc, char** argv)
 
 	TimeHistory_ConsoleProgressBar out_pb;
 
-	Step_T2D_ME_p step("step1");
+	Step_T2D_ME_p_tbb step("step1");
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(2);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();

@@ -13,19 +13,17 @@
 
 #include "test_simulations.h"
 
-void test_t2d_me_s_pipe_conference_restart(int argc, char** argv)
+void test_t2d_me_s_pipe_conference_restart2(int argc, char** argv)
 {
 	Model_T2D_ME_s model;
 
 	using Model_T2D_ME_s_hdf5_utilities::load_me_s_model_from_hdf5_file;
 	load_me_s_model_from_hdf5_file(
 		model,
-		"t2d_me_s_pipe_conference_geo.h5",
-		"geostatic",
-		101
+		"t2d_me_s_pipe_conference_restart.h5",
+		"penetration",
+		500
 		);
-
-	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 
 	//IndexArray left_right_bc_pt_array;
 	//left_right_bc_pt_array.reserve(model.get_vx_num());
@@ -51,14 +49,14 @@ void test_t2d_me_s_pipe_conference_restart(int argc, char** argv)
 	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
+	//md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
 	////md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
-	//md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_pcl_id(left_right_tbc_pt_array.get_mem(), left_right_tbc_pt_array.get_num(), 0.015);
 	//// all
-	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	//md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//// left
-	//md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
+	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
 	//// middle
 	////md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
 	//// right
@@ -67,10 +65,12 @@ void test_t2d_me_s_pipe_conference_restart(int argc, char** argv)
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_me_s_pipe_conference_restart.h5");
+	res_file_hdf5.create("t2d_me_s_pipe_conference_restart2.h5");
 
-	ModelData_T2D_ME_s md;
-	md.output_model(model, res_file_hdf5);
+	ModelData_T2D_ME_s md("md1");
+	md.set_model(model);
+	md.set_res_file(res_file_hdf5);
+	md.output();
 
 	TimeHistory_T2D_ME_s_complete out("penetration");
 	out.set_res_file(res_file_hdf5);
@@ -78,7 +78,7 @@ void test_t2d_me_s_pipe_conference_restart(int argc, char** argv)
 	out.set_output_init_state();
 	TimeHistory_ConsoleProgressBar out_pb;
 
-	Step_T2D_ME_s step("step1");
+	Step_T2D_ME_s step("step2");
 	step.set_model(model);
 	step.set_step_time(6.0);
 	step.set_dtime(2.0e-6);
@@ -91,10 +91,10 @@ void test_t2d_me_s_pipe_conference_restart(int argc, char** argv)
 #include "QtApp_Posp_T2D_ME_s.h"
 #include "test_model_view.h"
 
-void test_t2d_me_s_pipe_conference_restart_result(int argc, char** argv)
+void test_t2d_me_s_pipe_conference_restart_result2(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_s_pipe_conference_restart.h5");
+	rf.open("t2d_me_s_pipe_conference_restart2.h5");
 
 	//// single frame
 	//QtApp_Posp_T2D_ME_s app(argc, argv);
@@ -103,7 +103,7 @@ void test_t2d_me_s_pipe_conference_restart_result(int argc, char** argv)
 	//app.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//app.set_fld_range(-20100.0, -19900.0);
 	//app.set_color_map_pos(0.8, 0.65, 0.3);
-	////app.set_png_name("t2d_me_s_pipe_conference_geo");
+	////app.set_png_name("t2d_me_s_pipe_conference_restart2");
 	//app.start();
 
 	// animation
@@ -114,7 +114,7 @@ void test_t2d_me_s_pipe_conference_restart_result(int argc, char** argv)
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
 	app.set_fld_range(-30000.0, -10000.0);
 	app.set_color_map_pos(0.8, 0.65, 0.3);
-	//app.set_png_name("t2d_me_s_pipe_conference_restart");
-	//app.set_gif_name("t2d_me_s_pipe_conference_restart");
+	//app.set_png_name("t2d_me_s_pipe_conference_restart2");
+	//app.set_gif_name("t2d_me_s_pipe_conference_restart2");
 	app.start();
 }

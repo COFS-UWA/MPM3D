@@ -43,7 +43,7 @@ void test_t2d_me_s_pipe_conference_geo(int argc, char** argv)
 		pcl.set_mat_model(mm);
 	}
 
-	model.init_rigid_circle(1.0e5, 0.0, 0.5 - 0.014, 0.5);
+	model.init_rigid_circle(1.0e5, 0.0, 0.5 - 0.01, 0.5);
 	//model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 	
 	// traction

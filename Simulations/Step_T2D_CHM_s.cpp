@@ -29,6 +29,8 @@ int Step_T2D_CHM_s::init_calculation()
 		pcl.y_ori = pcl.y;
 		pcl.ux_s = 0.0;
 		pcl.uy_s = 0.0;
+		pcl.x_f_ori = pcl.x_f;
+		pcl.y_f_ori = pcl.y_f;
 		pcl.ux_f = 0.0;
 		pcl.uy_f = 0.0;
 	}
@@ -511,6 +513,8 @@ int solve_substep_T2D_CHM_s(void *_self)
 			// update position
 			pcl.x = pcl.x_ori + pcl.ux_s;
 			pcl.y = pcl.y_ori + pcl.uy_s;
+			pcl.x_f = pcl.x_f_ori + pcl.ux_f;
+			pcl.y_f = pcl.y_f_ori + pcl.uy_f;
 
 			// strain enhancement appraoch
 			de_vol_s = n1.de_vol_s * pcl.N1 + n2.de_vol_s * pcl.N2 + n3.de_vol_s * pcl.N3;

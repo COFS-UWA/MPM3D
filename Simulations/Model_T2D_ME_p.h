@@ -171,6 +171,8 @@ int solve_substep_T2D_ME_p(void* _self);
 int solve_substep_T2D_ME_p_RigidCircle(void* _self);
 class Step_T2D_ME_p_Geo;
 int solve_substep_T2D_ME_p_geo(void* _self);
+class Step_T2D_ME_p_tbb;
+int solve_substep_T2D_ME_p_tbb(void *_self);
 
 struct Model_T2D_ME_p : public Model,
 	public Model_T2D_ME_p_Internal::BgMesh,
@@ -181,10 +183,13 @@ struct Model_T2D_ME_p : public Model,
 	friend int solve_substep_T2D_ME_p_RigidCircle(void *_self);
 	friend class Step_T2D_ME_p_Geo;
 	friend int solve_substep_T2D_ME_p_geo(void *_self);
+	friend class Step_T2D_ME_p_tbb;
+	friend int solve_substep_T2D_ME_p_tbb(void* _self);
 
 public:
 	typedef Model_T2D_ME_p_Internal::NodeToElem NodeToElem;
 	typedef Model_T2D_ME_p_Internal::Node Node;
+	typedef Model_T2D_ME_p_Internal::NodeVarAtElem NodeVarAtElem;
 	typedef Model_T2D_ME_p_Internal::Element Element;
 	typedef Model_T2D_ME_p_Internal::Edge Edge;
 	typedef Model_T2D_ME_p_Internal::BgMesh BgMesh;
@@ -249,11 +254,11 @@ public:
 
 protected: // helper functions
 	void init_mesh_shape_funcs();
-	void init_node_to_elem_info();
-
-public:
+	
 	void alloc_n2e_info(size_t num);
 	void clear_n2e_info();
+	void init_node_to_elem_info();
+
 	void init_bcs();
 
 public:
@@ -305,13 +310,13 @@ public:
 // ===================== rigid circle =====================
 protected:
 	bool rigid_circle_is_init;
-	RigidCircle rigid_circle;
 	double K_cont; // contact stiffness
-	int apply_rigid_circle(double dt);
+	RigidCircle rigid_circle;
 
 public: // interaction with rigid circle
 	inline bool rigid_circle_is_valid() { return rigid_circle_is_init; }
-	inline void init_rigid_circle(double _K_cont, double x, double y, double r, double density = 1.0)
+	inline void init_rigid_circle(double _K_cont,
+		double x, double y, double r, double density = 1.0)
 	{
 		rigid_circle_is_init = true;
 		K_cont = _K_cont;
@@ -319,8 +324,8 @@ public: // interaction with rigid circle
 	}
 	inline void set_rigid_circle_velocity(double vx, double vy, double v_ang)
 	{ rigid_circle.set_v_bc(vx, vy, v_ang); }
-
 	inline RigidCircle& get_rigid_circle() { return rigid_circle; }
+	inline double get_K_cont() { return K_cont; }
 
 protected:
 	friend int Model_T2D_ME_p_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_p& md, ResultFile_hdf5& rf, hid_t grp_id);

@@ -26,7 +26,8 @@ struct Node
 	double fx_int, fy_int;
 
 	// strain enhancement
-	double se_pcl_vol, de_vol_by_3;
+	double de_vol_by_3;
+	double se_pcl_vol;
 };
 
 struct Element;
@@ -44,10 +45,9 @@ struct Particle
 	double s11, s22, s12;
 
 	// calculation variables
+	double x_ori, y_ori;
 	double vol;
 	inline double get_vol() { return m / density; }
-	
-	double x_ori, y_ori;
 	
 	Element* pe;
 	double N1, N2, N3;

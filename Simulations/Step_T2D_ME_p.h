@@ -11,20 +11,22 @@
 #include "ThreadBarrierFixedNum.h"
 
 int solve_substep_T2D_ME_p(void* _self);
-int solve_substep_T2D_ME_p_RigidCircle(void* _self);
 
 // parallelism version
 class Step_T2D_ME_p : public Step
 {
 public:
-	typedef Model_T2D_ME_p_Internal::NodeToElem NodeToElem;
+	typedef Model_T2D_ME_p::NodeToElem NodeToElem;
 	typedef Model_T2D_ME_p::Node Node;
-	typedef Model_T2D_ME_p_Internal::NodeVarAtElem NodeVarAtElem;
+	typedef Model_T2D_ME_p::NodeVarAtElem NodeVarAtElem;
 	typedef Model_T2D_ME_p::Element Element;
 	typedef Model_T2D_ME_p::Particle Particle;
 	
 	explicit Step_T2D_ME_p(const char* _name);
 	~Step_T2D_ME_p();
+
+	Step_T2D_ME_p(const Step_T2D_ME_p& other) = delete;
+	Step_T2D_ME_p& operator=(const Step_T2D_ME_p& other) = delete;
 
 	inline void set_model(Model_T2D_ME_p& md)
 	{

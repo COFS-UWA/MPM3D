@@ -38,6 +38,8 @@ add_library(
     ## deformation calculation
     Step_T2D_ME_p.h Step_T2D_ME_p.cpp Step_T2D_ME_p_RigidCircle.cpp
     TimeHistory_T2D_ME_p_complete.h TimeHistory_T2D_ME_p_complete.cpp
+    FixedSizeMemAllocator.h
+    Step_T2D_ME_p_tbb.h Step_T2D_ME_p_tbb.cpp
     ## geostatic calculation
     Step_T2D_ME_p_Geo.h Step_T2D_ME_p_Geo.cpp
     TimeHistory_T2D_ME_p_Geo_complete.h TimeHistory_T2D_ME_p_Geo_complete.cpp
@@ -95,6 +97,12 @@ target_include_directories(
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
     ${HDF5_INCLUDE_DIR}
+    ${TBB_INCLUDE_DIR}
+    )
+
+target_link_directories(
+    Simulations PUBLIC
+    ${TBB_LIBRARIES_DIR}
     )
 
 target_link_libraries(
@@ -104,9 +112,8 @@ target_link_libraries(
     MaterialModels
     Geometry
     # External dependencies
-    Qt5::Widgets
-    Qt5::OpenGL
     ${HDF5_LIBRARIES}
+    TBB
     )
 
 if (MSVC)

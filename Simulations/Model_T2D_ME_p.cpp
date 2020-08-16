@@ -165,17 +165,20 @@ void Model_T2D_ME_p::init_node_to_elem_info()
 	delete[] n2es;
 }
 
-void swap_abc(AccelerationBC &abc1, AccelerationBC &abc2)
+namespace
 {
-	size_t n_id_tmp;
-	n_id_tmp = abc1.node_id;
-	abc1.node_id = abc2.node_id;
-	abc2.node_id = abc1.node_id;
+	void swap_abc(AccelerationBC& abc1, AccelerationBC& abc2)
+	{
+		size_t n_id_tmp;
+		n_id_tmp = abc1.node_id;
+		abc1.node_id = abc2.node_id;
+		abc2.node_id = abc1.node_id;
 
-	double a_tmp;
-	a_tmp = abc1.a;
-	abc1.a = abc2.a;
-	abc2.a = a_tmp;
+		double a_tmp;
+		a_tmp = abc1.a;
+		abc1.a = abc2.a;
+		abc2.a = a_tmp;
+	}
 }
 
 void Model_T2D_ME_p::init_bcs()
@@ -433,64 +436,6 @@ void Model_T2D_ME_p::clear_pcls()
 		pcls = nullptr;
 	}
 	pcl_num = 0;
-}
-
-// rigid circle - soil interaction
-int Model_T2D_ME_p::apply_rigid_circle(double dt)
-{
-	rigid_circle.reset_rf();
-
-	double dist, norm_x, norm_y;
-	double f_cont, fx_cont, fy_cont;
-	double nfx_cont, nfy_cont, ndax, nday;
-	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-	{
-		Particle &pcl = pcls[p_id];
-		if (pcl.pe && rigid_circle.detect_collision_with_point(
-							pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
-		{
-			f_cont = K_cont * dist;
-			fx_cont = f_cont * norm_x;
-			fy_cont = f_cont * norm_y;
-			// add reaction force to rigid object
-			rigid_circle.add_rf(pcl.x, pcl.y, fx_cont, fy_cont);
-			// adjust velocity at nodes
-			Element &e = *pcl.pe;
-			// node 1
-			Node &n1 = nodes[e.n1];
-			nfx_cont = pcl.N1 * fx_cont;
-			nfy_cont = pcl.N1 * fy_cont;
-			ndax = nfx_cont / n1.m;
-			nday = nfy_cont / n1.m;
-			n1.ax += ndax;
-			n1.ay += nday;
-			n1.vx += ndax * dt;
-			n1.vy += nday * dt;
-			// node 2
-			Node &n2 = nodes[e.n2];
-			nfx_cont = pcl.N2 * fx_cont;
-			nfy_cont = pcl.N2 * fy_cont;
-			ndax = nfx_cont / n2.m;
-			nday = nfy_cont / n2.m;
-			n2.ax += ndax;
-			n2.ay += nday;
-			n2.vx += ndax * dt;
-			n2.vy += nday * dt;
-			// node 3
-			Node &n3 = nodes[e.n3];
-			nfx_cont = pcl.N3 * fx_cont;
-			nfy_cont = pcl.N3 * fy_cont;
-			ndax = nfx_cont / n3.m;
-			nday = nfy_cont / n3.m;
-			n3.ax += ndax;
-			n3.ay += nday;
-			n3.vx += ndax * dt;
-			n3.vy += nday * dt;
-		}
-	}
-
-	rigid_circle.update_motion(dt);
-	return 0;
 }
 
 #include <fstream>

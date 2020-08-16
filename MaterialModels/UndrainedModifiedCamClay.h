@@ -32,9 +32,9 @@ namespace MatModel
 		inline void cal_total_stress() noexcept
 		{
 			const double* eff_stress = mcc.get_stress();
-			stress[0] = eff_stress[0] + pore_pressure;
-			stress[1] = eff_stress[1] + pore_pressure;
-			stress[2] = eff_stress[2] + pore_pressure;
+			stress[0] = eff_stress[0] - pore_pressure;
+			stress[1] = eff_stress[1] - pore_pressure;
+			stress[2] = eff_stress[2] - pore_pressure;
 			stress[3] = eff_stress[3];
 			stress[4] = eff_stress[4];
 			stress[5] = eff_stress[5];
@@ -123,9 +123,11 @@ namespace MatModel
 			init_cal_var();
 		}
 
+		inline const double *get_stress() noexcept { return stress; }
+		inline const double *get_effective_stress() noexcept { return mcc.get_stress(); }
 		inline double get_p() { return (s11 + s22 + s33) / 3.0;; }
-		inline double get_pore_pressure() { return pore_pressure; }
 		inline double get_effective_p() const noexcept { return mcc.get_p(); }
+		inline double get_pore_pressure() { return pore_pressure; }
 		inline double get_q() const noexcept { return mcc.get_q(); }
 		inline double get_pc() const noexcept { return mcc.get_pc(); }
 		inline double get_e_by_strain() const noexcept { return mcc.get_e_by_strain(); }

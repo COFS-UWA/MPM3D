@@ -15,9 +15,9 @@ int solve_substep_T2D_ME_p_geo(void *_self);
 class Step_T2D_ME_p_Geo : public Step
 {
 public:
-	typedef Model_T2D_ME_p_Internal::NodeToElem NodeToElem;
+	typedef Model_T2D_ME_p::NodeToElem NodeToElem;
 	typedef Model_T2D_ME_p::Node Node;
-	typedef Model_T2D_ME_p_Internal::NodeVarAtElem NodeVarAtElem;
+	typedef Model_T2D_ME_p::NodeVarAtElem NodeVarAtElem;
 	typedef Model_T2D_ME_p::Element Element;
 	typedef Model_T2D_ME_p::Particle Particle;
 
@@ -102,8 +102,8 @@ protected:
 	void map_pcl_vars_to_nodes_at_elems(unsigned int th_id);
 	void update_node_a_and_v(unsigned int th_id);
 	void apply_a_and_v_bcs(unsigned int th_id);
-	void cal_de_at_elem(unsigned int th_id);
-	void map_de_vol_from_elem_to_node(unsigned int th_id);
+	//void cal_de_at_elem(unsigned int th_id);
+	//void map_de_vol_from_elem_to_node(unsigned int th_id);
 	void update_pcl_vars(unsigned int th_id);
 };
 

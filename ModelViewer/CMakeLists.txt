@@ -99,15 +99,17 @@ target_include_directories(
     )
 
 target_link_libraries(
-    ModelViewer
+    ModelViewer PUBLIC
+    # Internal dependencies
     FileUtils
+    # External dependencies
     Qt5::Widgets
     Qt5::OpenGL
     ${HDF5_LIBRARIES}
     )
 
 target_link_libraries(
-    ModelViewer
+    ModelViewer PUBLIC
     debug ${FREETYPE_DEBUG_LIBRARIES}
     optimized ${FREETYPE_RELEASE_LIBRARIES}
     )

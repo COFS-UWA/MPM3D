@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
 
 	//test_t2d_me_s_geostatic(argc, argv);
 	//test_t2d_me_s_geostatic_result(argc, argv);
+	//test_t2d_me_s_geostatic_restart(argc, argv);
+	//test_t2d_me_s_geostatic_restart_result(argc, argv);
 
 	//test_t2d_chm_s_geostatic_mcc(argc, argv);
 	//test_t2d_chm_s_geostatic_mcc_result(argc, argv);
@@ -80,7 +82,7 @@ int main(int argc, char *argv[])
 
 	//test_t2d_me_p_test(argc, argv);
 	//test_t2d_me_p_test_result(argc, argv);
-
+	
 	//test_t2d_me_p_1d_compression(argc, argv);
 	//test_t2d_me_p_1d_compression_result(argc, argv);
 
@@ -102,8 +104,10 @@ int main(int argc, char *argv[])
 	// completely drained
 	//test_t2d_me_s_pipe_conference_geo(argc, argv);
 	//test_t2d_me_s_pipe_conference_geo_result(argc, argv);
-	test_t2d_me_s_pipe_conference_restart(argc, argv);
+	//test_t2d_me_s_pipe_conference_restart(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart_result(argc, argv);
+	test_t2d_me_s_pipe_conference_restart2(argc, argv);
+	//test_t2d_me_s_pipe_conference_restart_result2(argc, argv);
 
 	//test_t2d_me_p_pipe_conference_geo(argc, argv);
 	//test_t2d_me_p_pipe_conference_geo_result(argc, argv);

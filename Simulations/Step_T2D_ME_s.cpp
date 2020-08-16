@@ -220,16 +220,14 @@ int solve_substep_T2D_ME_s(void *_self)
 	}
 
 	// update nodal acceleration of fluid pahse
-	double nf, v_sign;
+	double nf;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp) // or n.m_f != 0.0
 		{
-			// fx
 			nf = n.fx_ext - n.fx_int;
 			n.ax = (nf - self.damping_ratio * abs(nf) * get_sign(n.vx)) / n.m;
-			// fy
 			nf = n.fy_ext - n.fy_int;
 			n.ay = (nf - self.damping_ratio * abs(nf) * get_sign(n.vy)) / n.m;
 		}
@@ -268,14 +266,14 @@ int solve_substep_T2D_ME_s(void *_self)
 	for (size_t v_id = 0; v_id < md.vx_num; ++v_id)
 	{
 		Node &n = md.nodes[md.vxs[v_id].node_id];
-		n.vx = md.vxs[v_id].v;
 		n.ax = 0.0;
+		n.vx = md.vxs[v_id].v;
 	}
 	for (size_t v_id = 0; v_id < md.vy_num; ++v_id)
 	{
 		Node &n = md.nodes[md.vys[v_id].node_id];
-		n.vy = md.vys[v_id].v;
 		n.ay = 0.0;
+		n.vy = md.vys[v_id].v;
 	}
 	
 	// update displacement increment of both phases
@@ -347,9 +345,9 @@ int solve_substep_T2D_ME_s(void *_self)
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
-		Element &e = *pcl.pe;
 		if (pcl.pe)
 		{
+			Element& e = *pcl.pe;
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
@@ -367,7 +365,6 @@ int solve_substep_T2D_ME_s(void *_self)
 			pcl.y = pcl.y_ori + pcl.uy;
 
 			// strain
-			//de_vol_by_3 = n1.de_vol_by_3 * pcl.N1 + n2.de_vol_by_3 * pcl.N2 + n3.de_vol_by_3 * pcl.N3;
 			de_vol_by_3 = (n1.de_vol_by_3 + n2.de_vol_by_3 + n3.de_vol_by_3) / 3.0;
 			de11 = e.dde11 + de_vol_by_3;
 			de22 = e.dde22 + de_vol_by_3;

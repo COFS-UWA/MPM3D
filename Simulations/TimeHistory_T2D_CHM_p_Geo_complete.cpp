@@ -51,7 +51,6 @@ void TimeHistory_T2D_CHM_p_Geo_complete::close()
 	is_init = false;
 }
 
-
 int time_history_output_func_t2d_chm_p_geo_complete_to_xml_res_file(TimeHistory &_self)
 {
 	TimeHistory_T2D_CHM_p_Geo_complete &th
@@ -119,20 +118,24 @@ int time_history_output_func_t2d_chm_p_geo_complete_to_xml_res_file(TimeHistory 
 
 int time_history_output_func_t2d_chm_p_geo_complete_to_hdf5_res_file(TimeHistory &_self)
 {
-	TimeHistory_T2D_CHM_p_Geo_complete &th
-		= static_cast<TimeHistory_T2D_CHM_p_Geo_complete &>(_self);
-	Step_T2D_CHM_p_Geo &step
-		= static_cast<Step_T2D_CHM_p_Geo &>(th.get_step());
+	TimeHistory_T2D_CHM_p_Geo_complete &th = static_cast<TimeHistory_T2D_CHM_p_Geo_complete &>(_self);
+	Step_T2D_CHM_p_Geo &step = static_cast<Step_T2D_CHM_p_Geo &>(th.get_step());
 	Model_T2D_CHM_p &md = static_cast<Model_T2D_CHM_p &>(step.get_model());
 	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(*th.res_file);
 
 	char frame_name[30];
 	snprintf(frame_name, 30, "frame_%zu", th.output_id);
 	hid_t frame_grp_id = rf.create_group(th.th_id, frame_name);
+
 	rf.write_attribute(frame_grp_id, "current_time", step.get_current_time());
 	rf.write_attribute(frame_grp_id, "total_time", step.get_total_time());
 	rf.write_attribute(frame_grp_id, "substep_num", step.get_substep_index());
 	rf.write_attribute(frame_grp_id, "total_substep_num", step.get_total_substep_index());
+	
+	rf.write_attribute(frame_grp_id, "unbalanced_nodal_force", step.get_nf_ub());
+	rf.write_attribute(frame_grp_id, "unbalanced_nodal_force_ratio", step.get_nf_ub_ratio());
+	rf.write_attribute(frame_grp_id, "kinetic_energy", step.get_kinetic_energy());
+	rf.write_attribute(frame_grp_id, "kinetic_energy_ratio", step.get_kinetic_energy_ratio());
 	
 	using Model_T2D_CHM_p_hdf5_utilities::time_history_complete_output_to_hdf5_file;
 	time_history_complete_output_to_hdf5_file(md, rf, frame_grp_id);

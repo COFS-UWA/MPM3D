@@ -47,6 +47,7 @@ public:
 	inline void set_damping_ratio(double _ratio) noexcept { damping_ratio = _ratio; }
 
 	// unbalanced nodal force
+	inline double get_max_nf_ub() const noexcept { return max_f_ub; }
 	inline double get_nf_ub() const noexcept { return sqrt(f_ub); }
 	inline double get_nf_ub_ratio() const noexcept { return f_ub_ratio; }
 	// kinetic energy
@@ -55,8 +56,10 @@ public:
 
 protected:
 	// convergence criteria
+	bool *node_has_a_or_v_bc;
 	// unbalanced force
 	double f_ub;
+	double max_f_ub;
 	double init_f_ub;
 	double f_ub_ratio;
 	// maximum kinematic energy

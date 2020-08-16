@@ -34,6 +34,7 @@ add_executable(
     test_Model_T2D_ME_s_display.cpp
     # geostatic calculation
     test_t2d_me_s_geostatic.cpp
+    test_t2d_me_s_geostatic_restart.cpp
     test_t2d_chm_s_geostatic_mcc.cpp
     # deformation calculation
     test_t2d_me_s_1d_compression.cpp
@@ -57,6 +58,7 @@ add_executable(
     # completely drained
     test_t2d_me_s_pipe_conference_geo.cpp
     test_t2d_me_s_pipe_conference_restart.cpp
+    test_t2d_me_s_pipe_conference_restart2.cpp
     test_t2d_me_p_pipe_conference_geo.cpp
     test_t2d_me_p_pipe_conference_restart.cpp
     # 3D
@@ -73,6 +75,7 @@ add_executable(
 
 target_include_directories(
     Tests PUBLIC
+    # Internal dependencies
     ${COMMONUTILS_INCLUDE_DIR}
     ${FILEUTILS_INCLUDE_DIR}
     ${MEMORYUTILS_INCLUDE_DIR}
@@ -80,21 +83,35 @@ target_include_directories(
     ${GEOMETRY_INCLUDE_DIR}
     ${SIMULATIONS_INCLUDE_DIR}
     ${MODELVIEWER_INCLUDE_DIR}
+    # External dependencies
+    ${EIGEN_INCLUDE_DIR}
+    ${HDF5_INCLUDE_DIR}
+    ${TBB_INCLUDE_DIR}
     )
 
-#link_directories(${GLFW_LIBRARIES_DIR})
+target_link_directories(
+    Tests PUBLIC
+    ${TBB_LIBRARIES_DIR}
+    )
+
 target_link_libraries(
     Tests PUBLIC
+    # Internal dependencies
     CommonUtils
     MemoryUtils
     MaterialModels
     Geometry
     Simulations
     ModelViewer
+    # External dependencies
+    Qt5::Widgets
+    Qt5::OpenGL
+    ${HDF5_LIBRARIES}
+    TBB
     )
 
 if (WIN32)
-    # supress warning for certain functions in visual studio
+    # supress warning for some C functions in visual studio
     target_compile_definitions(Tests PRIVATE _CRT_SECURE_NO_WARNINGS)
     # use precompiled header
     target_compile_options(Tests PRIVATE -YcTests_pcp.h)

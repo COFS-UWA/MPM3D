@@ -1,10 +1,13 @@
 #include "Simulations_pcp.h"
 
+#include <set>
+
 #include "Geometry.h"
 #include "Model_T2D_CHM_p.h"
 
 Model_T2D_CHM_p::Model_T2D_CHM_p() :
 	Model("Model_T2D_CHM_p"),
+	node2elems(nullptr),
 	pcls(nullptr), pcl_num(0),
 	bfx_num(0), bfxs(nullptr),
 	bfy_num(0), bfys(nullptr),
@@ -22,6 +25,8 @@ Model_T2D_CHM_p::Model_T2D_CHM_p() :
 
 Model_T2D_CHM_p::~Model_T2D_CHM_p()
 {
+	clear_n2e_info();
+
 	clear_pcls();
 
 	clear_bfxs();
@@ -69,6 +74,104 @@ void Model_T2D_CHM_p::init_mesh_shape_funcs()
 	}
 }
 
+void Model_T2D_CHM_p::alloc_n2e_info(size_t num)
+{
+	clear_n2e_info();
+	node2elems = new NodeToElem[num];
+}
+
+void Model_T2D_CHM_p::clear_n2e_info()
+{
+	if (node2elems)
+	{
+		delete[] node2elems;
+		node2elems = nullptr;
+	}
+}
+
+void Model_T2D_CHM_p::init_node_to_elem_info()
+{
+	struct N2E
+	{
+		Element* pe;
+		unsigned char n_id;
+		N2E* next;
+	};
+
+	struct N2EStack
+	{
+		N2E* top;
+		size_t num;
+		inline void init()
+		{
+			top = nullptr;
+			num = 0;
+		}
+		inline void add(N2E& n2e)
+		{
+			n2e.next = top;
+			top = &n2e;
+			++num;
+		}
+	};
+
+	N2EStack* n2e_stacks = new N2EStack[node_num];
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		N2EStack& n2es = n2e_stacks[n_id];
+		n2es.init();
+	}
+
+	N2E* n2es = new N2E[elem_num * 3];
+	size_t cur_n2e_id = 0;
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		// node 1
+		N2E& n2e1 = n2es[cur_n2e_id];
+		n2e1.pe = &e;
+		n2e1.n_id = 0;
+		N2EStack& ns1 = n2e_stacks[e.n1];
+		ns1.add(n2e1);
+		++cur_n2e_id;
+		// node 2
+		N2E& n2e2 = n2es[cur_n2e_id];
+		n2e2.pe = &e;
+		n2e2.n_id = 1;
+		N2EStack& ns2 = n2e_stacks[e.n2];
+		ns2.add(n2e2);
+		++cur_n2e_id;
+		// node 3
+		N2E& n2e3 = n2es[cur_n2e_id];
+		n2e3.pe = &e;
+		n2e3.n_id = 2;
+		N2EStack& ns3 = n2e_stacks[e.n3];
+		ns3.add(n2e3);
+		++cur_n2e_id;
+	}
+
+	alloc_n2e_info(elem_num * 3);
+	NodeToElem* cur_node2elems = node2elems;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		Node& n = nodes[n_id];
+		N2EStack& ns = n2e_stacks[n_id];
+		n.n2e_num = ns.num;
+		n.n2es = cur_node2elems;
+		size_t i = 0;
+		for (N2E* n2e = ns.top; n2e; n2e = n2e->next)
+		{
+			n.n2es[i].e_id = n2e->pe->id;
+			n.n2es[i].n_id = n2e->n_id;
+			++i;
+		}
+		cur_node2elems += n.n2e_num;
+	}
+
+	delete[] n2e_stacks;
+	delete[] n2es;
+}
+
 int Model_T2D_CHM_p::init_mesh(
 	double *node_coords, size_t n_num,
 	size_t *elem_n_ids,  size_t e_num
@@ -78,6 +181,7 @@ int Model_T2D_CHM_p::init_mesh(
 	if (res < 0)
 		return res;
 	init_mesh_shape_funcs();
+	init_node_to_elem_info();
 	return 0;
 }
 
@@ -87,6 +191,7 @@ int Model_T2D_CHM_p::load_mesh_from_hdf5(const char* file_name)
 	if (res < 0)
 		return res;
 	init_mesh_shape_funcs();
+	init_node_to_elem_info();
 	return 0;
 }
 
@@ -132,13 +237,15 @@ int Model_T2D_CHM_p::init_pcls(size_t num,
 	Kf = _Kf;
 	k = _k;
 	miu = _miu;
+
 	return 0;
 }
 
 int Model_T2D_CHM_p::init_pcls(
 	ParticleGenerator2D<Model_T2D_CHM_p>& pg,
 	double n, double density_s, double density_f,
-	double _Kf, double _k, double _miu)
+	double _Kf, double _k, double _miu
+	)
 {
 	int res = init_pcls(pg.get_num(), n, density_s,
 		density_s, density_f, _Kf, _k, _miu);
@@ -153,6 +260,8 @@ int Model_T2D_CHM_p::init_pcls(
 		pcl.x = pg_pcl->x;
 		pcl.y = pg_pcl->y;
 		pcl.m_s *= pg_pcl->area * (1.0 - pcl.n);
+		pcl.x_f = pcl.x;
+		pcl.y_f = pcl.y;
 		pg_pcl = pg.next(pg_pcl);
 	}
 
@@ -175,91 +284,306 @@ void Model_T2D_CHM_p::clear_pcls()
 	pcl_num = 0;
 }
 
-int Model_T2D_CHM_p::apply_rigid_circle(double dt)
+namespace
 {
-	rigid_circle.reset_rf();
+	void swap_abc(AccelerationBC& abc1, AccelerationBC& abc2)
+	{
+		size_t n_id_tmp;
+		n_id_tmp = abc1.node_id;
+		abc1.node_id = abc2.node_id;
+		abc2.node_id = abc1.node_id;
 
-	double dist, norm_x, norm_y;
-	double fs_cont, fsx_cont, fsy_cont;
-	double ff_cont, ffx_cont, ffy_cont;
-	double nfsx_cont, nfsy_cont, ndasx, ndasy;
-	double nffx_cont, nffy_cont, ndafx, ndafy;
+		double a_tmp;
+		a_tmp = abc1.a;
+		abc1.a = abc2.a;
+		abc2.a = a_tmp;
+	}
+}
+
+void Model_T2D_CHM_p::init_bcs()
+{
+	// traction bc and body force
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		Particle &pcl = pcls[p_id];
-		if (pcl.pe && rigid_circle.detect_collision_with_point(
-								pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+		Particle& pcl = pcls[p_id];
+		pcl.has_fx_s_ext = false;
+		pcl.has_fy_s_ext = false;
+		pcl.fx_s_ext = 0.0;
+		pcl.fy_s_ext = 0.0;
+		pcl.has_fx_f_ext = false;
+		pcl.has_fy_f_ext = false;
+		pcl.fx_f_ext = 0.0;
+		pcl.fy_f_ext = 0.0;
+	}
+
+	for (size_t t_id = 0; t_id < tx_num; ++t_id)
+	{
+		TractionBCAtPcl& tbc = txs[t_id];
+		Particle& pcl = pcls[tbc.pcl_id];
+		pcl.has_fx_s_ext = true;
+		pcl.fx_s_ext += tbc.t;
+	}
+	for (size_t t_id = 0; t_id < ty_num; ++t_id)
+	{
+		TractionBCAtPcl& tbc = tys[t_id];
+		Particle& pcl = pcls[tbc.pcl_id];
+		pcl.has_fy_s_ext = true;
+		pcl.fy_s_ext += tbc.t;
+	}
+
+	double bf_s, bf_f;
+	for (size_t bf_id = 0; bf_id < bfx_num; ++bf_id)
+	{
+		BodyForceAtPcl& bf = bfxs[bf_id];
+		Particle& pcl = pcls[bf.pcl_id];
+		bf_s = (pcl.density_s - pcl.density_f) * (1.0 - pcl.n) * pcl.vol * bf.bf;
+		bf_f = 0.0;
+		pcl.has_fx_s_ext = true;
+		pcl.has_fx_f_ext = true;
+		pcl.fx_s_ext += bf_s;
+		pcl.fx_f_ext += bf_f;
+	}
+	for (size_t bf_id = 0; bf_id < bfy_num; ++bf_id)
+	{
+		BodyForceAtPcl& bf = bfys[bf_id];
+		Particle& pcl = pcls[bf.pcl_id];
+		bf_s = (pcl.density_s - pcl.density_f) * (1.0 - pcl.n) * pcl.vol * bf.bf;
+		bf_f = 0.0;
+		pcl.has_fy_s_ext = true;
+		pcl.has_fy_f_ext = true;
+		pcl.fy_s_ext += bf_s;
+		pcl.fy_f_ext += bf_f;
+	}
+
+	// acceleration and velocity bcs
+	std::pair<std::set<size_t>::iterator, bool> res;
+	char error_str[100];
+
+	std::set<size_t> asx_n_id_set;
+	for (size_t a_id = 0; a_id < asx_num; ++a_id)
+	{
+		AccelerationBC& abc = asxs[a_id];
+		if (abc.node_id >= node_num)
 		{
-			fs_cont = Ks_cont * dist;
-			fsx_cont = fs_cont * norm_x;
-			fsy_cont = fs_cont * norm_y;
-			ff_cont = Kf_cont * dist;
-			ffx_cont = ff_cont * norm_x;
-			ffy_cont = ff_cont * norm_y;
-			// reaction force by the rigid object
-			rigid_circle.add_rf(pcl.x, pcl.y,
-				-(fsx_cont + ffx_cont), -(fsy_cont + ffy_cont));
-			// adjust velocity at nodes
-			Element &e = *pcl.pe;
-			// node 1
-			Node &n1 = nodes[e.n1];
-			nfsx_cont = pcl.N1 * fsx_cont;
-			nfsy_cont = pcl.N1 * fsy_cont;
-			ndasx = nfsx_cont / n1.m_s;
-			ndasy = nfsy_cont / n1.m_s;
-			n1.ax_s += ndasx;
-			n1.ay_s += ndasy;
-			n1.vx_s += ndasx * dt;
-			n1.vy_s += ndasy * dt;
-			nffx_cont = pcl.N1 * ffx_cont;
-			nffy_cont = pcl.N1 * ffy_cont;
-			ndafx = nffx_cont / n1.m_f;
-			ndafy = nffy_cont / n1.m_f;
-			n1.ax_f += ndafx;
-			n1.ay_f += ndafy;
-			n1.vx_f += ndafx * dt;
-			n1.vy_f += ndafy * dt;
-			// node 2
-			Node &n2 = nodes[e.n2];
-			nfsx_cont = pcl.N2 * fsx_cont;
-			nfsy_cont = pcl.N2 * fsy_cont;
-			ndasx = nfsx_cont / n2.m_s;
-			ndasy = nfsy_cont / n2.m_s;
-			n2.ax_s += ndasx;
-			n2.ay_s += ndasy;
-			n2.vx_s += ndasx * dt;
-			n2.vy_s += ndasy * dt;
-			nffx_cont = pcl.N2 * ffx_cont;
-			nffy_cont = pcl.N2 * ffy_cont;
-			ndafx = nffx_cont / n2.m_f;
-			ndafy = nffy_cont / n2.m_f;
-			n2.ax_f += ndafx;
-			n2.ay_f += ndafy;
-			n2.vx_f += ndafx * dt;
-			n2.vy_f += ndafy * dt;
-			// node 3
-			Node &n3 = nodes[e.n3];
-			nfsx_cont = pcl.N3 * fsx_cont;
-			nfsy_cont = pcl.N3 * fsy_cont;
-			ndasx = nfsx_cont / n3.m_s;
-			ndasy = nfsy_cont / n3.m_s;
-			n3.ax_s += ndasx;
-			n3.ay_s += ndasy;
-			n3.vx_s += ndasx * dt;
-			n3.vy_s += ndasy * dt;
-			nffx_cont = pcl.N3 * ffx_cont;
-			nffy_cont = pcl.N3 * ffy_cont;
-			ndafx = nffx_cont / n3.m_f;
-			ndafy = nffy_cont / n3.m_f;
-			n3.ax_f += ndafx;
-			n3.ay_f += ndafy;
-			n3.vx_f += ndafx * dt;
-			n3.vy_f += ndafy * dt;
+			snprintf(error_str, 100,
+				"ax bc %zu has node id %zu out of range.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
+		}
+		res = asx_n_id_set.insert(abc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist ax bc %zu at node %zu.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
 		}
 	}
 
-	rigid_circle.update_motion(dt);
-	return 0;
+	std::set<size_t> asy_n_id_set;
+	for (size_t a_id = 0; a_id < asy_num; ++a_id)
+	{
+		AccelerationBC& abc = asys[a_id];
+		if (abc.node_id >= node_num)
+		{
+			snprintf(error_str, 100,
+				"ay bc %zu has node id %zu out of range.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
+		}
+		res = asy_n_id_set.insert(abc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist ay bc %zu at node %zu.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
+		}
+	}
+
+	std::set<size_t> afx_n_id_set;
+	for (size_t a_id = 0; a_id < afx_num; ++a_id)
+	{
+		AccelerationBC& abc = afxs[a_id];
+		if (abc.node_id >= node_num)
+		{
+			snprintf(error_str, 100,
+				"ax bc %zu has node id %zu out of range.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
+		}
+		res = afx_n_id_set.insert(abc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist ax bc %zu at node %zu.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
+		}
+	}
+
+	std::set<size_t> afy_n_id_set;
+	for (size_t a_id = 0; a_id < asy_num; ++a_id)
+	{
+		AccelerationBC& abc = asys[a_id];
+		if (abc.node_id >= node_num)
+		{
+			snprintf(error_str, 100,
+				"ay bc %zu has node id %zu out of range.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
+		}
+		res = afy_n_id_set.insert(abc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist ay bc %zu at node %zu.\n",
+				a_id, abc.node_id);
+			throw std::exception(error_str);
+		}
+	}
+	
+	std::set<size_t> vsx_n_id_set;
+	for (size_t v_id = 0; v_id < vsx_num; ++v_id)
+	{
+		VelocityBC& vbc = vsxs[v_id];
+		if (vbc.node_id >= node_num)
+		{
+			snprintf(error_str, 100,
+				"vx bc %zu has node id %zu out of range.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+		res = vsx_n_id_set.insert(vbc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist vx bc %zu at node %zu.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+	}
+
+	std::set<size_t> vsy_n_id_set;
+	for (size_t v_id = 0; v_id < vsy_num; ++v_id)
+	{
+		VelocityBC& vbc = vsys[v_id];
+		if (vbc.node_id >= node_num)
+		{
+			snprintf(error_str, 100,
+				"vy bc %zu has node id %zu out of range.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+		res = vsy_n_id_set.insert(vbc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist vy bc %zu at node %zu.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+	}
+
+	std::set<size_t> vfx_n_id_set;
+	for (size_t v_id = 0; v_id < vfx_num; ++v_id)
+	{
+		VelocityBC& vbc = vfxs[v_id];
+		if (vbc.node_id >= node_num)
+		{
+			snprintf(error_str, 100,
+				"vx bc %zu has node id %zu out of range.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+		res = vfx_n_id_set.insert(vbc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist vx bc %zu at node %zu.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+	}
+
+	std::set<size_t> vfy_n_id_set;
+	for (size_t v_id = 0; v_id < vfy_num; ++v_id)
+	{
+		VelocityBC& vbc = vfys[v_id];
+		if (vbc.node_id >= node_num)
+		{
+			snprintf(error_str, 100,
+				"vy bc %zu has node id %zu out of range.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+		res = vfy_n_id_set.insert(vbc.node_id);
+		if (!res.second)
+		{
+			snprintf(error_str, 100,
+				"Already axist vy bc %zu at node %zu.\n",
+				v_id, vbc.node_id);
+			throw std::exception(error_str);
+		}
+	}
+
+	// asx and vsx, asy and vsy, afx and vfx, afy and vfy
+	// bcs should be mutually exclusive
+	for (size_t a_id = 0; a_id < asx_num;)
+	{
+		AccelerationBC& abc = asxs[a_id];
+		if (vsx_n_id_set.find(abc.node_id) != vsx_n_id_set.end())
+		{
+			--asx_num;
+			swap_abc(abc, asxs[asx_num]);
+		}
+		else
+		{
+			++a_id;
+		}
+	}
+
+	for (size_t a_id = 0; a_id < asy_num;)
+	{
+		AccelerationBC& abc = asys[a_id];
+		if (vsy_n_id_set.find(abc.node_id) != vsy_n_id_set.end())
+		{
+			--asy_num;
+			swap_abc(abc, asys[asy_num]);
+		}
+		else
+		{
+			++a_id;
+		}
+	}
+
+	for (size_t a_id = 0; a_id < afx_num;)
+	{
+		AccelerationBC& abc = afxs[a_id];
+		if (vfx_n_id_set.find(abc.node_id) != vfx_n_id_set.end())
+		{
+			--afx_num;
+			swap_abc(abc, asxs[afx_num]);
+		}
+		else
+		{
+			++a_id;
+		}
+	}
+
+	for (size_t a_id = 0; a_id < afy_num;)
+	{
+		AccelerationBC& abc = afys[a_id];
+		if (vfy_n_id_set.find(abc.node_id) != vfy_n_id_set.end())
+		{
+			--afy_num;
+			swap_abc(abc, afys[afy_num]);
+		}
+		else
+		{
+			++a_id;
+		}
+	}
 }
 
 #include <fstream>
@@ -271,7 +595,7 @@ void Model_T2D_CHM_p::sum_vol_for_each_elements()
 	{
 		Element &e = elems[e_id];
 		e.pcls = nullptr;
-		e.pcl_vol = 0.0;
+		e.mi_pcl_vol = 0.0;
 	}
 
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
@@ -283,7 +607,7 @@ void Model_T2D_CHM_p::sum_vol_for_each_elements()
 
 		pcl.vol_s = pcl.m_s / pcl.density_s;
 		pcl.vol = pcl.vol_s / (1.0 - pcl.n);
-		pcl.pe->pcl_vol += pcl.vol;
+		pcl.pe->mi_pcl_vol += pcl.vol;
 	}
 
 	std::fstream out_file;
@@ -293,22 +617,22 @@ void Model_T2D_CHM_p::sum_vol_for_each_elements()
 		Element &e = elems[e_id];
 		if (e.pcls)
 		{
-			if (e.pcl_vol > e.area)
+			if (e.mi_pcl_vol > e.area)
 			{
 				out_file << "id: " << e.id << ", elem_a: " << e.area
-					<< ", pcl_a:" << e.pcl_vol 
-					<< " * +" << (e.pcl_vol - e.area) / e.area * 100.0 << "% *\n";
+					<< ", pcl_a:" << e.mi_pcl_vol
+					<< " * +" << (e.mi_pcl_vol - e.area) / e.area * 100.0 << "% *\n";
 			}
-			else if (e.pcl_vol < e.area)
+			else if (e.mi_pcl_vol < e.area)
 			{
 				out_file << "id: " << e.id << ", elem_a: " << e.area
-					<< ", pcl_a:" << e.pcl_vol
-					<< " * -" << (e.area - e.pcl_vol) / e.area * 100.0 <<"% *\n";
+					<< ", pcl_a:" << e.mi_pcl_vol
+					<< " * -" << (e.area - e.mi_pcl_vol) / e.area * 100.0 <<"% *\n";
 			}
 			else
 			{
 				out_file << "id: " << e.id << ", elem_a: " << e.area
-					<< ", pcl_a:" << e.pcl_vol << "\n";
+					<< ", pcl_a:" << e.mi_pcl_vol << "\n";
 			}
 		}
 	}
