@@ -57,8 +57,7 @@ void test_t2d_chm_s_geostatic_mcc(int argc, char** argv)
 		ini_stress[5] = 0.0;
 		MatModel::ModifiedCamClay &mm = mms[p_id];
 		mm.set_param_NC(0.25, 0.04, 0.15, 25.0, 1.5, ini_stress);
-		pcl.mm = &mm;
-		mm.ext_data = &pcl;
+		pcl.set_mat_model(mm);
 	}
 
 	// vx bc

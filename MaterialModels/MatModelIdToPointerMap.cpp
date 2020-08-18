@@ -1,0 +1,75 @@
+#include "MaterialModels_pcp.h"
+
+#include <exception>
+
+#include "MatModelIdToPointerMap.h"
+
+namespace MatModel
+{
+	MatModelIdToPointerMap::MatModelIdToPointerMap() {}
+	
+	MatModelIdToPointerMap::~MatModelIdToPointerMap() {}
+
+	MatModelIdToPointerMap::MatModelIdToPointerMap(MatModelContainer& mc) { init(mc); }
+
+	void MatModelIdToPointerMap::init(MatModelContainer& mc)
+	{
+#define EXCEPTION_MSG_LEN 200
+		char exception_msg[EXCEPTION_MSG_LEN];
+		std::pair<Id2PtMap::iterator, bool> res;
+
+		// linear elasticity
+		for (MatModel::LinearElasticity* iter = mc.first_LinearElasticity();
+			 mc.is_not_end_LinearElasticity(iter);
+			 iter = mc.next_LinearElasticity(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(
+					exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: Linear elasticity model %zu already exists.",
+					iter->get_id()
+					);
+				throw std::exception(exception_msg);
+			}
+		}
+
+		// modified cam clay
+		for (MatModel::ModifiedCamClay* iter = mc.first_ModifiedCamClay();
+			mc.is_not_end_ModifiedCamClay(iter);
+			iter = mc.next_ModifiedCamClay(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(
+					exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: Modified Cam-clay model %zu already exists.",
+					iter->get_id()
+					);
+				throw std::exception(exception_msg);
+			}
+		}
+
+		// undrained modified cam clay
+		for (MatModel::UndrainedModifiedCamClay* iter = mc.first_UndrainedModifiedCamClay();
+			mc.is_not_end_UndrainedModifiedCamClay(iter);
+			iter = mc.next_UndrainedModifiedCamClay(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(
+					exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: Undrained Modified Cam-clay model %zu already exists.",
+					iter->get_id()
+					);
+				throw std::exception(exception_msg);
+			}
+		}
+	}
+}

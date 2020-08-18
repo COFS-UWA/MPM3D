@@ -1,5 +1,8 @@
 #include "Simulations_pcp.h"
 
+#include <exception>
+
+#include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
 #include "Model_T2D_ME_s_hdf5_utilities.h"
 
@@ -573,7 +576,7 @@ int load_pcl_data_from_hdf5_file(
 		pcl_num,
 		pcls_data,
 		pcl_dt_id
-	);
+		);
 	H5Tclose(pcl_dt_id);
 	
 	if (res) // if detect error
@@ -582,13 +585,20 @@ int load_pcl_data_from_hdf5_file(
 		return res;
 	}
 
+	MatModel::MatModelIdToPointerMap mm_id_map(md);
 	md.alloc_pcls(pcl_num);
 	Model_T2D_ME_s::Particle* pcls = md.get_pcls();
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		ParticleData& pcl_data = pcls_data[p_id];
 		Model_T2D_ME_s::Particle& pcl = pcls[p_id];
-		pcl_data.to_pcl(pcl);
+		MatModel::MaterialModel* pmat = mm_id_map.get_mm_by_id(pcl_data.mat_id);
+		if (!pmat)
+		{
+			throw std::exception("func load_pcl_data_from_hdf5_file error: "
+				"particle has no material model.");
+		}
+		pcl_data.to_pcl(pcl, *pmat);
 	}
 	delete[] pcls_data;
 
@@ -596,14 +606,6 @@ int load_pcl_data_from_hdf5_file(
 	return 0;
 }
 
-namespace
-{
-	template <typename Particle>
-	inline size_t get_pcl_id(void *ext_data)
-	{
-		return static_cast<Particle *>(ext_data)->id;
-	}
-};
 
 int output_material_model_to_hdf5_file(
 	Model_T2D_ME_s& md,
@@ -614,53 +616,10 @@ int output_material_model_to_hdf5_file(
 	if (grp_id < 0)
 		return -1;
 
-	size_t mm_id, mm_num;
-	hid_t mm_grp_id = rf.create_group(grp_id, "MaterialModel");
+	hid_t mc_grp_id = rf.create_group(grp_id, "MaterialModel");
+	output_material_model_container_to_hdf5_file(md, rf, mc_grp_id);
+	rf.close_group(mc_grp_id);
 
-	// linear elasticity
-	mm_num = md.get_num_LinearElasticity();
-	if (mm_num)
-	{
-		rf.write_attribute(mm_grp_id, "LinearElasticity_num", mm_num);
-
-		LinearElasticityStateData* mm_data = new LinearElasticityStateData[mm_num];
-		mm_id = 0;
-		for (MatModel::LinearElasticity* iter = md.first_LinearElasticity();
-			md.is_not_end_LinearElasticity(iter);
-			iter = md.next_LinearElasticity(iter))
-		{
-			mm_data[mm_id].pcl_id = get_pcl_id<Model_T2D_ME_s::Particle>(iter->ext_data);
-			mm_data[mm_id].from_mm(*iter);
-			++mm_id;
-		}
-		hid_t le_dt_id = get_le_hdf5_dt_id();
-		rf.write_dataset(mm_grp_id, "LinearElasticity", mm_num, mm_data, le_dt_id);
-		H5Tclose(le_dt_id);
-		delete[] mm_data;
-	}
-
-	mm_num = md.get_num_ModifiedCamClay();
-	if (mm_num)
-	{
-		rf.write_attribute(mm_grp_id, "ModifiedCamClay_num", mm_num);
-
-		ModifiedCamClayStateData* mm_data = new ModifiedCamClayStateData[mm_num];
-		mm_id = 0;
-		for (MatModel::ModifiedCamClay* iter = md.first_ModifiedCamClay();
-			md.is_not_end_ModifiedCamClay(iter);
-			iter = md.next_ModifiedCamClay(iter))
-		{
-			mm_data[mm_id].pcl_id = get_pcl_id<Model_T2D_ME_s::Particle>(iter->ext_data);
-			mm_data[mm_id].from_mm(*iter);
-			++mm_id;
-		}
-		hid_t mcc_dt_id = get_mcc_hdf5_dt_id();
-		rf.write_dataset(mm_grp_id, "ModifiedCamClay", mm_num, mm_data, mcc_dt_id);
-		H5Tclose(mcc_dt_id);
-		delete[] mm_data;
-	}
-
-	rf.close_group(mm_grp_id);
 	return 0;
 }
 
@@ -673,65 +632,10 @@ int load_material_model_from_hdf5_file(
 	if (grp_id < 0)
 		return -1;
 	
-	hid_t mm_dset_id;
-	size_t mm_num;
-	hid_t mm_grp_id = rf.open_group(grp_id, "MaterialModel");
+	hid_t mc_grp_id = rf.open_group(grp_id, "MaterialModel");
+	load_material_model_container_from_hdf5_file(md, rf, mc_grp_id);
+	rf.close_group(mc_grp_id);
 
-	// linear elasticity
-	if (rf.has_dataset(mm_grp_id, "LinearElasticity"))
-	{
-		rf.read_attribute(mm_grp_id, "LinearElasticity_num", mm_num);
-
-		// get data
-		LinearElasticityStateData* mm_data = new LinearElasticityStateData[mm_num];
-		hid_t le_dt_id = get_le_hdf5_dt_id();
-		rf.read_dataset(
-			mm_grp_id,
-			"LinearElasticity",
-			mm_num,
-			mm_data,
-			le_dt_id
-		);
-		H5Tclose(le_dt_id);
-		MatModel::LinearElasticity* mms = md.add_LinearElasticity(mm_num);
-		for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
-		{
-			LinearElasticityStateData& mmd = mm_data[mm_id];
-			MatModel::LinearElasticity& mm = mms[mm_id];
-			mmd.to_mm(mm);
-			md.pcls[mmd.pcl_id].set_mat_model(mm);
-		}
-		delete[] mm_data;
-	}
-
-	// modified cam clay
-	if (rf.has_dataset(mm_grp_id, "ModifiedCamClay"))
-	{
-		rf.read_attribute(mm_grp_id, "ModifiedCamClay_num", mm_num);
-
-		// get data
-		ModifiedCamClayStateData* mm_data = new ModifiedCamClayStateData[mm_num];
-		hid_t mcc_dt_id = get_mcc_hdf5_dt_id();
-		rf.read_dataset(
-			mm_grp_id,
-			"ModifiedCamClay",
-			mm_num,
-			mm_data,
-			mcc_dt_id
-		);
-		H5Tclose(mcc_dt_id);
-		MatModel::ModifiedCamClay* mms = md.add_ModifiedCamClay(mm_num);
-		for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
-		{
-			ModifiedCamClayStateData& mmd = mm_data[mm_id];
-			MatModel::ModifiedCamClay& mm = mms[mm_id];
-			mmd.to_mm(mm);
-			md.pcls[mmd.pcl_id].set_mat_model(mm);
-		}
-		delete[] mm_data;
-	}
-
-	rf.close_group(mm_grp_id);
 	return 0;
 }
 
@@ -848,10 +752,12 @@ int load_me_s_model_from_hdf5_file(
 	char th_frame_name[30];
 	snprintf(th_frame_name, 30, "frame_%zu", frame_id);
 	hid_t th_frame_id = rf.open_group(th_id, th_frame_name);
-	// particle data
-	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
+
 	// material model
 	load_material_model_from_hdf5_file(md, rf, th_frame_id);
+	// particle data
+	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
+
 	// rigid object
 	load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
 	rf.close_group(th_frame_id);

@@ -16,9 +16,11 @@ namespace MatModel
 		int res;
 		if ((res = mcc.integrate(dstrain)) < 0)
 			return res;
-		self.pore_pressure += self.Kw_div_n * -(dstrain[0] + dstrain[1] + dstrain[2]);
+		double dp = self.Kw_div_n * -(dstrain[0] + dstrain[1] + dstrain[2]);
+		self.pore_pressure += dp;
 
 		self.Kw_div_n = self.Kw * (1.0 / mcc.get_e_by_model() + 1.0);
+		self.cal_total_stress_inc(dp);
 		self.cal_total_stress();
 		self.cal_Kmat_with_Kw();
 

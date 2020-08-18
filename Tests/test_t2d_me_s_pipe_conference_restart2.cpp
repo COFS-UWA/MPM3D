@@ -25,6 +25,12 @@ void test_t2d_me_s_pipe_conference_restart2(int argc, char** argv)
 		500
 		);
 
+	for (size_t pcl_id = 0; pcl_id < model.get_pcl_num(); ++pcl_id)
+	{
+		Model_T2D_ME_s::Particle& pcl = model.get_pcls()[pcl_id];
+		static_cast<MatModel::UndrainedModifiedCamClay*>(pcl.mm)->set_Kw(2.0e7);
+	}
+	
 	//IndexArray left_right_bc_pt_array;
 	//left_right_bc_pt_array.reserve(model.get_vx_num());
 	//for (size_t v_id = 0; v_id < model.get_vx_num(); ++v_id)
@@ -115,6 +121,6 @@ void test_t2d_me_s_pipe_conference_restart_result2(int argc, char** argv)
 	app.set_fld_range(-30000.0, -10000.0);
 	app.set_color_map_pos(0.8, 0.65, 0.3);
 	//app.set_png_name("t2d_me_s_pipe_conference_restart2");
-	//app.set_gif_name("t2d_me_s_pipe_conference_restart2");
+	app.set_gif_name("t2d_me_s_pipe_conference_restart2");
 	app.start();
 }

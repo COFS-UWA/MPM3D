@@ -26,18 +26,18 @@ void test_t2d_me_s_geostatic(int argc, char** argv)
 	size_t pcl_num = model.get_pcl_num();
 	Model_T2D_ME_s::Particle* pcls = model.get_pcls();
 	// linear elasticity
-	double K = 0.0;
-	MatModel::LinearElasticity* mms = model.add_LinearElasticity(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		Model_T2D_ME_s::Particle& pcl = pcls[pcl_id];
-		MatModel::LinearElasticity& mm = mms[pcl_id];
-		mm.set_param(100000.0, 0.0);
-		pcl.set_mat_model(mm);
-		pcl.s22 = -20000.0;
-		pcl.s11 = K * pcl.s22;
-		pcl.s12 = 0.0;
-	}
+	//double K = 0.0;
+	//MatModel::LinearElasticity* mms = model.add_LinearElasticity(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	Model_T2D_ME_s::Particle& pcl = pcls[pcl_id];
+	//	MatModel::LinearElasticity& mm = mms[pcl_id];
+	//	mm.set_param(100000.0, 0.0);
+	//	pcl.set_mat_model(mm);
+	//	pcl.s22 = -20000.0;
+	//	pcl.s11 = K * pcl.s22;
+	//	pcl.s12 = 0.0;
+	//}
 	// mcc
 	//MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(pcl_num);
 	//double K = 1.0 - sin(23.5 / 180.0 * 3.14159165359);
@@ -50,8 +50,22 @@ void test_t2d_me_s_geostatic(int argc, char** argv)
 	//	pcl.s12 = 0.0;
 	//	MatModel::ModifiedCamClay& mm = mms[p_id];
 	//	mm.set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress);
-	//	pcl.set_mat_model(mm);
+	//  pcl.set_mat_model(mm);
 	//}
+	// undrained mcc
+	MatModel::UndrainedModifiedCamClay* mms = model.add_UndrainedModifiedCamClay(pcl_num);
+	double K = 1.0 - sin(23.5 / 180.0 * 3.14159165359);
+	double ini_stress[6] = { -12025.0, -20000.0, -12025.0, 0.0, 0.0, 0.0 };
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		Model_T2D_ME_s::Particle& pcl = pcls[p_id];
+		pcl.s11 = ini_stress[0];
+		pcl.s22 = ini_stress[1];
+		pcl.s12 = 0.0;
+		MatModel::UndrainedModifiedCamClay& mm = mms[p_id];
+		mm.set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress, 0.0, 0.0);
+		pcl.set_mat_model(mm);
+	}
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -122,8 +136,8 @@ void test_t2d_me_s_geostatic(int argc, char** argv)
 	Step_T2D_ME_s_Geo step("step1");
 	step.set_model(model);
 	step.set_step_time(1.0);
-	step.set_dtime(1.0e-5);
-	step.set_damping_ratio(0.1);
+	step.set_dtime(2.5e-6);
+	//step.set_damping_ratio(0.1);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();

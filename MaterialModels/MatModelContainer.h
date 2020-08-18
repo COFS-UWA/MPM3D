@@ -6,9 +6,12 @@
 
 #include "LinearElasticity.h"
 #include "ModifiedCamClay.h"
+#include "UndrainedModifiedCamClay.h"
 
 namespace MatModel
 {
+	class MatModelContainer;
+
 	template <typename MModel>
 	class __Mat_Model_Container__
 	{
@@ -24,13 +27,14 @@ namespace MatModel
 			buffer.clear();
 		}
 
-		MModel *add(size_t num)
+		MModel *add(size_t num, MatModelContainer *container)
 		{
 			MModel *res = buffer.alloc(num);
 			MModel *iter = res;
 			for (size_t m_id = 0; m_id < num; ++m_id)
 			{
 				new (iter) MModel;
+				iter->id = container->gen_uid();
 				list.append(iter);
 				++iter;
 			}
@@ -50,13 +54,13 @@ protected:                                       \
 public:                                          \
 	ModelName *add_##ModelName##(size_t num)     \
 	{                                            \
-		return ModelName##Container.add(num);    \
+		return ModelName##Container.add(num, this);    \
 	}                                            \
-	inline size_t get_num_##ModelName##()    \
+	inline size_t get_num_##ModelName##()        \
 	{                                            \
 		return ModelName##Container.get_num();   \
 	}                                            \
-	inline ModelName *first_##ModelName##()  \
+	inline ModelName *first_##ModelName##()      \
 	{                                            \
 		return ModelName##Container.first();     \
 	}                                            \
@@ -71,8 +75,14 @@ public:                                          \
 
 	class MatModelContainer
 	{
+	protected:
+		template <typename MModel> friend class __Mat_Model_Container__;
+		static size_t cur_uid;
+		inline size_t gen_uid() noexcept { return cur_uid++; }
+
 		__Add_Mat_Model_to_Model_Container__(LinearElasticity);
 		__Add_Mat_Model_to_Model_Container__(ModifiedCamClay);
+		__Add_Mat_Model_to_Model_Container__(UndrainedModifiedCamClay);
 	};
 
 #undef __Add_Mat_Model_to_Model_Container__

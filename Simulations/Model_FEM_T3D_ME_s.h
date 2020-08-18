@@ -93,7 +93,7 @@ namespace Model_FEM_T3D_ME_s_Internal
 		MatModel::MaterialModel* mm;
 		inline void set_mat_model(MatModel::MaterialModel& _mm) noexcept
 		{
-			_mm.ext_data = this;
+			_mm.ext_data_pt = this;
 			mm = &_mm;
 		}
 	};

@@ -5,18 +5,20 @@
 #===================================
 add_library(
     MaterialModels STATIC
-    # p
+    # precompiled header
     MaterialModels_pcp.h MaterialModels_pcp.cpp
     # Base class
     MaterialModel.h
-    # ModelContainer
-    MatModelContainer.h MatModelContainer.cpp
     # Linear Elasticity
     LinearElasticity.h LinearElasticity.cpp
     # Modified Cam Clay
     ModifiedCamClay.h ModifiedCamClay.cpp
     # Modified Cam Clay for completely undrained deformation
     UndrainedModifiedCamClay.h UndrainedModifiedCamClay.cpp
+    # ModelContainer
+    MatModelContainer.h MatModelContainer.cpp
+    # Map from material model id to pointer
+    MatModelIdToPointerMap.h MatModelIdToPointerMap.cpp
     )
 
 set(MATERIALMODELS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

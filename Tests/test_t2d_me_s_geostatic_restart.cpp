@@ -23,7 +23,13 @@ void test_t2d_me_s_geostatic_restart(int argc, char** argv)
 		"t2d_me_s_geostatic.h5",
 		"geostatic",
 		101
-	);
+		);
+
+	for (size_t pcl_id = 0; pcl_id < model.get_pcl_num(); ++pcl_id)
+	{
+		Model_T2D_ME_s::Particle& pcl = model.get_pcls()[pcl_id];
+		static_cast<MatModel::UndrainedModifiedCamClay*>(pcl.mm)->set_Kw(1.0e8);
+	}
 
 	IndexArray vx_bc_pt_array;
 	for (size_t n_id = 0; n_id < model.get_vx_num(); ++n_id)

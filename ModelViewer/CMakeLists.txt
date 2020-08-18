@@ -24,15 +24,15 @@ add_library(
     # color map
     UniformColorMap.h UniformColorMap.cpp
     UniformColorMap_Abaqus.h UniformColorMap_Abaqus.cpp
+    # display chars
+    QtCharBitmapLoader.h QtCharBitmapLoader.cpp
+    QtUniformColorMapObject.h QtUniformColorMapObject.cpp
     ################## 2D MPM model display ######################
     # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp
     QtMonoColorCircleGLObject.h QtMonoColorCircleGLObject.cpp
     QtMultiColorCircleGLObject.h QtMultiColorCircleGLObject.cpp
     QtRigidCircleObject.h QtRigidCircleObject.cpp
-    # display chars
-    QtCharBitmapLoader.h QtCharBitmapLoader.cpp
-    QtUniformColorMapObject.h QtUniformColorMapObject.cpp
     # Model_T2D_ME_s
     # prep process module
     QtSceneFromModel_T2D_ME_s.h QtSceneFromModel_T2D_ME_s.cpp
@@ -79,6 +79,18 @@ add_library(
     AnimationGenerationController.h AnimationGenerationController.cpp
     # Post-process window
     PospMPM3DApp.h PospMPM3DApp.cpp
+    ################## 3D MPM model display ####################
+    # 3D OpenGL Buffer Objects
+    QtTetrahedronMeshGLObject.h QtTetrahedronMeshGLObject.cpp
+    QtMonoColorBallGLObject.h QtMonoColorBallGLObject.cpp
+    QtMultiColorBallGLObject.h QtMultiColorBallGLObject.cpp
+    # Model_T3D_ME_s
+    # prep process module
+    QtSceneFromModel_T3D_ME_s.h QtSceneFromModel_T3D_ME_s.cpp
+    #QtApp_Prep_T3D_ME_s.h QtApp_Prep_T3D_ME_s.cpp
+    # post process module
+    #QtSceneFromHdf5_T3D_ME_s.h QtSceneFromHdf5_T3D_ME_s.cpp
+    #QtApp_Posp_T3D_ME_s.h QtApp_Posp_T3D_ME_s.cpp
     )
 
 set(MODELVIEWER_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

@@ -159,7 +159,7 @@ namespace Model_T2D_CHM_p_Internal
 		MatModel::MaterialModel* mm;
 		inline void set_mat_model(MatModel::MaterialModel& _mm)
 		{
-			_mm.ext_data = this;
+			_mm.ext_data_pt = this;
 			mm = &_mm;
 		}
 

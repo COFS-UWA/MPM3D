@@ -104,9 +104,13 @@ int main(int argc, char *argv[])
 	// completely drained
 	//test_t2d_me_s_pipe_conference_geo(argc, argv);
 	//test_t2d_me_s_pipe_conference_geo_result(argc, argv);
+	
+	test_t2d_me_s_pipe_conference_geo_undrained(argc, argv);
+	//test_t2d_me_s_pipe_conference_geo_undrained_result(argc, argv);
+
 	//test_t2d_me_s_pipe_conference_restart(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart_result(argc, argv);
-	test_t2d_me_s_pipe_conference_restart2(argc, argv);
+	//test_t2d_me_s_pipe_conference_restart2(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart_result2(argc, argv);
 
 	//test_t2d_me_p_pipe_conference_geo(argc, argv);

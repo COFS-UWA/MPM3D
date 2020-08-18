@@ -1,9 +1,6 @@
 #ifndef __Particle_Generator_2D_hpp__
 #define __Particle_Generator_2D_hpp__
 
-// avoid conflict of max in windows.h and numeric_max
-#define NOMINMAX
-
 #include <unordered_map>
 
 #include "ItemArray.hpp"
@@ -12,6 +9,8 @@
 #include "Geometry.h"
 #include "PDSBgGrid2D.hpp"
 #include "RandNumGenerator.h"
+
+#undef max
 
 template <typename TriangleMesh>
 class ParticleGenerator2D

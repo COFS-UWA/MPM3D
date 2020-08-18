@@ -5,9 +5,15 @@
 
 #include "MaterialModel.h"
 
+namespace Model_hdf5_utilities
+{
+	class UndrainedModifiedCamClay;
+	struct ModifiedCamClayStateData;
+	struct UndrainedModifiedCamClayStateData;
+}
+
 namespace MatModel
 {
-
 	int modified_cam_clay_integration_function(MaterialModel* _self, double dstrain[6]);
 
 	// This model uses constant stiffness instead of
@@ -15,7 +21,11 @@ namespace MatModel
 	class ModifiedCamClay : public MaterialModel
 	{
 		friend int modified_cam_clay_integration_function(MaterialModel* _self, double dstrain[6]);
-	public:
+		friend class Model_hdf5_utilities::UndrainedModifiedCamClay;
+		friend struct Model_hdf5_utilities::ModifiedCamClayStateData;
+		friend class Model_hdf5_utilities::UndrainedModifiedCamClayStateData;
+
+	protected:
 		double niu; // possion ratio
 		double kappa; // logrithmic recompression modulus
 		double lambda; // logrithmic compression modulus
@@ -25,6 +35,7 @@ namespace MatModel
 		double pc; // pre-consolidation stress
 		double e; // void ratio
 
+	public:
 		ModifiedCamClay() :
 			MaterialModel(modified_cam_clay_integration_function, "ModifiedCamClay"),
 			e(0.0), pc(0.0), niu(0.0),

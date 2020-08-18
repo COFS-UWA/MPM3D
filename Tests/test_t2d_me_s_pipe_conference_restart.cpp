@@ -25,6 +25,12 @@ void test_t2d_me_s_pipe_conference_restart(int argc, char** argv)
 		101
 		);
 
+	for (size_t pcl_id = 0; pcl_id < model.get_pcl_num(); ++pcl_id)
+	{
+		Model_T2D_ME_s::Particle& pcl = model.get_pcls()[pcl_id];
+		static_cast<MatModel::UndrainedModifiedCamClay*>(pcl.mm)->set_Kw(2.0e7);
+	}
+
 	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 
 	//IndexArray left_right_bc_pt_array;

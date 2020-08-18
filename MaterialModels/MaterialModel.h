@@ -14,6 +14,7 @@ namespace MatModel
 	{
 	protected:
 		const char *type;
+		size_t id;
 
 		union // stress
 		{
@@ -58,6 +59,9 @@ namespace MatModel
 
 		inline int integrate(double dstrain[6]) { return (*integration_func)(this, dstrain); }
 
+		inline size_t get_id() const noexcept { return id; }
+		inline void set_id(size_t _id) noexcept { id = _id; }
+
 		inline const char *get_type() noexcept { return type; }
 		inline const double *get_stress()    noexcept { return stress; }
 		inline const double *get_dstress()   noexcept { return dstress; }
@@ -66,10 +70,9 @@ namespace MatModel
 		inline const double *get_De_mat()  noexcept { return De_mat_array; }
 		inline const double *get_Dep_mat() noexcept { return Dep_mat_array; }
 
-		// pointer to external data
 		union
 		{
-			void *ext_data;
+			void *ext_data_pt;
 			unsigned long long ext_data_ull;
 			long long ext_data_ll;
 			double ext_data_d;
