@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_test_rigid_circle(argc, argv);
 	//test_t2d_chm_s_test_rigid_circle_result(argc, argv);
 
-	//test_t3d_me_s_1d_compression(argc, argv);
+	test_t3d_me_s_1d_compression(argc, argv);
 	//test_t3d_me_s_1d_compression_result(argc, argv);
 
 	//test_t3d_chm_s_1d_consolidation(argc, argv);
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_pipe_conference_geo(argc, argv);
 	//test_t2d_me_s_pipe_conference_geo_result(argc, argv);
 	
-	test_t2d_me_s_pipe_conference_geo_undrained(argc, argv);
+	//test_t2d_me_s_pipe_conference_geo_undrained(argc, argv);
 	//test_t2d_me_s_pipe_conference_geo_undrained_result(argc, argv);
 
 	//test_t2d_me_s_pipe_conference_restart(argc, argv);

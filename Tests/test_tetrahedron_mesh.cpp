@@ -53,7 +53,7 @@ void test_tetrahedron_mesh()
 	//}
 
 	// test hdf5
-	mesh.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh.h5");
+	mesh.load_mesh_from_hdf5("../../Asset/brick_mesh_1.00_1x1x1.h5");
 	std::cout << mesh.get_vol() << "\n";
 	// print nodes
 	size_t node_num = mesh.get_node_num();
@@ -74,7 +74,17 @@ void test_tetrahedron_mesh()
 		std::cout << e.id << " " << e.n1 << " " << e.n2 << " "
 				  << e.n3 << " " << e.n4 << "\n";
 	}
-	
+	// print edges
+	size_t edge_num = mesh.get_edge_num();
+	TetrahedronMesh::Edge* edges = mesh.get_edges();
+	std::cout << edge_num << " edges:\n";
+	for (size_t e_id = 0; e_id < edge_num; ++e_id)
+	{
+		TetrahedronMesh::Edge& e = edges[e_id];
+		std::cout << e.n1 << " " << e.n2 << "\n";
+	}
+
+	// bounding box
 	Cube bbox = mesh.get_bounding_box();
 	std::cout << "bbox: " 
 			  << bbox.xl << " " << bbox.xu << " "

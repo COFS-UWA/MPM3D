@@ -27,6 +27,10 @@ add_library(
     # display chars
     QtCharBitmapLoader.h QtCharBitmapLoader.cpp
     QtUniformColorMapObject.h QtUniformColorMapObject.cpp
+    # field data extraction from hdf5 file
+    Hdf5DataLoader.h Hdf5DataLoader.cpp
+    Hdf5FieldExtraction.h
+    Hdf5FieldExtraction_x.h Hdf5FieldExtraction_x.cpp
     ################## 2D MPM model display ######################
     # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp
@@ -87,10 +91,10 @@ add_library(
     # Model_T3D_ME_s
     # prep process module
     QtSceneFromModel_T3D_ME_s.h QtSceneFromModel_T3D_ME_s.cpp
-    #QtApp_Prep_T3D_ME_s.h QtApp_Prep_T3D_ME_s.cpp
+    QtApp_Prep_T3D_ME_s.h QtApp_Prep_T3D_ME_s.cpp
     # post process module
-    #QtSceneFromHdf5_T3D_ME_s.h QtSceneFromHdf5_T3D_ME_s.cpp
-    #QtApp_Posp_T3D_ME_s.h QtApp_Posp_T3D_ME_s.cpp
+    QtSceneFromHdf5_T3D_ME_s.h QtSceneFromHdf5_T3D_ME_s.cpp
+    QtApp_Posp_T3D_ME_s.h QtApp_Posp_T3D_ME_s.cpp
     )
 
 set(MODELVIEWER_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

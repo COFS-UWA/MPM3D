@@ -94,24 +94,27 @@ public:
 
 	inline void alloc_nodes(size_t num)
 	{
-		if (num == 0) return;
 		clear_nodes();
+		if (num == 0)
+			return;
 		nodes = new Node[num];
 		node_num = num;
 	}
 
 	inline void alloc_elements(size_t num)
 	{
-		if (num == 0) return;
 		clear_elements();
+		if (num == 0)
+			return;
 		elems = new Element[num];
 		elem_num = num;
 	}
 
 	inline void alloc_edges(size_t num)
 	{
-		if (num == 0) return;
 		clear_edges();
+		if (num == 0)
+			return;
 		edges = new Edge[num];
 		edge_num = num;
 	}
@@ -349,6 +352,8 @@ public:
 		cal_area_and_reorder_node();
 		// init geometric properties
 		cal_bounding_box();
+		// init edges
+		init_edges();
 		return res;
 	}
 
@@ -390,6 +395,8 @@ public:
 		cal_area_and_reorder_node();
 		// init geometric properties
 		cal_bounding_box();
+		// init edges
+		init_edges();
 		return 0;
 	}
 
@@ -400,6 +407,7 @@ public:
 	{
 		cal_area_and_reorder_node();
 		cal_bounding_box();
+		init_edges();
 	}
 
 protected: // helpers for init edges
@@ -407,35 +415,20 @@ protected: // helpers for init edges
 	inline static void sort_acc(size_t ids[4])
 	{
 		size_t tmp, min_id;
-		min_id = 0;
-		if (ids[0] > ids[1])
-			min_id = 1;
-		if (ids[0] > ids[2])
-			min_id = 2;
-		if (ids[0] > ids[3])
-			min_id = 3;
-		if (min_id != 0)
+		for (size_t i = 0; i < 3; ++i)
 		{
-			tmp = ids[0];
-			ids[0] = ids[min_id];
-			ids[min_id] = tmp;
-		}
-		min_id = 1;
-		if (ids[1] > ids[2])
-			min_id = 2;
-		if (ids[1] > ids[3])
-			min_id = 3;
-		if (min_id != 1)
-		{
-			tmp = ids[1];
-			ids[1] = ids[min_id];
-			ids[min_id] = tmp;
-		}
-		if (ids[2] > ids[3])
-		{
-			tmp = ids[2];
-			ids[2] = ids[3];
-			ids[3] = tmp;
+			min_id = i;
+			for (size_t j = i + 1; j < 4; ++j)
+			{
+				if (ids[j] < ids[min_id])
+					min_id = j;
+			}
+			if (min_id != i)
+			{
+				tmp = ids[min_id];
+				ids[min_id] = ids[i];
+				ids[i] = tmp;
+			}
 		}
 	}
 
@@ -468,7 +461,6 @@ public:
 		}
 		alloc_edges(table.get_pair_num());
 		table.output_pairs((size_t *)edges);
-
 		return 0;
 	}
 };

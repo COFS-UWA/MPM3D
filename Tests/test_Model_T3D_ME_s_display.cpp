@@ -5,6 +5,7 @@
 
 #include "Model_T3D_ME_s.h"
 #include "PrepMPM3DApp.h"
+#include "QtApp_Prep_T3D_ME_s.h"
 
 #include "test_simulations.h"
 
@@ -57,7 +58,6 @@ void print_pcl_shape_func(
 
 }
 
-
 void test_Model_T3D_ME_s_display(int argc, char **argv)
 {
 	Model_T3D_ME_s model;
@@ -66,7 +66,6 @@ void test_Model_T3D_ME_s_display(int argc, char **argv)
 	//model.load_mesh_from_hdf5("..\\..\\Asset\\teh_mesh.h5");
 	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_1.00_1x1x1.h5");
 	//model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_plus.h5");
-	model.init_edges();
 
 	size_t elem_num = model.get_elem_num();
 	Model_T3D_ME_s::Element *elems = model.get_elems();
@@ -115,10 +114,18 @@ void test_Model_T3D_ME_s_display(int argc, char **argv)
 	//}
 	//psf_file.close();
 
-	PrepMPM3DApp view_app(argc, argv);
+	//PrepMPM3DApp view_app(argc, argv);
+	//view_app.set_view_dir(70.0, 35.0);
+	//view_app.set_light_dir(20.0, 20.0);
+	//view_app.set_model(model, MPM3DModelView::BallShape);
+	//view_app.set_display_pcls(false);
+	//view_app.start();
+
+	QtApp_Prep_T3D_ME_s view_app(argc, argv);
+	view_app.set_win_size(900, 900);
 	view_app.set_view_dir(70.0, 35.0);
 	view_app.set_light_dir(20.0, 20.0);
-	view_app.set_model(model, MPM3DModelView::BallShape);
+	view_app.set_model(model);
 	view_app.set_display_pcls(false);
-	view_app.start();
+	view_app.start();;
 }

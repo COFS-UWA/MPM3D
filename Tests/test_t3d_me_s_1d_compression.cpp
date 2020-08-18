@@ -1,25 +1,17 @@
 #include "Tests_pcp.h"
 
 #include "ItemArray.hpp"
-
 #include "ParticleGenerator3D.hpp"
 #include "LinearElasticity.h"
 #include "Model_T3D_ME_s.h"
 #include "Step_T3D_ME_s.h"
-
 #include "ModelData_T3D_ME_s.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "TimeHistory_T3D_ME_s_complete.h"
-
-#include "PrepMPM3DApp.h"
-
-#include "test_simulations.h"
-
-#include "PospMPM3DApp.h"
+#include "QtApp_Prep_T3D_ME_s.h"
 
 #include "utils.h"
-#include "test_model_view.h"
-
+#include "test_simulations.h"
 
 void test_t3d_me_s_1d_compression(int argc, char **argv)
 {
@@ -48,23 +40,22 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		pcl.set_mat_model(mm);
 	}
 
-	IndexArray pt_array(100);
-	
-	find_3d_pcls(model, pt_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
-	size_t* tbc_pcl_id = pt_array.get_mem();
-	model.init_tzs(pt_array.get_num());
+	IndexArray tbc_pcl_array(100);
+	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
+	size_t* tbc_pcl_id = tbc_pcl_array.get_mem();
+	model.init_tzs(tbc_pcl_array.get_num());
 	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
 	{
 		TractionBCAtPcl& tbc = model.tzs[t_id];
 		tbc.pcl_id = tbc_pcl_id[t_id];
 		tbc.t = 1.666667e-3 * -0.01;
 	}
-	std::cout << "tz_num: " << model.tz_num << "\n";
 
-	find_3d_nodes_on_x_plane(model, pt_array, 0.0);
-	find_3d_nodes_on_x_plane(model, pt_array, 0.2, false);
-	size_t *vx_bc_n_id = pt_array.get_mem();
-	model.init_vxs(pt_array.get_num());
+	IndexArray vx_bc_pt_array(100);
+	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
+	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.2, false);
+	size_t *vx_bc_n_id = vx_bc_pt_array.get_mem();
+	model.init_vxs(vx_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vx_num; ++v_id)
 	{
 		VelocityBC &vbc = model.vxs[v_id];
@@ -72,10 +63,11 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_3d_nodes_on_y_plane(model, pt_array, 0.0);
-	find_3d_nodes_on_y_plane(model, pt_array, 0.2, false);
-	size_t *vy_bc_n_id = pt_array.get_mem();
-	model.init_vys(pt_array.get_num());
+	IndexArray vy_bc_pt_array(100);
+	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
+	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.2, false);
+	size_t *vy_bc_n_id = vy_bc_pt_array.get_mem();
+	model.init_vys(vy_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vy_num; ++v_id)
 	{
 		VelocityBC &vbc = model.vys[v_id];
@@ -83,9 +75,10 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 	
-	find_3d_nodes_on_z_plane(model, pt_array, 0.0);
-	size_t *vz_bc_n_id = pt_array.get_mem();
-	model.init_vzs(pt_array.get_num());
+	IndexArray vz_bc_pt_array(100);
+	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, 0.0);
+	size_t *vz_bc_n_id = vz_bc_pt_array.get_mem();
+	model.init_vzs(vz_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vz_num; ++v_id)
 	{
 		VelocityBC &vbc = model.vzs[v_id];
@@ -93,13 +86,17 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	MemoryUtils::ItemArray<Point3D> ptlist(50);
-	//init_vx_bcs_display(model, ptlist);
-	//init_vy_bcs_display(model, ptlist);
-	//init_vz_bcs_display(model, ptlist);
-	//init_tz_bcs_display(model, ptlist);
-	//display_model(argc, argv, 60.0, 60.0, 90.0, 35.0, model, ptlist, 1.0e-5);
-	//return;
+	QtApp_Prep_T3D_ME_s md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_view_dir(30.0, 30.0);
+	md_disp.set_light_dir(90.0, 30.0);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_s_1d_compression.h5");
@@ -122,6 +119,8 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	step.solve();
 }
 
+#include "PospMPM3DApp.h"
+#include "test_model_view.h"
 
 void test_t3d_me_s_1d_compression_result(int argc, char **argv)
 {

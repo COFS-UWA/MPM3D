@@ -114,7 +114,7 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	MemoryUtils::ItemArray<Point3D> ptlist(50);
+	//MemoryUtils::ItemArray<Point3D> ptlist(50);
 	//init_vsx_bcs_display(model, ptlist);
 	//init_vsy_bcs_display(model, ptlist);
 	//init_vsz_bcs_display(model, ptlist);

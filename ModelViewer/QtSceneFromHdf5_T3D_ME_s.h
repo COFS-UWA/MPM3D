@@ -1,33 +1,52 @@
-#ifndef __Qt_Scene_From_Model_T3D_ME_s_h__
-#define __Qt_Scene_From_Model_T3D_ME_s_h__
+#ifndef __Qt_Scene_From_Hdf5_T3D_ME_s_h__
+#define __Qt_Scene_From_Hdf5_T3D_ME_s_h__
 
 #include <QOpenGLShaderProgram>
 
 #include "ItemArray.hpp"
-#include "Model_T3D_ME_s.h"
+#include "ResultFile_hdf5.h"
 #include "QtTetrahedronMeshGLObject.h"
-#include "QtMonoColorBallGLObject.h"
-#include "QtSceneFromModel.h"
+#include "QtMultiColorBallGLObject.h"
+#include "UniformColorMap_Abaqus.h"
+#include "QtUniformColorMapObject.h"
+#include "QtSceneFromHdf5.h"
 
-class QtSceneFromModel_T3D_ME_s : public QtSceneFromModel
+class QtSceneFromHdf5_T3D_ME_s : public QtSceneFromHdf5
 {
 protected:
-	struct PointData { GLfloat x, y, z; };
+	struct PointData
+	{
+		GLfloat x, y, z;
+		GLfloat va;
+	};
 
-	Model_T3D_ME_s* model;
-	
-	float pt_radius;
-	size_t pt_num;
-	PointData* pts;
-	MemoryUtils::ItemArray<PointData> pts_mem;
+	// hdf5 result file data infos
+	ResultFile_hdf5* res_file;
+	hid_t th_id;
+	hid_t frame_grp_id;
+	size_t pcl_num;
+	hid_t pcl_dt_id;
+	size_t pcl_size;
+	size_t pcl_x_off;
+	size_t pcl_y_off;
+	size_t pcl_vol_off;
+	std::string field_name;
+	size_t pcl_fld_off;
+	hid_t pcl_fld_type;
+	MemoryUtils::ItemArray<char> pcls_data_mem;
 
 	bool display_bg_mesh;
 	bool display_pcls;
-	bool display_pts;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
-	QtMonoColorBallGLObject pcls_obj;
-	QtMonoColorBallGLObject pts_obj;
+
+	UniformColorMap_Abaqus color_map;
+	GLuint color_map_texture;
+	QtMultiColorBallGLObject pcls_obj;
+	
+	bool has_color_map;
+	float cm_xpos, cm_ypos, cm_ht;
+	QtUniformColorMapObject color_map_obj;
 
 	// camera info
 	GLfloat fov_angle;
@@ -39,20 +58,21 @@ protected:
 	QVector3D md_centre;
 	float view_dist_scale;
 
-	int width, height;
-
+	int win_wd, win_ht;
+	
 	QMatrix4x4 view_mat;
+	QMatrix4x4 hud_view_mat;
 	QMatrix4x4 proj_mat;
 	void update_view_mat();
 	void update_proj_mat();
-	
+
 	QVector3D bg_color;
 
 	QVector3D light_dir;
 	float light_dist_scale;
 	QVector3D light_pos;
 	void update_light_pos();
-
+	
 	float fog_coef;
 	QVector3D fog_color;
 
@@ -61,13 +81,18 @@ protected:
 	float diff_coef;
 	float spec_coef;
 	float spec_shininess;
-
+	
 	QOpenGLShaderProgram shader_plain3D;
 	QOpenGLShaderProgram shader_balls;
+	QOpenGLShaderProgram shader_plain2D;
+	QOpenGLShaderProgram shader_char;
 	
+	void clear();
+
 public:
-	explicit QtSceneFromModel_T3D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
-	~QtSceneFromModel_T3D_ME_s();
+	explicit QtSceneFromHdf5_T3D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
+	~QtSceneFromHdf5_T3D_ME_s();
+	void close_file();
 
 	inline void set_view_dir(QVector3D& _dir) { view_dir = _dir; }
 	inline void set_view_dir(float x, float y, float z)
@@ -100,8 +125,9 @@ public:
 		set_light_dir(-vd_x, -vd_y, -vd_z);
 	}
 	inline void set_light_dist_scale(float scale) { light_dist_scale = scale; }
-
-	inline void set_bg_color(QVector3D &color) { bg_color = color; }
+	
+	inline void set_bg_color(QVector3D &color)
+	{ bg_color = color; }
 	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
 	{ bg_color[0] = r; bg_color[1] = g; bg_color[2] = b; }
 
@@ -113,36 +139,34 @@ public:
 	inline void set_diff_coef(float coef) { diff_coef = coef; }
 	inline void set_spec_coef(float coef) { spec_coef = coef; }
 	inline void set_spec_shininess(float shininess) { spec_shininess = shininess; }
-	
+
 	// ============================= model data ============================
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }
-	inline void set_display_pts(bool op = true) { display_pts = op; }
-
-	inline void set_model(Model_T3D_ME_s &_model) { model = &_model; }
-	int set_pts_from_pcl_id(size_t* ids, size_t id_num, float radius);
-	int set_pts_from_node_id(size_t* ids, size_t id_num, float radius);
-	template<typename Point3D>
-	int set_pts(Point3D* _pts, size_t _pt_num, float radius)
-	{
-		pt_radius = radius;
-		pt_num = _pt_num;
-		pts_mem.reserve(pt_num);
-		pts = pts_mem.get_mem();
-		for (size_t p_id = 0; p_id < pt_num; ++p_id)
-		{
-			Point3D& p = _pts[p_id];
-			PointData& pd = pts[p_id];
-			pd.x = GLfloat(p.x);
-			pd.y = GLfloat(p.y);
-			pd.z = GLfloat(p.z);
-		}
-		return 0;
-	}
 	
-	int initialize(int wd, int ht);
-	void draw();
-	void resize(int wd, int ht);
+	inline void set_color_map_fld_range(double min, double max)
+	{ color_map.set_range(min, max); }
+	inline void set_color_map_geometry(float xpos, float ypos, float ht)
+	{
+		has_color_map = true;
+		cm_xpos = xpos;	cm_ypos = ypos; cm_ht = ht;
+	}
+
+	size_t get_frame_num();
+	double get_frame_time(size_t frame_id);
+	
+	int set_res_file(
+		ResultFile_hdf5& rf,
+		const char* th_na,
+		const char* field_na
+		);
+
+	// create the scene, including bg mesh and pcls
+	int init_scene(int wd, int ht, size_t frame_id) override;
+	// only update pcls, for animation
+	void update_scene(size_t frame_id) override;
+	void draw() override;
+	void resize(int wd, int ht) override;
 };
 
 #endif

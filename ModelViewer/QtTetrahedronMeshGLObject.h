@@ -1,121 +1,190 @@
 #ifndef __Qt_Tetrahedron_Mesh_GL_Object_h__
 #define __Qt_Tetrahedron_Mesh_GL_Object_h__
 
-#include <QOpenGLWidget>
-#include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLShaderProgram>
+
+#include "NumPairHashTable.hpp"
 
 class QtTetrahedronMeshGLObject
 {
 protected:
 	QOpenGLFunctions_3_3_Core &gl;
+
+	struct NodeData
+	{
+		GLint type;
+		GLfloat x, y, z;
+	};
+
+	struct EdgeData { GLuint n1, n2; };
+
 	GLuint vao, vbo, veo;
-	GLsizei index_num;
+	size_t edge_node_num;
 	QVector3D color;
 
+	void clear();
+
+	inline static void sort_acc(size_t ids[4])
+	{
+		size_t tmp, min_id;
+		for (size_t i = 0; i < 3; ++i)
+		{
+			min_id = i;
+			for (size_t j = i + 1; j < 4; ++j)
+			{
+				if (ids[j] < ids[min_id])
+					min_id = j;
+			}
+			if (min_id != i)
+			{
+				tmp = ids[min_id];
+				ids[min_id] = ids[i];
+				ids[i] = tmp;
+			}
+		}
+	}
+	
 public:
 	QtTetrahedronMeshGLObject(QOpenGLFunctions_3_3_Core& _gl);
 	~QtTetrahedronMeshGLObject();
 
-	void clear();
-	void draw(QOpenGLShaderProgram& shader);
+	// Node has members x, y
+	// Edge has members n1, n2
+	template <typename Node, typename Edge>
+	int init_from_edges(Node* nodes, size_t node_num, Edge* edges, size_t edge_num, QVector3D& c);
 
-	template <typename TMesh>
-	int init(TMesh &mesh, QVector3D &_color)
-	{
-		typedef typename TMesh::Node Node;
-		size_t node_num = mesh.get_node_num();
-		Node* nodes = mesh.get_nodes();
-		typedef typename TMesh::Element Element;
-		size_t elem_num = mesh.get_elem_num();
-		Element* elems = mesh.get_elems();
-		return init<Node, Element>(nodes, node_num, elems, elem_num, _color);
-	}
-
+	// Node has members x, y
+	// Element has members n1, n2, n3, n4
 	template <typename Node, typename Element>
-	int init(
-		Node *nodes,
-		size_t node_num,
-		Element *elems,
-		size_t elem_num,
-		QVector3D &_color
-		)
-	{
-		clear();
+	int init_from_elements(Node* nodes, size_t node_num, Element* elems, size_t elem_num, QVector3D& c);
 
-		if (!nodes || node_num == 0 ||
-			!elems || elem_num == 0)
-			return -1;
-
-		color = _color;
-
-		gl.glGenVertexArrays(1, &vao);
-		gl.glBindVertexArray(vao);
-
-		// node data
-		gl.glGenBuffers(1, &vbo);
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		size_t node_data_num = node_num * 3;
-		GLfloat* node_data = new GLfloat[node_data_num];
-		GLfloat* pn = node_data;
-		for (size_t n_id = 0; n_id < node_num; ++n_id)
-		{
-			Node& n = nodes[n_id];
-			pn[0] = GLfloat(n.x);
-			pn[1] = GLfloat(n.y);
-			pn[2] = GLfloat(n.z);
-			pn += 3;
-		}
-		gl.glBufferData(
-			GL_ARRAY_BUFFER,
-			node_data_num * sizeof(GLfloat),
-			node_data,
-			GL_STREAM_DRAW
-			);
-		delete[] node_data;
-
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-		gl.glEnableVertexAttribArray(0);
-
-		// element data
-		gl.glGenBuffers(1, &veo);
-		gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veo);
-		index_num = elem_num * 12;
-		GLuint* line_indices = new GLuint[index_num];
-		GLuint* pl = line_indices;
-		for (size_t e_id = 0; e_id < elem_num; ++e_id)
-		{
-			Element& e = elems[e_id];
-			// edge 1
-			pl[0] = e.n1;
-			pl[1] = e.n2;
-			// edge 2
-			pl[2] = e.n1;
-			pl[3] = e.n3;
-			// edge 3
-			pl[4] = e.n1;
-			pl[5] = e.n4;
-			// edge 4
-			pl[6] = e.n2;
-			pl[7] = e.n3;
-			// edge 5
-			pl[8] = e.n2;
-			pl[9] = e.n4;
-			// edge 6
-			pl[10] = e.n3;
-			pl[11] = e.n4;
-			pl += 12;
-		}
-		gl.glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
-			index_num * sizeof(GLuint),
-			line_indices,
-			GL_STREAM_DRAW
-			);
-		delete[] line_indices;
-
-		return 0;
-	}
+	void draw(QOpenGLShaderProgram& shader);
 };
+
+template <typename Node, typename Edge>
+int QtTetrahedronMeshGLObject::init_from_edges(
+	Node* nodes, size_t node_num,
+	Edge* edges, size_t edge_num,
+	QVector3D& c
+)
+{
+	if (!nodes || !node_num ||
+		!edges || !edge_num)
+		return -1;
+
+	color = c;
+	edge_node_num = edge_num * 2;
+
+	gl.glGenVertexArrays(1, &vao);
+	if (vao == 0)
+		return -2;
+	gl.glBindVertexArray(vao);
+
+	gl.glGenBuffers(1, &vbo);
+	if (vbo == 0)
+		return -2;
+	gl.glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	NodeData* node_datas = new NodeData[node_num];
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		Node& n = nodes[n_id];
+		NodeData& nd = node_datas[n_id];
+		nd.type = 0; // monocolor
+		nd.x = GLfloat(n.x);
+		nd.y = GLfloat(n.y);
+		nd.z = GLfloat(n.z);
+	}
+	gl.glBufferData(
+		GL_ARRAY_BUFFER,
+		node_num * sizeof(NodeData),
+		node_datas,
+		GL_STATIC_DRAW
+		);
+	delete[] node_datas;
+
+	// v_type
+	gl.glVertexAttribIPointer(0,
+		1, GL_INT,
+		sizeof(NodeData),
+		(GLvoid*)offsetof(NodeData, type)
+		);
+	gl.glEnableVertexAttribArray(0);
+	// v_pos
+	gl.glVertexAttribPointer(1,
+		3, GL_FLOAT, GL_FALSE,
+		sizeof(NodeData),
+		(GLvoid*)offsetof(NodeData, x)
+		);
+	gl.glEnableVertexAttribArray(1);
+
+	gl.glGenBuffers(1, &veo);
+	if (veo == 0)
+		return -2;
+	gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veo);
+	EdgeData* edge_datas = new EdgeData[edge_num];
+	for (size_t e_id = 0; e_id < edge_num; ++e_id)
+	{
+		Edge& e = edges[e_id];
+		EdgeData& ed = edge_datas[e_id];
+		ed.n1 = GLuint(e.n1);
+		ed.n2 = GLuint(e.n2);
+	}
+	gl.glBufferData(
+		GL_ELEMENT_ARRAY_BUFFER,
+		edge_num * sizeof(EdgeData),
+		edge_datas,
+		GL_STATIC_DRAW
+		);
+	delete[] edge_datas;
+
+	return 0;
+}
+
+template <typename Node, typename Element>
+int QtTetrahedronMeshGLObject::init_from_elements(
+	Node* nodes,
+	size_t node_num,
+	Element* elems,
+	size_t elem_num,
+	QVector3D& c
+)
+{
+	if (!nodes || !node_num || !elems || !elem_num)
+		return -1;
+
+	NumPairHashTable<size_t> table(node_num * 3);
+	union
+	{
+		struct { size_t n1_id, n2_id, n3_id, n4_id; };
+		size_t n_ids[4];
+	};
+
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		n1_id = e.n1;
+		n2_id = e.n2;
+		n3_id = e.n3;
+		n4_id = e.n4;
+		sort_acc(n_ids); // n1_id < n2_id < n3_id < n4_id
+		table.add_pair(n1_id, n2_id);
+		table.add_pair(n1_id, n3_id);
+		table.add_pair(n1_id, n4_id);
+		table.add_pair(n2_id, n3_id);
+		table.add_pair(n2_id, n4_id);
+		table.add_pair(n3_id, n4_id);
+	}
+
+	size_t edge_num = table.get_pair_num();
+	if (!edge_num)
+		return -1;
+	EdgeData *edges = new EdgeData[edge_num];
+	table.output_pairs((size_t*)edges);
+	int res = init_from_edges(nodes, node_num, edges, edge_num, c);
+	delete[] edges;
+
+	return res;
+}
 
 #endif

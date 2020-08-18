@@ -29,9 +29,9 @@ protected:
 	{
 		size_t tmp, min_id;
 		min_id = 0;
-		if (ids[0] > ids[1])
+		if (ids[1] < ids[0])
 			min_id = 1;
-		if (ids[0] > ids[2])
+		if (ids[2] < ids[min_id])
 			min_id = 2;
 		if (min_id != 0)
 		{
@@ -39,7 +39,7 @@ protected:
 			ids[0] = ids[min_id];
 			ids[min_id] = tmp;
 		}
-		if (ids[1] > ids[2])
+		if (ids[2] < ids[1])
 		{
 			tmp = ids[1];
 			ids[1] = ids[min_id];
