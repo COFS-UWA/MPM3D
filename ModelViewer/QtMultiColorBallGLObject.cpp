@@ -71,7 +71,7 @@ int QtMultiColorBallGLObject::init_gl_buffer(
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
     gl.glBufferData(GL_ARRAY_BUFFER,
         pd_num * sizeof(PointData),
-        pds,
+        (GLvoid *)pds,
         GL_STREAM_DRAW
         );
 
@@ -122,10 +122,10 @@ int QtMultiColorBallGLObject::update_gl_buffer(
     gl.glBindVertexArray(vao);
 
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
-    gl.glBufferSubData(
-        GL_ARRAY_BUFFER, 0,
+    gl.glBufferData(GL_ARRAY_BUFFER,
         pd_num * sizeof(PointData),
-        (GLvoid *)pds
+        (GLvoid *)pds,
+        GL_STREAM_DRAW
         );
 
     return 0;
@@ -160,3 +160,56 @@ int QtMultiColorBallGLObject::init_ball_data()
     
     return 0;
 }
+
+int QtMultiColorBallGLObject::init(
+    size_t pcl_num,
+    double* pcl_x_data,
+    double* pcl_y_data,
+    double* pcl_z_data,
+    double* pcl_vol_data,
+    double *pcl_fld_data,
+    float radius_scale
+    )
+{
+    pt_data_mem.reserve(pcl_num);
+    PointData* pt_data = pt_data_mem.get_mem();
+    for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+    {
+        PointData& pd = pt_data[pcl_id];
+        pd.type = 1; // multi color
+        pd.x = GLfloat(pcl_x_data[pcl_id]);
+        pd.y = GLfloat(pcl_y_data[pcl_id]);
+        pd.z = GLfloat(pcl_z_data[pcl_id]);
+        pd.radius = GLfloat(pow(3.0 * pcl_vol_data[pcl_id] / (4.0 * 3.14159265359), 0.33333)) * radius_scale;
+        pd.fld = GLfloat(pcl_fld_data[pcl_id]);
+    }
+    int res = init_gl_buffer(pt_data, pcl_num);
+    return res;
+}
+
+int QtMultiColorBallGLObject::update(
+    size_t pcl_num,
+    double* pcl_x_data,
+    double* pcl_y_data,
+    double* pcl_z_data,
+    double* pcl_vol_data,
+    double *pcl_fld_data,
+    float radius_scale
+    )
+{
+    pt_data_mem.reserve(pcl_num);
+    PointData* pt_data = pt_data_mem.get_mem();
+    for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+    {
+        PointData& pd = pt_data[pcl_id];
+        pd.type = 1; // multi color
+        pd.x = GLfloat(pcl_x_data[pcl_id]);
+        pd.y = GLfloat(pcl_y_data[pcl_id]);
+        pd.z = GLfloat(pcl_z_data[pcl_id]);
+        pd.radius = GLfloat(pow(3.0 * pcl_vol_data[pcl_id] / (4.0 * 3.14159265359), 0.33333)) * radius_scale;
+        pd.fld = GLfloat(pcl_fld_data[pcl_id]);
+    }
+    int res = update_gl_buffer(pt_data, pcl_num);
+    return res;
+}
+

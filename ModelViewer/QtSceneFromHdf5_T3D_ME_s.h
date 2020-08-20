@@ -5,6 +5,7 @@
 
 #include "ItemArray.hpp"
 #include "ResultFile_hdf5.h"
+#include "Hdf5Field.h"
 #include "QtTetrahedronMeshGLObject.h"
 #include "QtMultiColorBallGLObject.h"
 #include "UniformColorMap_Abaqus.h"
@@ -22,18 +23,19 @@ protected:
 
 	// hdf5 result file data infos
 	ResultFile_hdf5* res_file;
-	hid_t th_id;
-	hid_t frame_grp_id;
-	size_t pcl_num;
-	hid_t pcl_dt_id;
-	size_t pcl_size;
-	size_t pcl_x_off;
-	size_t pcl_y_off;
-	size_t pcl_vol_off;
+	Hdf5DataLoader data_loader;
+	Hdf5FieldExtraction_x x_fld;
+	Hdf5FieldExtraction_y y_fld;
+	Hdf5FieldExtraction_z z_fld;
+	Hdf5FieldExtraction_vol vol_fld;
+	Hdf5FieldExtraction *pfld;
+	MemoryUtils::ItemArray<double> pcl_x_fld_mem;
+	MemoryUtils::ItemArray<double> pcl_y_fld_mem;
+	MemoryUtils::ItemArray<double> pcl_z_fld_mem;
+	MemoryUtils::ItemArray<double> pcl_fld_mem;
+
 	std::string field_name;
-	size_t pcl_fld_off;
-	hid_t pcl_fld_type;
-	MemoryUtils::ItemArray<char> pcls_data_mem;
+	hid_t th_id;
 
 	bool display_bg_mesh;
 	bool display_pcls;
@@ -155,11 +157,8 @@ public:
 	size_t get_frame_num();
 	double get_frame_time(size_t frame_id);
 	
-	int set_res_file(
-		ResultFile_hdf5& rf,
-		const char* th_na,
-		const char* field_na
-		);
+	int set_res_file(ResultFile_hdf5& rf,
+		const char* th_name, Hdf5Field::FieldType fld_type);
 
 	// create the scene, including bg mesh and pcls
 	int init_scene(int wd, int ht, size_t frame_id) override;

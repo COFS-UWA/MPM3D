@@ -105,28 +105,6 @@ int QtMonoColorBallGLObject::init_gl_buffer(
 	return 0;
 }
 
-
-int QtMonoColorBallGLObject::update_gl_buffer(
-	PointData* pds,
-	size_t pd_num
-	)
-{
-	if (!vao || !vbo_pts)
-		return -1;
-
-	gl.glBindVertexArray(vao);
-
-	gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
-	gl.glBufferSubData(GL_ARRAY_BUFFER,
-		0,
-		pd_num * sizeof(PointData),
-		(GLvoid*)pds
-	);
-
-	return 0;
-}
-
-
 int QtMonoColorBallGLObject::init_ball_data()
 {
 	gl.glGenBuffers(1, &vbo_cs);

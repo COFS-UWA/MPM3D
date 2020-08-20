@@ -29,8 +29,12 @@ add_library(
     QtUniformColorMapObject.h QtUniformColorMapObject.cpp
     # field data extraction from hdf5 file
     Hdf5DataLoader.h Hdf5DataLoader.cpp
+    Hdf5Field.h Hdf5Field.cpp
     Hdf5FieldExtraction.h
     Hdf5FieldExtraction_x.h Hdf5FieldExtraction_x.cpp
+    Hdf5FieldExtraction_y.h Hdf5FieldExtraction_y.cpp
+    Hdf5FieldExtraction_z.h Hdf5FieldExtraction_z.cpp
+    Hdf5FieldExtraction_vol.h Hdf5FieldExtraction_vol.cpp
     ################## 2D MPM model display ######################
     # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp

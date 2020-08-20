@@ -31,7 +31,6 @@ protected:
 
 	int init_ball_data();
 	int init_gl_buffer(PointData* pds, size_t pd_num);
-	int update_gl_buffer(PointData* pds, size_t pd_num);
 
 public:
 	QtMonoColorBallGLObject(QOpenGLFunctions_3_3_Core& _gl);
@@ -54,26 +53,23 @@ int QtMonoColorBallGLObject::init(
 	size_t pcl_num,
 	QVector3D& c,
 	float radius_scale
-)
+	)
 {
 	clear();
-
 	color = c;
-	PointData* pt_datas = new PointData[pcl_num];
+	PointData* pt_data = new PointData[pcl_num];
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		Particle3D &pcl = pcls[p_id];
-		PointData& pd = pt_datas[p_id];
+		PointData& pd = pt_data[p_id];
 		pd.type = 0; // mono color
 		pd.x = GLfloat(pcl.x);
 		pd.y = GLfloat(pcl.y);
 		pd.z = GLfloat(pcl.z);
-		pd.radius = pow(pcl.get_vol() * 3.0f / (4.0f * 3.14159265359f), 0.3333333)
-						* radius_scale;
+		pd.radius = GLfloat(pow(3.0 * pcl.get_vol()/ (4.0 * 3.14159265359), 0.3333333))	* radius_scale;
 	}
-	int res = init_gl_buffer(pt_datas, pcl_num);
-	delete[] pt_datas;
-
+	int res = init_gl_buffer(pt_data, pcl_num);
+	delete[] pt_data;
 	return 0;
 }
 
@@ -86,22 +82,20 @@ int QtMonoColorBallGLObject::init(
 )
 {
 	clear();
-
 	color = c;
-	PointData* pt_datas = new PointData[_pt_num];
+	PointData* pt_data = new PointData[_pt_num];
 	for (size_t p_id = 0; p_id < _pt_num; ++p_id)
 	{
 		Point3D& pt = pts[p_id];
-		PointData& pd = pt_datas[p_id];
+		PointData& pd = pt_data[p_id];
 		pd.type = 0; // mono color
 		pd.x = GLfloat(pt.x);
 		pd.y = GLfloat(pt.y);
 		pd.z = GLfloat(pt.z);
 		pd.radius = pt_radius;
 	}
-	int res = init_gl_buffer(pt_datas, _pt_num);
-	delete[] pt_datas;
-
+	int res = init_gl_buffer(pt_data, _pt_num);
+	delete[] pt_data;
 	return res;
 }
 

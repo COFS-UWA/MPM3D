@@ -120,29 +120,45 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 }
 
 #include "PospMPM3DApp.h"
+#include "QtApp_Posp_T3D_ME_s.h"
 #include "test_model_view.h"
 
 void test_t3d_me_s_1d_compression_result(int argc, char **argv)
 {
-	PospMPM3DApp app(argc, argv, PospMPM3DApp::Animation);
-	app.set_view_dir(10.0f, 30.0f);
-	app.set_light_dir(10.0f, 30.0f);
+	//PospMPM3DApp app(argc, argv, PospMPM3DApp::Animation);
+	//app.set_view_dir(10.0f, 30.0f);
+	//app.set_light_dir(10.0f, 30.0f);
 
-	app.set_ani_time(5.0);
-	app.set_gif_name("bar_vibration.gif");
+	//app.set_ani_time(5.0);
+	//app.set_gif_name("bar_vibration.gif");
 
-	app.init_color_scale(-0.02, 0.0,
-		ColorScaleExamples::get_color_scale(),
-		ColorScaleExamples::get_color_num());
+	//app.init_color_scale(-0.02, 0.0,
+	//	ColorScaleExamples::get_color_scale(),
+	//	ColorScaleExamples::get_color_num());
+
+	//ResultFile_hdf5 rf;
+	//rf.open("t3d_me_s_1d_compression.h5");
+	//int res = app.set_res_file(
+	//				rf,
+	//				"compression",
+	//				"s33",
+	//				MPM3DModelView::BallShape
+	//				);
+
+	//app.start();
 
 	ResultFile_hdf5 rf;
 	rf.open("t3d_me_s_1d_compression.h5");
-	int res = app.set_res_file(
-					rf,
-					"compression",
-					"s33",
-					MPM3DModelView::BallShape
-					);
-
+	
+	QtApp_Posp_T3D_ME_s app(argc, argv, QtApp_Posp_T3D_ME_s::Animation);
+	app.set_res_file(rf, "compression", Hdf5Field::x);
+	app.set_ani_time(5.0);
+	app.set_win_size(900, 900);
+	app.set_view_dir(10.0f, 30.0f);
+	app.set_light_dir(10.0f, 30.0f);
+	app.set_color_map_fld_range(-20100.0, -19900.0);
+	app.set_color_map_geometry(0.7, 0.45, 0.5);
+	//app.set_png_name("t3d_me_s_1d_compression");
+	//app.set_gif_name("t3d_me_s_1d_compression");
 	app.start();
 }

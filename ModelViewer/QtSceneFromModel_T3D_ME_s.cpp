@@ -109,11 +109,11 @@ int QtSceneFromModel_T3D_ME_s::initialize(int wd, int ht)
 	shader_plain3D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_plain3D.vert"
-	);
+		);
 	shader_plain3D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_plain3D.frag"
-	);
+		);
 	shader_plain3D.link();
 
 	shader_balls.addShaderFromSourceFile(

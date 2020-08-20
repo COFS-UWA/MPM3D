@@ -4,7 +4,6 @@
 #include <fstream>
 
 #include "Model_T3D_ME_s.h"
-#include "PrepMPM3DApp.h"
 #include "QtApp_Prep_T3D_ME_s.h"
 
 #include "test_simulations.h"
@@ -104,28 +103,11 @@ void test_Model_T3D_ME_s_display(int argc, char **argv)
 	model.init_pcls(pcl_gen, 10.0);
 	std::cout << "pcl num: " << model.get_pcl_num() << "\n";
 
-	//std::fstream psf_file; // pcl shape function
-	//psf_file.open("pcl_shape_func.txt", std::ios::out | std::ios::binary);
-	//Particle* pcls = model.get_pcls();
-	//for (size_t pcl_id = 0; pcl_id < 3; ++pcl_id)
-	//{
-	//	Particle& pcl = pcls[pcl_id];
-	//	print_pcl_shape_func(model, pcl, psf_file);
-	//}
-	//psf_file.close();
-
-	//PrepMPM3DApp view_app(argc, argv);
-	//view_app.set_view_dir(70.0, 35.0);
-	//view_app.set_light_dir(20.0, 20.0);
-	//view_app.set_model(model, MPM3DModelView::BallShape);
-	//view_app.set_display_pcls(false);
-	//view_app.start();
-
 	QtApp_Prep_T3D_ME_s view_app(argc, argv);
 	view_app.set_win_size(900, 900);
 	view_app.set_view_dir(70.0, 35.0);
 	view_app.set_light_dir(20.0, 20.0);
 	view_app.set_model(model);
-	view_app.set_display_pcls(false);
+	//view_app.set_display_pcls(false);
 	view_app.start();;
 }
