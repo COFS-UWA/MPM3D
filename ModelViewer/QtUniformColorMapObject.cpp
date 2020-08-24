@@ -51,20 +51,20 @@ void QtUniformColorMapObject::clear_gl_buffer()
 void QtUniformColorMapObject::cal_str_geometry(
 	const char *str,
 	QtCharBitmapLoader& loader,
-	GLuint& font_wd, GLuint& font_ht
+	GLint& font_wd, GLint& font_ht
 	)
 {
 	size_t str_len = strlen(str);
 	font_wd = 0;
-	font_ht = 0;
+	const QtCharBitmapLoader::CharData* pref_char 
+				= loader.get_char_data('1');
+	font_ht = pref_char->get_advance_y();
 	for (size_t c_id = 0; c_id < str_len; ++c_id)
 	{
 		const QtCharBitmapLoader::CharData* pcd
 				= loader.get_char_data(str[c_id]);
 		if (!pcd)
 			continue;
-		if (font_ht < pcd->get_advance_y())
-			font_ht = pcd->get_advance_y();
 		font_wd += pcd->get_advance_x();
 	}
 }
@@ -304,7 +304,7 @@ int QtUniformColorMapObject::init(
 	// load string render to get string info
 	char_loader.load_ttf_file(ttf_filename, 60);
 
-	GLuint str_wd, str_ht;
+	GLint str_wd, str_ht;
 	// title string size
 	title_str_info.str = title;
 	cal_str_geometry(title, char_loader, str_wd, str_ht);

@@ -13,6 +13,7 @@ bool Hdf5FieldExtraction_z::validate_data_type()
 		{
 			z_offset = H5Tget_member_offset(pcl_dt_id, mem_id);
 			z_fld_is_found = true;
+			break;
 		}
 	}
 	return z_fld_is_found;

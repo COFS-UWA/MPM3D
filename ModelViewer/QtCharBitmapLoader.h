@@ -19,9 +19,10 @@ public:
 		unsigned char id;
 		char c;
 		GLuint texture_id;
-		GLuint width, height;
-		GLuint bearing_x, bearing_y;
+		GLshort width, height;
+		GLint bearing_x, bearing_y;
 		GLint advance_x, advance_y;
+
 	public:
 		CharData() : texture_id(0) {}
 		CharData(const CharData& other)
@@ -48,10 +49,10 @@ public:
 		inline unsigned char get_id() const { return id; }
 		inline char get_char() const { return c; }
 		inline GLuint get_texture_id() const { return texture_id; }
-		inline GLuint get_width() const { return width; }
-		inline GLuint get_height() const { return height; }
-		inline GLuint get_bearing_x() const { return bearing_x; }
-		inline GLuint get_bearing_y() const { return bearing_y; }
+		inline GLshort get_width() const { return width; }
+		inline GLshort get_height() const { return height; }
+		inline GLint get_bearing_x() const { return bearing_x; }
+		inline GLint get_bearing_y() const { return bearing_y; }
 		inline GLint get_advance_x() const { return advance_x; }
 		inline GLint get_advance_y() const { return advance_y; }
 	};

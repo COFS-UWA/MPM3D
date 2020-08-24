@@ -74,7 +74,6 @@ int Hdf5DataLoader::set_time_history(
 	rf.close_dataset(pcl_dset_id);
 	rf.close_group(pcl_grp_id);
 	rf.close_group(frame_grp_id);
-	close_res_file();
 
 	return 0;
 }

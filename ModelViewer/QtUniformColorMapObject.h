@@ -36,7 +36,7 @@ protected:
 	QtCharBitmapLoader char_loader;
 	// cal font_wd (width), font_ht (height)
 	void cal_str_geometry(const char *str, QtCharBitmapLoader& loader,
-		GLuint &font_wd, GLuint &font_ht);
+						  GLint &font_wd, GLint &font_ht);
 
 	// get position of each component
 	struct Rect

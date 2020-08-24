@@ -35,6 +35,37 @@ add_library(
     Hdf5FieldExtraction_y.h Hdf5FieldExtraction_y.cpp
     Hdf5FieldExtraction_z.h Hdf5FieldExtraction_z.cpp
     Hdf5FieldExtraction_vol.h Hdf5FieldExtraction_vol.cpp
+    Hdf5FieldExtraction_m.h Hdf5FieldExtraction_m.cpp
+    Hdf5FieldExtraction_density.h Hdf5FieldExtraction_density.cpp
+    Hdf5FieldExtraction_vx.h Hdf5FieldExtraction_vx.cpp
+    Hdf5FieldExtraction_vy.h Hdf5FieldExtraction_vy.cpp
+    Hdf5FieldExtraction_vz.h Hdf5FieldExtraction_vz.cpp
+    Hdf5FieldExtraction_s11.h Hdf5FieldExtraction_s11.cpp
+    Hdf5FieldExtraction_s22.h Hdf5FieldExtraction_s22.cpp
+    Hdf5FieldExtraction_s33.h Hdf5FieldExtraction_s33.cpp
+    Hdf5FieldExtraction_s12.h Hdf5FieldExtraction_s12.cpp
+    Hdf5FieldExtraction_s23.h Hdf5FieldExtraction_s23.cpp
+    Hdf5FieldExtraction_s31.h Hdf5FieldExtraction_s31.cpp
+    Hdf5FieldExtraction_e11.h Hdf5FieldExtraction_e11.cpp
+    Hdf5FieldExtraction_e22.h Hdf5FieldExtraction_e22.cpp
+    Hdf5FieldExtraction_e33.h Hdf5FieldExtraction_e33.cpp
+    Hdf5FieldExtraction_e12.h Hdf5FieldExtraction_e12.cpp
+    Hdf5FieldExtraction_e23.h Hdf5FieldExtraction_e23.cpp
+    Hdf5FieldExtraction_e31.h Hdf5FieldExtraction_e31.cpp
+    # CHM MPM
+    Hdf5FieldExtraction_n.h Hdf5FieldExtraction_n.cpp
+    Hdf5FieldExtraction_m_s.h Hdf5FieldExtraction_m_s.cpp
+    Hdf5FieldExtraction_m_f.h Hdf5FieldExtraction_m_f.cpp
+    Hdf5FieldExtraction_density_s.h Hdf5FieldExtraction_density_s.cpp
+    Hdf5FieldExtraction_density_f.h Hdf5FieldExtraction_density_f.cpp
+    Hdf5FieldExtraction_vol_m.h Hdf5FieldExtraction_vol_m.cpp
+    Hdf5FieldExtraction_vx_s.h Hdf5FieldExtraction_vx_s.cpp
+    Hdf5FieldExtraction_vy_s.h Hdf5FieldExtraction_vy_s.cpp
+    Hdf5FieldExtraction_vz_s.h Hdf5FieldExtraction_vz_s.cpp
+    Hdf5FieldExtraction_vx_f.h Hdf5FieldExtraction_vx_f.cpp
+    Hdf5FieldExtraction_vy_f.h Hdf5FieldExtraction_vy_f.cpp
+    Hdf5FieldExtraction_vz_f.h Hdf5FieldExtraction_vz_f.cpp
+    Hdf5FieldExtraction_p.h Hdf5FieldExtraction_p.cpp
     ################## 2D MPM model display ######################
     # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp
@@ -62,31 +93,6 @@ add_library(
     # post process module
     QtSceneFromHdf5_T2D_CHM_s.h QtSceneFromHdf5_T2D_CHM_s.cpp
     QtApp_Posp_T2D_CHM_s.h QtApp_Posp_T2D_CHM_s.cpp
-    ################## 3D MPM model display ######################
-    MPM3DModelView.h MPM3DModelView.cpp
-    # Mesh gl buffer
-    TetrahedronMeshBuffer.h TetrahedronMeshBuffer.cpp
-    # Particle gl buffer - unicolor
-    MonoColorCubeParticleSystem.h
-    MonoColorParticleBuffer.h MonoColorParticleBuffer.cpp
-    # Particle gl buffer with Phong model
-    ValueToColor.h
-    PhongCubeParticleSystem.h PhongCubeParticleSystem.cpp
-    PhongParticleBuffer.h PhongParticleBuffer.cpp
-    # Particle as balls
-    ball_mesh_data.h
-    BallParticleBuffer.h BallParticleBuffer.cpp
-    # Preprocess single frame controller
-    PrepSingleFrameControllerBase.h
-    PrepSingleFrameControllerTemplate.hpp
-    # Preprocess window
-    PrepMPM3DApp.h PrepMPM3DApp.cpp
-    # Post-process single frame controller
-    PospSingleFrameController.h PospSingleFrameController.cpp
-    # Animation controller
-    AnimationGenerationController.h AnimationGenerationController.cpp
-    # Post-process window
-    PospMPM3DApp.h PospMPM3DApp.cpp
     ################## 3D MPM model display ####################
     # 3D OpenGL Buffer Objects
     QtTetrahedronMeshGLObject.h QtTetrahedronMeshGLObject.cpp
@@ -99,6 +105,13 @@ add_library(
     # post process module
     QtSceneFromHdf5_T3D_ME_s.h QtSceneFromHdf5_T3D_ME_s.cpp
     QtApp_Posp_T3D_ME_s.h QtApp_Posp_T3D_ME_s.cpp
+    # Model_T3D_CHM_s
+    # prep process module
+    QtSceneFromModel_T3D_CHM_s.h QtSceneFromModel_T3D_CHM_s.cpp
+    QtApp_Prep_T3D_CHM_s.h QtApp_Prep_T3D_CHM_s.cpp
+    # post process module
+    QtSceneFromHdf5_T3D_CHM_s.h QtSceneFromHdf5_T3D_CHM_s.cpp
+    QtApp_Posp_T3D_CHM_s.h QtApp_Posp_T3D_CHM_s.cpp
     )
 
 set(MODELVIEWER_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

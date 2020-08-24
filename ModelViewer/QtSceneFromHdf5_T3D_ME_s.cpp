@@ -6,14 +6,25 @@
 
 QtSceneFromHdf5_T3D_ME_s::QtSceneFromHdf5_T3D_ME_s(
 	QOpenGLFunctions_3_3_Core &_gl) :
-	QtSceneFromHdf5(_gl), res_file(nullptr), th_id(-1),
+	QtSceneFromHdf5(_gl),
+	// view direction
+	fov_angle(45.0f), view_dist_scale(1.0f),
+	view_dir(1.0f, 0.0f, 0.0f), up_dir(0.0f, 0.0f, 1.0f),
+	bg_color(0.2f, 0.3f, 0.3f),
+	// fog effect
+	fog_coef(0.0f), fog_color(bg_color),
+	// phong model
+	light_color(1.0f, 1.0f, 1.0f),
+	amb_coef(0.0f), diff_coef(1.0f),
+	spec_coef(0.0f), spec_shininess(30.0f),
+	light_dir(view_dir), light_dist_scale(2.0f),
+	// model
+	res_file(nullptr), th_id(-1),
 	x_fld(data_loader), y_fld(data_loader), z_fld(data_loader),
 	vol_fld(data_loader), pfld(nullptr),
 	display_bg_mesh(true), display_pcls(true),
 	bg_mesh_obj(_gl), pcls_obj(_gl),
-	has_color_map(false), color_map_obj(_gl),
-	color_map_texture(0),
-	bg_color(0.2f, 0.3f, 0.3f) {}
+	has_color_map(false), color_map_obj(_gl), color_map_texture(0) {}
 
 QtSceneFromHdf5_T3D_ME_s::~QtSceneFromHdf5_T3D_ME_s()
 {
@@ -40,9 +51,7 @@ void QtSceneFromHdf5_T3D_ME_s::close_file()
 		delete pfld;
 		pfld = nullptr;
 	}
-
 	data_loader.close_res_file();
-
 	res_file = nullptr;
 }
 
@@ -78,50 +87,6 @@ void QtSceneFromHdf5_T3D_ME_s::update_light_pos()
 	light_pos = md_centre - dist_from_obj * light_dir;
 }
 
-void QtSceneFromHdf5_T3D_ME_s::draw()
-{
-	gl.glViewport(0, 0, win_wd, win_ht);
-
-	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
-	gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if (display_bg_mesh)
-	{
-		shader_plain3D.bind();
-		bg_mesh_obj.draw(shader_plain3D);
-	}
-
-	if (display_pcls)
-	{
-		shader_balls.bind();
-		pcls_obj.draw(shader_balls);
-	}
-
-	if (has_color_map)
-		color_map_obj.draw(shader_plain2D, shader_char);
-}
-
-void QtSceneFromHdf5_T3D_ME_s::resize(int wd, int ht)
-{
-	win_wd = wd;
-	win_ht = ht;
-
-	gl.glViewport(0, 0, win_wd, win_ht);
-
-	update_proj_mat();
-	shader_plain3D.bind();
-	shader_plain3D.setUniformValue("proj_mat", proj_mat);
-	shader_balls.bind();
-	shader_balls.setUniformValue("proj_mat", proj_mat);
-
-	hud_view_mat.setToIdentity();
-	hud_view_mat.ortho(0.0f, GLfloat(wd)/GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
-	shader_plain2D.bind();
-	shader_plain2D.setUniformValue("view_mat", hud_view_mat);
-	shader_char.bind();
-	shader_char.setUniformValue("view_mat", hud_view_mat);
-}
-
 // ================== animation ==================
 int QtSceneFromHdf5_T3D_ME_s::set_res_file(
 	ResultFile_hdf5& rf,
@@ -140,7 +105,11 @@ int QtSceneFromHdf5_T3D_ME_s::set_res_file(
 		throw std::exception("x field not found in hdf5 field data.");
 	if (!y_fld.validate_data_type())
 		throw std::exception("y field not found in hdf5 field data.");
-	
+	if (!z_fld.validate_data_type())
+		throw std::exception("z field not found in hdf5 field data.");
+	if (!vol_fld.validate_data_type())
+		throw std::exception("vol field not found in hdf5 field data.");
+
 	pfld = Hdf5Field::make(fld_type);
 	if (!pfld)
 	{
@@ -377,6 +346,12 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	shader_balls.setUniformValue("view_mat", view_mat);
 	shader_balls.setUniformValue("proj_mat", proj_mat);
 
+	GLfloat color_value_lower = color_map.get_lower_bound();
+	shader_balls.setUniformValue("color_value_lower", color_value_lower);
+	GLfloat color_value_range = color_map.get_range();
+	shader_balls.setUniformValue("color_value_range", color_value_range);
+	shader_balls.setUniformValue("color_map", 0);
+	
 	shader_balls.setUniformValue("view_pos", view_pos);
 
 	// fog effect
@@ -430,4 +405,52 @@ void QtSceneFromHdf5_T3D_ME_s::update_scene(size_t frame_id)
 		pcl_fld_data,
 		0.5
 		);
+}
+
+void QtSceneFromHdf5_T3D_ME_s::draw()
+{
+	gl.glEnable(GL_DEPTH_TEST);
+	
+	gl.glViewport(0, 0, win_wd, win_ht);
+
+	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
+	gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (display_bg_mesh)
+	{
+		shader_plain3D.bind();
+		bg_mesh_obj.draw(shader_plain3D);
+	}
+
+	if (display_pcls)
+	{
+		shader_balls.bind();
+		pcls_obj.draw(shader_balls);
+	}
+
+	gl.glDisable(GL_DEPTH_TEST);
+
+	if (has_color_map)
+		color_map_obj.draw(shader_plain2D, shader_char);
+}
+
+void QtSceneFromHdf5_T3D_ME_s::resize(int wd, int ht)
+{
+	win_wd = wd;
+	win_ht = ht;
+
+	gl.glViewport(0, 0, win_wd, win_ht);
+
+	update_proj_mat();
+	shader_plain3D.bind();
+	shader_plain3D.setUniformValue("proj_mat", proj_mat);
+	shader_balls.bind();
+	shader_balls.setUniformValue("proj_mat", proj_mat);
+
+	hud_view_mat.setToIdentity();
+	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
+	shader_plain2D.bind();
+	shader_plain2D.setUniformValue("view_mat", hud_view_mat);
+	shader_char.bind();
+	shader_char.setUniformValue("view_mat", hud_view_mat);
 }

@@ -1,6 +1,7 @@
 #ifndef __Qt_Tetrahedron_Mesh_GL_Object_h__
 #define __Qt_Tetrahedron_Mesh_GL_Object_h__
 
+#include <iostream>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
@@ -180,7 +181,7 @@ int QtTetrahedronMeshGLObject::init_from_elements(
 	if (!edge_num)
 		return -1;
 	EdgeData *edges = new EdgeData[edge_num];
-	table.output_pairs((size_t*)edges);
+	table.output_pairs((GLuint *)edges);
 	int res = init_from_edges(nodes, node_num, edges, edge_num, c);
 	delete[] edges;
 

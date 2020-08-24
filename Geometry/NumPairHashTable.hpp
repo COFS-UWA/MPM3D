@@ -33,13 +33,14 @@ public:
 
 	size_t get_pair_num() { return pair_num; }
 
-	void output_pairs(Num *mem)
+	template <typename ResNum = Num>
+	void output_pairs(ResNum *mem)
 	{
 		for (size_t e_id = 0; e_id < entry_num; ++e_id)
 			for (NumPair *pair = num_pair_list[e_id]; pair; pair = pair->next)
 			{
-				mem[0] = pair->key;
-				mem[1] = pair->val;
+				mem[0] = ResNum(pair->key);
+				mem[1] = ResNum(pair->val);
 				mem += 2;
 			}
 	}

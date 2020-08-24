@@ -9,16 +9,9 @@
 #include "ModelData_T3D_CHM_s.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "TimeHistory_T3D_CHM_s_complete.h"
-
-#include "PrepMPM3DApp.h"
-
-#include "test_simulations.h"
-
-#include "PospMPM3DApp.h"
-
+#include "QtApp_Prep_T3D_CHM_s.h"
 #include "utils.h"
-#include "test_model_view.h"
-
+#include "test_simulations.h"
 
 void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 {
@@ -47,12 +40,11 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 		pcl.set_mat_model(mm);
 	}
 
-	IndexArray pt_array(100);
-
 	// surface traction
-	find_3d_pcls(model, pt_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
-	size_t* tbc_pcl_id = pt_array.get_mem();
-	model.init_tzs(pt_array.get_num());
+	IndexArray tbc_pcl_array;
+	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
+	size_t* tbc_pcl_id = tbc_pcl_array.get_mem();
+	model.init_tzs(tbc_pcl_array.get_num());
 	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
 	{
 		TractionBCAtPcl& tbc = model.tzs[t_id];
@@ -61,17 +53,18 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 	}
 	std::cout << "tz_num: " << model.tz_num << "\n";
 
-	find_3d_nodes_on_x_plane(model, pt_array, 0.0);
-	find_3d_nodes_on_x_plane(model, pt_array, 0.2, false);
-	size_t *vx_bc_n_id = pt_array.get_mem();
-	model.init_vsxs(pt_array.get_num());
+	IndexArray vx_bc_pt_array;
+	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
+	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.2, false);
+	size_t *vx_bc_n_id = vx_bc_pt_array.get_mem();
+	model.init_vsxs(vx_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vsx_num; ++v_id)
 	{
 		VelocityBC &vbc = model.vsxs[v_id];
 		vbc.node_id = vx_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
-	model.init_vfxs(pt_array.get_num());
+	model.init_vfxs(vx_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vfx_num; ++v_id)
 	{
 		VelocityBC &vbc = model.vfxs[v_id];
@@ -79,17 +72,18 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_3d_nodes_on_y_plane(model, pt_array, 0.0);
-	find_3d_nodes_on_y_plane(model, pt_array, 0.2, false);
-	size_t *vy_bc_n_id = pt_array.get_mem();
-	model.init_vsys(pt_array.get_num());
+	IndexArray vy_bc_pt_array;
+	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
+	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.2, false);
+	size_t *vy_bc_n_id = vy_bc_pt_array.get_mem();
+	model.init_vsys(vy_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vsy_num; ++v_id)
 	{
 		VelocityBC &vbc = model.vsys[v_id];
 		vbc.node_id = vy_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
-	model.init_vfys(pt_array.get_num());
+	model.init_vfys(vy_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vfy_num; ++v_id)
 	{
 		VelocityBC& vbc = model.vfys[v_id];
@@ -97,16 +91,17 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	find_3d_nodes_on_z_plane(model, pt_array, 0.0);
-	size_t *vz_bc_n_id = pt_array.get_mem();
-	model.init_vszs(pt_array.get_num());
+	IndexArray vz_bc_pt_array;
+	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, 0.0);
+	size_t *vz_bc_n_id = vz_bc_pt_array.get_mem();
+	model.init_vszs(vz_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vsz_num; ++v_id)
 	{
 		VelocityBC &vbc = model.vszs[v_id];
 		vbc.node_id = vz_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
-	model.init_vfzs(pt_array.get_num());
+	model.init_vfzs(vz_bc_pt_array.get_num());
 	for (size_t v_id = 0; v_id < model.vfz_num; ++v_id)
 	{
 		VelocityBC& vbc = model.vfzs[v_id];
@@ -114,16 +109,17 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	//MemoryUtils::ItemArray<Point3D> ptlist(50);
-	//init_vsx_bcs_display(model, ptlist);
-	//init_vsy_bcs_display(model, ptlist);
-	//init_vsz_bcs_display(model, ptlist);
-	//init_vfx_bcs_display(model, ptlist);
-	//init_vfy_bcs_display(model, ptlist);
-	//init_vfz_bcs_display(model, ptlist);
-	//init_tz_bcs_display(model, ptlist);
-	//display_model(argc, argv, 40.0, -45.0, 40.0, 35.0, model, ptlist, 1.0e-5);
-	//return;
+	QtApp_Prep_T3D_CHM_s md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_view_dir(30.0, 30.0);
+	md_disp.set_light_dir(90.0, 30.0);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_s_1d_consolidation.h5");
@@ -146,28 +142,25 @@ void test_t3d_chm_s_1d_consolidation(int argc, char **argv)
 	step.solve();
 }
 
+#include "QtApp_Posp_T3D_CHM_s.h"
+#include "test_model_view.h"
 
 void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv)
 {
-	PospMPM3DApp app(argc, argv, PospMPM3DApp::Animation);
-
-	app.set_view_dir(30.0f, 30.0f);
-	app.set_light_dir(10.0f, 30.0f);
-
-	app.set_ani_time(5.0);
-	app.set_gif_name("1d_consolidation.gif");
-
-	app.init_color_scale(0.0, 1.0,
-		ColorScaleExamples::get_color_scale(),
-		ColorScaleExamples::get_color_num()
-		);
-
 	ResultFile_hdf5 rf;
 	rf.open("t3d_chm_s_1d_consolidation.h5");
-	int res = app.set_res_file(
-					rf, "consolidation", "p",
-					MPM3DModelView::BallShape
-					);
 
+	//QtApp_Posp_T3D_CHM_s app(argc, argv, QtApp_Posp_T3D_ME_s::SingleFrame);
+	//app.set_res_file(rf, "compression", 2, Hdf5Field::p);
+	QtApp_Posp_T3D_CHM_s app(argc, argv, QtApp_Posp_T3D_CHM_s::Animation);
+	app.set_res_file(rf, "consolidation", Hdf5Field::vx_s);
+	app.set_ani_time(5.0);
+	app.set_win_size(900, 900);
+	app.set_view_dir(30.0f, 30.0f);
+	app.set_light_dir(90.0f, 30.0f);
+	app.set_color_map_fld_range(0.0, 1.0);
+	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
+	//app.set_png_name("t3d_chm_s_1d_consolidation");
+	//app.set_gif_name("t3d_chm_s_1d_consolidation");
 	app.start();
 }

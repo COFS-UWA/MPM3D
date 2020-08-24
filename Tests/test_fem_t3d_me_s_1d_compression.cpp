@@ -11,11 +11,7 @@
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "TimeHistory_FEM_T3D_ME_s_complete.h"
 
-#include "PrepMPM3DApp.h"
-
 #include "test_simulations.h"
-
-#include "PospMPM3DApp.h"
 
 #include "utils.h"
 #include "test_model_view.h"

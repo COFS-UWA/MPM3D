@@ -20,10 +20,13 @@ bool Hdf5FieldExtraction_vol::validate_data_type()
 			density_offset = H5Tget_member_offset(pcl_dt_id, mem_id);
 			++tag;
 		}
+		if (tag == 2)
+		{
+			all_fld_is_found = true;
+			break;
+		}
 	}
 
-	if (tag == 2)
-		all_fld_is_found = true;
 	return all_fld_is_found;
 }
 

@@ -1,14 +1,8 @@
 #ifndef __Qt_Mono_Color_Ball_GL_Object_h__
 #define __Qt_Mono_Color_Ball_GL_Object_h__
 
-#include <iostream>
-
-#include <QOpenGLWidget>
-#include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions_3_3_Core>
-
-#include "ItemArray.hpp"
-#include "ValueToColor.h"
+#include <QOpenGLShaderProgram>
 
 class QtMonoColorBallGLObject
 {

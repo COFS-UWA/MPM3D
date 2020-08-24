@@ -85,22 +85,22 @@ void test_t2d_me_s_geostatic_restart_result(int argc, char** argv)
 	rf.open("t2d_me_s_geostatic_restart.h5");
 
 	// single frame
-	//QtApp_Posp_T2D_ME_s app(argc, argv);
-	//app.set_win_size(900, 900);
-	//app.set_res_file(rf, "geostatic", 0, "s22");
-	//app.set_fld_range(-11.0, -9.0);
-	//app.set_color_map_pos(0.7, 0.45, 0.5); // color map legend
-	////app.set_png_name("t2d_me_s_geostatic_restart");
-	//app.start();
-
-	// animation
-	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	QtApp_Posp_T2D_ME_s app(argc, argv);
 	app.set_win_size(900, 900);
-	app.set_res_file(rf, "restart", "s22");
-	app.set_ani_time(5.0);
-	app.set_fld_range(-20100.0, -19900.0);
+	app.set_res_file(rf, "geostatic", 0, "s22");
+	app.set_fld_range(-11.0, -9.0);
 	app.set_color_map_pos(0.7, 0.45, 0.5); // color map legend
 	//app.set_png_name("t2d_me_s_geostatic_restart");
-	app.set_gif_name("t2d_me_s_geostatic_restart");
 	app.start();
+
+	//// animation
+	//QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	//app.set_win_size(900, 900);
+	//app.set_res_file(rf, "restart", "s22");
+	//app.set_ani_time(5.0);
+	//app.set_fld_range(-20100.0, -19900.0);
+	//app.set_color_map_pos(0.7, 0.45, 0.5); // color map legend
+	////app.set_png_name("t2d_me_s_geostatic_restart");
+	//app.set_gif_name("t2d_me_s_geostatic_restart");
+	//app.start();
 }

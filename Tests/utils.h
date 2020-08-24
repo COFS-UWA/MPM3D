@@ -3,7 +3,6 @@
 
 #include "ItemArray.hpp"
 #include "Geometry.h"
-#include "ValueToColor.h"
 
 #include "Model_T3D_ME_s.h"
 #include "Model_T3D_CHM_s.h"
@@ -164,42 +163,6 @@ void find_3d_pcls(Model &md, IndexArray& pt_array,
 	}
 }
 
-// color scale from abaqus
-struct ColorScaleExamples
-{
-protected:
-	static ValueToColor::Colori abaqus_color_scale[];
-	static size_t abaqus_color_scale_num;
-
-public:
-	static ValueToColor::Colori* get_color_scale() { return abaqus_color_scale; }
-	static size_t get_color_num() { return abaqus_color_scale_num; }
-};
-
-
-template <typename Model>
-void display_3d_model(int argc, char** argv,
-	float theta, float fai, float lt_theta, float lt_fai,
-	Model& model, Point3DArray& ptlist, float pt_vol,
-	bool disp_mesh = true,
-	bool disp_pcls = true,
-	bool disp_points = true)
-{
-	PrepMPM3DApp view_app(argc, argv);
-	view_app.set_view_dir(theta, fai);
-	view_app.set_light_dir(lt_theta, lt_fai);
-	view_app.set_display_bg_mesh(disp_mesh);
-	view_app.set_display_pcls(disp_pcls);
-	view_app.set_display_points(disp_points);
-	view_app.set_model<Model>(model, MPM3DModelView::BallShape);
-	if (ptlist.get_num())
-	{
-		view_app.set_display_points(true);
-		view_app.set_points(ptlist.get_mem(), ptlist.get_num(), pt_vol);
-	}
-	view_app.start();
-}
-
 template <typename Model>
 void init_tz_bcs_display(Model& md, Point3DArray& ptlist)
 {
@@ -216,24 +179,10 @@ void init_tz_bcs_display(Model& md, Point3DArray& ptlist)
 	}
 }
 
-// ME Model
-void init_vx_bcs_display(Model_T3D_ME_s& md, Point3DArray& ptlist);
-void init_vy_bcs_display(Model_T3D_ME_s& md, Point3DArray& ptlist);
-void init_vz_bcs_display(Model_T3D_ME_s& md, Point3DArray& ptlist);
-
-// CHM Model
-void init_vsx_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
-void init_vsy_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
-void init_vsz_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
-void init_vfx_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
-void init_vfy_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
-void init_vfz_bcs_display(Model_T3D_CHM_s& md, Point3DArray& ptlist);
-
 // FEM model
 void init_tz_face_bcs_display(Model_FEM_T3D_ME_s &md, Point3DArray& ptlist);
 void init_vx_bcs_display(Model_FEM_T3D_ME_s& md, Point3DArray& ptlist);
 void init_vy_bcs_display(Model_FEM_T3D_ME_s& md, Point3DArray& ptlist);
 void init_vz_bcs_display(Model_FEM_T3D_ME_s& md, Point3DArray& ptlist);
-
 
 #endif

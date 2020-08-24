@@ -125,7 +125,7 @@ public:
 			return res;
 		return 0;
 	}
-
+	
 // ================= Animation only =================
 	inline int set_res_file(ResultFile_hdf5& rf,
 		const char* th_na, const char* fld_na)
