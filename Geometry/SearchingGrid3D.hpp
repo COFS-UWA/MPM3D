@@ -307,14 +307,6 @@ public:
 		if (aabb.is_in_box(n1) || aabb.is_in_box(n2) || 
 			aabb.is_in_box(n3) || aabb.is_in_box(n4))
 			return true;
-		//if (aabb.is_in_box(n4))
-		//	return true;
-		//if (aabb.is_in_box(n3))
-		//	return true;
-		//if (aabb.is_in_box(n2))
-		//	return true;
-		//if (aabb.is_in_box(n1))
-		//	return true;
 
 		// whether box corners locate in tetrahedron
 		// efficient when grid is much smaller than tetrahedron
@@ -327,22 +319,6 @@ public:
 			mesh->is_in_tetrahedron(e, aabb.xu, aabb.yu, aabb.zl) ||
 			mesh->is_in_tetrahedron(e, aabb.xu, aabb.yu, aabb.zu))
 			return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xl, aabb.yl, aabb.zl))
-		//	return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xl, aabb.yl, aabb.zu))
-		//	return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xl, aabb.yu, aabb.zl))
-		//	return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xl, aabb.yu, aabb.zu))
-		//	return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xu, aabb.yl, aabb.zl))
-		//	return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xu, aabb.yl, aabb.zu))
-		//	return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xu, aabb.yu, aabb.zl))
-		//	return true;
-		//if (mesh->is_in_tetrahedron(e, aabb.xu, aabb.yu, aabb.zu))
-		//	return true;
 
 		// applied separating axis theory
 		// for case when grid and tetrahedron is of comparable size
@@ -364,53 +340,6 @@ public:
 		n4_m.y = n4.y - box_yc;
 		n4_m.z = n4.z - box_zc;
 		// if there is one seperating axis, there is no collision
-		//// 4 face normal
-		//if (is_seperating_axis(seperating_axes[0], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[1], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[2], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[3], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//// 3 * 6 edge cross product
-		//if (is_seperating_axis(seperating_axes[4], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[5], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[6], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[7], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[8], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[9], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[10], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[11], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[12], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[13], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[14], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[15], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[16], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[17], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[18], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[19], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[20], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//if (is_seperating_axis(seperating_axes[21], n1_m, n2_m, n3_m, n4_m))
-		//	return false;
-		//
 		if (is_seperating_axis(seperating_axes[0], n1_m, n2_m, n3_m, n4_m) ||
 			is_seperating_axis(seperating_axes[1], n1_m, n2_m, n3_m, n4_m) || 
 			is_seperating_axis(seperating_axes[2], n1_m, n2_m, n3_m, n4_m) ||

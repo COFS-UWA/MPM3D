@@ -2,7 +2,7 @@
 #define __Rigid_Tetrahedron_Mesh_h__
 
 #include "ItemArray.hpp"
-#include "Geometry.h"
+#include "TetrahedronUtils.h"
 #include "TetrahedronMeshTemplate.hpp"
 
 namespace RigidTetrahedronMesh_Internal
@@ -244,9 +244,8 @@ protected: // background grid
 	size_t g_x_num, g_y_num, g_z_num;
 	size_t g_xy_num, g_num;
 	Grid* grids;
-	MemoryUtils::ItemArray<FacePointer> fp_array;
 
-	inline double get_h() { return g_h; }
+	inline double get_g_h() { return g_h; }
 	inline size_t get_grid_num() { return g_num; }
 	inline Grid* get_grids() { return grids; }
 	inline Grid& grid_by_id(size_t x_id, size_t y_id, size_t z_id)
@@ -263,24 +262,38 @@ protected: // background grid
 		return res;
 	}
 
-	void clear_bg_grids()
+	MemoryUtils::ItemArray<FacePointer> fp_array;
+	inline void add_bface_to_grid(Grid& g, Face& f)
 	{
-		if (grids)
-		{
-			delete[] grids;
-			grids = nullptr;
-		}
-	}
-
-	int init_bg_grids(double _g_h, double expand_size);
-
-	inline void add_bface_to_grid(Grid &g, Face &f)
-	{
-		FacePointer *fp = fp_array.alloc();
+		FacePointer* fp = fp_array.alloc();
 		fp->pface = &f;
 		fp->next = g.bfaces;
 		g.bfaces = fp;
 	}
+
+	TetrahedronAABBCollisionSAT<Node> teh_aabb_collision;
+	inline void init_teh_aabb_collision(Element& e)
+	{
+		Node& n1 = nodes[e.n1];
+		Node& n2 = nodes[e.n2];
+		Node& n3 = nodes[e.n3];
+		Node& n4 = nodes[e.n4];
+		teh_aabb_collision.init(n1, n2, n3, n4);
+	}
+	bool detect_teh_aabb_collision(Cube &box);
+
+	TriangleAABBCollisionSAT<Node> tri_aabb_collision;
+	void init_tri_aabb_collision(Face& f)
+	{
+		Node& n1 = nodes[f.n1];
+		Node& n2 = nodes[f.n2];
+		Node& n3 = nodes[f.n3];
+		tri_aabb_collision.init(n1, n2, n3);
+	}
+	bool detect_tri_aabb_collision(Cube& box);
+
+	void clear_bg_grids();
+	int init_bg_grids(double _g_h, double expand_size);
 };
 
 #endif

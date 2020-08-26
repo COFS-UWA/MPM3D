@@ -1,8 +1,6 @@
 #include "Simulations_pcp.h"
 
 #include <unordered_map>
-#include "Geometry.h"
-#include "TetrahedronUtils.h"
 
 #include "RigidTetrahedronMesh.h"
 
@@ -164,6 +162,15 @@ void RigidTetrahedronMesh::extract_bfaces()
 	bfaces = face_map.output_boundary_face(bface_num);
 }
 
+void RigidTetrahedronMesh::clear_bg_grids()
+{
+	if (grids)
+	{
+		delete[] grids;
+		grids = nullptr;
+	}
+}
+
 int RigidTetrahedronMesh::init_bg_grids(
 	double _g_h,
 	double expand_size
@@ -277,4 +284,14 @@ int RigidTetrahedronMesh::init_bg_grids(
 	}
 
 	return 0;
+}
+
+bool RigidTetrahedronMesh::detect_teh_aabb_collision(Cube& box)
+{
+	return teh_aabb_collision.detect_collision(box);
+}
+
+bool RigidTetrahedronMesh::detect_tri_aabb_collision(Cube& box)
+{
+	return tri_aabb_collision.detect_collision(box);
 }

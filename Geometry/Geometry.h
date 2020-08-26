@@ -129,28 +129,6 @@ inline double cal_triangle_area(Node2D &p1, Node2D &p2, Point2D &p3)
 	return 0.5 * ((p1.x-p3.x)*(p2.y-p3.y) - (p2.x-p3.x)*(p1.y-p3.y));
 }
 
-template <typename Node3D, typename Point3D>
-inline double cal_tetrahedron_vol(Node3D &n1, Node3D &n2, Node3D &n3, Point3D &p4)
-{
-	double v21_x, v21_y, v21_z;
-	double v31_x, v31_y, v31_z;
-	double v41_x, v41_y, v41_z;
-	v21_x = n2.x - n1.x;
-	v21_y = n2.y - n1.y;
-	v21_z = n2.z - n1.z;
-	v31_x = n3.x - n1.x;
-	v31_y = n3.y - n1.y;
-	v31_z = n3.z - n1.z;
-	v41_x = p4.x - n1.x;
-	v41_y = p4.y - n1.y;
-	v41_z = p4.z - n1.z;
-	double cp_x, cp_y, cp_z;
-	cp_x = v21_y * v31_z - v31_y * v21_z;
-	cp_y = v21_z * v31_x - v31_z * v21_x;
-	cp_z = v21_x * v31_y - v31_x * v21_y;
-	return (v41_x * cp_x + v41_y * cp_y + v41_z * cp_z) / 6.0;
-}
-
 // limit theta to [-pi, pi]
 #define PI 3.14159265359
 inline void trim_to_pi(double& theta)
