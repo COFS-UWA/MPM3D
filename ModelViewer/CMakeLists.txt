@@ -98,6 +98,7 @@ add_library(
     QtTetrahedronMeshGLObject.h QtTetrahedronMeshGLObject.cpp
     QtMonoColorBallGLObject.h QtMonoColorBallGLObject.cpp
     QtMultiColorBallGLObject.h QtMultiColorBallGLObject.cpp
+    QtTetrahedronMeshSurfaceGLObject.h QtTetrahedronMeshSurfaceGLObject.cpp
     # Model_T3D_ME_s
     # prep process module
     QtSceneFromModel_T3D_ME_s.h QtSceneFromModel_T3D_ME_s.cpp

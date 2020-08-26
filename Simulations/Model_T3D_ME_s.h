@@ -8,6 +8,7 @@
 #include "SearchingGrid3D.hpp"
 #include "MatModelContainer.h"
 #include "ParticleGenerator3D.hpp"
+#include "RigidBody/RigidTetrahedronMesh.h"
 
 namespace Model_T3D_ME_s_Internal
 {
@@ -142,12 +143,18 @@ public:
 	size_t vx_num, vy_num, vz_num;
 	VelocityBC *vxs, *vys, *vzs;
 
+	// rigid body
+	bool rb_is_init;
+	RigidTetrahedronMesh rb;
+	
 public:
 	Model_T3D_ME_s();
 	~Model_T3D_ME_s();
 
-	inline size_t get_pcl_num() { return pcl_num; }
+	inline size_t get_pcl_num() const { return pcl_num; }
 	inline Particle *get_pcls() { return pcls; }
+	inline bool has_rb() const { return rb_is_init; }
+	inline RigidTetrahedronMesh& get_rb() { return rb; }
 
 	int init_mesh(double *node_coords, size_t n_num,
 				   size_t *elem_n_ids, size_t e_num);
@@ -172,6 +179,8 @@ public:
 	INIT_BC_TEMPLATE(vx, VelocityBC)
 	INIT_BC_TEMPLATE(vy, VelocityBC)
 	INIT_BC_TEMPLATE(vz, VelocityBC)
+
+	int init_rb(const char *file_name, double dx, double dy, double dz);
 
 protected: // helper functions
 	void init_mesh_shape_funcs();

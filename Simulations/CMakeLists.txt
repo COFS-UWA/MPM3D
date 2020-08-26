@@ -83,6 +83,8 @@ add_library(
     TimeHistory_FEM_T3D_ME_s_complete.h TimeHistory_FEM_T3D_ME_s_complete.cpp
     )
 
+add_subdirectory(RigidBody/)
+
 set(SIMULATIONS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
 
 target_include_directories(

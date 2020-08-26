@@ -66,6 +66,7 @@ add_executable(
     # 3D
     test_tetrahedron_mesh.cpp
     test_Model_T3D_ME_s_display.cpp
+    test_RigidTetrahedronMesh_display.cpp
     test_searching_grid3d.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_chm_s_1d_consolidation.cpp

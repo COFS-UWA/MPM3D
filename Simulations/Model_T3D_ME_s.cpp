@@ -16,7 +16,8 @@ Model_T3D_ME_s::Model_T3D_ME_s() :
 	az_num(0), azs(nullptr),
 	vx_num(0), vxs(nullptr),
 	vy_num(0), vys(nullptr),
-	vz_num(0), vzs(nullptr) {}
+	vz_num(0), vzs(nullptr),
+	rb_is_init(false) {}
 
 Model_T3D_ME_s::~Model_T3D_ME_s()
 {
@@ -174,4 +175,18 @@ void Model_T3D_ME_s::clear_pcls()
 		pcls = nullptr;
 	}
 	pcl_num = 0;
+}
+
+int Model_T3D_ME_s::init_rb(
+	const char* file_name,
+	double dx,
+	double dy,
+	double dz
+	)
+{
+	int res = rb.init_mesh(file_name, dx, dy, dz);
+	if (res)
+		return res;
+	rb_is_init = true;
+	return 0;
 }

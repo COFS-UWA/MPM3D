@@ -2,9 +2,10 @@
 
 out vec4 frag_color;
 
+flat in uint obj_type;
 in vec3 obj_pos;
-in vec3 obj_color;
 in vec3 obj_normal;
+in vec3 obj_color;
 
 uniform vec3 view_pos;
 

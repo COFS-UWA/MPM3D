@@ -8,6 +8,7 @@
 #include "QtTetrahedronMeshGLObject.h"
 #include "QtMonoColorBallGLObject.h"
 #include "QtSceneFromModel.h"
+#include "QtTetrahedronMeshSurfaceGLObject.h"
 
 class QtSceneFromModel_T3D_ME_s : public QtSceneFromModel
 {
@@ -24,10 +25,13 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_pts;
+	bool display_rb;
+	bool has_rb;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 	QtMonoColorBallGLObject pcls_obj;
 	QtMonoColorBallGLObject pts_obj;
+	QtTetrahedronMeshSurfaceGLObject rb_obj;
 
 	// camera info
 	GLfloat fov_angle;
@@ -64,6 +68,7 @@ protected:
 
 	QOpenGLShaderProgram shader_plain3D;
 	QOpenGLShaderProgram shader_balls;
+	QOpenGLShaderProgram shader_phong;
 	
 public:
 	explicit QtSceneFromModel_T3D_ME_s(QOpenGLFunctions_3_3_Core &_gl);

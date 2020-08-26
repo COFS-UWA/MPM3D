@@ -19,13 +19,15 @@ QtSceneFromModel_T3D_ME_s::QtSceneFromModel_T3D_ME_s(
 	// model data
 	model(nullptr), pt_num(0), pts(nullptr),
 	display_bg_mesh(true), display_pcls(true), display_pts(true),
-	bg_mesh_obj(_gl), pcls_obj(_gl), pts_obj(_gl) {}
+	bg_mesh_obj(_gl), pcls_obj(_gl), pts_obj(_gl),
+	has_rb(false), display_rb(true), rb_obj(_gl) {}
 
 QtSceneFromModel_T3D_ME_s::~QtSceneFromModel_T3D_ME_s() {}
 
 void QtSceneFromModel_T3D_ME_s::update_view_mat()
 {
-	float dist_from_obj = md_radius * view_dist_scale / sin(fov_angle * 0.5 / 180.0 * 3.14159265359);
+	float dist_from_obj = md_radius * view_dist_scale
+		/ sin(fov_angle * 0.5 / 180.0 * 3.14159265359);
 	view_dir.normalize();
 	view_pos = md_centre - dist_from_obj * view_dir;
 	view_mat.setToIdentity();
@@ -126,6 +128,16 @@ int QtSceneFromModel_T3D_ME_s::initialize(int wd, int ht)
 	);
 	shader_balls.link();
 
+	shader_phong.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"../../Asset/shader_phong.vert"
+		);
+	shader_phong.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"../../Asset/shader_phong.frag"
+		);
+	shader_phong.link();
+
 	// bounding circle
 	Cube mh_bbox = model->get_bounding_box();
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
@@ -164,6 +176,25 @@ int QtSceneFromModel_T3D_ME_s::initialize(int wd, int ht)
 	shader_balls.setUniformValue("spec_coef", spec_coef);
 	shader_balls.setUniformValue("spec_shininess", spec_shininess);
 
+	// phong model
+	shader_phong.bind();
+	shader_phong.setUniformValue("view_mat", view_mat);
+	shader_phong.setUniformValue("proj_mat", proj_mat);
+
+	shader_phong.setUniformValue("view_pos", view_pos);
+
+	// fog effect
+	shader_phong.setUniformValue("fog_coef", fog_coef);
+	shader_phong.setUniformValue("fog_color", fog_color);
+
+	// phong model parameters
+	shader_phong.setUniformValue("light_pos", light_pos);
+	shader_phong.setUniformValue("light_color", light_color);
+	shader_phong.setUniformValue("amb_coef", amb_coef);
+	shader_phong.setUniformValue("diff_coef", diff_coef);
+	shader_phong.setUniformValue("spec_coef", spec_coef);
+	shader_phong.setUniformValue("spec_shininess", spec_shininess);
+
 	// init bg_mesh
 	QVector3D gray(0.5f, 0.5f, 0.5f);
 	bg_mesh_obj.init_from_edges(
@@ -188,6 +219,21 @@ int QtSceneFromModel_T3D_ME_s::initialize(int wd, int ht)
 	if (pts && pt_num)
 		pts_obj.init(pts, pt_num, pt_radius, red);
 
+	// init rb
+	if (model->has_rb())
+	{
+		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+		RigidTetrahedronMesh& rb = model->get_rb();
+		rb_obj.init_from_faces(
+			rb.get_nodes(),
+			rb.get_node_num(),
+			rb.get_bfaces(),
+			rb.get_bface_num(),
+			navajowhite
+			);
+		has_rb = true;
+	}
+
 	return 0;
 }
 
@@ -211,6 +257,12 @@ void QtSceneFromModel_T3D_ME_s::draw()
 
 	if (display_pts)
 		pts_obj.draw(shader_balls);
+
+	if (has_rb && display_rb)
+	{
+		shader_phong.bind();
+		rb_obj.draw(shader_phong);
+	}
 }
 
 void QtSceneFromModel_T3D_ME_s::resize(int wd, int ht)
@@ -227,4 +279,7 @@ void QtSceneFromModel_T3D_ME_s::resize(int wd, int ht)
 
 	shader_balls.bind();
 	shader_balls.setUniformValue("proj_mat", proj_mat);
+
+	shader_phong.bind();
+	shader_phong.setUniformValue("proj_mat", proj_mat);
 }

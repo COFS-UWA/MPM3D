@@ -20,6 +20,7 @@ add_library(
     # 3D geometry
     TetrahedronMeshTemplate.hpp
     TetrahedronMesh.h
+    TetrahedronUtils.h
     SearchingGrid3D.hpp
     ParticleGenerator3D.hpp
     )

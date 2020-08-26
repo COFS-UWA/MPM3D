@@ -1,7 +1,6 @@
 #ifndef __Qt_Tetrahedron_Mesh_GL_Object_h__
 #define __Qt_Tetrahedron_Mesh_GL_Object_h__
 
-#include <iostream>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
@@ -50,12 +49,12 @@ public:
 	QtTetrahedronMeshGLObject(QOpenGLFunctions_3_3_Core& _gl);
 	~QtTetrahedronMeshGLObject();
 
-	// Node has members x, y
+	// Node has members x, y, z
 	// Edge has members n1, n2
 	template <typename Node, typename Edge>
 	int init_from_edges(Node* nodes, size_t node_num, Edge* edges, size_t edge_num, QVector3D& c);
 
-	// Node has members x, y
+	// Node has members x, y, z
 	// Element has members n1, n2, n3, n4
 	template <typename Node, typename Element>
 	int init_from_elements(Node* nodes, size_t node_num, Element* elems, size_t elem_num, QVector3D& c);
