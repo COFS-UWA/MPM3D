@@ -9,6 +9,7 @@ add_library(
     Geometry_pcp.h Geometry_pcp.cpp
     #
     Geometry.h Geometry.cpp
+    Geometry3D.h
     NumPairHashTable.hpp
     # 2D geometry
     TriangleMeshTemplate.hpp

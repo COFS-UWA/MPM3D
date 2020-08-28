@@ -2,6 +2,7 @@
 #define __Rigid_Tetrahedron_Mesh_h__
 
 #include "ItemArray.hpp"
+#include "ItemStack.hpp"
 #include "TetrahedronUtils.h"
 #include "TetrahedronMeshTemplate.hpp"
 
@@ -26,6 +27,7 @@ namespace RigidTetrahedronMesh_Internal
 	{
 		size_t id;
 		size_t n1, n2, n3;
+		PointToTriangleDistance<Node> pt_tri_dist;
 	};
 }
 
@@ -213,14 +215,7 @@ public:
 		fy_con += fy;
 		fz_con += fz;
 	}
-
-	inline int distance_from_boundary(Point3D &p, double dist_max,
-				double &dist, double &nx, double &ny, double &nz)
-	{
-		Point3D lp;
-
-		return 0;
-	}
+	
 	inline Point3D to_local_coord(Point3D &gp) const noexcept
 	{
 		Point3D lp;
@@ -245,9 +240,10 @@ protected: // background grid
 	size_t g_xy_num, g_num;
 	Grid* grids;
 
-	inline double get_g_h() { return g_h; }
-	inline size_t get_grid_num() { return g_num; }
-	inline Grid* get_grids() { return grids; }
+	inline double get_h() const noexcept { return g_h; }
+	inline const Cube &get_bbox() const noexcept { return g_bbox; }
+	inline size_t get_grid_num() const noexcept { return g_num; }
+	inline const Grid* get_grids() const noexcept { return grids; }
 	inline Grid& grid_by_id(size_t x_id, size_t y_id, size_t z_id)
 	{ return grids[g_xy_num * z_id + g_x_num * y_id + x_id]; }
 	inline Cube grid_box_by_id(size_t x_id, size_t y_id, size_t z_id)
@@ -271,6 +267,10 @@ protected: // background grid
 		g.bfaces = fp;
 	}
 
+	void clear_bg_grids();
+	int init_bg_grids(double _g_h, double expand_size);
+	
+	PointInTetrahedron<Node> pt_in_teh;
 	TetrahedronAABBCollisionSAT<Node> teh_aabb_collision;
 	inline void init_teh_aabb_collision(Element& e)
 	{
@@ -278,7 +278,8 @@ protected: // background grid
 		Node& n2 = nodes[e.n2];
 		Node& n3 = nodes[e.n3];
 		Node& n4 = nodes[e.n4];
-		teh_aabb_collision.init(n1, n2, n3, n4);
+		pt_in_teh.init_tetrahedron(n1, n2, n3, n4);
+		teh_aabb_collision.init_tetrahedron(n1, n2, n3, n4);
 	}
 	bool detect_teh_aabb_collision(Cube &box);
 
@@ -288,12 +289,82 @@ protected: // background grid
 		Node& n1 = nodes[f.n1];
 		Node& n2 = nodes[f.n2];
 		Node& n3 = nodes[f.n3];
-		tri_aabb_collision.init(n1, n2, n3);
+		tri_aabb_collision.init_triangle(n1, n2, n3);
 	}
 	bool detect_tri_aabb_collision(Cube& box);
 
-	void clear_bg_grids();
-	int init_bg_grids(double _g_h, double expand_size);
+	// search cloest face with bg grids
+	struct IdDistPair
+	{
+		size_t id;
+		double dist;
+	};
+
+	inline void swap_id_dist_pair(IdDistPair &idp1, IdDistPair &idp2)
+	{
+		IdDistPair tmp;
+		tmp.id = idp1.id;
+		tmp.dist = idp1.dist;
+		idp1.id = idp2.id;
+		idp1.dist = idp2.dist;
+		idp2.id = tmp.id;
+		idp2.dist = tmp.dist;
+	}
+
+	void sort_acc_id_dist_pairs_8(IdDistPair *id_pairs)
+	{
+		size_t min_id;
+		for (size_t i = 0; i < 7; ++i)
+		{
+			min_id = i;
+			for (size_t j = i + 1; j < 8; ++j)
+			{
+				if (id_pairs[j].id < id_pairs[min_id].id)
+					min_id = j;
+			}
+			if (min_id != i)
+				swap_id_dist_pair(id_pairs[i], id_pairs[min_id]);
+		}
+	}
+
+	double dist_max;
+	unsigned char height_max;
+	long long id_dist_max, id_stride_max;
+	double stride_max;
+
+	void set_dist_max(double _dist_max);
+	bool cal_distance_to_boundary(Point3D &pt,
+		double &dist, double &nx, double &ny, double &nz);
+
+	// variables for search_closest_face
+	struct IdCube
+	{
+		long long xl_id, xu_id;
+		long long yl_id, yu_id;
+		long long zl_id, zu_id;
+		inline bool does_not_overlap(IdCube &ic) const noexcept
+		{
+			return xu_id <= ic.xl_id || xl_id >= ic.xu_id ||
+				   yu_id <= ic.yl_id || yl_id >= ic.yu_id ||
+				   zu_id <= ic.zl_id || zl_id >= ic.zu_id;
+		}
+	};
+
+	struct SearchClosestFaceParam
+	{
+		long long xl_id, yl_id, zl_id;
+		Cube box;
+	};
+
+	IdCube id_range;
+	Point3D cur_pt;
+	double cur_dist;
+	unsigned char cur_height;
+	long long cur_id_stride;
+	Face* cur_face;
+	unsigned char cur_norm_type;
+
+	void search_closest_face(SearchClosestFaceParam &param);
 };
 
 #endif

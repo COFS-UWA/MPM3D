@@ -121,6 +121,24 @@ namespace MemoryUtils
 			}
 			return cur;
 		}
+		inline bool pop(Item &item)
+		{
+			--cur;
+			if (cur < start)
+			{
+				if (cur_page == &first_page)
+				{
+					cur = start;
+					return false;
+				}
+				cur_page = cur_page->prev;
+				start = cur_page->start;
+				end = cur_page->end;
+				cur = end - 1;
+			}
+			item = *cur;
+			return true;
+		}
 		inline bool is_empty() const
 		{
 			return cur_page == &first_page && cur = start;

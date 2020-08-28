@@ -1,6 +1,7 @@
 #ifndef __Tetrahedron_Utils_h__
 #define __Tetrahedron_Utils_h__
 
+#include <assert.h>
 #include "Geometry.h"
 
 template <typename Point3D>
@@ -123,45 +124,47 @@ protected:
 	double a4, b4, c4, coef4;
 
 public:
-	inline void init(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4, double vol)
+	inline void init_tetrahedron(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4, double vol)
 	{
 		double inv_vol_6 = 1.0 / (6.0 * vol);
 		// N1
 		a1 = ((n4.y - n2.y) * (n3.z - n2.z) - (n3.y - n2.y) * (n4.z - n2.z)) * inv_vol_6;
 		b1 = ((n4.z - n2.z) * (n3.x - n2.x) - (n3.z - n2.z) * (n4.x - n2.x)) * inv_vol_6;
 		c1 = ((n4.x - n2.x) * (n3.y - n2.y) - (n3.x - n2.x) * (n4.y - n2.y)) * inv_vol_6;
-		coef1 = e.a1 * n2.x + e.b1 * n2.y + e.c1 * n2.z;
+		coef1 = a1 * n2.x + b1 * n2.y + c1 * n2.z;
 		// N2
 		a2 = ((n4.y - n3.y) * (n1.z - n3.z) - (n1.y - n3.y) * (n4.z - n3.z)) * inv_vol_6;
 		b2 = ((n4.z - n3.z) * (n1.x - n3.x) - (n1.z - n3.z) * (n4.x - n3.x)) * inv_vol_6;
 		c2 = ((n4.x - n3.x) * (n1.y - n3.y) - (n1.x - n3.x) * (n4.y - n3.y)) * inv_vol_6;
-		coef2 = e.a2 * n3.x + e.b2 * n3.y + e.c2 * n3.z;
+		coef2 = a2 * n3.x + b2 * n3.y + c2 * n3.z;
 		// N3
 		a3 = ((n2.y - n4.y) * (n1.z - n4.z) - (n1.y - n4.y) * (n2.z - n4.z)) * inv_vol_6;
 		b3 = ((n2.z - n4.z) * (n1.x - n4.x) - (n1.z - n4.z) * (n2.x - n4.x)) * inv_vol_6;
 		c3 = ((n2.x - n4.x) * (n1.y - n4.y) - (n1.x - n4.x) * (n2.y - n4.y)) * inv_vol_6;
-		coef3 = e.a3 * n4.x + e.b3 * n4.y + e.c3 * n4.z;
+		coef3 = a3 * n4.x + b3 * n4.y + c3 * n4.z;
 		// N4
 		a4 = ((n2.y - n1.y) * (n3.z - n1.z) - (n3.y - n1.y) * (n2.z - n1.z)) * inv_vol_6;
 		b4 = ((n2.z - n1.z) * (n3.x - n1.x) - (n3.z - n1.z) * (n2.x - n1.x)) * inv_vol_6;
 		c4 = ((n2.x - n1.x) * (n3.y - n1.y) - (n3.x - n1.x) * (n2.y - n1.y)) * inv_vol_6;
-		coef4 = e.a4 * n1.x + e.b4 * n1.y + e.c4 * n1.z;
+		coef4 = a4 * n1.x + b4 * n1.y + c4 * n1.z;
 	}
-	inline void init(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4)
-	{ init(n1, n2, n3, n4, cal_tetrahedron_vol<Node3D, Node3D>()); }
+	inline void init_tetrahedron(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4)
+	{ init_tetrahedron(n1, n2, n3, n4, cal_tetrahedron_vol<Node3D, Node3D>(n1, n2, n3, n4)); }
 
-	template <typename Point3D>
-	inline bool is_in_tetrahedron(Point3D& p)
+	inline bool is_in_tetrahedron(double x, double y, double z)
 	{
-		double N1v = N1();
-		double N2v = N2();
-		double N3v = N3();
+		double N1v = N1(x, y, z);
+		double N2v = N2(x, y, z);
+		double N3v = N3(x, y, z);
 		double N4v = 1.0 - N1v - N2v - N3v;
 		if (N1v < 0.0 || N1v > 1.0 || N2v < 0.0 || N2v > 1.0 ||
 			N3v < 0.0 || N3v > 1.0 || N4v < 0.0 || N4v > 1.0)
 			return false;
 		return true;
 	}
+	template <typename Point3D>
+	inline bool is_in_tetrahedron(Point3D& p)
+	{ return is_in_tetrahedron(p.x, p.y, p.z); }
 
 	// shape functions
 	inline double N1(double x, double y, double z) const noexcept
@@ -218,7 +221,7 @@ protected:
 	}
 
 public:
-	void init(Node3D& _n1, Node3D& _n2, Node3D& _n3, Node3D& _n4)
+	void init_tetrahedron(Node3D& _n1, Node3D& _n2, Node3D& _n3, Node3D& _n4)
 	{
 		n1.x = _n1.x;
 		n1.y = _n1.y;
@@ -276,7 +279,7 @@ public:
 		axes[21].cross(0.0, 0.0, 1.0, e34_x, e34_y, e34_z);
 	}
 	
-	bool detect_collision(Cube &aabb)
+	bool detect_collision_with_aabb(Cube &aabb)
 	{
 		hx = aabb.xu - aabb.xl;
 		hy = aabb.yu - aabb.yl;
@@ -323,6 +326,11 @@ public:
 			return false;
 		return true;
 	}
+
+	inline const Point3D& get_n1() const noexcept { return n1; }
+	inline const Point3D& get_n2() const noexcept { return n2; }
+	inline const Point3D& get_n3() const noexcept { return n3; }
+	inline const Point3D& get_n4() const noexcept { return n4; }
 };
 
 
@@ -353,7 +361,7 @@ protected:
 	}
 
 public:
-	void init(Node3D& _n1, Node3D& _n2, Node3D& _n3)
+	void init_triangle(Node3D& _n1, Node3D& _n2, Node3D& _n3)
 	{
 		n1.x = _n1.x;
 		n1.y = _n1.y;
@@ -387,7 +395,7 @@ public:
 		axes[9].cross(0.0, 0.0, 1.0, e23_x, e23_y, e23_z);
 	}
 
-	bool detect_collision(Cube& aabb)
+	bool detect_collision_with_aabb(Cube& aabb)
 	{
 		hx = aabb.xu - aabb.xl;
 		hy = aabb.yu - aabb.yl;
@@ -418,6 +426,224 @@ public:
 			is_seperating_axis(axes[9], n1_m, n2_m, n3_m))
 			return false;
 		return true;
+	}
+
+	inline const Point3D& get_n1() const noexcept { return n1; }
+	inline const Point3D& get_n2() const noexcept { return n2; }
+	inline const Point3D& get_n3() const noexcept { return n3; }
+};
+
+template <typename Node3D>
+struct PointToTriangleDistance
+{
+protected:
+	Point3D n1, n2, n3;
+	union
+	{
+		struct { Vector3D ix1, iy1, iz1; };
+		double T1[3][3];
+	};
+	union
+	{
+		struct { Vector3D ix2, iy2, iz2; };
+		double T2[3][3];
+	};
+	union
+	{
+		struct { Vector3D ix3, iy3, iz3; };
+		double T3[3][3];
+	};
+	double a1, a2, a3;
+
+public:
+	void init_triangle(Node3D& _n1, Node3D& _n2, Node3D& _n3)
+	{
+		n1.x = _n1.x;
+		n1.y = _n1.y;
+		n1.z = _n1.z;
+		n2.x = _n2.x;
+		n2.y = _n2.y;
+		n2.z = _n2.z;
+		n3.x = _n3.x;
+		n3.y = _n3.y;
+		n3.z = _n3.z;
+		Vector3D tmp1, tmp2;
+		double coef_tmp;
+		// line 1 at x axis
+		ix1.substract<Point3D>(n2, n1);
+		a1 = ix1.norm();
+		ix1.scale(1.0 / a1);
+		tmp1.substract<Point3D>(n3, n1);
+		coef_tmp = tmp1.dot(ix1);
+		tmp2.x = coef_tmp * ix1.x;
+		tmp2.y = coef_tmp * ix1.y;
+		tmp2.z = coef_tmp * ix1.z;
+		iy1.substract<Vector3D>(tmp1, tmp2);
+		iy1.normalize();
+		iz1.cross<Vector3D>(ix1, iy1);
+		// line 2 at x axis
+		ix2.substract<Point3D>(n3, n2);
+		a2 = ix2.norm();
+		ix2.scale(1.0 / a2);
+		tmp1.substract<Point3D>(n1, n2);
+		coef_tmp = tmp1.dot(ix2);
+		tmp2.x = coef_tmp * ix2.x;
+		tmp2.y = coef_tmp * ix2.y;
+		tmp2.z = coef_tmp * ix2.z;
+		iy2.substract<Vector3D>(tmp1, tmp2);
+		iy2.normalize();
+		iz2.cross<Vector3D>(ix2, iy2);
+		// line 3 at x axis
+		ix3.substract<Point3D>(n1, n3);
+		a3 = ix3.norm();
+		ix3.scale(1.0 / a3);
+		tmp1.substract<Point3D>(n2, n3);
+		coef_tmp = tmp1.dot(ix3);
+		tmp2.x = coef_tmp * ix3.x;
+		tmp2.y = coef_tmp * ix3.y;
+		tmp2.z = coef_tmp * ix3.z;
+		iy3.substract<Vector3D>(tmp1, tmp2);
+		iy3.normalize();
+		iz3.cross<Vector3D>(ix3, iy3);
+	}
+
+	unsigned char cal_distance_to_point(Point3D& p, double &dist)
+	{
+		Vector3D pj1, pj2, pj3, tmp1;
+		tmp1.substract<Point3D>(p, n1);
+		pj1.x = T1[0][0] * tmp1.x + T1[0][1] * tmp1.y + T1[0][2] * tmp1.z;
+		pj1.y = T1[1][0] * tmp1.x + T1[1][1] * tmp1.y + T1[1][2] * tmp1.z;
+		pj1.z = T1[2][0] * tmp1.x + T1[2][1] * tmp1.y + T1[2][2] * tmp1.z;
+		tmp1.substract<Point3D>(p, n2);
+		pj2.x = T2[0][0] * tmp1.x + T2[0][1] * tmp1.y + T2[0][2] * tmp1.z;
+		pj2.y = T2[1][0] * tmp1.x + T2[1][1] * tmp1.y + T2[1][2] * tmp1.z;
+		tmp1.substract<Point3D>(p, n3);
+		pj3.x = T3[0][0] * tmp1.x + T3[0][1] * tmp1.y + T3[0][2] * tmp1.z;
+		pj3.y = T3[1][0] * tmp1.x + T3[1][1] * tmp1.y + T3[1][2] * tmp1.z;
+
+		if (pj1.y >= 0.0 && pj2.y >= 0.0 && pj3.y >= 0.0)
+		{
+			dist = pj1.z;
+			return 0;
+		}
+
+		if (pj1.y < 0.0 && pj1.x >= 0.0 && pj1.x <= a1)
+		{
+			dist = sqrt(pj1.y * pj1.y + pj1.z * pj1.z);
+			if (pj1.z < 0)
+				dist = -dist;
+			return 1;
+		}
+
+		if (pj2.y < 0.0 && pj2.x >= 0.0 && pj2.x <= a2)
+		{
+			dist = sqrt(pj2.y * pj2.y + pj1.z * pj1.z);
+			if (pj1.z < 0)
+				dist = -dist;
+			return 2;
+		}
+
+		if (pj3.y < 0.0 && pj3.x >= 0.0 && pj3.x <= a3)
+		{
+			dist = sqrt(pj3.y * pj3.y + pj1.z * pj1.z);	
+			if (pj1.z < 0)
+				dist = -dist;
+			return 3;
+		}
+
+		if (pj1.y < 0.0 && pj1.x > a1 || pj2.y < 0.0 && pj2.x < 0.0)
+		{
+			//dist1 = sqrt((pj1.x - a1) * (pj1.x - a1) + pj1.y * pj1.y + pj1.z * pj1.z);
+			dist = sqrt(pj2.x * pj2.x + pj2.y * pj2.y + pj1.z * pj1.z);
+			if (pj1.z < 0)
+				dist = -dist;
+			return 4;
+		}
+
+		if (pj2.y < 0.0 && pj2.x > a2 || pj3.y < 0.0 && pj3.x < 0.0)
+		{
+			//dist1 = sqrt((pj2.x - a2) * (pj2.x - a2) + pj2.y * pj2.y + pj1.z * pj1.z);
+			dist = sqrt(pj3.x * pj3.x + pj3.y * pj3.y + pj1.z * pj1.z);
+			if (pj1.z < 0)
+				dist = -dist;
+			return 5;
+		}
+
+		if (pj3.y < 0.0 && pj3.x > a3 || pj1.y < 0.0 && pj1.x < 0.0)
+		{
+			//dist1 = sqrt((pj3.x - a3) * (pj3.x - a3) + pj3.y * pj3.y + pj1.z * pj1.z);
+			dist = sqrt(pj1.x * pj1.x + pj1.y * pj1.y + pj1.z * pj1.z);
+			if (pj1.z < 0)
+				dist = -dist;
+			return 6;
+		}
+		
+		assert(0);
+		return 7;
+	}
+
+	void cal_normal_to_point(Point3D &pt, unsigned char norm_type, Vector3D& normal)
+	{
+		Vector3D v1, v2, tmp1;
+		double coef;
+		switch (norm_type)
+		{
+		case 0:
+			v1.substract(n2, n1);
+			v2.substract(n3, n1);
+			normal.cross(v1, v2);
+			normal.normalize();
+			tmp1.substract<Point3D>(pt, n1);
+			coef = T1[2][0] * tmp1.x + T1[2][1] * tmp1.y + T1[2][2] * tmp1.z;
+			if (coef < 0.0)
+				normal.reverse();
+			return;
+		case 1:
+			v1.substract(n2, n1);
+			v1.normalize();
+			v2.substract(pt, n1);
+			coef = v1.dot(v2);
+			normal.substract(v2, v1.scale(coef));
+			break;
+		case 2:
+			v1.substract(n3, n2);
+			v1.normalize();
+			v2.substract(pt, n2);
+			coef = v1.dot(v2);
+			normal.substract(v2, v1.scale(coef));
+			break;
+		case 3:
+			v1.substract(n1, n3);
+			v1.normalize();
+			v2.substract(pt, n3);
+			coef = v1.dot(v2);
+			v1.scale(coef);
+			normal.substract(v2, v1);
+			break;
+		case 4:
+			normal.substract(pt, n1);
+			break;
+		case 5:
+			normal.substract(pt, n2);
+			break;
+		case 6:
+			normal.substract(pt, n3);
+			break;
+		default:
+			assert(0);
+			return;
+		}
+		double norm = normal.norm();
+		if (norm != 0.0)
+			normal.scale(1.0 / norm);
+		else
+		{
+			v1.substract(n2, n1);
+			v2.substract(n3, n1);
+			normal.cross(v1, v2);
+			normal.normalize();
+		}
+		return;
 	}
 };
 
