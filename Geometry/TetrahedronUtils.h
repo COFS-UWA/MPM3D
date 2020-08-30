@@ -6,7 +6,7 @@
 
 template <typename Point3D>
 Cube get_tetrahedron_bounding_box(
-	Point3D &n1, Point3D &n2, Point3D &n3, Point3D &n4)
+	Point3D& n1, Point3D& n2, Point3D& n3, Point3D& n4)
 {
 	Cube res;
 	res.xl = n1.x;
@@ -157,10 +157,8 @@ public:
 		double N2v = N2(x, y, z);
 		double N3v = N3(x, y, z);
 		double N4v = 1.0 - N1v - N2v - N3v;
-		if (N1v < 0.0 || N1v > 1.0 || N2v < 0.0 || N2v > 1.0 ||
-			N3v < 0.0 || N3v > 1.0 || N4v < 0.0 || N4v > 1.0)
-			return false;
-		return true;
+		return !(N1v < 0.0 || N1v > 1.0 || N2v < 0.0 || N2v > 1.0 ||
+				 N3v < 0.0 || N3v > 1.0 || N4v < 0.0 || N4v > 1.0);
 	}
 	template <typename Point3D>
 	inline bool is_in_tetrahedron(Point3D& p)
@@ -175,7 +173,13 @@ public:
 	{ return a3 * x + b3 * y + c3 * z - coef3; }
 	inline double N4(double x, double y, double z) const noexcept
 	{ return a4 * x + b4 * y + c4 * z - coef4; }
-	
+	inline void cal_N(double x, double y, double z,
+		double &N1v, double &N2v, double &N3v, double &N4v) const noexcept
+	{
+		N1v = N1(x, y, z); N2v = N2(x, y, z); N3v = N3(x, y, z);
+		N4v = 1.0 - N1v - N2v - N3v;
+	}
+
 	// shape function derivatives
 	inline double dN1_dx() const noexcept { return a1; }
 	inline double dN1_dy() const noexcept { return b1; }
@@ -203,7 +207,7 @@ protected:
 	inline bool is_seperating_axis(Vector3D& axis,
 		Point3D& p1, Point3D& p2, Point3D& p3, Point3D& p4)
 	{
-#define Norm_Tol 1.0e-5
+#define Norm_Tol 1.0e-10
 		if (axis.norm() < Norm_Tol)
 			return false;
 		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z));
@@ -211,12 +215,10 @@ protected:
 		double p2_proj = p2.x * axis.x + p2.y * axis.y + p2.z * axis.z;
 		double p3_proj = p3.x * axis.x + p3.y * axis.y + p3.z * axis.z;
 		double p4_proj = p4.x * axis.x + p4.y * axis.y + p4.z * axis.z;
-		if ((p1_proj >  box_range && p2_proj >  box_range &&
-			 p3_proj >  box_range && p4_proj >  box_range) ||
-			(p1_proj < -box_range && p2_proj < -box_range &&
-			 p3_proj < -box_range && p4_proj < -box_range))
-			return true;
-		return false;
+		return ((p1_proj >  box_range && p2_proj >  box_range &&
+				 p3_proj >  box_range && p4_proj >  box_range) ||
+				(p1_proj < -box_range && p2_proj < -box_range &&
+				 p3_proj < -box_range && p4_proj < -box_range));
 #undef Norm_Tol
 	}
 
@@ -278,8 +280,8 @@ public:
 		axes[20].cross(0.0, 1.0, 0.0, e34_x, e34_y, e34_z);
 		axes[21].cross(0.0, 0.0, 1.0, e34_x, e34_y, e34_z);
 	}
-	
-	bool detect_collision_with_aabb(Cube &aabb)
+
+	bool detect_collision_with_aabb(Cube& aabb)
 	{
 		hx = aabb.xu - aabb.xl;
 		hy = aabb.yu - aabb.yl;
@@ -344,19 +346,17 @@ protected:
 	Vector3D axes[10];
 
 	inline bool is_seperating_axis(Vector3D& axis,
-		Point3D &p1, Point3D &p2, Point3D &p3)
+		Point3D& p1, Point3D& p2, Point3D& p3)
 	{
-#define Norm_Tol 1.0e-5
+#define Norm_Tol 1.0e-10
 		if (axis.norm() < Norm_Tol)
 			return false;
 		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z));
 		double p1_proj = p1.x * axis.x + p1.y * axis.y + p1.z * axis.z;
 		double p2_proj = p2.x * axis.x + p2.y * axis.y + p2.z * axis.z;
 		double p3_proj = p3.x * axis.x + p3.y * axis.y + p3.z * axis.z;
-		if ((p1_proj >  box_range && p2_proj >  box_range && p3_proj >  box_range) ||
-			(p1_proj < -box_range && p2_proj < -box_range && p3_proj < -box_range))
-			return true;
-		return false;
+		return ((p1_proj >  box_range && p2_proj >  box_range && p3_proj >  box_range) ||
+				(p1_proj < -box_range && p2_proj < -box_range && p3_proj < -box_range));
 #undef Norm_Tol
 	}
 
@@ -507,7 +507,7 @@ public:
 		iz3.cross<Vector3D>(ix3, iy3);
 	}
 
-	unsigned char cal_distance_to_point(Point3D& p, double &dist)
+	unsigned char cal_distance_to_point(Point3D& p, double& dist)
 	{
 		Vector3D pj1, pj2, pj3, tmp1;
 		tmp1.substract<Point3D>(p, n1);
@@ -545,12 +545,13 @@ public:
 
 		if (pj3.y < 0.0 && pj3.x >= 0.0 && pj3.x <= a3)
 		{
-			dist = sqrt(pj3.y * pj3.y + pj1.z * pj1.z);	
+			dist = sqrt(pj3.y * pj3.y + pj1.z * pj1.z);
 			if (pj1.z < 0)
 				dist = -dist;
 			return 3;
 		}
 
+		//double dist1;
 		if (pj1.y < 0.0 && pj1.x > a1 || pj2.y < 0.0 && pj2.x < 0.0)
 		{
 			//dist1 = sqrt((pj1.x - a1) * (pj1.x - a1) + pj1.y * pj1.y + pj1.z * pj1.z);
@@ -577,12 +578,12 @@ public:
 				dist = -dist;
 			return 6;
 		}
-		
+
 		assert(0);
 		return 7;
 	}
 
-	void cal_normal_to_point(Point3D &pt, unsigned char norm_type, Vector3D& normal)
+	void cal_normal_to_point(Point3D& pt, unsigned char norm_type, Vector3D& normal)
 	{
 		Vector3D v1, v2, tmp1;
 		double coef;
@@ -621,13 +622,13 @@ public:
 			normal.substract(v2, v1);
 			break;
 		case 4:
-			normal.substract(pt, n1);
-			break;
-		case 5:
 			normal.substract(pt, n2);
 			break;
-		case 6:
+		case 5:
 			normal.substract(pt, n3);
+			break;
+		case 6:
+			normal.substract(pt, n1);
 			break;
 		default:
 			assert(0);

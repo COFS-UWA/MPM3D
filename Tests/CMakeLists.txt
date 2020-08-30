@@ -18,54 +18,55 @@ add_executable(
     test_model_view.h
     # unit tests
     # utilities
-    test_stack_and_link_list.cpp
-    test_solve_functions.cpp
+    #test_stack_and_link_list.cpp
+    #test_solve_functions.cpp
     # material models
-    test_model_container.cpp
-    test_mcc_get_Su.cpp
-    test_mcc_compression.cpp
-    test_undrained_mcc.cpp
+    #test_model_container.cpp
+    #test_mcc_get_Su.cpp
+    #test_mcc_compression.cpp
+    #test_undrained_mcc.cpp
     # 2D
     # back ground searching grid
-    test_searching_grid2d.cpp
+    #test_searching_grid2d.cpp
     # random point generation
-    test_random_point_for_Model_T2D_ME_s.cpp
+    #test_random_point_for_Model_T2D_ME_s.cpp
     # display model
-    test_Model_T2D_ME_s_display.cpp
+    #test_Model_T2D_ME_s_display.cpp
     # geostatic calculation
-    test_t2d_me_s_geostatic.cpp
-    test_t2d_me_s_geostatic_restart.cpp
-    test_t2d_chm_s_geostatic_mcc.cpp
+    #test_t2d_me_s_geostatic.cpp
+    #test_t2d_me_s_geostatic_restart.cpp
+    #test_t2d_chm_s_geostatic_mcc.cpp
     # deformation calculation
-    test_t2d_me_s_1d_compression.cpp
-    test_t2d_chm_s_1d_consolidation.cpp
+    #test_t2d_me_s_1d_compression.cpp
+    #test_t2d_chm_s_1d_consolidation.cpp
     # restart utilities
-    test_t2d_me_s_test_restart.cpp
-    test_t2d_chm_s_test_restart.cpp
+    #test_t2d_me_s_test_restart.cpp
+    #test_t2d_chm_s_test_restart.cpp
     # rigid circle
-    test_t2d_me_s_test_rigid_circle.cpp
-    test_t2d_chm_s_test_rigid_circle.cpp
+    #test_t2d_me_s_test_rigid_circle.cpp
+    #test_t2d_chm_s_test_rigid_circle.cpp
     # parallel version
-    test_t2d_me_p_geostatic.cpp
-    test_t2d_me_p_test.cpp
-    test_t2d_me_p_1d_compression.cpp
-    test_t2d_me_p_rigid_circle_penetration.cpp
+    #test_t2d_me_p_geostatic.cpp
+    #test_t2d_me_p_test.cpp
+    #test_t2d_me_p_1d_compression.cpp
+    #test_t2d_me_p_rigid_circle_penetration.cpp
     # shallow pipe embedment for conference
     # coupled hydro-mechanics
-    test_t2d_chm_s_pipe_conference_geo.cpp
-    test_t2d_chm_s_pipe_conference_restart1.cpp
-    test_t2d_chm_s_pipe_conference_restart2.cpp
+    #test_t2d_chm_s_pipe_conference_geo.cpp
+    #test_t2d_chm_s_pipe_conference_restart1.cpp
+    #test_t2d_chm_s_pipe_conference_restart2.cpp
     # completely drained
-    test_t2d_me_s_pipe_conference_geo.cpp
-    test_t2d_me_s_pipe_conference_restart.cpp
-    test_t2d_me_s_pipe_conference_restart2.cpp
-    test_t2d_me_p_pipe_conference_geo.cpp
-    test_t2d_me_p_pipe_conference_restart.cpp
+    #test_t2d_me_s_pipe_conference_geo.cpp
+    #test_t2d_me_s_pipe_conference_restart.cpp
+    #test_t2d_me_s_pipe_conference_restart2.cpp
+    #test_t2d_me_p_pipe_conference_geo.cpp
+    #test_t2d_me_p_pipe_conference_restart.cpp
     # undrained
-    test_t2d_me_s_pipe_conference_geo_undrained.cpp
+    #test_t2d_me_s_pipe_conference_geo_undrained.cpp
     # 3D
     test_tetrahedron_mesh.cpp
     test_Model_T3D_ME_s_display.cpp
+    test_RigidTetrahedronMesh.cpp
     test_RigidTetrahedronMesh_display.cpp
     test_searching_grid3d.cpp
     test_t3d_me_s_1d_compression.cpp

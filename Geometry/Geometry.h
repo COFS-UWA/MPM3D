@@ -57,7 +57,13 @@ struct Vector2D
 	{ return x * p2.x + y * p2.y; }
 };
 
-struct Point3D { double x, y, z; };
+struct Point3D
+{
+	double x, y, z;
+
+	Point3D() {}
+	inline Point3D(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+};
 
 struct Cube
 {

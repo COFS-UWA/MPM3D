@@ -144,6 +144,13 @@ void RigidTetrahedronMesh::move_mesh(
 	centre.x += dx;
 	centre.y += dy;
 	centre.z += dz;
+
+	g_bbox.xl += dx;
+	g_bbox.xu += dx;
+	g_bbox.yl += dy;
+	g_bbox.yu += dy;
+	g_bbox.zl += dz;
+	g_bbox.zu += dz;
 }
 
 void RigidTetrahedronMesh::extract_bfaces()
@@ -335,8 +342,9 @@ bool RigidTetrahedronMesh::detect_tri_aabb_collision(Cube& box)
 
 void RigidTetrahedronMesh::set_dist_max(double _dist_max)
 {
-	dist_max = _dist_max;
-	id_dist_max = long long(ceil(dist_max / g_h));
+	double half_g_h = 0.5 * g_h;
+	dist_max = _dist_max > half_g_h ? _dist_max : half_g_h;
+	id_dist_max = long long(ceil(_dist_max / g_h));
 	const long long id_range = id_dist_max + id_dist_max + 1;
 	height_max = 0;
 	id_stride_max = 1;
@@ -368,28 +376,28 @@ bool RigidTetrahedronMesh::cal_distance_to_boundary(
 	long long ptx_id = long long((cur_pt.x - g_bbox.xl) / g_h);
 	long long pty_id = long long((cur_pt.y - g_bbox.yl) / g_h);
 	long long ptz_id = long long((cur_pt.z - g_bbox.zl) / g_h);
-	id_range.xl_id = ptx_id - cur_id_stride;
+	id_range.xl_id = ptx_id - id_dist_max;
+	id_range.yl_id = pty_id - id_dist_max;
+	id_range.zl_id = ptz_id - id_dist_max;
+	id_range.xu_id = ptx_id + id_dist_max + 1;
+	id_range.yu_id = pty_id + id_dist_max + 1;
+	id_range.zu_id = ptz_id + id_dist_max + 1;
+	SearchClosestFaceParam param;
+	param.xl_id = id_range.xl_id;
+	param.yl_id = id_range.yl_id;
+	param.zl_id = id_range.zl_id;
 	if (id_range.xl_id < 0)
 		id_range.xl_id = 0;
-	id_range.yl_id = pty_id - cur_id_stride;
-	if (id_range.yl_id < 0)
-		id_range.yl_id = 0;
-	id_range.zl_id = ptz_id - cur_id_stride;
-	if (id_range.zl_id < 0)
-		id_range.zl_id = 0;
-	id_range.xu_id = ptx_id + cur_id_stride + 1;
 	if (id_range.xu_id > g_x_num)
 		id_range.xu_id = g_x_num;
-	id_range.yu_id = pty_id + cur_id_stride + 1;
+	if (id_range.yl_id < 0)
+		id_range.yl_id = 0;
 	if (id_range.yu_id > g_y_num)
 		id_range.yu_id = g_y_num;
-	id_range.zu_id = ptz_id + cur_id_stride + 1;
+	if (id_range.zl_id < 0)
+		id_range.zl_id = 0;
 	if (id_range.zu_id > g_z_num)
 		id_range.zu_id = g_z_num;
-	SearchClosestFaceParam param;
-	param.xl_id = ptx_id - cur_id_stride;
-	param.yl_id = pty_id - cur_id_stride;
-	param.zl_id = ptz_id - cur_id_stride;
 	Cube &box = param.box;
 	box.xl = g_bbox.xl + double(param.xl_id) * g_h;
 	box.xu = box.xl + stride_max;
@@ -399,6 +407,7 @@ bool RigidTetrahedronMesh::cal_distance_to_boundary(
 	box.zu = box.zl + stride_max;
 
 	search_closest_face(param);
+
 	if (cur_face)
 	{
 		dist = cur_dist;
@@ -408,6 +417,8 @@ bool RigidTetrahedronMesh::cal_distance_to_boundary(
 			cur_norm_type,
 			fnormal
 			);
+		if (dist >= 0.0)
+			fnormal.reverse();
 		nx = fnormal.x;
 		ny = fnormal.y;
 		nz = fnormal.z;
@@ -565,35 +576,35 @@ void RigidTetrahedronMesh::search_closest_face(SearchClosestFaceParam &param)
 		sort_acc_id_dist_pairs_8(id_pairs);
 
 		// 0
-		if (pair0.dist > cur_dist)
+		if (pair0.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair0.id]);
 		// 1
-		if (pair1.dist > cur_dist)
+		if (pair1.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair1.id]);
 		// 2
-		if (pair2.dist > cur_dist)
+		if (pair2.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair2.id]);
 		// 3
-		if (pair3.dist > cur_dist)
+		if (pair3.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair3.id]);
 		// 4
-		if (pair4.dist > cur_dist)
+		if (pair4.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair4.id]);
 		// 5
-		if (pair5.dist > cur_dist)
+		if (pair5.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair5.id]);
 		// 6
-		if (pair6.dist > cur_dist)
+		if (pair6.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair6.id]);
 		// 7
-		if (pair7.dist > cur_dist)
+		if (pair7.dist > abs(cur_dist))
 			goto complete_searching_child;
 		search_closest_face(params[pair7.id]);
 
@@ -611,7 +622,7 @@ void RigidTetrahedronMesh::search_closest_face(SearchClosestFaceParam &param)
 		Face& f = *(fp->pface);
 		// cal dist and dist_tye
 		norm_type_tmp = f.pt_tri_dist.cal_distance_to_point(cur_pt, dist_tmp);
-		if (cur_dist > dist_tmp)
+		if (abs(cur_dist) > abs(dist_tmp))
 		{
 			cur_dist = dist_tmp;
 			cur_face = &f;

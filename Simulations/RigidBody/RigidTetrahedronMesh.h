@@ -1,11 +1,14 @@
 #ifndef __Rigid_Tetrahedron_Mesh_h__
 #define __Rigid_Tetrahedron_Mesh_h__
 
-#include "ItemArray.hpp"
+#include "ItemBuffer.hpp"
 #include "ItemStack.hpp"
 #include "TetrahedronUtils.h"
 #include "TetrahedronMeshTemplate.hpp"
 
+// Usage:
+// 1. init_mesh
+// 2. init_bg_grids
 namespace RigidTetrahedronMesh_Internal
 {
 	struct Node
@@ -233,6 +236,19 @@ public:
 		return gp;
 	}
 
+	inline double get_grid_h() const noexcept { return g_h; }
+	inline const Cube& get_grid_bbox() const noexcept { return g_bbox; }
+	inline size_t get_grid_x_num() const noexcept { return g_x_num; }
+	inline size_t get_grid_y_num() const noexcept { return g_y_num; }
+	inline size_t get_grid_z_num() const noexcept { return g_z_num; }
+
+	void clear_bg_grids();
+	int init_bg_grids(double _g_h, double expand_size);
+
+	void set_dist_max(double _dist_max);
+	bool cal_distance_to_boundary(Point3D& pt,
+		double& dist, double& nx, double& ny, double& nz);
+	
 protected: // background grid
 	double g_h;
 	Cube g_bbox;
@@ -240,10 +256,6 @@ protected: // background grid
 	size_t g_xy_num, g_num;
 	Grid* grids;
 
-	inline double get_h() const noexcept { return g_h; }
-	inline const Cube &get_bbox() const noexcept { return g_bbox; }
-	inline size_t get_grid_num() const noexcept { return g_num; }
-	inline const Grid* get_grids() const noexcept { return grids; }
 	inline Grid& grid_by_id(size_t x_id, size_t y_id, size_t z_id)
 	{ return grids[g_xy_num * z_id + g_x_num * y_id + x_id]; }
 	inline Cube grid_box_by_id(size_t x_id, size_t y_id, size_t z_id)
@@ -257,8 +269,8 @@ protected: // background grid
 		res.zu = res.zl + g_h;
 		return res;
 	}
-
-	MemoryUtils::ItemArray<FacePointer> fp_array;
+	
+	MemoryUtils::ItemBuffer<FacePointer> fp_array;
 	inline void add_bface_to_grid(Grid& g, Face& f)
 	{
 		FacePointer* fp = fp_array.alloc();
@@ -266,9 +278,6 @@ protected: // background grid
 		fp->next = g.bfaces;
 		g.bfaces = fp;
 	}
-
-	void clear_bg_grids();
-	int init_bg_grids(double _g_h, double expand_size);
 	
 	PointInTetrahedron<Node> pt_in_teh;
 	TetrahedronAABBCollisionSAT<Node> teh_aabb_collision;
@@ -319,7 +328,7 @@ protected: // background grid
 			min_id = i;
 			for (size_t j = i + 1; j < 8; ++j)
 			{
-				if (id_pairs[j].id < id_pairs[min_id].id)
+				if (id_pairs[j].dist < id_pairs[min_id].dist)
 					min_id = j;
 			}
 			if (min_id != i)
@@ -331,10 +340,6 @@ protected: // background grid
 	unsigned char height_max;
 	long long id_dist_max, id_stride_max;
 	double stride_max;
-
-	void set_dist_max(double _dist_max);
-	bool cal_distance_to_boundary(Point3D &pt,
-		double &dist, double &nx, double &ny, double &nz);
 
 	// variables for search_closest_face
 	struct IdCube
