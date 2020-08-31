@@ -100,9 +100,9 @@ void test_searching_grid3d2()
 	//model.init_search_grid(2.0, 2.0, 2.0);
 	model.init_search_grid(1.5, 1.5, 1.5);
 
-	typedef SearchingGrid3D<Model_T3D_ME_s> SG;
+	typedef Model_T3D_ME_s::SearchingGrid SG;
 	SG &sg = model.search_bg_grid;
-	size_t grid_num = sg.get_grid_num();
+	size_t grid_num = sg.get_num();
 	SG::Grid *grids = sg.get_grids();
 	std::cout << "grid num: " << grid_num << "\n";
 	for (size_t g_id = 0; g_id < grid_num; ++g_id)

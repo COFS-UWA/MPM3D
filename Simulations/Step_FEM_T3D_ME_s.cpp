@@ -2,8 +2,9 @@
 
 #include <iostream>
 #include <assert.h>
-
 #include <cmath>
+
+#include "Geometry2D.h"
 #include "MaterialModel.h"
 
 #include "Step_FEM_T3D_ME_s.h"

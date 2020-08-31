@@ -2,6 +2,8 @@
 
 #include "Model_hdf5_utilities.h"
 #include "Hdf5DataLoader.h"
+#include "Geometry3D.h"
+
 #include "QtSceneFromHdf5_T3D_CHM_s.h"
 
 QtSceneFromHdf5_T3D_CHM_s::QtSceneFromHdf5_T3D_CHM_s(

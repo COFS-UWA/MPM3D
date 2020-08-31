@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <assert.h>
-
 #include <cmath>
+
 #include "MaterialModel.h"
 
 #include "Step_T3D_ME_s.h"
@@ -43,6 +43,8 @@ int solve_substep_T3D_ME_s(void *_self)
 	typedef Model_T3D_ME_s::Particle Particle;
 	typedef Model_T3D_ME_s::Element Element;
 	typedef Model_T3D_ME_s::Node Node;
+	typedef Model_T3D_ME_s::SearchingGrid SearchingGrid;
+	typedef SearchingGrid::Grid Grid;
 
 	Step_T3D_ME_s &self = *(Step_T3D_ME_s *)(_self);
 	Model_T3D_ME_s &md = *self.model;
@@ -81,13 +83,24 @@ int solve_substep_T3D_ME_s(void *_self)
 		e.s31 = 0.0;
 	}
 
+	for (size_t g_id = 0; g_id < md.bg_grid_num; ++g_id)
+	{
+		Grid& g = md.bg_grids[g_id];
+		g.data.reset();
+	}
+
 	// init particles
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
 		if (pcl.pe)
 		{
-			if (!(pcl.pe = md.find_in_which_element(pcl)))
+			Grid *pg = md.find_in_which_grid(pcl);
+			if (!pg)
+				continue;
+			pg->data.add_pcl(pcl);
+
+			if (!(pcl.pe = md.find_in_which_element(*pg, pcl)))
 				continue;
 			pcl.pe->add_pcl(pcl);
 

@@ -2,7 +2,7 @@
 #define __Tetrahedron_Utils_h__
 
 #include <assert.h>
-#include "Geometry.h"
+#include "Geometry3D.h"
 
 template <typename Point3D>
 Cube get_tetrahedron_bounding_box(
@@ -281,14 +281,14 @@ public:
 		axes[21].cross(0.0, 0.0, 1.0, e34_x, e34_y, e34_z);
 	}
 
-	bool detect_collision_with_aabb(Cube& aabb)
+	bool detect_collision_with_cube(Cube& cube)
 	{
-		hx = aabb.xu - aabb.xl;
-		hy = aabb.yu - aabb.yl;
-		hz = aabb.zu - aabb.zl;
-		double box_xc = (aabb.xl + aabb.xu) * 0.5;
-		double box_yc = (aabb.yl + aabb.yu) * 0.5;
-		double box_zc = (aabb.zl + aabb.zu) * 0.5;
+		hx = cube.xu - cube.xl;
+		hy = cube.yu - cube.yl;
+		hz = cube.zu - cube.zl;
+		double box_xc = (cube.xl + cube.xu) * 0.5;
+		double box_yc = (cube.yl + cube.yu) * 0.5;
+		double box_zc = (cube.zl + cube.zu) * 0.5;
 		Point3D n1_m, n2_m, n3_m, n4_m; // moved tetrahedron nodes
 		n1_m.x = n1.x - box_xc;
 		n1_m.y = n1.y - box_yc;
@@ -395,14 +395,14 @@ public:
 		axes[9].cross(0.0, 0.0, 1.0, e23_x, e23_y, e23_z);
 	}
 
-	bool detect_collision_with_aabb(Cube& aabb)
+	bool detect_collision_with_cube(Cube& cube)
 	{
-		hx = aabb.xu - aabb.xl;
-		hy = aabb.yu - aabb.yl;
-		hz = aabb.zu - aabb.zl;
-		double box_xc = (aabb.xl + aabb.xu) * 0.5;
-		double box_yc = (aabb.yl + aabb.yu) * 0.5;
-		double box_zc = (aabb.zl + aabb.zu) * 0.5;
+		hx = cube.xu - cube.xl;
+		hy = cube.yu - cube.yl;
+		hz = cube.zu - cube.zl;
+		double box_xc = (cube.xl + cube.xu) * 0.5;
+		double box_yc = (cube.yl + cube.yu) * 0.5;
+		double box_zc = (cube.zl + cube.zu) * 0.5;
 		Point3D n1_m, n2_m, n3_m;
 		n1_m.x = n1.x - box_xc;
 		n1_m.y = n1.y - box_yc;

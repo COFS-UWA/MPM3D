@@ -2,14 +2,19 @@
 #define __Searching_Grid_3D_hpp__
 
 #include "ItemBuffer.hpp"
-#include "Geometry.h"
+#include "Geometry3D.h"
+
+namespace SearchingGrid3D_Internal
+{
+	struct GridDefaultData {};
+}
 
 // Accelerate spatial searching of tetrahedron mesh
 // Assumptions:
 //	1. Tetrahedron mesh has is_in_tetrahedron(MeshElement &e, double x, double y, double z)
 //	2. Tetrahedron mesh has get_elems() and get_elem_num()
 //  3. Tetrahedron mesh has get_bounding_box()
-template <typename TetrahedronMesh>
+template <typename TetrahedronMesh, typename GridData = SearchingGrid3D_Internal::GridDefaultData>
 class SearchingGrid3D
 {
 public:
@@ -26,6 +31,7 @@ public:
 	{
 		size_t x_id, y_id, z_id;
 		ElemPointer *pelems;
+		GridData data;
 	};
 
 protected:
@@ -55,10 +61,20 @@ public:
 		grids(nullptr), mesh(nullptr) {}
 	~SearchingGrid3D() { clear(); }
 
-	inline double get_hx() { return hx; }
-	inline double get_hy() { return hy; }
-	inline double get_hz() { return hz; }
-	inline size_t get_grid_num() { return num; }
+	inline double get_xl() const noexcept { return x_min; }
+	inline double get_yl() const noexcept { return y_min; }
+	inline double get_zl() const noexcept { return z_min; }
+	inline double get_xu() const noexcept { return x_max; }
+	inline double get_yu() const noexcept { return y_max; }
+	inline double get_zu() const noexcept { return z_max; }
+	inline double get_hx() const noexcept { return hx; }
+	inline double get_hy() const noexcept { return hy; }
+	inline double get_hz() const noexcept { return hz; }
+	inline size_t get_x_num() const noexcept { return x_num; }
+	inline size_t get_y_num() const noexcept { return y_num; }
+	inline size_t get_z_num() const noexcept { return z_num; }
+	inline size_t get_xy_num() const noexcept { return xy_num; }
+	inline size_t get_num() const noexcept { return num; }
 	inline Grid *get_grids() { return grids; }
 
 	int init(TetrahedronMesh &_mesh, double hx, double hy, double hz)
@@ -95,6 +111,33 @@ public:
 		elems = nullptr;
 
 		pe_buffer.clear();
+	}
+
+	template <typename Point3D>
+	inline Grid* find_in_which_grid(Point3D& point)
+	{
+		if (point.x < x_min || point.x > x_max ||
+			point.y < y_min || point.y > y_max ||
+			point.z < z_min || point.z > z_max)
+			return nullptr;
+
+		size_t x_id = size_t((point.x - x_min) / hx);
+		size_t y_id = size_t((point.y - y_min) / hy);
+		size_t z_id = size_t((point.z - z_min) / hz);
+		return &get_grid(x_id, y_id, z_id);
+	}
+
+	template <typename Point3D>
+	inline MeshElement* find_in_which_element(Grid& g, Point3D& point)
+	{
+		MeshElement* elem;
+		for (ElemPointer* pelem = g.pelems; pelem; pelem = pelem->next)
+		{
+			elem = pelem->e;
+			if (mesh->is_in_tetrahedron(*elem, point))
+				return elem;
+		}
+		return nullptr;
 	}
 
 	template <typename Point3D>

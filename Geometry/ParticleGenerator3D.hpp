@@ -4,8 +4,7 @@
 #include "ItemArray.hpp"
 #include "ItemBuffer.hpp"
 #include "LinkList.hpp"
-
-#include "Geometry.h"
+#include "Geometry3D.h"
 
 template <typename TetrahedronMesh>
 class ParticleGenerator3D

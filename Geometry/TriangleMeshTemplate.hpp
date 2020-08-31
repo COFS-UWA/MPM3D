@@ -7,7 +7,7 @@
 
 #include "hdf5.h"
 
-#include "Geometry.h"
+#include "Geometry2D.h"
 #include "NumPairHashTable.hpp"
 
 /*=============================

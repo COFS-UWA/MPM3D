@@ -3,7 +3,7 @@
 #include <set>
 #include <exception>
 
-#include "Geometry.h"
+#include "Geometry2D.h"
 #include "Model_T2D_ME_p.h"
 
 Model_T2D_ME_p::Model_T2D_ME_p() :

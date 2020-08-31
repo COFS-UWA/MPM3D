@@ -13,16 +13,21 @@ public:
 	typedef Model_T3D_ME_s::Particle Particle;
 	typedef Model_T3D_ME_s::Element Element;
 	typedef Model_T3D_ME_s::Node Node;
+	typedef Model_T3D_ME_s::SearchingGrid SearchingGrid;
+	typedef SearchingGrid::Grid Grid;
 
 protected:
 	Model_T3D_ME_s *model;
+
+	// local damping factor
+	double damping_ratio;
 
 	int init_calculation() override;
 	friend int solve_substep_T3D_ME_s(void *_self);
 	int finalize_calculation() override;
 
-	// local damping factor
-	double damping_ratio;
+	int apply_rb_to_mesh(RigidTetrahedronMesh& rb);
+	bool apply_pcl_contact_force(Particle &pcl, RigidTetrahedronMesh& rb);
 
 public:
 	Step_T3D_ME_s(const char *_name);

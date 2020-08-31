@@ -2,7 +2,7 @@
 
 #include <set>
 
-#include "Geometry.h"
+#include "Geometry2D.h"
 #include "Model_T2D_CHM_p.h"
 
 Model_T2D_CHM_p::Model_T2D_CHM_p() :

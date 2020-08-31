@@ -6,7 +6,7 @@
 #include "ItemArray.hpp"
 #include "ItemBuffer.hpp"
 #include "LinkList.hpp"
-#include "Geometry.h"
+#include "Geometry2D.h"
 #include "PDSBgGrid2D.hpp"
 #include "RandNumGenerator.h"
 

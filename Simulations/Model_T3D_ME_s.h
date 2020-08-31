@@ -50,7 +50,8 @@ namespace Model_T3D_ME_s_Internal
 		// shape function value
 		double N1, N2, N3, N4;
 
-		Particle *next; // Used by Element
+		Particle *next; // used by Element
+		Particle *next_in_grid; // used by Grid
 
 		MatModel::MaterialModel *mm;
 		inline void set_mat_model(MatModel::MaterialModel &_mm) noexcept
@@ -125,9 +126,26 @@ public:
 	typedef Model_T3D_ME_s_Internal::Particle Particle;
 	typedef Model_T3D_ME_s_Internal::Edge Edge;
 
+	struct GridData
+	{
+		// pcls in grid
+		Particle* pcls;
+		inline void reset() noexcept { pcls = nullptr; }
+		inline void add_pcl(Particle& pcl) noexcept
+		{
+			pcl.next_in_grid = pcls;
+			pcls = &pcl;
+		}
+	};
+	typedef SearchingGrid3D<Model_T3D_ME_s, GridData> SearchingGrid;
+	typedef SearchingGrid::Grid Grid;
+
 public:
 	// background grid to accelerate searching
-	SearchingGrid3D<Model_T3D_ME_s> search_bg_grid;
+	SearchingGrid search_bg_grid;
+	IdCube bg_grid_id_box;
+	Grid *bg_grids;
+	size_t bg_grid_num;
 
 	// material particles
 	size_t pcl_num;
@@ -146,13 +164,16 @@ public:
 	// rigid body
 	bool rb_is_init;
 	RigidTetrahedronMesh rb;
-	
+	double K_cont;
+
 public:
 	Model_T3D_ME_s();
 	~Model_T3D_ME_s();
 
 	inline size_t get_pcl_num() const { return pcl_num; }
 	inline Particle *get_pcls() { return pcls; }
+	inline SearchingGrid &get_bg_grid() { return search_bg_grid; }
+	inline const IdCube& get_bg_grid_id_box() { return bg_grid_id_box; }
 	inline bool has_rb() const { return rb_is_init; }
 	inline RigidTetrahedronMesh& get_rb() { return rb; }
 
@@ -180,7 +201,7 @@ public:
 	INIT_BC_TEMPLATE(vy, VelocityBC)
 	INIT_BC_TEMPLATE(vz, VelocityBC)
 
-	int init_rb(const char *file_name, double dx, double dy, double dz);
+	int init_rb(const char *file_name, double K_cont, double dx, double dy, double dz);
 
 protected: // helper functions
 	void init_mesh_shape_funcs();
@@ -213,10 +234,14 @@ public: // for calculation
 
 public:
 	// search using background grid
-	inline Element *find_in_which_element(Particle &pcl)
-	{
-		return search_bg_grid.find_in_which_element<Particle>(pcl);
-	}
+	inline Element* find_in_which_element(Particle& pcl)
+	{ return search_bg_grid.find_in_which_element<Particle>(pcl); }
+
+	inline Grid* find_in_which_grid(Particle& pcl)
+	{ return search_bg_grid.find_in_which_grid<Particle>(pcl); }
+
+	inline Element* find_in_which_element(Grid& g, Particle &pcl)
+	{ return search_bg_grid.find_in_which_element<Particle>(g, pcl); }
 
 	// brute force searching
 	inline Element *find_in_which_element_bf(Particle &pcl)

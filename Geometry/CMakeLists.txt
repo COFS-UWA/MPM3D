@@ -8,7 +8,8 @@ add_library(
     # precomplied header
     Geometry_pcp.h Geometry_pcp.cpp
     #
-    Geometry.h Geometry.cpp
+    GeometryUtils.h GeometryUtils.cpp
+    Geometry2D.h
     Geometry3D.h
     NumPairHashTable.hpp
     # 2D geometry

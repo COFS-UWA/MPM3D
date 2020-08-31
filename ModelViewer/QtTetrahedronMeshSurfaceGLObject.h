@@ -4,7 +4,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
-#include "Geometry.h"
+#include "Geometry3D.h"
 
 class QtTetrahedronMeshSurfaceGLObject
 {

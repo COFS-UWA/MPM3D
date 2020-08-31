@@ -65,7 +65,7 @@ add_library(
     TimeHistory_T2D_CHM_p_Geo_complete.h TimeHistory_T2D_CHM_p_Geo_complete.cpp
     # 3D ME MPM
     Model_T3D_ME_s.h Model_T3D_ME_s.cpp
-    Step_T3D_ME_s.h Step_T3D_ME_s.cpp
+    Step_T3D_ME_s.h Step_T3D_ME_s.cpp Step_T3D_ME_s_rb.cpp
     Model_T3D_ME_s_hdf5_utilities.h Model_T3D_ME_s_hdf5_utilities.cpp
     ModelData_T3D_ME_s.h ModelData_T3D_ME_s.cpp
     TimeHistory_T3D_ME_s_complete.h TimeHistory_T3D_ME_s_complete.cpp

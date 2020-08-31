@@ -62,6 +62,7 @@ public:
 	{
 		size_t x_id, y_id, z_id;
 		PosType pos_type;
+		bool close_to_boundary;
 		FacePointer *bfaces;
 	};
 
@@ -112,8 +113,6 @@ protected:
 	}
 
 	void extract_bfaces();
-
-	void move_mesh(double dx, double dy, double dz);
 
 public:
 	RigidTetrahedronMesh();
@@ -220,21 +219,9 @@ public:
 	}
 	
 	inline Point3D to_local_coord(Point3D &gp) const noexcept
-	{
-		Point3D lp;
-		lp.x = gp.x - centre.x;
-		lp.y = gp.y - centre.y;
-		lp.z = gp.z - centre.z;
-		return lp;
-	}
+	{ return Point3D(gp.x - x, gp.y - y, gp.z - z); }
 	inline Point3D to_global_coord(Point3D &lp) const noexcept
-	{
-		Point3D gp;
-		gp.x = lp.x + centre.x;
-		gp.y = lp.y + centre.y;
-		gp.z = lp.z + centre.z;
-		return gp;
-	}
+	{ return Point3D(lp.x + x, lp.y + y, lp.z + z); }
 
 	inline double get_grid_h() const noexcept { return g_h; }
 	inline const Cube& get_grid_bbox() const noexcept { return g_bbox; }
@@ -342,19 +329,6 @@ protected: // background grid
 	double stride_max;
 
 	// variables for search_closest_face
-	struct IdCube
-	{
-		long long xl_id, xu_id;
-		long long yl_id, yu_id;
-		long long zl_id, zu_id;
-		inline bool does_not_overlap(IdCube &ic) const noexcept
-		{
-			return xu_id <= ic.xl_id || xl_id >= ic.xu_id ||
-				   yu_id <= ic.yl_id || yl_id >= ic.yu_id ||
-				   zu_id <= ic.zl_id || zl_id >= ic.zu_id;
-		}
-	};
-
 	struct SearchClosestFaceParam
 	{
 		long long xl_id, yl_id, zl_id;
@@ -369,6 +343,8 @@ protected: // background grid
 	Face* cur_face;
 	unsigned char cur_norm_type;
 
+	// acceleration searching
+	void init_close_enough_to_boundary();
 	void search_closest_face(SearchClosestFaceParam &param);
 };
 

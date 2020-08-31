@@ -17,7 +17,7 @@ Model_T3D_ME_s::Model_T3D_ME_s() :
 	vx_num(0), vxs(nullptr),
 	vy_num(0), vys(nullptr),
 	vz_num(0), vzs(nullptr),
-	rb_is_init(false) {}
+	rb_is_init(false), K_cont(0.0) {}
 
 Model_T3D_ME_s::~Model_T3D_ME_s()
 {
@@ -107,7 +107,16 @@ int Model_T3D_ME_s::load_mesh_from_hdf5(const char *file_name)
 
 int Model_T3D_ME_s::init_search_grid(double _hx, double _hy, double _hz)
 {
-	return search_bg_grid.init(*this, _hx, _hy, _hz);
+	int res = search_bg_grid.init(*this, _hx, _hy, _hz);
+	bg_grid_id_box.xl_id = 0;
+	bg_grid_id_box.xu_id = search_bg_grid.get_x_num();
+	bg_grid_id_box.yl_id = 0;
+	bg_grid_id_box.yu_id = search_bg_grid.get_y_num();
+	bg_grid_id_box.zl_id = 0;
+	bg_grid_id_box.zu_id = search_bg_grid.get_z_num();
+	bg_grids = search_bg_grid.get_grids();
+	bg_grid_num = search_bg_grid.get_num();
+	return res;
 }
 
 int Model_T3D_ME_s::init_pcls(size_t num, double m, double density)
@@ -179,11 +188,13 @@ void Model_T3D_ME_s::clear_pcls()
 
 int Model_T3D_ME_s::init_rb(
 	const char* file_name,
+	double _K_cont,
 	double dx,
 	double dy,
 	double dz
 	)
 {
+	K_cont = _K_cont;
 	int res = rb.init_mesh(file_name, dx, dy, dz);
 	if (res)
 		return res;

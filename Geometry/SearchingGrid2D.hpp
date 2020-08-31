@@ -2,7 +2,7 @@
 #define __Searching_Grid_2D_hpp__
 
 #include "ItemBuffer.hpp"
-#include "Geometry.h"
+#include "Geometry2D.h"
 
 // Accelerate spatial searching of Triangle mesh
 // Assumptions:
