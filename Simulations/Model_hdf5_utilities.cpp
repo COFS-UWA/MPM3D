@@ -299,4 +299,274 @@ namespace Model_hdf5_utilities
 		return 0;
 	}
 
+	// only output state info, no mesh info
+	int output_rigid_tetrahedron_mesh_state_to_hdf5_file(
+		RigidTetrahedronMesh& rtm,
+		ResultFile_hdf5& rf,
+		hid_t rtm_grp_id
+	)
+	{
+		rf.write_attribute(rtm_grp_id, "density", rtm.get_density());
+		rf.write_attribute(rtm_grp_id, "fx_contact", rtm.get_fx_contact());
+		rf.write_attribute(rtm_grp_id, "fy_contact", rtm.get_fy_contact());
+		rf.write_attribute(rtm_grp_id, "fz_contact", rtm.get_fz_contact());
+		rf.write_attribute(rtm_grp_id, "ax", rtm.get_ax());
+		rf.write_attribute(rtm_grp_id, "ay", rtm.get_ay());
+		rf.write_attribute(rtm_grp_id, "az", rtm.get_ay());
+		rf.write_attribute(rtm_grp_id, "vx", rtm.get_vx());
+		rf.write_attribute(rtm_grp_id, "vy", rtm.get_vy());
+		rf.write_attribute(rtm_grp_id, "vz", rtm.get_vz());
+		rf.write_attribute(rtm_grp_id, "x", rtm.get_x());
+		rf.write_attribute(rtm_grp_id, "y", rtm.get_y());
+		rf.write_attribute(rtm_grp_id, "z", rtm.get_z());
+
+		rf.write_attribute(rtm_grp_id, "fx_ext", rtm.get_fx_ext());
+		rf.write_attribute(rtm_grp_id, "fy_ext", rtm.get_fy_ext());
+		rf.write_attribute(rtm_grp_id, "fz_ext", rtm.get_fz_ext());
+
+		if (rtm.has_ax_bc())
+			rf.write_attribute(rtm_grp_id, "ax_bc", rtm.get_ax_bc());
+		if (rtm.has_ay_bc())
+			rf.write_attribute(rtm_grp_id, "ay_bc", rtm.get_ay_bc());
+		if (rtm.has_az_bc())
+			rf.write_attribute(rtm_grp_id, "az_bc", rtm.get_az_bc());
+		if (rtm.has_vx_bc())
+			rf.write_attribute(rtm_grp_id, "vx_bc", rtm.get_vx_bc());
+		if (rtm.has_vy_bc())
+			rf.write_attribute(rtm_grp_id, "vy_bc", rtm.get_vy_bc());
+		if (rtm.has_vz_bc())
+			rf.write_attribute(rtm_grp_id, "vz_bc", rtm.get_vz_bc());
+
+		return 0;
+	}
+
+	int load_rigid_tetrahedron_mesh_state_from_hdf5_file(
+		RigidTetrahedronMesh& rtm,
+		ResultFile_hdf5& rf,
+		hid_t rtm_grp_id
+	)
+	{
+		if (rtm_grp_id < 0)
+			return -1;
+
+		double rtm_density;
+		double rtm_fx_contact, rtm_fy_contact, rtm_fz_contact;
+		double rtm_ax, rtm_ay, rtm_az;
+		double rtm_vx, rtm_vy, rtm_vz;
+		double rtm_x, rtm_y, rtm_z;
+
+		rf.read_attribute(rtm_grp_id, "density", rtm_density);
+		rf.read_attribute(rtm_grp_id, "fx_contact", rtm_fx_contact);
+		rf.read_attribute(rtm_grp_id, "fy_contact", rtm_fy_contact);
+		rf.read_attribute(rtm_grp_id, "fz_contact", rtm_fz_contact);
+		rf.read_attribute(rtm_grp_id, "ax", rtm_ax);
+		rf.read_attribute(rtm_grp_id, "ay", rtm_ay);
+		rf.read_attribute(rtm_grp_id, "az", rtm_az);
+		rf.read_attribute(rtm_grp_id, "vx", rtm_vx);
+		rf.read_attribute(rtm_grp_id, "vy", rtm_vy);
+		rf.read_attribute(rtm_grp_id, "vz", rtm_vz);
+		rf.read_attribute(rtm_grp_id, "x", rtm_x);
+		rf.read_attribute(rtm_grp_id, "y", rtm_y);
+		rf.read_attribute(rtm_grp_id, "z", rtm_z);
+
+		rtm.set_init_state(
+			rtm_density,
+			rtm_fx_contact, rtm_fy_contact, rtm_fz_contact,
+			rtm_ax, rtm_ay, rtm_az,
+			rtm_vx, rtm_vy, rtm_vz,
+			rtm_x, rtm_y, rtm_z
+		);
+
+		double bc_value;
+		rf.read_attribute(rtm_grp_id, "fx_ext", bc_value);
+		rtm.add_fx_ext(bc_value);
+		rf.read_attribute(rtm_grp_id, "fy_ext", bc_value);
+		rtm.add_fy_ext(bc_value);
+		rf.read_attribute(rtm_grp_id, "fz_ext", bc_value);
+		rtm.add_fz_ext(bc_value);
+		if (rf.has_attribute(rtm_grp_id, "ax_bc"))
+		{
+			rf.read_attribute(rtm_grp_id, "ax_bc", bc_value);
+			rtm.set_ax_bc(bc_value);
+		}
+		if (rf.has_attribute(rtm_grp_id, "ay_bc"))
+		{
+			rf.read_attribute(rtm_grp_id, "ay_bc", bc_value);
+			rtm.set_ay_bc(bc_value);
+		}
+		if (rf.has_attribute(rtm_grp_id, "az_bc"))
+		{
+			rf.read_attribute(rtm_grp_id, "az_bc", bc_value);
+			rtm.set_az_bc(bc_value);
+		}
+		if (rf.has_attribute(rtm_grp_id, "vx_bc"))
+		{
+			rf.read_attribute(rtm_grp_id, "vx_bc", bc_value);
+			rtm.set_vx_bc(bc_value);
+		}
+		if (rf.has_attribute(rtm_grp_id, "vy_bc"))
+		{
+			rf.read_attribute(rtm_grp_id, "vy_bc", bc_value);
+			rtm.set_vy_bc(bc_value);
+		}
+		if (rf.has_attribute(rtm_grp_id, "vz_bc"))
+		{
+			rf.read_attribute(rtm_grp_id, "vz_bc", bc_value);
+			rtm.set_vz_bc(bc_value);
+		}
+
+		return 0;
+	}
+
+	int output_rigid_tetrahedron_mesh_to_hdf5_file(
+		RigidTetrahedronMesh& rtm,
+		ResultFile_hdf5& rf,
+		hid_t rtm_grp_id
+		)
+	{
+		if (rtm_grp_id < 0)
+			return -1;
+		
+		int res;
+		size_t node_num = rtm.get_node_num();
+		rf.write_attribute(rtm_grp_id, "node_num", node_num);
+		RigidTetrahedronMesh::Node* nodes = rtm.get_nodes();
+		RigidTehMeshNodeData* node_data = new RigidTehMeshNodeData[node_num];
+		for (size_t n_id = 0; n_id < node_num; ++n_id)
+		{
+			RigidTehMeshNodeData& nd = node_data[n_id];
+			RigidTetrahedronMesh::Node& n = nodes[n_id];
+			nd.from_node(n);
+		}
+		hid_t node_dt_id = get_rigid_teh_mesh_node_dt_id();
+		res = rf.write_dataset(
+			rtm_grp_id,
+			"NodeData",
+			node_num,
+			node_data,
+			node_dt_id
+		);
+		H5Tclose(node_dt_id);
+		delete[] node_data;
+
+		size_t elem_num = rtm.get_elem_num();
+		rf.write_attribute(rtm_grp_id, "elem_num", elem_num);
+		RigidTetrahedronMesh::Element* elems = rtm.get_elems();
+		RigidTehMeshElemData* elem_data = new RigidTehMeshElemData[elem_num];
+		for (size_t e_id = 0; e_id < elem_num; ++e_id)
+		{
+			RigidTehMeshElemData& ed = elem_data[e_id];
+			RigidTetrahedronMesh::Element &e = elems[e_id];
+			ed.from_elem(e);
+		}
+		hid_t elem_dt_id = get_rigid_teh_mesh_elem_dt_id();
+		res = rf.write_dataset(
+			rtm_grp_id,
+			"ElementData",
+			elem_num,
+			elem_data,
+			elem_dt_id
+			);
+		H5Tclose(elem_dt_id);
+		delete[] elem_data;
+
+		size_t bface_num = rtm.get_bface_num();
+		rf.write_attribute(rtm_grp_id, "bface_num", bface_num);
+		RigidTetrahedronMesh::Face* bfaces = rtm.get_bfaces();
+		RigidTehMeshFaceData* bface_data = new RigidTehMeshFaceData[bface_num];
+		for (size_t f_id = 0; f_id < bface_num; ++f_id)
+		{
+			RigidTehMeshFaceData &fd = bface_data[f_id];
+			RigidTetrahedronMesh::Face &f = bfaces[f_id];
+			fd.from_face(f);
+		}
+		hid_t face_dt_id = get_rigid_teh_mesh_face_dt_id();
+		res = rf.write_dataset(
+			rtm_grp_id,
+			"BoundaryFaceData",
+			bface_num,
+			bface_data,
+			face_dt_id
+		);
+		H5Tclose(face_dt_id);
+		delete[] bface_data;
+		
+		return 0;
+	}
+	
+	int load_rigid_tetrahedron_mesh_from_hdf5_file(
+		RigidTetrahedronMesh& rtm,
+		ResultFile_hdf5& rf,
+		hid_t rtm_grp_id
+		)
+	{
+		if (rtm_grp_id < 0)
+			return -1;
+
+		int res;
+		size_t node_num;
+		rf.read_attribute(rtm_grp_id, "node_num", node_num);
+		RigidTehMeshNodeData* node_data = new RigidTehMeshNodeData[node_num];
+		hid_t node_dt_id = get_rigid_teh_mesh_node_dt_id();
+		res = rf.read_dataset(
+			rtm_grp_id,
+			"NodeData",
+			node_num,
+			node_data,
+			node_dt_id
+			);
+		H5Tclose(node_dt_id);
+		RigidTetrahedronMesh::Node* nodes = rtm.alloc_nodes(node_num);
+		for (size_t n_id = 0; n_id < node_num; ++n_id)
+		{
+			RigidTehMeshNodeData& nd = node_data[n_id];
+			RigidTetrahedronMesh::Node& n = nodes[n_id];
+			nd.to_node(n);
+		}
+		delete[] node_data;
+
+		size_t elem_num;
+		rf.read_attribute(rtm_grp_id, "elem_num", elem_num);
+		RigidTehMeshElemData* elem_data = new RigidTehMeshElemData[elem_num];
+		hid_t elem_dt_id = get_rigid_teh_mesh_elem_dt_id();
+		res = rf.read_dataset(
+			rtm_grp_id,
+			"ElementData",
+			elem_num,
+			elem_data,
+			elem_dt_id
+			);
+		H5Tclose(elem_dt_id);
+		RigidTetrahedronMesh::Element* elems = rtm.alloc_elements(elem_num);
+		for (size_t e_id = 0; e_id < elem_num; ++e_id)
+		{
+			RigidTehMeshElemData& ed = elem_data[e_id];
+			RigidTetrahedronMesh::Element& e = elems[e_id];
+			ed.to_elem(e);
+		}
+		delete[] elem_data;
+
+		size_t bface_num;
+		rf.read_attribute(rtm_grp_id, "bface_num", bface_num);
+		RigidTehMeshFaceData* bface_data = new RigidTehMeshFaceData[bface_num];
+		hid_t face_dt_id = get_rigid_teh_mesh_face_dt_id();
+		res = rf.read_dataset(
+			rtm_grp_id,
+			"BoundaryFaceData",
+			bface_num,
+			bface_data,
+			face_dt_id
+		);
+		H5Tclose(face_dt_id);
+		RigidTetrahedronMesh::Face* bfaces = rtm.alloc_bfaces(bface_num);
+		for (size_t f_id = 0; f_id < bface_num; ++f_id)
+		{
+			RigidTehMeshFaceData& fd = bface_data[f_id];
+			RigidTetrahedronMesh::Face& f = bfaces[f_id];
+			fd.to_face(f);
+		}
+		delete[] bface_data;
+
+		return 0;
+	}
 }

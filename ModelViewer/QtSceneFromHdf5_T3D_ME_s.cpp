@@ -24,8 +24,9 @@ QtSceneFromHdf5_T3D_ME_s::QtSceneFromHdf5_T3D_ME_s(
 	res_file(nullptr), th_id(-1),
 	x_fld(data_loader), y_fld(data_loader), z_fld(data_loader),
 	vol_fld(data_loader), pfld(nullptr),
-	display_bg_mesh(true), display_pcls(true),
-	bg_mesh_obj(_gl), pcls_obj(_gl),
+	display_bg_mesh(true), bg_mesh_obj(_gl),
+	display_pcls(true), pcls_obj(_gl),
+	display_rb(true), has_rb(false), rb_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0) {}
 
 QtSceneFromHdf5_T3D_ME_s::~QtSceneFromHdf5_T3D_ME_s()
@@ -257,6 +258,23 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		0.5
 		);
 
+	//// init rb
+	//if (model->has_rb())
+	//{
+	//	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+	//	RigidTetrahedronMesh& rb = model->get_rb();
+	//	Point3D rb_cen(rb.get_x(), rb.get_y(), rb.get_z());
+	//	rb_obj.init_from_faces(
+	//		rb.get_nodes(),
+	//		rb.get_node_num(),
+	//		rb.get_bfaces(),
+	//		rb.get_bface_num(),
+	//		rb_cen,
+	//		navajowhite
+	//	);
+	//	has_rb = true;
+	//}
+
 	// color map texture
 	size_t color_map_texture_size;
 	unsigned char* color_map_texture_data = color_map.gen_1Dtexture(20, color_map_texture_size);
@@ -301,6 +319,7 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		"../../Asset/shader_plain3D.frag"
 	);
 	shader_plain3D.link();
+
 	// shader_balls
 	shader_balls.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
@@ -311,6 +330,18 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		"../../Asset/shader_balls.frag"
 	);
 	shader_balls.link();
+
+	// shader_phong
+	shader_phong.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"../../Asset/shader_phong.vert"
+	);
+	shader_phong.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"../../Asset/shader_phong.frag"
+	);
+	shader_phong.link();
+
 	// shader_plain2D
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
@@ -321,6 +352,7 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		"../../Asset/shader_plain2D.frag"
 	);
 	shader_plain2D.link();
+
 	// shader_char
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
@@ -368,6 +400,26 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	shader_balls.setUniformValue("spec_coef", spec_coef);
 	shader_balls.setUniformValue("spec_shininess", spec_shininess);
 
+	// phong model
+	shader_phong.bind();
+	shader_phong.setUniformValue("view_mat", view_mat);
+	shader_phong.setUniformValue("proj_mat", proj_mat);
+
+	shader_phong.setUniformValue("view_pos", view_pos);
+
+	// fog effect
+	shader_phong.setUniformValue("fog_coef", fog_coef);
+	shader_phong.setUniformValue("fog_color", fog_color);
+
+	// phong model parameters
+	shader_phong.setUniformValue("light_pos", light_pos);
+	shader_phong.setUniformValue("light_color", light_color);
+	shader_phong.setUniformValue("amb_coef", amb_coef);
+	shader_phong.setUniformValue("diff_coef", diff_coef);
+	shader_phong.setUniformValue("spec_coef", spec_coef);
+	shader_phong.setUniformValue("spec_shininess", spec_shininess);
+
+	// color map
 	shader_plain2D.bind();
 	shader_plain2D.setUniformValue("view_mat", hud_view_mat);
 

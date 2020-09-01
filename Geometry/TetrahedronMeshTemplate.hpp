@@ -92,31 +92,34 @@ public:
 		edge_num = 0;
 	}
 
-	inline void alloc_nodes(size_t num)
+	inline Node *alloc_nodes(size_t num)
 	{
 		clear_nodes();
 		if (num == 0)
-			return;
+			return nullptr;
 		nodes = new Node[num];
 		node_num = num;
+		return nodes;
 	}
 
-	inline void alloc_elements(size_t num)
+	inline Element *alloc_elements(size_t num)
 	{
 		clear_elements();
 		if (num == 0)
-			return;
+			return nullptr;
 		elems = new Element[num];
 		elem_num = num;
+		return elems;
 	}
 
-	inline void alloc_edges(size_t num)
+	inline Edge *alloc_edges(size_t num)
 	{
 		clear_edges();
 		if (num == 0)
-			return;
+			return nullptr;
 		edges = new Edge[num];
 		edge_num = num;
+		return edges;
 	}
 
 	inline size_t get_node_num() const noexcept { return node_num; }

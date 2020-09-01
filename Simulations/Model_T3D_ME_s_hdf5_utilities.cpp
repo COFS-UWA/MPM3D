@@ -575,6 +575,67 @@ int load_material_model_from_hdf5_file(
 }
 
 
+int output_rigid_body_to_hdf5_file(
+	Model_T3D_ME_s& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+)
+{
+	if (grp_id < 0)
+		return -1;
+
+	hid_t rtm_grp_id = rf.create_group(grp_id, "RigidBody");
+	output_rigid_tetrahedron_mesh_to_hdf5_file(md.get_rb(), rf, rtm_grp_id);
+	rf.close_group(rtm_grp_id);
+	return 0;
+}
+
+int load_rigid_body_from_hdf5_file(
+	Model_T3D_ME_s& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+)
+{
+	if (grp_id < 0)
+		return -1;
+
+	hid_t rtm_grp_id = rf.open_group(grp_id, "RigidBody");
+	load_rigid_tetrahedron_mesh_from_hdf5_file(md.get_rb(), rf, rtm_grp_id);
+	rf.close_group(rtm_grp_id);
+	return 0;
+}
+
+
+int output_rigid_body_state_to_hdf5_file(
+	Model_T3D_ME_s& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+)
+{
+	if (grp_id < 0)
+		return -1;
+
+	hid_t rtm_grp_id = rf.create_group(grp_id, "RigidBody");
+	output_rigid_tetrahedron_mesh_state_to_hdf5_file(md.get_rb(), rf, rtm_grp_id);
+	rf.close_group(rtm_grp_id);
+	return 0;
+}
+
+int load_rigid_body_state_from_hdf5_file(
+	Model_T3D_ME_s& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+)
+{
+	if (grp_id < 0)
+		return -1;
+
+	hid_t rtm_grp_id = rf.open_group(grp_id, "RigidBody");
+	load_rigid_tetrahedron_mesh_state_from_hdf5_file(md.get_rb(), rf, rtm_grp_id);
+	rf.close_group(rtm_grp_id);
+	return 0;
+}
+
 // ======================================================================
 int output_model_to_hdf5_file(
 	Model_T3D_ME_s& md,
@@ -591,7 +652,9 @@ int output_model_to_hdf5_file(
 	output_pcl_data_to_hdf5_file(md, rf, md_grp_id);
 	// material model
 	output_material_model_to_hdf5_file(md, rf, md_grp_id);
-
+	// rigid body
+	if (md.has_rb())
+		output_rigid_body_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }
 
@@ -605,6 +668,9 @@ int time_history_complete_output_to_hdf5_file(
 	output_pcl_data_to_hdf5_file(md, rf, frame_grp_id);
 	// material model
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
+	// rigid body
+	if (md.has_rb())
+		output_rigid_body_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -627,6 +693,9 @@ int load_model_from_hdf5_file(
 	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
 	// boundary condition
 	load_boundary_condition_from_hdf5_file(md, rf, md_grp_id);
+	// rigid body
+	if (rf.has_group(md_grp_id, "RigidBody"))
+		load_rigid_body_from_hdf5_file(md, rf, md_grp_id);
 
 	// time history
 	hid_t th_grp_id = rf.get_time_history_grp_id();
@@ -639,6 +708,9 @@ int load_model_from_hdf5_file(
 	load_material_model_from_hdf5_file(md, rf, th_frame_id);
 	// particle data
 	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
+	// rigid_body
+	if (rf.has_group(th_frame_id, "RigidBody"))
+		load_rigid_body_state_from_hdf5_file(md, rf, th_frame_id);
 
 	rf.close_group(th_frame_id);
 	rf.close_group(th_id);

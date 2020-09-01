@@ -31,7 +31,9 @@ public:
 	// Node has members x, y, z
 	// Edge has members n1, n2, n3
 	template <typename Node, typename Face>
-	int init_from_faces(Node* nodes, size_t node_num, Face* faces, size_t face_num, QVector3D& c);
+	int init_from_faces(Node* nodes, size_t node_num,
+						Face* faces, size_t face_num,
+						Point3D& obj_cen, QVector3D& c);
 	
 	void draw(QOpenGLShaderProgram& shader);
 };
@@ -40,7 +42,7 @@ template <typename Node, typename Face>
 int QtTetrahedronMeshSurfaceGLObject::init_from_faces(
 	Node* nodes, size_t node_num,
 	Face* faces, size_t face_num,
-	QVector3D& c
+	Point3D &obj_cen, QVector3D& c
 	)
 {
 	if (!nodes || !node_num ||
@@ -62,46 +64,58 @@ int QtTetrahedronMeshSurfaceGLObject::init_from_faces(
 	NodeData* node_datas = new NodeData[face_node_num];
 	NodeData* cur_nd = node_datas;
 	QVector3D p21, p31, normal;
+	double n1_x, n1_y, n1_z;
+	double n2_x, n2_y, n2_z;
+	double n3_x, n3_y, n3_z;
 	for (size_t f_id = 0; f_id < face_num; ++f_id)
 	{
 		Face &f = faces[f_id];
 		Node& n1 = nodes[f.n1];
 		Node& n2 = nodes[f.n2];
 		Node& n3 = nodes[f.n3];
+		n1_x = n1.x + obj_cen.x;
+		n1_y = n1.y + obj_cen.y;
+		n1_z = n1.z + obj_cen.z;
+		n2_x = n2.x + obj_cen.x;
+		n2_y = n2.y + obj_cen.y;
+		n2_z = n2.z + obj_cen.z;
+		n3_x = n3.x + obj_cen.x;
+		n3_y = n3.y + obj_cen.y;
+		n3_z = n3.z + obj_cen.z;
 		// cal normal
-		p21.setX(GLfloat(n2.x - n1.x));
-		p21.setY(GLfloat(n2.y - n1.y));
-		p21.setZ(GLfloat(n2.z - n1.z));
-		p31.setX(GLfloat(n3.x - n1.x));
-		p31.setY(GLfloat(n3.y - n1.y));
-		p31.setZ(GLfloat(n3.z - n1.z));
+		p21.setX(GLfloat(n2_x - n1_x));
+		p21.setY(GLfloat(n2_y - n1_y));
+		p21.setZ(GLfloat(n2_z - n1_z));
+		p31.setX(GLfloat(n3_x - n1_x));
+		p31.setY(GLfloat(n3_y - n1_y));
+		p31.setZ(GLfloat(n3_z - n1_z));
 		normal = QVector3D::crossProduct(p31, p21);
 		normal.normalize();
 		// swap n2 and n3 to be counter-clockwise
 		// for external surface
 		// n1
 		cur_nd->type = 0;
-		cur_nd->x = GLfloat(n1.x);
-		cur_nd->y = GLfloat(n1.y);
-		cur_nd->z = GLfloat(n1.z);
+		cur_nd->x = GLfloat(n1_x);
+		cur_nd->y = GLfloat(n1_y);
+		cur_nd->z = GLfloat(n1_z);
 		cur_nd->nx = normal.x();
 		cur_nd->ny = normal.y();
 		cur_nd->nz = normal.z();
 		++cur_nd;
 		// n3
 		cur_nd->type = 0;
-		cur_nd->x = GLfloat(n3.x);
-		cur_nd->y = GLfloat(n3.y);
-		cur_nd->z = GLfloat(n3.z);
+		cur_nd->x = GLfloat(n3_x);
+		cur_nd->y = GLfloat(n3_y);
+		cur_nd->z = GLfloat(n3_z);
 		cur_nd->nx = normal.x();
 		cur_nd->ny = normal.y();
 		cur_nd->nz = normal.z();
 		++cur_nd;
 		// n2
 		cur_nd->type = 0;
-		cur_nd->x = GLfloat(n2.x);
-		cur_nd->y = GLfloat(n2.y);
-		cur_nd->z = GLfloat(n2.z);
+		cur_nd->x = GLfloat(n2_x);
+		cur_nd->y = GLfloat(n2_y);
+		cur_nd->z = GLfloat(n2_z);
 		cur_nd->nx = normal.x();
 		cur_nd->ny = normal.y();
 		cur_nd->nz = normal.z();

@@ -51,5 +51,6 @@ void test_t2d_me_p_pipe_conference_geo_result(int argc, char** argv);
 void test_t2d_me_p_pipe_conference_restart_result(int argc, char** argv);
 
 void test_RigidTetrahedronMesh_display(int argc, char** argv);
+void test_t3d_me_s_cap_compression_result(int argc, char** argv);
 
 #endif

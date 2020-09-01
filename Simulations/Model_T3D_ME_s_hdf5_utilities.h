@@ -123,6 +123,11 @@ int load_pcl_data_from_hdf5_file(Model_T3D_ME_s &md, ResultFile_hdf5 &rf, hid_t 
 int output_material_model_to_hdf5_file(Model_T3D_ME_s &md, ResultFile_hdf5 &rf, hid_t grp_id);
 int load_material_model_from_hdf5_file(Model_T3D_ME_s &md, ResultFile_hdf5 &rf, hid_t grp_id);
 
+int output_rigid_body_to_hdf5_file(Model_T3D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_body_from_hdf5_file(Model_T3D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_rigid_body_state_to_hdf5_file(Model_T3D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_body_state_from_hdf5_file(Model_T3D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(Model_T3D_ME_s& md, ResultFile_hdf5 &rf);
 

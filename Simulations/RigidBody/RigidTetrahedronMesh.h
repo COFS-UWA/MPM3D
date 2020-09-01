@@ -102,7 +102,7 @@ protected:
 	size_t bface_num;
 	Face* bfaces;
 
-	void clear_bfaces()
+	inline void clear_bfaces()
 	{
 		if (bfaces)
 		{
@@ -168,6 +168,22 @@ public:
 	inline Face* get_bfaces() { return bfaces; }
 
 	int init_mesh(const char *file_name, double dx, double dy, double dz);
+	
+	void set_init_state(double density,
+		double fx_contact, double fy_contact, double fz_contact,
+		double ax, double ay, double az,
+		double vx, double vy, double vz,
+		double x, double y, double z);
+	
+	inline Face* alloc_bfaces(size_t num)
+	{
+		clear_bfaces();
+		if (num == 0)
+			return nullptr;
+		bfaces = new Face[num];
+		bface_num = num;
+		return bfaces;
+	}
 
 	inline void init_calculation() noexcept
 	{
@@ -224,18 +240,32 @@ public:
 	{ return Point3D(lp.x + x, lp.y + y, lp.z + z); }
 
 	inline double get_grid_h() const noexcept { return g_h; }
-	inline const Cube& get_grid_bbox() const noexcept { return g_bbox; }
 	inline size_t get_grid_x_num() const noexcept { return g_x_num; }
 	inline size_t get_grid_y_num() const noexcept { return g_y_num; }
 	inline size_t get_grid_z_num() const noexcept { return g_z_num; }
 
 	void clear_bg_grids();
 	int init_bg_grids(double _g_h, double expand_size);
-
 	void set_dist_max(double _dist_max);
-	bool cal_distance_to_boundary(Point3D& pt,
-		double& dist, double& nx, double& ny, double& nz);
-	
+
+	inline Cube get_cur_bbox()
+	{
+		Cube res;
+		res.xl = g_bbox.xl + x;
+		res.xu = g_bbox.xu + x;
+		res.yl = g_bbox.yl + y;
+		res.yu = g_bbox.yu + y;
+		res.zl = g_bbox.zl + z;
+		res.zu = g_bbox.zu + z;
+		return res;
+	}
+	inline bool cal_dist_and_dir_to_pt(Point3D& pt,
+		double& dist, double& nx, double& ny, double& nz)
+	{
+		Point3D lpt = to_local_coord(pt);
+		return cal_dist_and_dir_to_pt_internal(lpt, dist, nx, ny, nz);
+	}
+
 protected: // background grid
 	double g_h;
 	Cube g_bbox;
@@ -243,6 +273,7 @@ protected: // background grid
 	size_t g_xy_num, g_num;
 	Grid* grids;
 
+	inline const Cube& get_grid_bbox() const noexcept { return g_bbox; }
 	inline Grid& grid_by_id(size_t x_id, size_t y_id, size_t z_id)
 	{ return grids[g_xy_num * z_id + g_x_num * y_id + x_id]; }
 	inline Cube grid_box_by_id(size_t x_id, size_t y_id, size_t z_id)
@@ -345,6 +376,8 @@ protected: // background grid
 
 	// acceleration searching
 	void init_close_enough_to_boundary();
+	bool cal_dist_and_dir_to_pt_internal(Point3D& pt,
+		double& dist, double& nx, double& ny, double& nz);
 	void search_closest_face(SearchClosestFaceParam &param);
 };
 

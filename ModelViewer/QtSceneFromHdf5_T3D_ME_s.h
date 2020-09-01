@@ -10,6 +10,7 @@
 #include "QtMultiColorBallGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtUniformColorMapObject.h"
+#include "QtTetrahedronMeshSurfaceGLObject.h"
 #include "QtSceneFromHdf5.h"
 
 class QtSceneFromHdf5_T3D_ME_s : public QtSceneFromHdf5
@@ -39,12 +40,16 @@ protected:
 
 	bool display_bg_mesh;
 	bool display_pcls;
+	bool display_rb;
+	bool has_rb;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 
 	UniformColorMap_Abaqus color_map;
 	GLuint color_map_texture;
 	QtMultiColorBallGLObject pcls_obj;
+	
+	QtTetrahedronMeshSurfaceGLObject rb_obj;
 	
 	bool has_color_map;
 	float cm_xpos, cm_ypos, cm_ht;
@@ -86,6 +91,7 @@ protected:
 	
 	QOpenGLShaderProgram shader_plain3D;
 	QOpenGLShaderProgram shader_balls;
+	QOpenGLShaderProgram shader_phong;
 	QOpenGLShaderProgram shader_plain2D;
 	QOpenGLShaderProgram shader_char;
 	

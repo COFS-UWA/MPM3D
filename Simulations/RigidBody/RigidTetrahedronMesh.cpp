@@ -147,6 +147,31 @@ int RigidTetrahedronMesh::init_mesh(
 	return res;
 }
 
+void RigidTetrahedronMesh::set_init_state(
+	double _density,
+	double _fx_contact,
+	double _fy_contact,
+	double _fz_contact,
+	double _ax, double _ay, double _az,
+	double _vx, double _vy, double _vz,
+	double _x, double _y, double _z
+	)
+{
+	density = _density;
+	fx_con = _fx_contact;
+	fy_con = _fy_contact;
+	fz_con = _fz_contact;
+	ax = _ax;
+	ay = _ay;
+	az = _az;
+	vx = _vx;
+	vy = _vy;
+	vz = _vz;
+	x = _x;
+	y = _y;
+	z = _z;
+}
+
 void RigidTetrahedronMesh::extract_bfaces()
 {
 	clear_bfaces();
@@ -296,6 +321,28 @@ int RigidTetrahedronMesh::init_bg_grids(
 				}
 	}
 
+	dist_max = g_bbox.xu - g_bbox.xl;
+	id_dist_max = g_x_num;
+	if (id_dist_max < g_y_num)
+	{
+		dist_max = g_bbox.yu - g_bbox.yl;
+		id_dist_max = g_x_num;
+	}
+	if (id_dist_max < g_z_num)
+	{
+		dist_max = g_bbox.zu - g_bbox.zl;
+		id_dist_max = g_z_num;
+	}
+	const long long id_range = id_dist_max + id_dist_max + 1;
+	height_max = 0;
+	id_stride_max = 1;
+	while (id_stride_max < id_range)
+	{
+		++height_max;
+		id_stride_max = id_stride_max << 1;
+	}
+	stride_max = double(id_stride_max) * g_h;
+	
 	return 0;
 }
 
@@ -361,14 +408,12 @@ void RigidTetrahedronMesh::init_close_enough_to_boundary()
 		g.close_to_boundary = true;
 	}
 
-	struct GridNode
-	{
-		bool close_to_boundary;
-	};
+	struct GridNode { bool close_to_boundary; };
 
 	size_t gn_x_num = g_x_num + 1;
 	size_t gn_y_num = g_y_num + 1;
 	size_t gn_z_num = g_z_num + 1;
+	size_t gn_xy_num = gn_x_num * gn_y_num;
 	GridNode *gns = new GridNode[gn_x_num * gn_y_num * gn_z_num];
 	GridNode* cur_pgn = gns;
 	Point3D gn_pt;
@@ -382,7 +427,14 @@ void RigidTetrahedronMesh::init_close_enough_to_boundary()
 			gn_pt.x = g_bbox.xl;
 			for (size_t x_id = 0; x_id < gn_x_num; ++x_id)
 			{
-				cur_pgn->close_to_boundary = cal_distance_to_boundary(gn_pt, dist, nx, ny, nz);
+				cur_pgn->close_to_boundary
+					= cal_dist_and_dir_to_pt_internal(
+						gn_pt,
+						dist,
+						nx,
+						ny,
+						nz
+						);
 				++cur_pgn;
 				gn_pt.x += g_h;
 			}
@@ -392,12 +444,13 @@ void RigidTetrahedronMesh::init_close_enough_to_boundary()
 	}
 
 	Grid* cur_pg = grids;
-	cur_pgn = gns;
-	size_t gn_xy_num = gn_x_num * gn_y_num;
+	GridNode *gn_z_start = gns, *gn_y_start;
 	for (size_t z_id = 0; z_id < g_z_num; ++z_id)
 	{
+		gn_y_start = gn_z_start;
 		for (size_t y_id = 0; y_id < g_y_num; ++y_id)
 		{
+			cur_pgn = gn_y_start;
 			for (size_t x_id = 0; x_id < g_x_num; ++x_id)
 			{
 				GridNode& n1 = *cur_pgn;
@@ -417,16 +470,18 @@ void RigidTetrahedronMesh::init_close_enough_to_boundary()
 					n7.close_to_boundary == false &&
 					n8.close_to_boundary == false)
 					cur_pg->close_to_boundary = false;
-				++cur_pgn;
 				++cur_pg;
+				++cur_pgn;
 			}
+			gn_y_start += gn_x_num;
 		}
+		gn_z_start += gn_xy_num;
 	}
 
 	delete[] gns;
 }
 
-bool RigidTetrahedronMesh::cal_distance_to_boundary(
+bool RigidTetrahedronMesh::cal_dist_and_dir_to_pt_internal(
 	Point3D &pt,
 	double& dist, 
 	double& nx,
@@ -437,14 +492,14 @@ bool RigidTetrahedronMesh::cal_distance_to_boundary(
 	if (!g_bbox.is_in_box(pt))
 		return false;
 
-	cur_pt = to_local_coord(pt);
-	long long ptx_id = long long((cur_pt.x - g_bbox.xl) / g_h);
-	long long pty_id = long long((cur_pt.y - g_bbox.yl) / g_h);
-	long long ptz_id = long long((cur_pt.z - g_bbox.zl) / g_h);
+	long long ptx_id = long long((pt.x - g_bbox.xl) / g_h);
+	long long pty_id = long long((pt.y - g_bbox.yl) / g_h);
+	long long ptz_id = long long((pt.z - g_bbox.zl) / g_h);
 	Grid& g = grid_by_id(ptx_id, pty_id, ptz_id);
 	if (!g.close_to_boundary)
 		return false;
 	
+	cur_pt = pt;
 	cur_dist = dist_max;
 	cur_height = height_max;
 	cur_id_stride = id_stride_max;

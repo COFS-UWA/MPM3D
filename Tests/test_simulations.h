@@ -57,6 +57,9 @@ void test_t2d_me_p_pipe_conference_restart(int argc, char** argv);
 
 void test_RigidTetrahedronMesh_intersection(int argc, char** argv);
 void test_RigidTetrahedronMesh_bg_grid(int argc, char** argv);
+void test_RigidTetrahedronMesh_close_to_boundary(int argc, char** argv);
 void test_RigidTetrahedronMesh_search_dist(int argc, char** argv);
+
+void test_t3d_me_s_cap_compression(int argc, char** argv);
 
 #endif

@@ -25,6 +25,8 @@ namespace
 		
 		inline Grid& grid_by_id(size_t x_id, size_t y_id, size_t z_id)
 		{ return RigidTetrahedronMesh::grid_by_id(x_id, y_id, z_id); }
+	
+		inline const Cube& get_grid_bbox() { return RigidTetrahedronMesh::get_grid_bbox(); }
 	};
 }
 
@@ -161,10 +163,47 @@ void test_RigidTetrahedronMesh_bg_grid(int argc, char** argv)
 	int efe = 2;
 }
 
-void test_RigidTetrahedronMesh_search_dist(int argc, char** argv)
+// close to boundary
+void test_RigidTetrahedronMesh_close_to_boundary(int argc, char** argv)
 {
 	TestRigidTetrahedronMesh rb;
 	rb.init_mesh("../../Asset/brick_mesh_0.50_5x5x5.h5", 0.0, 0.0, 0.0);
+	std::cout << "node num: " << rb.get_node_num()
+			<< ", elem num: " << rb.get_elem_num()
+			<< ", face num: " << rb.get_bface_num() << "\n";
+
+	int res = rb.init_bg_grids(0.05, 0.220); // 0.06, 0.075
+	const Cube& g_box = rb.get_grid_bbox();
+	size_t g_x_num = rb.get_grid_x_num();
+	size_t g_y_num = rb.get_grid_y_num();
+	size_t g_z_num = rb.get_grid_z_num();
+	std::cout << "bg grid: " << g_x_num
+			<< ", " << g_y_num
+			<< ", " << g_z_num << "\n";
+
+	rb.set_dist_max(0.05);
+
+	size_t disp_z_id = 7;
+	for (size_t y_id = 0; y_id < g_y_num; ++y_id)
+	{
+		for (size_t x_id = 0; x_id < g_x_num; ++x_id)
+		{
+			auto& g = rb.grid_by_id(x_id, y_id, disp_z_id);
+			if (g.close_to_boundary)
+				std::cout << "O";
+			else
+				std::cout << "X";
+		}
+		std::cout << "\n";
+	}
+
+	int efe = 2;
+}
+
+void test_RigidTetrahedronMesh_search_dist(int argc, char** argv)
+{
+	TestRigidTetrahedronMesh rb;
+	rb.init_mesh("../../Asset/brick_mesh_0.50_5x5x5.h5", 0.0, 0.0, 1.0);
 	std::cout << "node num: " << rb.get_node_num()
 			<< ", elem num: " << rb.get_elem_num()
 			<< ", face num: " << rb.get_bface_num() << "\n";
@@ -235,8 +274,8 @@ void test_RigidTetrahedronMesh_search_dist(int argc, char** argv)
 	//	<< ")\ndist: " << dist << "\nnormal: (" << nx << ", " << ny << ", " << nz << ")\n";
 
 	rb.set_dist_max(0.075); // 2 grid
-	Point3D pt(-0.01, -0.01, -0.01);
-	res2 = rb.cal_distance_to_boundary(pt, dist, nx, ny, nz);
+	Point3D pt(0.01, 0.01, 1.0 - 0.01);
+	res2 = rb.cal_dist_and_dir_to_pt(pt, dist, nx, ny, nz);
 	std::cout << "pt: (" << pt.x << ", " << pt.y << ", " << pt.z
 		<< ")\ndist: " << dist << "\nnormal: (" << nx << ", " << ny << ", " << nz << ")\n";
 

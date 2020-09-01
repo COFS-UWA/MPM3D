@@ -18,8 +18,9 @@ QtSceneFromModel_T3D_ME_s::QtSceneFromModel_T3D_ME_s(
 	light_dir(view_dir), light_dist_scale(2.0f),
 	// model data
 	model(nullptr), pt_num(0), pts(nullptr),
-	display_bg_mesh(true), display_pcls(true), display_pts(true),
-	bg_mesh_obj(_gl), pcls_obj(_gl), pts_obj(_gl),
+	display_bg_mesh(true), bg_mesh_obj(_gl),
+	display_pcls(true), pcls_obj(_gl),
+	display_pts(true), pts_obj(_gl),
 	has_rb(false), display_rb(true), rb_obj(_gl) {}
 
 QtSceneFromModel_T3D_ME_s::~QtSceneFromModel_T3D_ME_s() {}
@@ -224,11 +225,13 @@ int QtSceneFromModel_T3D_ME_s::initialize(int wd, int ht)
 	{
 		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 		RigidTetrahedronMesh& rb = model->get_rb();
+		Point3D rb_cen(rb.get_x(), rb.get_y(), rb.get_z());
 		rb_obj.init_from_faces(
 			rb.get_nodes(),
 			rb.get_node_num(),
 			rb.get_bfaces(),
 			rb.get_bface_num(),
+			rb_cen,
 			navajowhite
 			);
 		has_rb = true;
