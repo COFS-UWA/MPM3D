@@ -27,7 +27,7 @@ void QtTetrahedronMeshSurfaceGLObject::draw(QOpenGLShaderProgram& shader)
 	if (vao)
 	{
 		//gl.glFrontFace(GL_CW);
-		//gl.glCullFace(GL_BACK);
+		gl.glCullFace(GL_BACK);
 		shader.setUniformValue("g_color", color);
 		gl.glBindVertexArray(vao);
 		gl.glDrawArrays(GL_TRIANGLES, 0, face_node_num);

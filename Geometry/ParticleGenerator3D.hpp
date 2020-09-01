@@ -130,30 +130,24 @@ void ParticleGenerator3D<TetrahedronMesh>::generate_pcls_grid(
 	double pcl_dz
 	)
 {
-	double x_len;
-	double y_len;
-	double z_len;
-	double start_x;
-	double start_y;
-	double start_z;
-	size_t x_num;
-	size_t y_num;
-	size_t z_num;
+	double x_len, y_len, z_len;
+	double start_x, start_y, start_z;
+	size_t x_num, y_num, z_num;
 	// x direction
 	x_len = range.xu - range.xl;
 	x_num = size_t(ceil(x_len / pcl_dx));
 	pcl_dx = x_len / double(x_num);
-	start_x = range.xl;
+	start_x = range.xl + pcl_dx * 0.5;
 	// y direction
 	y_len = range.yu - range.yl;
 	y_num = size_t(ceil(y_len / pcl_dy));
 	pcl_dy = y_len / double(y_num);
-	start_y = range.yl;
+	start_y = range.yl + pcl_dy * 0.5;
 	// z direction
 	z_len = range.zu - range.zl;
 	z_num = size_t(ceil(z_len / pcl_dz));
 	pcl_dz = z_len / double(z_num);
-	start_z = range.zl;
+	start_z = range.zl + pcl_dz * 0.5;
 	// generate particle
 	Particle pcl;
 	pcl.vol = pcl_dx * pcl_dy * pcl_dz;

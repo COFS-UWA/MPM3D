@@ -10,6 +10,7 @@
 #include "QtMultiColorBallGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtUniformColorMapObject.h"
+#include "Model_hdf5_utilities.h"
 #include "QtTetrahedronMeshSurfaceGLObject.h"
 #include "QtSceneFromHdf5.h"
 
@@ -49,6 +50,9 @@ protected:
 	GLuint color_map_texture;
 	QtMultiColorBallGLObject pcls_obj;
 	
+	size_t rb_node_num, rb_bface_num;
+	Model_hdf5_utilities::RigidTehMeshNodeData* rb_node_data;
+	Model_hdf5_utilities::RigidTehMeshFaceData* rb_bface_data;
 	QtTetrahedronMeshSurfaceGLObject rb_obj;
 	
 	bool has_color_map;

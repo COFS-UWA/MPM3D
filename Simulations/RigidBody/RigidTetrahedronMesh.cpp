@@ -89,6 +89,7 @@ RigidTetrahedronMesh::RigidTetrahedronMesh() :
 	vx(0.0), vy(0.0), vz(0.0),
 	pax(&ax), pay(&ay), paz(&az),
 	pvx(&vx), pvy(&vy), pvz(&vz),
+	fx_con(0.0), fy_con(0.0), fz_con(0.0),
 	fx_ext(0.0), fy_ext(0.0), fz_ext(0.0),
 	grids(nullptr),
 	bface_num(0), bfaces(nullptr)

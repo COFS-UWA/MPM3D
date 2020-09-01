@@ -44,7 +44,7 @@ protected:
 	MemoryUtils::ItemBuffer<ElemPointer> pe_buffer;
 
 public:
-	SearchingGrid2D() :
+	explicit SearchingGrid2D() :
 		x_num(0), y_num(0), num(0),
 		grids(nullptr), mesh(nullptr) {}
 	~SearchingGrid2D() { clear(); }

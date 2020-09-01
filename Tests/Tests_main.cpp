@@ -124,9 +124,9 @@ int main(int argc, char *argv[])
 	//test_RigidTetrahedronMesh_close_to_boundary(argc, argv);
 	//test_RigidTetrahedronMesh_search_dist(argc, argv);
 
-	test_t3d_me_s_cap_compression(argc, argv);
-	//test_t3d_me_s_cap_compression_result(argc, argv);
+	//test_t3d_me_s_cap_compression(argc, argv);
+	test_t3d_me_s_cap_compression_result(argc, argv);
 
-	system("pause");
+	//system("pause");
 	return 0;
 }

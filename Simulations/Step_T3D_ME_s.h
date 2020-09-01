@@ -30,7 +30,7 @@ protected:
 	bool apply_pcl_contact_force(Particle &pcl, RigidTetrahedronMesh& rb);
 
 public:
-	Step_T3D_ME_s(const char *_name);
+	explicit Step_T3D_ME_s(const char *_name);
 	~Step_T3D_ME_s();
 
 	inline void set_model(Model_T3D_ME_s &md)

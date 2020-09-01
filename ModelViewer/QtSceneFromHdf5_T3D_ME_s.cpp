@@ -1,6 +1,5 @@
 #include "ModelViewer_pcp.h"
 
-#include "Model_hdf5_utilities.h"
 #include "Hdf5DataLoader.h"
 #include "Geometry3D.h"
 
@@ -27,6 +26,7 @@ QtSceneFromHdf5_T3D_ME_s::QtSceneFromHdf5_T3D_ME_s(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	display_rb(true), has_rb(false), rb_obj(_gl),
+	rb_node_data(nullptr), rb_bface_data(nullptr),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0) {}
 
 QtSceneFromHdf5_T3D_ME_s::~QtSceneFromHdf5_T3D_ME_s()
@@ -37,6 +37,16 @@ QtSceneFromHdf5_T3D_ME_s::~QtSceneFromHdf5_T3D_ME_s()
 
 void QtSceneFromHdf5_T3D_ME_s::clear()
 {
+	if (rb_node_data)
+	{
+		delete[] rb_node_data;
+		rb_node_data = nullptr;
+	}
+	if (rb_bface_data)
+	{
+		delete[] rb_bface_data;
+		rb_bface_data = nullptr;
+	}
 	if (color_map_texture)
 	{
 		gl.glDeleteTextures(1, &color_map_texture);
@@ -258,22 +268,65 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		0.5
 		);
 
-	//// init rb
-	//if (model->has_rb())
-	//{
-	//	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
-	//	RigidTetrahedronMesh& rb = model->get_rb();
-	//	Point3D rb_cen(rb.get_x(), rb.get_y(), rb.get_z());
-	//	rb_obj.init_from_faces(
-	//		rb.get_nodes(),
-	//		rb.get_node_num(),
-	//		rb.get_bfaces(),
-	//		rb.get_bface_num(),
-	//		rb_cen,
-	//		navajowhite
-	//	);
-	//	has_rb = true;
-	//}
+	// init rb
+	if (rf.has_group(md_data_grp_id, "RigidBody"))
+	{
+		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+
+		// rigid body centre
+		double rb_x, rb_y, rb_z;
+		char frame_name[100];
+		snprintf(frame_name, sizeof(frame_name), "frame_%zu", frame_id);
+		hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+		hid_t rb_state_grp_id = rf.open_group(frame_grp_id, "RigidBody");
+		rf.read_attribute(rb_state_grp_id, "x", rb_x);
+		rf.read_attribute(rb_state_grp_id, "y", rb_y);
+		rf.read_attribute(rb_state_grp_id, "z", rb_z);
+		rf.close_group(rb_state_grp_id);
+		rf.close_group(frame_grp_id);
+
+		hid_t rb_grp_id = rf.open_group(md_data_grp_id, "RigidBody");
+		// rigid body node data
+		rf.read_attribute(rb_grp_id, "node_num", rb_node_num);
+		hid_t rb_node_dt_id = get_rigid_teh_mesh_node_dt_id();
+		if (rb_node_data)
+			delete[] rb_node_data;
+		rb_node_data = new RigidTehMeshNodeData[rb_node_num];
+		rf.read_dataset(
+			rb_grp_id,
+			"NodeData",
+			rb_node_num,
+			rb_node_data,
+			rb_node_dt_id
+			);
+		H5Tclose(rb_node_dt_id);
+		// rigid body face data
+		rf.read_attribute(rb_grp_id, "bface_num", rb_bface_num);
+		hid_t rb_face_dt_id = get_rigid_teh_mesh_face_dt_id();
+		if (rb_bface_data)
+			delete[] rb_bface_data;
+		rb_bface_data = new RigidTehMeshFaceData[rb_bface_num];
+		rf.read_dataset(
+			rb_grp_id,
+			"BoundaryFaceData",
+			rb_bface_num,
+			rb_bface_data,
+			rb_face_dt_id
+			);
+		H5Tclose(rb_face_dt_id);
+		// init rb opengl buffer
+		Point3D rb_cen(rb_x, rb_y, rb_z);
+		rb_obj.init_from_faces(
+			rb_node_data,
+			rb_node_num,
+			rb_bface_data,
+			rb_bface_num,
+			rb_cen,
+			navajowhite
+			);
+		rf.close_group(rb_grp_id);
+		has_rb = true;
+	}
 
 	// color map texture
 	size_t color_map_texture_size;
@@ -431,6 +484,8 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 
 void QtSceneFromHdf5_T3D_ME_s::update_scene(size_t frame_id)
 {
+	ResultFile_hdf5& rf = *res_file;
+
 	data_loader.load_frame_data(frame_id);
 
 	size_t pcl_num = data_loader.get_pcl_num();
@@ -459,6 +514,28 @@ void QtSceneFromHdf5_T3D_ME_s::update_scene(size_t frame_id)
 		pcl_fld_data,
 		0.5
 		);
+
+	// rigid body centre
+	if (has_rb)
+	{
+		double rb_x, rb_y, rb_z;
+		char frame_name[100];
+		snprintf(frame_name, sizeof(frame_name), "frame_%zu", frame_id);
+		hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+		hid_t rb_state_grp_id = rf.open_group(frame_grp_id, "RigidBody");
+		rf.read_attribute(rb_state_grp_id, "x", rb_x);
+		rf.read_attribute(rb_state_grp_id, "y", rb_y);
+		rf.read_attribute(rb_state_grp_id, "z", rb_z);
+		rf.close_group(rb_state_grp_id);
+		rf.close_group(frame_grp_id);
+		rb_obj.update_from_faces(
+			rb_node_data,
+			rb_node_num,
+			rb_bface_data,
+			rb_bface_num,
+			Point3D(rb_x, rb_y, rb_z)
+			);
+	}
 }
 
 void QtSceneFromHdf5_T3D_ME_s::draw()
@@ -480,6 +557,12 @@ void QtSceneFromHdf5_T3D_ME_s::draw()
 	{
 		shader_balls.bind();
 		pcls_obj.draw(shader_balls);
+	}
+
+	if (has_rb && display_rb)
+	{
+		shader_phong.bind();
+		rb_obj.draw(shader_phong);
 	}
 
 	gl.glDisable(GL_DEPTH_TEST);

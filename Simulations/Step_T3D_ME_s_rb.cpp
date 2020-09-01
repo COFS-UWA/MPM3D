@@ -9,20 +9,15 @@
 
 int Step_T3D_ME_s::apply_rb_to_mesh(RigidTetrahedronMesh& rb)
 {
-	Model_T3D_ME_s& md = *model;
-	SearchingGrid grid = md.get_bg_grid();
-	const IdCube& grid_id_box = md.get_bg_grid_id_box();
+	Model_T3D_ME_s &md = *model;
+	SearchingGrid &grid = md.get_bg_grid();
+	const IdCube &grid_id_box = md.get_bg_grid_id_box();
 
 	const Cube rb_box = rb.get_cur_bbox();
 	IdCube rb_id_box;
-	rb_id_box.from_cube(
-		rb_box,
-		grid.get_xl(),
-		grid.get_yl(),
-		grid.get_zl(),
-		grid.get_hx(),
-		grid.get_hy(),
-		grid.get_hz()
+	rb_id_box.from_cube(rb_box,
+		grid.get_xl(), grid.get_yl(), grid.get_zl(),
+		grid.get_hx(), grid.get_hy(), grid.get_hz()
 		);
 	if (rb_id_box.does_not_overlap(grid_id_box))
 		return 0;
@@ -41,7 +36,8 @@ int Step_T3D_ME_s::apply_rb_to_mesh(RigidTetrahedronMesh& rb)
 				SearchingGrid::Grid &g = *cur_grid;
 				if (g.data.pcls /*&& detect_obb_cube_collision()*/)
 				{
-					for (Particle* ppcl = g.data.pcls; ppcl; ppcl = ppcl->next_in_grid)
+					for (Particle* ppcl = g.data.pcls; ppcl;
+						 ppcl = ppcl->next_in_grid)
 					{
 						if (ppcl->pe)
 							apply_pcl_contact_force(*ppcl, rb);
@@ -64,10 +60,9 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 	double fn_cont, fnx_cont, fny_cont, fnz_cont;
 	double ft_cont, ftx_cont, fty_cont, ftz_cont;
 	double fx_cont, fy_cont, fz_cont;
-	Point3D pt(pcl.x, pcl.y, pcl.z);
-	if (rb.cal_dist_and_dir_to_pt(pt, dist, nx, ny, nz))
+	if (rb.cal_dist_and_dir_to_pt(pcl, dist, nx, ny, nz))
 	{
-		dist += pow(pcl.vol, 0.333333333);
+		dist += pow(pcl.vol, 0.333333333) * 0.5;
 		if (dist > 0.0)
 		{
 			fn_cont = md.K_cont * dist;
@@ -81,6 +76,7 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 			fx_cont = fnx_cont + ftx_cont;
 			fy_cont = fny_cont + fty_cont;
 			fz_cont = fnz_cont + ftz_cont;
+			// apply to bg grid
 			Element &e = *pcl.pe;
 			Node& n1 = md.nodes[e.n1];
 			n1.fx_ext += pcl.N1 * fx_cont;
@@ -100,9 +96,9 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 			n4.fz_ext += pcl.N4 * fz_cont;
 			// currently not consider rotation
 			rb.add_con_force(
-				fx_cont,
-				fy_cont,
-				fz_cont,
+				-fx_cont,
+				-fy_cont,
+				-fz_cont,
 				0.0,
 				0.0,
 				0.0

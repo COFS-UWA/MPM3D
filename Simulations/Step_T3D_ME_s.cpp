@@ -323,6 +323,13 @@ int solve_substep_T3D_ME_s(void *_self)
 		}
 	}
 
+	if (md.has_rb())
+	{
+		RigidTetrahedronMesh& rb = md.get_rb();
+		self.apply_rb_to_mesh(rb);
+		rb.update_motion(self.dtime);
+	}
+
 	// update nodal acceleration of fluid pahse
 	double nf;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)

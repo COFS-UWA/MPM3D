@@ -234,7 +234,8 @@ public:
 		fz_con += fz;
 	}
 	
-	inline Point3D to_local_coord(Point3D &gp) const noexcept
+	template <typename Point3DType>
+	inline Point3D to_local_coord(Point3DType&gp) const noexcept
 	{ return Point3D(gp.x - x, gp.y - y, gp.z - z); }
 	inline Point3D to_global_coord(Point3D &lp) const noexcept
 	{ return Point3D(lp.x + x, lp.y + y, lp.z + z); }
@@ -259,7 +260,8 @@ public:
 		res.zu = g_bbox.zu + z;
 		return res;
 	}
-	inline bool cal_dist_and_dir_to_pt(Point3D& pt,
+	template <typename Point3DType>
+	inline bool cal_dist_and_dir_to_pt(Point3DType& pt,
 		double& dist, double& nx, double& ny, double& nz)
 	{
 		Point3D lpt = to_local_coord(pt);

@@ -55,7 +55,7 @@ protected:
 	Vector3D seperating_axes[22];
 
 public:
-	SearchingGrid3D() :
+	explicit SearchingGrid3D() :
 		x_num(0), y_num(0), z_num(0),
 		xy_num(0), num(0),
 		grids(nullptr), mesh(nullptr) {}
