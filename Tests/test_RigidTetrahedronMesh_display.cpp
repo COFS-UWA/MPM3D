@@ -14,7 +14,8 @@ void test_RigidTetrahedronMesh_display(int argc, char** argv)
 	model.init_search_grid(0.05, 0.05, 0.05);
 
 	// init rigid tetrahedron mesh
-	model.init_rb("..\\..\\Asset\\brick_mesh_1.00_1x1x1.h5", 100.0, 0.0, 0.0, 1.0);
+	model.init_rb("..\\..\\Asset\\brick_mesh_1.00_1x1x1.h5", 0.0, 0.0, 1.0);
+	model.set_contact_params(100.0, 0.0, 0.0);
 	RigidTetrahedronMesh& rb = model.get_rb();
 	Point3D cen = rb.get_centre();
 	std::cout << "centre: " << cen.x << ", " << cen.y << ", " << cen.z << "\n";

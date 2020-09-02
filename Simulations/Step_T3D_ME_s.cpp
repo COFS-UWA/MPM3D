@@ -33,6 +33,17 @@ int Step_T3D_ME_s::init_calculation()
 		pcl.uz = 0.0;
 	}
 
+	if (md.has_rb())
+	{
+		RigidTetrahedronMesh& rb = md.get_rb();
+		rb.init_calculation();
+		for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
+		{
+			Particle& pcl = md.pcls[pcl_id];
+			pcl.contact_state.init();
+		}
+	}
+
 	return 0;
 }
 
@@ -326,6 +337,7 @@ int solve_substep_T3D_ME_s(void *_self)
 	if (md.has_rb())
 	{
 		RigidTetrahedronMesh& rb = md.get_rb();
+		rb.reset_substep();
 		self.apply_rb_to_mesh(rb);
 		rb.update_motion(self.dtime);
 	}

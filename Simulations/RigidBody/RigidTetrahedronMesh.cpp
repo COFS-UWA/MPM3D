@@ -213,6 +213,7 @@ int RigidTetrahedronMesh::init_bg_grids(
 	double expand_size
 	)
 {
+#define Norm_Tol 1.0e-10
 	clear_bg_grids();
 
 	g_h = _g_h;
@@ -228,19 +229,20 @@ int RigidTetrahedronMesh::init_bg_grids(
 	g_bbox.zu = bounding_box.zu + expand_size;
 	zlen = g_bbox.zu - g_bbox.zl;
 
+	double len_tol = g_h * 1.0e-5;
 	double pad_len;
 	// x
-	g_x_num = size_t(ceil(xlen / g_h));
+	g_x_num = size_t(ceil((xlen - len_tol) / g_h));
 	pad_len = (double(g_x_num) * g_h - xlen) * 0.5;
 	g_bbox.xl -= pad_len;
 	g_bbox.xu += pad_len;
 	// y
-	g_y_num = size_t(ceil(ylen / g_h));
+	g_y_num = size_t(ceil((ylen - len_tol) / g_h));
 	pad_len = (double(g_y_num) * g_h - ylen) * 0.5;
 	g_bbox.yl -= pad_len;
 	g_bbox.yu += pad_len;
 	// z
-	g_z_num = size_t(ceil(zlen / g_h));
+	g_z_num = size_t(ceil((zlen - len_tol) / g_h));
 	pad_len = (double(g_z_num) * g_h - zlen) * 0.5;
 	g_bbox.zl -= pad_len;
 	g_bbox.zu += pad_len;
@@ -263,9 +265,8 @@ int RigidTetrahedronMesh::init_bg_grids(
 				++cur_pg;
 			}
 
-	Cube e_bbox;
-	size_t xl_id, xu_id, yl_id, yu_id, zl_id, zu_id;
-	Cube grid_box;
+	Cube e_bbox, grid_box;
+	IdCube e_id_bbox;
 	// apply all elements to grids
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
@@ -275,16 +276,11 @@ int RigidTetrahedronMesh::init_bg_grids(
 		Node& n3 = nodes[e.n3];
 		Node& n4 = nodes[e.n4];
 		e_bbox = get_tetrahedron_bounding_box(n1, n2, n3, n4);
-		xl_id = size_t(floor((e_bbox.xl - g_bbox.xl) / g_h));
-		xu_id = size_t(ceil((e_bbox.xu - g_bbox.xl) / g_h));
-		yl_id = size_t(floor((e_bbox.yl - g_bbox.yl) / g_h));
-		yu_id = size_t(ceil((e_bbox.yu - g_bbox.yl) / g_h));
-		zl_id = size_t(floor((e_bbox.zl - g_bbox.zl) / g_h));
-		zu_id = size_t(ceil((e_bbox.zu - g_bbox.zl) / g_h));
+		e_id_bbox.from_cube(e_bbox, g_bbox.xl, g_bbox.yl, g_bbox.zl, g_h, g_h, g_h, Norm_Tol);
 		init_teh_aabb_collision(e);
-		for (size_t z_id = zl_id; z_id < zu_id; ++z_id)
-			for (size_t y_id = yl_id; y_id < yu_id; ++y_id)
-				for (size_t x_id = xl_id; x_id < xu_id; ++x_id)
+		for (size_t z_id = e_id_bbox.zl_id; z_id < e_id_bbox.zu_id; ++z_id)
+			for (size_t y_id = e_id_bbox.yl_id; y_id < e_id_bbox.yu_id; ++y_id)
+				for (size_t x_id = e_id_bbox.xl_id; x_id < e_id_bbox.xu_id; ++x_id)
 				{
 					Grid& g = grid_by_id(x_id, y_id, z_id);
 					grid_box = grid_box_by_id(x_id, y_id, z_id);
@@ -301,16 +297,11 @@ int RigidTetrahedronMesh::init_bg_grids(
 		Node& n2 = nodes[f.n2];
 		Node& n3 = nodes[f.n3];
 		e_bbox = get_3Dtriangle_bounding_box(n1, n2, n3);
-		xl_id = size_t(floor((e_bbox.xl - g_bbox.xl) / g_h));
-		xu_id = size_t(ceil((e_bbox.xu - g_bbox.xl) / g_h));
-		yl_id = size_t(floor((e_bbox.yl - g_bbox.yl) / g_h));
-		yu_id = size_t(ceil((e_bbox.yu - g_bbox.yl) / g_h));
-		zl_id = size_t(floor((e_bbox.zl - g_bbox.zl) / g_h));
-		zu_id = size_t(ceil((e_bbox.zu - g_bbox.zl) / g_h));
+		e_id_bbox.from_cube(e_bbox, g_bbox.xl, g_bbox.yl, g_bbox.zl, g_h, g_h, g_h, Norm_Tol);
 		init_tri_aabb_collision(f);
-		for (size_t z_id = zl_id; z_id < zu_id; ++z_id)
-			for (size_t y_id = yl_id; y_id < yu_id; ++y_id)
-				for (size_t x_id = xl_id; x_id < xu_id; ++x_id)
+		for (size_t z_id = e_id_bbox.zl_id; z_id < e_id_bbox.zu_id; ++z_id)
+			for (size_t y_id = e_id_bbox.yl_id; y_id < e_id_bbox.yu_id; ++y_id)
+				for (size_t x_id = e_id_bbox.xl_id; x_id < e_id_bbox.xu_id; ++x_id)
 				{
 					Grid& g = grid_by_id(x_id, y_id, z_id);
 					grid_box = grid_box_by_id(x_id, y_id, z_id);

@@ -108,13 +108,13 @@ void test_RigidTetrahedronMesh_intersection(int argc, char** argv)
 	//test_box.zu = 0.5;
 	//res = rb.detect_tri_aabb_collision(test_box);
 	
-	test_box.xl = -0.5;
-	test_box.xu = 0.5;
-	test_box.yl = -1.5;
-	test_box.yu = -0.5;
-	test_box.zl = -0.5;
-	test_box.zu = 0.5;
-	res = rb.detect_tri_aabb_collision(test_box);
+	//test_box.xl = -0.5;
+	//test_box.xu = 0.5;
+	//test_box.yl = -1.5;
+	//test_box.yu = -0.5;
+	//test_box.zl = -0.5;
+	//test_box.zu = 0.5;
+	//res = rb.detect_tri_aabb_collision(test_box);
 
 	int efe = 0;
 }
@@ -127,7 +127,7 @@ void test_RigidTetrahedronMesh_bg_grid(int argc, char** argv)
 			  << ", elem num: " << rb.get_elem_num()
 			  << ", face num: " << rb.get_bface_num() << "\n";
 
-	int res = rb.init_bg_grids(0.05, 0.07); // 0.06, 0.075
+	int res = rb.init_bg_grids(0.05, 0.07);
 	const Cube& g_box = rb.get_grid_bbox();
 	size_t g_x_num = rb.get_grid_x_num();
 	size_t g_y_num = rb.get_grid_y_num();
@@ -137,6 +137,48 @@ void test_RigidTetrahedronMesh_bg_grid(int argc, char** argv)
 					 << ", " << g_z_num << "\n";
 
 	size_t disp_z_id = 2;
+	for (size_t y_id = 0; y_id < g_y_num; ++y_id)
+	{
+		for (size_t x_id = 0; x_id < g_x_num; ++x_id)
+		{
+			auto& g = rb.grid_by_id(x_id, y_id, disp_z_id);
+			switch (g.pos_type)
+			{
+			case TestRigidTetrahedronMesh::PosType::Inside:
+				std::cout << "I";
+				break;
+			case TestRigidTetrahedronMesh::PosType::AtBoundary:
+				std::cout << "A";
+				break;
+			case TestRigidTetrahedronMesh::PosType::Outside:
+				std::cout << "O";
+				break;
+			default:
+				break;
+			}
+		}
+		std::cout << "\n";
+	}
+
+	int efe = 2;
+}
+
+void test_RigidTetrahedronMesh_bg_grid2(int argc, char** argv)
+{
+	TestRigidTetrahedronMesh rb;
+	rb.init_mesh("../../Asset/brick_mesh_1.00_1x1x1.h5", 0.0, 0.0, 0.0);
+	std::cout << "node num: " << rb.get_node_num()
+			<< ", elem num: " << rb.get_elem_num()
+			<< ", face num: " << rb.get_bface_num() << "\n";
+
+	int res = rb.init_bg_grids(0.05, 0.08); // 0.75
+	const Cube& g_box = rb.get_grid_bbox();
+	size_t g_x_num = rb.get_grid_x_num();
+	size_t g_y_num = rb.get_grid_y_num();
+	size_t g_z_num = rb.get_grid_z_num();
+	std::cout << "bg grid: " << g_x_num << ", " << g_y_num << ", " << g_z_num << "\n";
+
+	size_t disp_z_id = 5;
 	for (size_t y_id = 0; y_id < g_y_num; ++y_id)
 	{
 		for (size_t x_id = 0; x_id < g_x_num; ++x_id)

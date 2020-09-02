@@ -8,6 +8,7 @@
 #include "SearchingGrid3D.hpp"
 #include "MatModelContainer.h"
 #include "ParticleGenerator3D.hpp"
+#include "RigidBody/ContactState.h"
 #include "RigidBody/RigidTetrahedronMesh.h"
 
 namespace Model_T3D_ME_s_Internal
@@ -61,6 +62,8 @@ namespace Model_T3D_ME_s_Internal
 		}
 
 		inline double get_vol() { return m / density; }
+
+		ContactState contact_state;
 	};
 
 	struct Element
@@ -164,7 +167,7 @@ public:
 	// rigid body
 	bool rb_is_init;
 	RigidTetrahedronMesh rb;
-	double K_cont;
+	double Kn_cont, Kt_cont, miu_cont;
 
 public:
 	Model_T3D_ME_s();
@@ -201,7 +204,9 @@ public:
 	INIT_BC_TEMPLATE(vy, VelocityBC)
 	INIT_BC_TEMPLATE(vz, VelocityBC)
 
-	int init_rb(const char *file_name, double K_cont, double dx, double dy, double dz);
+	int init_rb(const char *file_name, double dx, double dy, double dz);
+	inline void set_contact_params(double Kn, double Kt, double miu)
+	{ Kn_cont = Kn; Kt_cont = Kt; miu_cont = miu; }
 
 protected: // helper functions
 	void init_mesh_shape_funcs();

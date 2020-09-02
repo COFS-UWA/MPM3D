@@ -210,15 +210,13 @@ protected:
 #define Norm_Tol 1.0e-10
 		if (axis.norm() < Norm_Tol)
 			return false;
-		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z));
+		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z)) * (1.0 + Norm_Tol);
 		double p1_proj = p1.x * axis.x + p1.y * axis.y + p1.z * axis.z;
 		double p2_proj = p2.x * axis.x + p2.y * axis.y + p2.z * axis.z;
 		double p3_proj = p3.x * axis.x + p3.y * axis.y + p3.z * axis.z;
 		double p4_proj = p4.x * axis.x + p4.y * axis.y + p4.z * axis.z;
-		return ((p1_proj >  box_range && p2_proj >  box_range &&
-				 p3_proj >  box_range && p4_proj >  box_range) ||
-				(p1_proj < -box_range && p2_proj < -box_range &&
-				 p3_proj < -box_range && p4_proj < -box_range));
+		return ((p1_proj >  box_range && p2_proj >  box_range && p3_proj >  box_range && p4_proj >  box_range) ||
+				(p1_proj < -box_range && p2_proj < -box_range && p3_proj < -box_range && p4_proj < -box_range));
 #undef Norm_Tol
 	}
 
@@ -348,10 +346,10 @@ protected:
 	inline bool is_seperating_axis(Vector3D& axis,
 		Point3D& p1, Point3D& p2, Point3D& p3)
 	{
-#define Norm_Tol 1.0e-10
+#define Norm_Tol 1.0e-6
 		if (axis.norm() < Norm_Tol)
 			return false;
-		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z));
+		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z)) * (1.0 + Norm_Tol);
 		double p1_proj = p1.x * axis.x + p1.y * axis.y + p1.z * axis.z;
 		double p2_proj = p2.x * axis.x + p2.y * axis.y + p2.z * axis.z;
 		double p3_proj = p3.x * axis.x + p3.y * axis.y + p3.z * axis.z;

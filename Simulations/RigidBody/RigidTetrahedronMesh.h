@@ -195,7 +195,7 @@ public:
 		uz = 0.0;
 	}
 
-	inline void reset() noexcept
+	inline void reset_substep() noexcept
 	{
 		fx_con = 0.0;
 		fy_con = 0.0;

@@ -142,14 +142,14 @@ struct IdCube
 	}
 	inline void from_cube(const Cube& c,
 		double xl, double yl, double zl,
-		double hx, double hy, double hz)
+		double hx, double hy, double hz, double tol = 0.0)
 	{
-		xl_id = long long(floor((c.xl - xl) / hx));
-		xu_id = long long(ceil((c.xu - xl) / hx));
-		yl_id = long long(floor((c.yl - yl) / hy));
-		yu_id = long long(ceil((c.yu - yl) / hy));
-		zl_id = long long(floor((c.zl - zl) / hz));
-		zu_id = long long(ceil((c.zu - zl) / hz));
+		xl_id = long long(floor((c.xl - tol - xl) / hx));
+		xu_id = long long(ceil((c.xu + tol - xl) / hx));
+		yl_id = long long(floor((c.yl - tol - yl) / hy));
+		yu_id = long long(ceil((c.yu + tol - yl) / hy));
+		zl_id = long long(floor((c.zl - tol - zl) / hz));
+		zu_id = long long(ceil((c.zu + tol - zl) / hz));
 	}
 };
 

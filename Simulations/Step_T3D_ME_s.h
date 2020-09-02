@@ -22,6 +22,8 @@ protected:
 	// local damping factor
 	double damping_ratio;
 
+	ContactStateList contact_state_list;
+
 	int init_calculation() override;
 	friend int solve_substep_T3D_ME_s(void *_self);
 	int finalize_calculation() override;

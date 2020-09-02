@@ -17,7 +17,8 @@ Model_T3D_ME_s::Model_T3D_ME_s() :
 	vx_num(0), vxs(nullptr),
 	vy_num(0), vys(nullptr),
 	vz_num(0), vzs(nullptr),
-	rb_is_init(false), K_cont(0.0) {}
+	rb_is_init(false),
+	Kn_cont(0.0), Kt_cont(0.0), miu_cont(0.0) {}
 
 Model_T3D_ME_s::~Model_T3D_ME_s()
 {
@@ -188,13 +189,11 @@ void Model_T3D_ME_s::clear_pcls()
 
 int Model_T3D_ME_s::init_rb(
 	const char* file_name,
-	double _K_cont,
 	double dx,
 	double dy,
 	double dz
 	)
 {
-	K_cont = _K_cont;
 	int res = rb.init_mesh(file_name, dx, dy, dz);
 	if (res)
 		return res;
