@@ -97,7 +97,7 @@ public:
 		xl = _xl; xu = _xu; yl = _yl; yu = _yu;
 	}
 
-	inline void set_fld_range(double min, double max)
+	inline void set_color_map_fld_range(double min, double max)
 	{ color_map.set_range(min, max); }
 	inline void set_color_map_pos(float xpos, float ypos, float ht)
 	{

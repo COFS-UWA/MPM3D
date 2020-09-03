@@ -13,6 +13,7 @@ QtSceneFromHdf5_T2D_CHM_s::QtSceneFromHdf5_T2D_CHM_s(
 	bg_mesh_obj(_gl),
 	pcls_obj(_gl),
 	rc_obj(_gl), has_rc_obj(false),
+	color_map_obj(_gl), has_color_map(false),
 	color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f)
@@ -61,6 +62,9 @@ void QtSceneFromHdf5_T2D_CHM_s::clear()
 void QtSceneFromHdf5_T2D_CHM_s::set_viewport(
 	int wd, int ht, GLfloat xlen, GLfloat ylen)
 {
+	win_wd = wd;
+	win_ht = ht;
+	
 	int wd2, ht2, padding;
 	ht2 = wd * (ylen / xlen);
 	if (ht2 <= ht)
@@ -84,12 +88,14 @@ void QtSceneFromHdf5_T2D_CHM_s::set_viewport(
 
 void QtSceneFromHdf5_T2D_CHM_s::draw()
 {
-	gl.glViewport(vp_x_pos, vp_y_pos, vp_x_size, vp_y_size);
-
 	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
 	gl.glClear(GL_COLOR_BUFFER_BIT);
 
+// ======================== mpm model ========================
+	gl.glViewport(vp_x_pos, vp_y_pos, vp_x_size, vp_y_size);
+
 	shader_plain2D.bind();
+	shader_plain2D.setUniformValue("view_mat", view_mat);
 
 	if (display_bg_mesh)
 		bg_mesh_obj.draw(shader_plain2D);
@@ -101,11 +107,25 @@ void QtSceneFromHdf5_T2D_CHM_s::draw()
 
 	if (display_pcls)
 		pcls_obj.draw(shader_circles);
+
+	// =================== color map ===================
+	gl.glViewport(0, 0, win_wd, win_ht);
+
+	shader_plain2D.bind();
+	shader_plain2D.setUniformValue("view_mat", hud_view_mat);
+
+	if (has_color_map)
+		color_map_obj.draw(shader_plain2D, shader_char);
 }
 
 void QtSceneFromHdf5_T2D_CHM_s::resize(int wd, int ht)
 {
 	set_viewport(wd, ht, xu - xl, yu - yl);
+
+	hud_view_mat.setToIdentity();
+	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
+	shader_char.bind();
+	shader_char.setUniformValue("view_mat", hud_view_mat);
 }
 
 // ================== animation ==================
@@ -329,6 +349,18 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 	// complete reading hdf5
 	rf.close_group(frame_grp_id);
 
+	// color map display
+	if (has_color_map)
+	{
+		color_map_obj.init(
+			cm_xpos, cm_ypos, cm_ht,
+			color_map,
+			field_name.c_str(),
+			"%8.3e",
+			"../../Asset/times_new_roman.ttf"
+		);
+	}
+	
 	// viewport
 	set_viewport(wd, ht, xu - xl, yu - yl);
 
@@ -355,12 +387,24 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 		);
 	shader_circles.link();
 
+	// shader for displaying character
+	shader_char.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"../../Asset/shader_char.vert"
+	);
+	shader_char.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"../../Asset/shader_char.frag"
+	);
+	shader_char.link();
+	
 	// view matrix
+	// mpm model view matrix
 	view_mat.setToIdentity();
 	view_mat.ortho(xl, xu, yl, yu, -1.0f, 1.0f);
-
-	shader_plain2D.bind();
-	shader_plain2D.setUniformValue("view_mat", view_mat);
+	// hud view matrix
+	hud_view_mat.setToIdentity();
+	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
 
 	shader_circles.bind();
 	shader_circles.setUniformValue("view_mat", view_mat);
@@ -371,6 +415,9 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 	shader_circles.setUniformValue("color_value_range", color_value_range);
 	shader_circles.setUniformValue("color_map", 0);
 
+	shader_char.bind();
+	shader_char.setUniformValue("view_mat", hud_view_mat);
+	
 	return 0;
 }
 

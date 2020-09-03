@@ -9,6 +9,7 @@
 #include "UniformColorMap_Abaqus.h"
 #include "QtMultiColorCircleGLObject.h"
 #include "QtRigidCircleObject.h"
+#include "QtUniformColorMapObject.h"
 #include "QtSceneFromHdf5.h"
 
 class QtSceneFromHdf5_T2D_CHM_s : public QtSceneFromHdf5
@@ -37,6 +38,7 @@ protected:
 
 	QOpenGLShaderProgram shader_plain2D;
 	QOpenGLShaderProgram shader_circles;
+	QOpenGLShaderProgram shader_char;
 
 	bool display_bg_mesh;
 	bool display_pcls;
@@ -51,16 +53,23 @@ protected:
 	bool has_rc_obj;
 	QtRigidCircleObject rc_obj;
 	
+	bool has_color_map;
+	float cm_xpos, cm_ypos, cm_ht;
+	QtUniformColorMapObject color_map_obj;
+
 	bool display_whole_model;
 	GLfloat xl, xu, yl, yu, padding_ratio;
 
 	// viewport
 	GLint vp_x_pos, vp_y_pos;
 	GLsizei vp_x_size, vp_y_size;
-	
+	// hud viewport
+	GLint win_wd, win_ht;
+
 	void set_viewport(int wd, int ht, GLfloat xlen, GLfloat ylen);
 	
 	QMatrix4x4 view_mat;
+	QMatrix4x4 hud_view_mat;
 
 	QVector3D bg_color;
 	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
@@ -88,8 +97,13 @@ public:
 		xl = _xl; xu = _xu; yl = _yl; yu = _yu;
 	}
 
-	inline void set_fld_range(double min, double max)
+	inline void set_color_map_fld_range(double min, double max)
 	{ color_map.set_range(min, max); }
+	inline void set_color_map_geometry(float xpos, float ypos, float ht)
+	{
+		has_color_map = true;
+		cm_xpos = xpos;	cm_ypos = ypos; cm_ht = ht;
+	}
 
 	size_t get_frame_num();
 	double get_frame_time(size_t frame_id);

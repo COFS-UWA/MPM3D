@@ -30,6 +30,8 @@ struct ParticleData
 	double e11;
 	double e22;
 	double e12;
+	unsigned long long mat_id; // material model id
+	
 	void from_pcl(Model_T2D_CHM_s::Particle &pcl)
 	{
 		id = pcl.id;
@@ -51,8 +53,9 @@ struct ParticleData
 		e11 = pcl.e11;
 		e22 = pcl.e22;
 		e12 = pcl.e12;
+		mat_id = pcl.mm->get_id();
 	}
-	void to_pcl(Model_T2D_CHM_s::Particle &pcl)
+	void to_pcl(Model_T2D_CHM_s::Particle &pcl, MatModel::MaterialModel& mm)
 	{
 		pcl.id = id;
 		pcl.m_s = m_s;
@@ -72,10 +75,11 @@ struct ParticleData
 		pcl.e11 = e11;
 		pcl.e22 = e22;
 		pcl.e12 = e12;
+		pcl.set_mat_model(mm);
 	}
 };
 
-inline hid_t get_pcl_dt_id(void)
+inline hid_t get_pcl_dt_id()
 {
 	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(ParticleData));
 	H5Tinsert(res, "id", HOFFSET(ParticleData, id), H5T_NATIVE_ULLONG);
@@ -97,6 +101,7 @@ inline hid_t get_pcl_dt_id(void)
 	H5Tinsert(res, "e11", HOFFSET(ParticleData, e11), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "e22", HOFFSET(ParticleData, e22), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "e12", HOFFSET(ParticleData, e12), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
 	return res;
 }
 

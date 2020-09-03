@@ -1,5 +1,8 @@
 #include "Simulations_pcp.h"
 
+#include <exception>
+
+#include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
 #include "Model_T2D_CHM_s_hdf5_utilities.h"
 
@@ -628,13 +631,20 @@ int load_pcl_data_from_hdf5_file(
 		return res;
 	}
 
+	MatModel::MatModelIdToPointerMap mm_id_map(md);
 	md.alloc_pcls(pcl_num);
 	Model_T2D_CHM_s::Particle* pcls = md.get_pcls();
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		ParticleData& pcl_data = pcls_data[p_id];
 		Model_T2D_CHM_s::Particle& pcl = md.pcls[p_id];
-		pcl_data.to_pcl(pcl);
+		MatModel::MaterialModel* pmat = mm_id_map.get_mm_by_id(pcl_data.mat_id);
+		if (!pmat)
+		{
+			throw std::exception("func load_pcl_data_from_hdf5_file error: "
+				"particle has no material model.");
+		}
+		pcl_data.to_pcl(pcl, *pmat);
 	}
 	delete[] pcls_data;
 

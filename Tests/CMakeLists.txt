@@ -52,9 +52,9 @@ add_executable(
     #test_t2d_me_p_rigid_circle_penetration.cpp
     # shallow pipe embedment for conference
     # coupled hydro-mechanics
-    #test_t2d_chm_s_pipe_conference_geo.cpp
-    #test_t2d_chm_s_pipe_conference_restart1.cpp
-    #test_t2d_chm_s_pipe_conference_restart2.cpp
+    test_t2d_chm_s_pipe_conference_geo.cpp
+    test_t2d_chm_s_pipe_conference_restart1.cpp
+    test_t2d_chm_s_pipe_conference_restart2.cpp
     # completely drained
     #test_t2d_me_s_pipe_conference_geo.cpp
     #test_t2d_me_s_pipe_conference_restart.cpp

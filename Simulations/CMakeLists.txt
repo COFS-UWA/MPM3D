@@ -32,17 +32,17 @@ add_library(
     Step_T2D_ME_s_Geo.h Step_T2D_ME_s_Geo.cpp
     TimeHistory_T2D_ME_s_Geo_complete.h TimeHistory_T2D_ME_s_Geo_complete.cpp
     # 2D ME MPM parallel version
-    Model_T2D_ME_p.h Model_T2D_ME_p.cpp
-    Model_T2D_ME_p_hdf5_utilities.h Model_T2D_ME_p_hdf5_utilities.cpp
-    ModelData_T2D_ME_p.h ModelData_T2D_ME_p.cpp
+    #Model_T2D_ME_p.h Model_T2D_ME_p.cpp
+    #Model_T2D_ME_p_hdf5_utilities.h Model_T2D_ME_p_hdf5_utilities.cpp
+    #ModelData_T2D_ME_p.h ModelData_T2D_ME_p.cpp
     ## deformation calculation
-    Step_T2D_ME_p.h Step_T2D_ME_p.cpp Step_T2D_ME_p_RigidCircle.cpp
-    TimeHistory_T2D_ME_p_complete.h TimeHistory_T2D_ME_p_complete.cpp
-    FixedSizeMemAllocator.h
-    Step_T2D_ME_p_tbb.h Step_T2D_ME_p_tbb.cpp
+    #Step_T2D_ME_p.h Step_T2D_ME_p.cpp Step_T2D_ME_p_RigidCircle.cpp
+    #TimeHistory_T2D_ME_p_complete.h TimeHistory_T2D_ME_p_complete.cpp
+    #FixedSizeMemAllocator.h
+    #Step_T2D_ME_p_tbb.h Step_T2D_ME_p_tbb.cpp
     ## geostatic calculation
-    Step_T2D_ME_p_Geo.h Step_T2D_ME_p_Geo.cpp
-    TimeHistory_T2D_ME_p_Geo_complete.h TimeHistory_T2D_ME_p_Geo_complete.cpp
+    #Step_T2D_ME_p_Geo.h Step_T2D_ME_p_Geo.cpp
+    #TimeHistory_T2D_ME_p_Geo_complete.h TimeHistory_T2D_ME_p_Geo_complete.cpp
     # 2D CHM MPM serial version
     Model_T2D_CHM_s.h Model_T2D_CHM_s.cpp
     Model_T2D_CHM_s_hdf5_utilities.h Model_T2D_CHM_s_hdf5_utilities.cpp
@@ -54,15 +54,15 @@ add_library(
     Step_T2D_CHM_s_Geo.h Step_T2D_CHM_s_Geo.cpp
     TimeHistory_T2D_CHM_s_Geo_complete.h TimeHistory_T2D_CHM_s_Geo_complete.cpp
     # 2D CHM MPM parallel version
-    Model_T2D_CHM_p.h Model_T2D_CHM_p.cpp
-    Model_T2D_CHM_p_hdf5_utilities.h Model_T2D_CHM_p_hdf5_utilities.cpp
-    ModelData_T2D_CHM_p.h ModelData_T2D_CHM_p.cpp
+    #Model_T2D_CHM_p.h Model_T2D_CHM_p.cpp
+    #Model_T2D_CHM_p_hdf5_utilities.h Model_T2D_CHM_p_hdf5_utilities.cpp
+    #ModelData_T2D_CHM_p.h ModelData_T2D_CHM_p.cpp
     ## deformation calculation
-    Step_T2D_CHM_p.h Step_T2D_CHM_p.cpp
-    TimeHistory_T2D_CHM_p_complete.h TimeHistory_T2D_CHM_p_complete.cpp
+    #Step_T2D_CHM_p.h Step_T2D_CHM_p.cpp
+    #TimeHistory_T2D_CHM_p_complete.h TimeHistory_T2D_CHM_p_complete.cpp
     ## geostatic calculation
-    Step_T2D_CHM_p_Geo.h Step_T2D_CHM_p_Geo.cpp
-    TimeHistory_T2D_CHM_p_Geo_complete.h TimeHistory_T2D_CHM_p_Geo_complete.cpp
+    #Step_T2D_CHM_p_Geo.h Step_T2D_CHM_p_Geo.cpp
+    #TimeHistory_T2D_CHM_p_Geo_complete.h TimeHistory_T2D_CHM_p_Geo_complete.cpp
     # 3D ME MPM
     Model_T3D_ME_s.h Model_T3D_ME_s.cpp
     Step_T3D_ME_s.h Step_T3D_ME_s.cpp Step_T3D_ME_s_rb.cpp
