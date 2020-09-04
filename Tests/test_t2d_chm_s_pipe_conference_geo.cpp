@@ -15,7 +15,7 @@
 void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 {
 	Model_T2D_CHM_s model;
-	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_t_bar_conference_mesh.h5");
+	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_pipe_conference_mesh.h5");
 	model.init_search_grid(0.05, 0.05);
 
 	ParticleGenerator2D<Model_T2D_CHM_s> pcl_generator;

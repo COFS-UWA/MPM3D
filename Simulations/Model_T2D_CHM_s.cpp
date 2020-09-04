@@ -188,23 +188,23 @@ int Model_T2D_CHM_s::apply_rigid_circle(double dt)
 	double nffx_cont, nffy_cont, ndafx, ndafy;
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		Particle &pcl = pcls[p_id];
-		if (!pcl.pe)
-			continue;
-
-		// solid particle
-		if (rigid_circle.detect_collision_with_point(
-				pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+		Particle& pcl = pcls[p_id];
+		if (pcl.pe && rigid_circle.detect_collision_with_point(
+			pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
 		{
 			fs_cont = Ks_cont * dist;
 			fsx_cont = fs_cont * norm_x;
 			fsy_cont = fs_cont * norm_y;
+			ff_cont = Kf_cont * dist;
+			ffx_cont = ff_cont * norm_x;
+			ffy_cont = ff_cont * norm_y;
 			// reaction force by the rigid object
-			rigid_circle.add_rf(pcl.x, pcl.y, -fsx_cont, -fsy_cont);
+			rigid_circle.add_rf(pcl.x, pcl.y,
+				-(fsx_cont + ffx_cont), -(fsy_cont + ffy_cont));
 			// adjust velocity at nodes
-			Element &e = *pcl.pe;
+			Element& e = *pcl.pe;
 			// node 1
-			Node &n1 = nodes[e.n1];
+			Node& n1 = nodes[e.n1];
 			nfsx_cont = pcl.N1 * fsx_cont;
 			nfsy_cont = pcl.N1 * fsy_cont;
 			ndasx = nfsx_cont / n1.m_s;
@@ -213,41 +213,6 @@ int Model_T2D_CHM_s::apply_rigid_circle(double dt)
 			n1.ay_s += ndasy;
 			n1.vx_s += ndasx * dt;
 			n1.vy_s += ndasy * dt;
-			// node 2
-			Node &n2 = nodes[e.n2];
-			nfsx_cont = pcl.N2 * fsx_cont;
-			nfsy_cont = pcl.N2 * fsy_cont;
-			ndasx = nfsx_cont / n2.m_s;
-			ndasy = nfsy_cont / n2.m_s;
-			n2.ax_s += ndasx;
-			n2.ay_s += ndasy;
-			n2.vx_s += ndasx * dt;
-			n2.vy_s += ndasy * dt;
-			// node 3
-			Node &n3 = nodes[e.n3];
-			nfsx_cont = pcl.N3 * fsx_cont;
-			nfsy_cont = pcl.N3 * fsy_cont;
-			ndasx = nfsx_cont / n3.m_s;
-			ndasy = nfsy_cont / n3.m_s;
-			n3.ax_s += ndasx;
-			n3.ay_s += ndasy;
-			n3.vx_s += ndasx * dt;
-			n3.vy_s += ndasy * dt;
-		}
-
-		// fluid particle
-		if (rigid_circle.detect_collision_with_point(
-				pcl.x_f, pcl.y_f, pcl.vol, dist, norm_x, norm_y))
-		{
-			ff_cont = Kf_cont * dist;
-			ffx_cont = ff_cont * norm_x;
-			ffy_cont = ff_cont * norm_y;
-			// reaction force by the rigid object
-			rigid_circle.add_rf(pcl.x, pcl.y, -ffx_cont, -ffy_cont);
-			// adjust velocity at nodes
-			Element& e = *pcl.pe;
-			// node 1
-			Node& n1 = nodes[e.n1];
 			nffx_cont = pcl.N1 * ffx_cont;
 			nffy_cont = pcl.N1 * ffy_cont;
 			ndafx = nffx_cont / n1.m_f;
@@ -258,6 +223,14 @@ int Model_T2D_CHM_s::apply_rigid_circle(double dt)
 			n1.vy_f += ndafy * dt;
 			// node 2
 			Node& n2 = nodes[e.n2];
+			nfsx_cont = pcl.N2 * fsx_cont;
+			nfsy_cont = pcl.N2 * fsy_cont;
+			ndasx = nfsx_cont / n2.m_s;
+			ndasy = nfsy_cont / n2.m_s;
+			n2.ax_s += ndasx;
+			n2.ay_s += ndasy;
+			n2.vx_s += ndasx * dt;
+			n2.vy_s += ndasy * dt;
 			nffx_cont = pcl.N2 * ffx_cont;
 			nffy_cont = pcl.N2 * ffy_cont;
 			ndafx = nffx_cont / n2.m_f;
@@ -268,6 +241,14 @@ int Model_T2D_CHM_s::apply_rigid_circle(double dt)
 			n2.vy_f += ndafy * dt;
 			// node 3
 			Node& n3 = nodes[e.n3];
+			nfsx_cont = pcl.N3 * fsx_cont;
+			nfsy_cont = pcl.N3 * fsy_cont;
+			ndasx = nfsx_cont / n3.m_s;
+			ndasy = nfsy_cont / n3.m_s;
+			n3.ax_s += ndasx;
+			n3.ay_s += ndasy;
+			n3.vx_s += ndasx * dt;
+			n3.vy_s += ndasy * dt;
 			nffx_cont = pcl.N3 * ffx_cont;
 			nffy_cont = pcl.N3 * ffy_cont;
 			ndafx = nffx_cont / n3.m_f;
@@ -283,6 +264,113 @@ int Model_T2D_CHM_s::apply_rigid_circle(double dt)
 
 	return 0;
 }
+
+//int Model_T2D_CHM_s::apply_rigid_circle(double dt)
+//{
+//	rigid_circle.reset_rf();
+//
+//	double dist, norm_x, norm_y;
+//	double fs_cont, fsx_cont, fsy_cont;
+//	double ff_cont, ffx_cont, ffy_cont;
+//	double nfsx_cont, nfsy_cont, ndasx, ndasy;
+//	double nffx_cont, nffy_cont, ndafx, ndafy;
+//	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+//	{
+//		Particle &pcl = pcls[p_id];
+//		if (!pcl.pe)
+//			continue;
+//
+//		// solid particle
+//		if (rigid_circle.detect_collision_with_point(
+//				pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+//		{
+//			fs_cont = Ks_cont * dist;
+//			fsx_cont = fs_cont * norm_x;
+//			fsy_cont = fs_cont * norm_y;
+//			// reaction force by the rigid object
+//			rigid_circle.add_rf(pcl.x, pcl.y, -fsx_cont, -fsy_cont);
+//			// adjust velocity at nodes
+//			Element &e = *pcl.pe;
+//			// node 1
+//			Node &n1 = nodes[e.n1];
+//			nfsx_cont = pcl.N1 * fsx_cont;
+//			nfsy_cont = pcl.N1 * fsy_cont;
+//			ndasx = nfsx_cont / n1.m_s;
+//			ndasy = nfsy_cont / n1.m_s;
+//			n1.ax_s += ndasx;
+//			n1.ay_s += ndasy;
+//			n1.vx_s += ndasx * dt;
+//			n1.vy_s += ndasy * dt;
+//			// node 2
+//			Node &n2 = nodes[e.n2];
+//			nfsx_cont = pcl.N2 * fsx_cont;
+//			nfsy_cont = pcl.N2 * fsy_cont;
+//			ndasx = nfsx_cont / n2.m_s;
+//			ndasy = nfsy_cont / n2.m_s;
+//			n2.ax_s += ndasx;
+//			n2.ay_s += ndasy;
+//			n2.vx_s += ndasx * dt;
+//			n2.vy_s += ndasy * dt;
+//			// node 3
+//			Node &n3 = nodes[e.n3];
+//			nfsx_cont = pcl.N3 * fsx_cont;
+//			nfsy_cont = pcl.N3 * fsy_cont;
+//			ndasx = nfsx_cont / n3.m_s;
+//			ndasy = nfsy_cont / n3.m_s;
+//			n3.ax_s += ndasx;
+//			n3.ay_s += ndasy;
+//			n3.vx_s += ndasx * dt;
+//			n3.vy_s += ndasy * dt;
+//		}
+//
+//		// fluid particle
+//		if (rigid_circle.detect_collision_with_point(
+//				pcl.x_f, pcl.y_f, pcl.vol, dist, norm_x, norm_y))
+//		{
+//			ff_cont = Kf_cont * dist;
+//			ffx_cont = ff_cont * norm_x;
+//			ffy_cont = ff_cont * norm_y;
+//			// reaction force by the rigid object
+//			rigid_circle.add_rf(pcl.x, pcl.y, -ffx_cont, -ffy_cont);
+//			// adjust velocity at nodes
+//			Element& e = *pcl.pe;
+//			// node 1
+//			Node& n1 = nodes[e.n1];
+//			nffx_cont = pcl.N1 * ffx_cont;
+//			nffy_cont = pcl.N1 * ffy_cont;
+//			ndafx = nffx_cont / n1.m_f;
+//			ndafy = nffy_cont / n1.m_f;
+//			n1.ax_f += ndafx;
+//			n1.ay_f += ndafy;
+//			n1.vx_f += ndafx * dt;
+//			n1.vy_f += ndafy * dt;
+//			// node 2
+//			Node& n2 = nodes[e.n2];
+//			nffx_cont = pcl.N2 * ffx_cont;
+//			nffy_cont = pcl.N2 * ffy_cont;
+//			ndafx = nffx_cont / n2.m_f;
+//			ndafy = nffy_cont / n2.m_f;
+//			n2.ax_f += ndafx;
+//			n2.ay_f += ndafy;
+//			n2.vx_f += ndafx * dt;
+//			n2.vy_f += ndafy * dt;
+//			// node 3
+//			Node& n3 = nodes[e.n3];
+//			nffx_cont = pcl.N3 * ffx_cont;
+//			nffy_cont = pcl.N3 * ffy_cont;
+//			ndafx = nffx_cont / n3.m_f;
+//			ndafy = nffy_cont / n3.m_f;
+//			n3.ax_f += ndafx;
+//			n3.ay_f += ndafy;
+//			n3.vx_f += ndafx * dt;
+//			n3.vy_f += ndafy * dt;
+//		}
+//	}
+//
+//	rigid_circle.update_motion(dt);
+//
+//	return 0;
+//}
 
 #include <fstream>
 

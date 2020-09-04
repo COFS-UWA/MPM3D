@@ -129,18 +129,18 @@ void test_t2d_chm_s_1d_consolidation(int argc, char** argv)
 
 #include "test_model_view.h"
 
-void test_t2d_chm_s_1d_compression_static_result(int argc, char** argv)
-{
-	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_s_1d_consolidation.h5");
-
-	QtApp_Posp_T2D_CHM_s app(argc, argv);
-	app.set_win_size(900, 900);
-	app.set_fld_range(0.0, 10.0);
-	app.set_res_file(rf, "consolidation", 50, "p");
-	app.set_png_name("t2d_chm_1d_consolidation");
-	app.start();
-}
+//void test_t2d_chm_s_1d_compression_static_result(int argc, char** argv)
+//{
+//	ResultFile_hdf5 rf;
+//	rf.open("t2d_chm_s_1d_consolidation.h5");
+//
+//	QtApp_Posp_T2D_CHM_s app(argc, argv);
+//	app.set_win_size(900, 900);
+//	app.set_color_map_fld_range(0.0, 10.0);
+//	app.set_res_file(rf, "consolidation", 50, "p");
+//	app.set_png_name("t2d_chm_1d_consolidation");
+//	app.start();
+//}
 
 void test_t2d_chm_s_1d_compression_ani_result(int argc, char** argv)
 {
@@ -149,10 +149,11 @@ void test_t2d_chm_s_1d_compression_ani_result(int argc, char** argv)
 
 	QtApp_Posp_T2D_CHM_s app(argc, argv, QtApp_Posp_T2D_CHM_s::Animation);
 	app.set_win_size(900, 900);
-	app.set_fld_range(0.0, 10.0);
 	app.set_res_file(rf, "consolidation", "p");
 	app.set_ani_time(5.0);
+	app.set_color_map_fld_range(0.0, 10.0);
+	app.set_color_map_geometry(0.6, 0.5, 0.4);
 	//app.set_png_name("t2d_chm_s_1d_consolidation");
-	app.set_gif_name("t2d_chm_s_1d_consolidation");
+	//app.set_gif_name("t2d_chm_s_1d_consolidation");
 	app.start();
 }

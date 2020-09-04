@@ -5,6 +5,7 @@
 
 #include "ItemArray.hpp"
 #include "ResultFile_hdf5.h"
+#include "Hdf5Field.h"
 #include "QtTriangleMeshGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtMultiColorCircleGLObject.h"

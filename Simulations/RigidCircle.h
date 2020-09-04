@@ -188,7 +188,7 @@ public: // helper function for calculation
 	{
 		double x_diff = _x - x;
 		double y_diff = _y - y;
-		double pcl_radius = sqrt(pcl_vol / PI);
+		double pcl_radius = sqrt(pcl_vol) * 0.5;
 		double dist = sqrt(x_diff * x_diff + y_diff * y_diff) - pcl_radius;
 		if (dist > r) // not overlapping
 			return false;
@@ -196,8 +196,6 @@ public: // helper function for calculation
 		norm_x = x_diff / dist;
 		norm_y = y_diff / dist;
 		overlap_dist = r - dist;
-		if (overlap_dist < 0.0)
-			overlap_dist = 0.0;
 		return true;
 	}
 

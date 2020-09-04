@@ -7,8 +7,8 @@
 #include "Model_T3D_ME_s.h"
 #include "QtTetrahedronMeshGLObject.h"
 #include "QtMonoColorBallGLObject.h"
-#include "QtSceneFromModel.h"
 #include "QtTetrahedronMeshSurfaceGLObject.h"
+#include "QtSceneFromModel.h"
 
 class QtSceneFromModel_T3D_ME_s : public QtSceneFromModel
 {

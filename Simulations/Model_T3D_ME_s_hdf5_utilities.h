@@ -32,6 +32,8 @@ struct ParticleData
 	double e12;
 	double e23;
 	double e31;
+	unsigned long long mat_id; // material model id
+	
 	void from_pcl(Model_T3D_ME_s::Particle &pcl)
 	{
 		id = pcl.id;
@@ -56,8 +58,10 @@ struct ParticleData
 		e12 = pcl.e12;
 		e23 = pcl.e23;
 		e31 = pcl.e31;
+		mat_id = pcl.mm->get_id();
 	}
-	void to_pcl(Model_T3D_ME_s::Particle &pcl)
+
+	void to_pcl(Model_T3D_ME_s::Particle &pcl, MatModel::MaterialModel& mm)
 	{
 		pcl.id = id;
 		pcl.m = m;
@@ -80,6 +84,7 @@ struct ParticleData
 		pcl.e12 = e12;
 		pcl.e23 = e23;
 		pcl.e31 = e31;
+		pcl.set_mat_model(mm);
 	}
 };
 
@@ -108,6 +113,7 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "e12", HOFFSET(ParticleData, e12), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "e23", HOFFSET(ParticleData, e23), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "e31", HOFFSET(ParticleData, e31), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
 	return res;
 }
 
