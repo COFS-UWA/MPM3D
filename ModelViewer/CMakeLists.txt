@@ -52,6 +52,9 @@ add_library(
     Hdf5FieldExtraction_e12.h Hdf5FieldExtraction_e12.cpp
     Hdf5FieldExtraction_e23.h Hdf5FieldExtraction_e23.cpp
     Hdf5FieldExtraction_e31.h Hdf5FieldExtraction_e31.cpp
+    #Hdf5FieldExtraction_mat_mean_stress.h Hdf5FieldExtraction_mat_mean_stress.cpp
+    #Hdf5FieldExtraction_mat_mises_stress.h Hdf5FieldExtraction_mat_mises_stress.cpp
+    #Hdf5FieldExtraction_mat_mises_strain.h Hdf5FieldExtraction_mat_mises_strain.cpp
     # CHM MPM
     Hdf5FieldExtraction_n.h Hdf5FieldExtraction_n.cpp
     Hdf5FieldExtraction_m_s.h Hdf5FieldExtraction_m_s.cpp
@@ -81,11 +84,11 @@ add_library(
     QtApp_Posp_T2D_ME_s.h QtApp_Posp_T2D_ME_s.cpp
     # Model_T2D_ME_p
     # prep process module
-    QtSceneFromModel_T2D_ME_p.h QtSceneFromModel_T2D_ME_p.cpp
-    QtApp_Prep_T2D_ME_p.h QtApp_Prep_T2D_ME_p.cpp
+    #QtSceneFromModel_T2D_ME_p.h QtSceneFromModel_T2D_ME_p.cpp
+    #QtApp_Prep_T2D_ME_p.h QtApp_Prep_T2D_ME_p.cpp
     # post process module
-    QtSceneFromHdf5_T2D_ME_p.h QtSceneFromHdf5_T2D_ME_p.cpp
-    QtApp_Posp_T2D_ME_p.h QtApp_Posp_T2D_ME_p.cpp
+    #QtSceneFromHdf5_T2D_ME_p.h QtSceneFromHdf5_T2D_ME_p.cpp
+    #QtApp_Posp_T2D_ME_p.h QtApp_Posp_T2D_ME_p.cpp
     # Model_T2D_CHM_s
     # prep process module
     QtSceneFromModel_T2D_CHM_s.h QtSceneFromModel_T2D_CHM_s.cpp

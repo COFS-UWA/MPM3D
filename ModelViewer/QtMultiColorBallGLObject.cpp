@@ -182,7 +182,6 @@ int QtMultiColorBallGLObject::init(
         pd.z = GLfloat(pcl_z_data[pcl_id]);
         pd.radius = GLfloat(pow(3.0 * pcl_vol_data[pcl_id] / (4.0 * 3.14159265359), 0.33333)) * radius_scale;
         pd.fld = GLfloat(pcl_fld_data[pcl_id]);
-        int fefe = 0;
     }
     int res = init_gl_buffer(pt_data, pcl_num);
     return res;

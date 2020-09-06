@@ -173,7 +173,7 @@ public:
 		double fx_contact, double fy_contact, double fz_contact,
 		double ax, double ay, double az,
 		double vx, double vy, double vz,
-		double x, double y, double z);
+		double x,  double y,  double z);
 	
 	inline Face* alloc_bfaces(size_t num)
 	{

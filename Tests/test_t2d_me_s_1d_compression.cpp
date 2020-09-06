@@ -119,7 +119,7 @@ void test_t2d_me_s_1d_compression_static_result(int argc, char** argv)
 	QtApp_Posp_T2D_ME_s app(argc, argv);
 	app.set_win_size(900, 900);
 	app.set_fld_range(0.0, 1.0);
-	app.set_res_file(rf, "compression", 0, "y");
+	app.set_res_file(rf, "compression", 0, Hdf5Field::y);
 	app.set_png_name("t2d_me_s_1d_compression");
 	app.start();
 }
@@ -132,7 +132,7 @@ void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv)
 	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_win_size(900, 900);
 	app.set_fld_range(0.0, 1.0);
-	app.set_res_file(rf, "compression", "y");
+	app.set_res_file(rf, "compression", Hdf5Field::y);
 	app.set_ani_time(5.0);
 	//app.set_png_name("t2d_me_s_1d_compression");
 	app.set_gif_name("t2d_me_s_1d_compression");

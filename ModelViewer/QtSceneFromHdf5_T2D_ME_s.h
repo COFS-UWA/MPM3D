@@ -24,19 +24,16 @@ protected:
 
 	// hdf5 result file data infos
 	ResultFile_hdf5* res_file;
-	hid_t th_id;
-	hid_t frame_grp_id;
-	size_t pcl_num;
-	hid_t pcl_dt_id;
-	size_t pcl_size;
-	size_t pcl_x_off;
-	size_t pcl_y_off;
-	size_t pcl_vol_off;
-	std::string field_name;
-	size_t pcl_fld_off;
-	hid_t pcl_fld_type;
-	MemoryUtils::ItemArray<char> pcls_data_mem;
+	Hdf5DataLoader data_loader;
+	Hdf5FieldExtraction_x x_fld;
+	Hdf5FieldExtraction_y y_fld;
+	Hdf5FieldExtraction_vol vol_fld;
+	Hdf5FieldExtraction* pfld;
+	MemoryUtils::ItemArray<double> pcl_fld_mem;
 
+	std::string field_name;
+	hid_t th_id;
+	
 	QOpenGLShaderProgram shader_plain2D;
 	QOpenGLShaderProgram shader_circles;
 	QOpenGLShaderProgram shader_char;
@@ -44,6 +41,7 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rc;
+	bool has_rc_obj;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 
@@ -51,7 +49,6 @@ protected:
 	GLuint color_map_texture;
 	QtMultiColorCircleGLObject pcls_obj;
 	
-	bool has_rc_obj;
 	QtRigidCircleObject rc_obj;
 	
 	bool has_color_map;
@@ -83,7 +80,7 @@ protected:
 	void clear();
 
 public:
-	QtSceneFromHdf5_T2D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
+	explicit QtSceneFromHdf5_T2D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
 	~QtSceneFromHdf5_T2D_ME_s();
 	void close_file();
 
@@ -111,8 +108,8 @@ public:
 	
 	int set_res_file(
 		ResultFile_hdf5& rf,
-		const char* th_na,
-		const char* field_na
+		const char* th_name,
+		Hdf5Field::FieldType fld_type
 		);
 
 public:

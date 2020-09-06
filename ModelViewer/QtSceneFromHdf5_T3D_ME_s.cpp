@@ -238,6 +238,7 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	rf.close_group(bg_mesh_id);
 	if (res) return res;
 
+	// init particle data
 	res = data_loader.load_frame_data(frame_id);
 	if (res) return res;
 

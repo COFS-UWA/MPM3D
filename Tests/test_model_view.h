@@ -47,6 +47,8 @@ void test_t2d_me_s_pipe_conference_restart_result(int argc, char** argv);
 void test_t2d_me_s_pipe_conference_restart_result2(int argc, char** argv);
 void test_t2d_me_s_pipe_conference_geo_undrained_result(int argc, char** argv);
 
+void test_t2d_me_s_pipe_conference_no_geostress_result(int argc, char** argv);
+
 void test_t2d_me_p_pipe_conference_geo_result(int argc, char** argv);
 void test_t2d_me_p_pipe_conference_restart_result(int argc, char** argv);
 

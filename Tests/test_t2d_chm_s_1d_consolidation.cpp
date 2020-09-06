@@ -149,7 +149,7 @@ void test_t2d_chm_s_1d_compression_ani_result(int argc, char** argv)
 
 	QtApp_Posp_T2D_CHM_s app(argc, argv, QtApp_Posp_T2D_CHM_s::Animation);
 	app.set_win_size(900, 900);
-	app.set_res_file(rf, "consolidation", "p");
+	app.set_res_file(rf, "consolidation", Hdf5Field::p);
 	app.set_ani_time(5.0);
 	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.6, 0.5, 0.4);

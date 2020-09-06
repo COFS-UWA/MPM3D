@@ -112,12 +112,12 @@ public:
 	
 // ================= SingleFrame only =================
 	inline int set_res_file(ResultFile_hdf5 &rf,
-		const char *th_na, size_t f_id, const char *fld_na)
+		const char *th_na, size_t f_id, Hdf5Field::FieldType fld_type)
 	{
 		if (type != SingleFrame)
 			return -1;
 		int res;
-		if (res = scene.set_res_file(rf, th_na, fld_na))
+		if (res = scene.set_res_file(rf, th_na, fld_type))
 			return res;
 		QtController_Posp_Static &pc
 			= *static_cast<QtController_Posp_Static *>(pcontroller);
@@ -128,12 +128,12 @@ public:
 	
 // ================= Animation only =================
 	inline int set_res_file(ResultFile_hdf5& rf,
-		const char* th_na, const char* fld_na)
+		const char* th_na, Hdf5Field::FieldType fld_type)
 	{
 		if (type != Animation)
 			return -1;
 		int res;
-		if (res = scene.set_res_file(rf, th_na, fld_na))
+		if (res = scene.set_res_file(rf, th_na, fld_type))
 			return res;
 		return 0;
 	}

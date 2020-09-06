@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
 	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
 	// penetration step 1
-	test_t2d_chm_s_pipe_conference_restart1(argc, argv);
+	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);
 	//test_t2d_chm_s_pipe_conference_restart1_result(argc, argv);
 	// penetration step 2
 	//test_t2d_chm_s_pipe_conference_restart2(argc, argv);
@@ -112,7 +112,10 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_pipe_conference_restart_result(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart2(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart_result2(argc, argv);
-	
+
+	test_t2d_me_s_pipe_conference_no_geostress(argc, argv);
+	test_t2d_me_s_pipe_conference_no_geostress_result(argc, argv);
+
 	//test_t2d_me_p_pipe_conference_geo(argc, argv);
 	//test_t2d_me_p_pipe_conference_geo_result(argc, argv);
 	//test_t2d_me_p_pipe_conference_restart(argc, argv);

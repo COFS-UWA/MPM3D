@@ -37,7 +37,7 @@ add_executable(
     #test_t2d_me_s_geostatic_restart.cpp
     #test_t2d_chm_s_geostatic_mcc.cpp
     # deformation calculation
-    #test_t2d_me_s_1d_compression.cpp
+    test_t2d_me_s_1d_compression.cpp
     test_t2d_chm_s_1d_consolidation.cpp
     # restart utilities
     #test_t2d_me_s_test_restart.cpp
@@ -61,6 +61,8 @@ add_executable(
     #test_t2d_me_s_pipe_conference_restart2.cpp
     #test_t2d_me_p_pipe_conference_geo.cpp
     #test_t2d_me_p_pipe_conference_restart.cpp
+    # no geostatic stress
+    test_t2d_me_s_pipe_conference_no_geostress.cpp
     # undrained
     #test_t2d_me_s_pipe_conference_geo_undrained.cpp
     # 3D

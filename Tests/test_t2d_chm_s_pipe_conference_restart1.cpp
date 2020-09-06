@@ -98,7 +98,7 @@ void test_t2d_chm_s_pipe_conference_restart1_result(int argc, char** argv)
 	QtApp_Posp_T2D_CHM_s app(argc, argv, QtApp_Posp_T2D_CHM_s::Animation);
 	app.set_win_size(900, 900);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "penetration", "s22");
+	app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
 	app.set_color_map_fld_range(-11.0, -9.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);

@@ -46,6 +46,8 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv);
 void test_t2d_chm_s_pipe_conference_restart1(int argc, char** argv);
 void test_t2d_chm_s_pipe_conference_restart2(int argc, char** argv);
 
+void test_t2d_me_s_pipe_conference_no_geostress(int argc, char** argv);
+
 // completely drained or undrained
 void test_t2d_me_s_pipe_conference_geo(int argc, char** argv);
 void test_t2d_me_s_pipe_conference_restart(int argc, char** argv);

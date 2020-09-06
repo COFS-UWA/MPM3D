@@ -31,9 +31,6 @@ protected:
 	Hdf5FieldExtraction_z z_fld;
 	Hdf5FieldExtraction_vol vol_fld;
 	Hdf5FieldExtraction *pfld;
-	MemoryUtils::ItemArray<double> pcl_x_fld_mem;
-	MemoryUtils::ItemArray<double> pcl_y_fld_mem;
-	MemoryUtils::ItemArray<double> pcl_z_fld_mem;
 	MemoryUtils::ItemArray<double> pcl_fld_mem;
 
 	std::string field_name;

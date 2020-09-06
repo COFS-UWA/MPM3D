@@ -5,16 +5,14 @@
 
 QtSceneFromHdf5_T2D_CHM_s::QtSceneFromHdf5_T2D_CHM_s(
 	QOpenGLFunctions_3_3_Core &_gl) :
-	QtSceneFromHdf5(_gl), res_file(nullptr),
-	frame_grp_id(-1), th_id(-1), pcl_dt_id(),
-	display_bg_mesh(true),
-	display_pcls(true),
-	display_rc(true),
-	bg_mesh_obj(_gl),
-	pcls_obj(_gl),
-	rc_obj(_gl), has_rc_obj(false),
-	color_map_obj(_gl), has_color_map(false),
-	color_map_texture(0),
+	QtSceneFromHdf5(_gl),
+	res_file(nullptr), th_id(-1),
+	x_fld(data_loader), y_fld(data_loader),
+	vol_fld(data_loader), pfld(nullptr),
+	display_bg_mesh(true), bg_mesh_obj(_gl),
+	display_pcls(true), pcls_obj(_gl),
+	display_rc(true), has_rc_obj(false), rc_obj(_gl),
+	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f)
 {
@@ -23,31 +21,8 @@ QtSceneFromHdf5_T2D_CHM_s::QtSceneFromHdf5_T2D_CHM_s(
 
 QtSceneFromHdf5_T2D_CHM_s::~QtSceneFromHdf5_T2D_CHM_s()
 {
-	close_file();
 	clear();
-}
-
-void QtSceneFromHdf5_T2D_CHM_s::close_file()
-{
-	if (!res_file)
-		return;
-	ResultFile_hdf5& rf = *res_file;
-	if (frame_grp_id >= 0)
-	{
-		rf.close_group(frame_grp_id);
-		frame_grp_id = -1;
-	}
-	if (th_id >= 0)
-	{
-		rf.close_group(th_id);
-		th_id = -1;
-	}
-	if (pcl_dt_id >= 0)
-	{
-		H5Tclose(pcl_dt_id);
-		pcl_dt_id = -1;
-	}
-	res_file = nullptr;
+	close_file();
 }
 
 void QtSceneFromHdf5_T2D_CHM_s::clear()
@@ -57,6 +32,20 @@ void QtSceneFromHdf5_T2D_CHM_s::clear()
 		gl.glDeleteTextures(1, &color_map_texture);
 		color_map_texture = 0;
 	}
+}
+
+void QtSceneFromHdf5_T2D_CHM_s::close_file()
+{
+	if (!res_file)
+		return;
+
+	if (pfld)
+	{
+		delete pfld;
+		pfld = nullptr;
+	}
+	data_loader.close_res_file();
+	res_file = nullptr;
 }
 
 void QtSceneFromHdf5_T2D_CHM_s::set_viewport(
@@ -131,73 +120,41 @@ void QtSceneFromHdf5_T2D_CHM_s::resize(int wd, int ht)
 // ================== animation ==================
 int QtSceneFromHdf5_T2D_CHM_s::set_res_file(
 	ResultFile_hdf5& rf,
-	const char* th_na,
-	const char* field_na
+	const char* th_name,
+	Hdf5Field::FieldType fld_type
 	)
 {
+	char exception_msg[256];
 	close_file();
 	res_file = &rf;
+	data_loader.set_time_history(rf, th_name);
+	th_id = data_loader.get_time_history_id();
 
-	hid_t th_grp_id = rf.get_time_history_grp_id();
-	// check if the time history exists
-	if (!rf.has_group(th_grp_id, th_na))
+	if (!x_fld.validate_data_type())
+		throw std::exception("x field not found in hdf5 field data.");
+	if (!y_fld.validate_data_type())
+		throw std::exception("y field not found in hdf5 field data.");
+	if (!vol_fld.validate_data_type())
+		throw std::exception("vol field not found in hdf5 field data.");
+
+	pfld = Hdf5Field::make(fld_type);
+	if (!pfld)
 	{
-		close_file();
-		return -1;
+		snprintf(exception_msg, sizeof(exception_msg),
+			"Field type %u is not supported.", unsigned int(fld_type));
+		throw std::exception(exception_msg);
 	}
-	th_id = rf.open_group(th_grp_id, th_na);
-
-	if (!rf.has_group(th_id, "frame_0"))
+	pfld->set_data_loader(data_loader);
+	if (!(pfld->validate_data_type()))
 	{
-		close_file();
-		return -2;
+		snprintf(exception_msg, sizeof(exception_msg),
+			"%s field not found in hdf5 field data.",
+			Hdf5Field::get_name(fld_type));
+		throw std::exception(exception_msg);
 	}
-	frame_grp_id = rf.open_group(th_id, "frame_0");
+	field_name = Hdf5Field::get_name(fld_type);
 
-	hid_t pcl_grp_id = rf.open_group(frame_grp_id, "ParticleData");
-	hid_t pcl_dset_id = rf.open_dataset(pcl_grp_id, "field");
-
-	// get field data type
-	pcl_dt_id = H5Dget_type(pcl_dset_id);
-	pcl_size = H5Tget_size(pcl_dt_id);
-	int init_mem_num = 0;
-	int mem_num = H5Tget_nmembers(pcl_dt_id);
-	for (size_t mem_id = 0; mem_id < mem_num; ++mem_id)
-	{
-		const char* mem_name = H5Tget_member_name(pcl_dt_id, mem_id);
-		if (strcmp(mem_name, "x") == 0)
-		{
-			pcl_x_off = H5Tget_member_offset(pcl_dt_id, mem_id);
-			++init_mem_num;
-		}
-		else if (strcmp(mem_name, "y") == 0)
-		{
-			pcl_y_off = H5Tget_member_offset(pcl_dt_id, mem_id);
-			++init_mem_num;
-		}
-		else if (strcmp(mem_name, "vol") == 0)
-		{
-			pcl_vol_off = H5Tget_member_offset(pcl_dt_id, mem_id);
-			++init_mem_num;
-		}
-
-		if (strcmp(mem_name, field_na) == 0)
-		{
-			field_name = field_na;
-			pcl_fld_off = H5Tget_member_offset(pcl_dt_id, mem_id);
-			pcl_fld_type = H5Tget_member_class(pcl_dt_id, mem_id);
-			++init_mem_num;
-		}
-	}
-
-	rf.close_dataset(pcl_dset_id);
-	rf.close_group(pcl_grp_id);
-	if (init_mem_num == 4)
-		return 0;
-
-	// not enough members in data type
-	close_file();
-	return -3;
+	return 0;
 }
 
 size_t QtSceneFromHdf5_T2D_CHM_s::get_frame_num()
@@ -289,27 +246,33 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 	if (res)
 		return res;
 
-	// init particle data buffer
-	char frame_name[50];
-	snprintf(frame_name, 50, "frame_%zu", frame_id);
-	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	hid_t pcl_data_id = rf.open_group(frame_grp_id, "ParticleData");
-	// pcl num
-	rf.read_attribute(pcl_data_id, "pcl_num", pcl_num);
-	// pcl data
-	pcls_data_mem.reserve(pcl_size * pcl_num);
-	char* pcls_data = pcls_data_mem.get_mem();
-	rf.read_dataset(pcl_data_id, "field", pcl_num, (void *)pcls_data, pcl_dt_id);
-	rf.close_group(pcl_data_id);
-	// init pcl gl buffer
-	res = pcls_obj.init<double>(
-		pcls_data, pcl_size, pcl_num,
-		pcl_x_off, pcl_y_off,
-		pcl_vol_off, 0.5, pcl_fld_off
-		);
-	if (res)
-		return res;
+	// init particle data
+	res = data_loader.load_frame_data(frame_id);
+	if (res) return res;
 
+	size_t pcl_num = data_loader.get_pcl_num();
+	pcl_fld_mem.reserve(pcl_num * 4);
+	// x coord
+	double* pcl_x_data = pcl_fld_mem.get_mem();
+	x_fld.extract_pcl_fld_data(pcl_x_data);
+	// y coord
+	double* pcl_y_data = pcl_x_data + pcl_num;
+	y_fld.extract_pcl_fld_data(pcl_y_data);
+	// vol
+	double* pcl_vol_data = pcl_y_data + pcl_num;
+	vol_fld.extract_pcl_fld_data(pcl_vol_data);
+	// pcl fld
+	double* pcl_fld_data = pcl_vol_data + pcl_num;
+	pfld->extract_pcl_fld_data(pcl_fld_data);
+	pcls_obj.init(
+		pcl_num,
+		pcl_x_data,
+		pcl_y_data,
+		pcl_vol_data,
+		pcl_fld_data,
+		0.5
+		);
+	
 	// color map texture
 	size_t color_map_texture_size;
 	unsigned char* color_map_texture_data
@@ -333,6 +296,9 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 	gl.glBindTexture(GL_TEXTURE_1D, color_map_texture);
 
 	// rigid circle
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
 	if (rf.has_group(frame_grp_id, "RigidCircle"))
 	{
 		has_rc_obj = true;
@@ -345,8 +311,6 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 		rc_obj.init(rc_x, rc_y, rc_radius, light_slate_blue, 3.0f);
 		rf.close_group(rb_grp_id);
 	}
-
-	// complete reading hdf5
 	rf.close_group(frame_grp_id);
 
 	// color map display
@@ -423,26 +387,36 @@ int QtSceneFromHdf5_T2D_CHM_s::init_scene(int wd, int ht, size_t frame_id)
 
 void QtSceneFromHdf5_T2D_CHM_s::update_scene(size_t frame_id)
 {
-	ResultFile_hdf5 &rf = *res_file;
+	data_loader.load_frame_data(frame_id);
+
+	size_t pcl_num = data_loader.get_pcl_num();
+	pcl_fld_mem.reserve(pcl_num * 4);
+	// x coord
+	double* pcl_x_data = pcl_fld_mem.get_mem();
+	x_fld.extract_pcl_fld_data(pcl_x_data);
+	// y coord
+	double* pcl_y_data = pcl_x_data + pcl_num;
+	y_fld.extract_pcl_fld_data(pcl_y_data);
+	// vol
+	double* pcl_vol_data = pcl_y_data + pcl_num;
+	vol_fld.extract_pcl_fld_data(pcl_vol_data);
+	// pcl fld
+	double* pcl_fld_data = pcl_vol_data + pcl_num;
+	pfld->extract_pcl_fld_data(pcl_fld_data);
+	pcls_obj.update(
+		pcl_num,
+		pcl_x_data,
+		pcl_y_data,
+		pcl_vol_data,
+		pcl_fld_data,
+		0.5
+	);
+
+	// rigid circle
+	ResultFile_hdf5& rf = *res_file;
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	
-	// pcl data
-	hid_t pcl_data_id = rf.open_group(frame_grp_id, "ParticleData");
-	rf.read_attribute(pcl_data_id, "pcl_num", pcl_num);
-	pcls_data_mem.reserve(pcl_size * pcl_num);
-	char* pcls_data = pcls_data_mem.get_mem();
-	rf.read_dataset(pcl_data_id, "field", pcl_num, (void*)pcls_data, pcl_dt_id);
-	rf.close_group(pcl_data_id);
-	// update pcl gl buffer
-	pcls_obj.update<double>(
-		pcls_data, pcl_size, pcl_num,
-		pcl_x_off, pcl_y_off,
-		pcl_vol_off, 0.5, pcl_fld_off
-		);
-
-	// rigid circle
 	if (rf.has_group(frame_grp_id, "RigidCircle"))
 	{
 		has_rc_obj = true;
@@ -454,6 +428,5 @@ void QtSceneFromHdf5_T2D_CHM_s::update_scene(size_t frame_id)
 		rc_obj.update(rc_x, rc_y, rc_radius);
 		rf.close_group(rb_grp_id);
 	}
-
 	rf.close_group(frame_grp_id);
 }
