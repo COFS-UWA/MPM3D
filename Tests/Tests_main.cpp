@@ -54,9 +54,15 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_1d_compression_static_result(argc, argv);
 	//test_t2d_me_s_1d_compression_ani_result(argc, argv);
 
+	//test_t2d_me_s_1d_compression_horizontal(argc, argv);
+	//test_t2d_me_s_1d_compression_horizontal_result(argc, argv);
+
 	//test_t2d_chm_s_1d_consolidation(argc, argv);
 	//test_t2d_chm_s_1d_compression_static_result(argc, argv);
 	//test_t2d_chm_s_1d_compression_ani_result(argc, argv);
+
+	//test_t2d_chm_s_ud_compression(argc, argv);
+	//test_t2d_chm_s_ud_compression_result(argc, argv);
 
 	// test me restart
 	//test_t2d_me_s_test_restart_geo_step(argc, argv);
@@ -113,8 +119,11 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_pipe_conference_restart2(argc, argv);
 	//test_t2d_me_s_pipe_conference_restart_result2(argc, argv);
 
-	test_t2d_me_s_pipe_conference_no_geostress(argc, argv);
-	test_t2d_me_s_pipe_conference_no_geostress_result(argc, argv);
+	//test_t2d_me_s_pipe_conference_drained_no_geostress(argc, argv);
+	//test_t2d_me_s_pipe_conference_drained_no_geostress_result(argc, argv);
+	
+	test_t2d_chm_s_pipe_conference_undrained_no_geostress(argc, argv);
+	test_t2d_chm_s_pipe_conference_undrained_no_geostress_result(argc, argv);
 
 	//test_t2d_me_p_pipe_conference_geo(argc, argv);
 	//test_t2d_me_p_pipe_conference_geo_result(argc, argv);

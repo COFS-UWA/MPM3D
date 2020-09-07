@@ -125,6 +125,8 @@ class Step_T2D_CHM_s_Geo;
 int solve_substep_T2D_CHM_s_Geo(void* _self);
 class Step_T2D_CHM_s;
 int solve_substep_T2D_CHM_s(void* _self);
+class Step_T2D_CHM_s_ud;
+int solve_substep_T2D_CHM_s_ud(void *_self);
 
 class Model_T2D_CHM_s;
 class ResultFile_hdf5;
@@ -150,6 +152,8 @@ struct Model_T2D_CHM_s : public Model,
 	friend int solve_substep_T2D_CHM_s_Geo(void* _self);
 	friend class Step_T2D_CHM_s;
 	friend int solve_substep_T2D_CHM_s(void *_self);
+	friend class Step_T2D_CHM_s_ud;
+	friend int solve_substep_T2D_CHM_s_ud(void* _self);
 
 public:
 	typedef Model_T2D_CHM_s_Internal::BgMesh BgMesh;

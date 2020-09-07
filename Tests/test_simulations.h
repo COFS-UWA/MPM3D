@@ -14,7 +14,9 @@ void test_t2d_me_s_geostatic_restart(int argc, char** argv);
 void test_t2d_chm_s_geostatic_mcc(int argc, char** argv);
 
 void test_t2d_me_s_1d_compression(int argc, char **argv);
+void test_t2d_me_s_1d_compression_horizontal(int argc, char** argv);
 void test_t2d_chm_s_1d_consolidation(int argc, char** argv);
+void test_t2d_chm_s_ud_compression(int argc, char** argv);
 
 void test_t2d_me_s_test_restart_geo_step(int argc, char** argv);
 void test_t2d_me_s_test_restart_penetration_step(int argc, char** argv);
@@ -46,7 +48,8 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv);
 void test_t2d_chm_s_pipe_conference_restart1(int argc, char** argv);
 void test_t2d_chm_s_pipe_conference_restart2(int argc, char** argv);
 
-void test_t2d_me_s_pipe_conference_no_geostress(int argc, char** argv);
+void test_t2d_me_s_pipe_conference_drained_no_geostress(int argc, char** argv);
+void test_t2d_chm_s_pipe_conference_undrained_no_geostress(int argc, char** argv);
 
 // completely drained or undrained
 void test_t2d_me_s_pipe_conference_geo(int argc, char** argv);
