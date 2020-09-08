@@ -122,8 +122,11 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_pipe_conference_drained_no_geostress(argc, argv);
 	//test_t2d_me_s_pipe_conference_drained_no_geostress_result(argc, argv);
 	
-	test_t2d_chm_s_pipe_conference_undrained_no_geostress(argc, argv);
+	//test_t2d_chm_s_pipe_conference_undrained_no_geostress(argc, argv);
 	//test_t2d_chm_s_pipe_conference_undrained_no_geostress_result(argc, argv);
+
+	//test_t2d_me_s_plate_with_hole(argc, argv);
+	test_t2d_me_s_plate_with_hole_result(argc, argv);
 
 	//test_t2d_me_p_pipe_conference_geo(argc, argv);
 	//test_t2d_me_p_pipe_conference_geo_result(argc, argv);

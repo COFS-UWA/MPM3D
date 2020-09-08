@@ -52,9 +52,9 @@ add_library(
     Hdf5FieldExtraction_e12.h Hdf5FieldExtraction_e12.cpp
     Hdf5FieldExtraction_e23.h Hdf5FieldExtraction_e23.cpp
     Hdf5FieldExtraction_e31.h Hdf5FieldExtraction_e31.cpp
+    Hdf5FieldExtraction_mises_strain_2d.h Hdf5FieldExtraction_mises_strain_2d.cpp
     #Hdf5FieldExtraction_mat_mean_stress.h Hdf5FieldExtraction_mat_mean_stress.cpp
     #Hdf5FieldExtraction_mat_mises_stress.h Hdf5FieldExtraction_mat_mises_stress.cpp
-    #Hdf5FieldExtraction_mat_mises_strain.h Hdf5FieldExtraction_mat_mises_strain.cpp
     # CHM MPM
     Hdf5FieldExtraction_n.h Hdf5FieldExtraction_n.cpp
     Hdf5FieldExtraction_m_s.h Hdf5FieldExtraction_m_s.cpp

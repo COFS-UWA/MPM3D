@@ -17,6 +17,7 @@ struct Vector3D
 
 	inline Vector3D() {}
 	inline Vector3D(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+	inline Vector3D(const Vector3D& other) : x(other.x), y(other.y), z(other.z) {}
 
 	inline double norm() { return sqrt(x * x + y * y + z * z); }
 	inline Vector3D& normalize()

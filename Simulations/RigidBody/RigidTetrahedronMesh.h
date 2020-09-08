@@ -5,6 +5,7 @@
 
 #include "ItemBuffer.hpp"
 #include "ItemStack.hpp"
+#include "GeometryUtils.h"
 #include "TetrahedronUtils.h"
 #include "TetrahedronMeshTemplate.hpp"
 
@@ -117,13 +118,10 @@ protected:
 	// rotation
 	double ax_ang, ay_ang, az_ang;
 	double vx_ang, vy_ang, vz_ang;
+	double x_ang, y_ang, z_ang;
 
 	double ax_ang_bc, ay_ang_bc, az_ang_bc;
-	union
-	{
-		struct { double vx_ang_bc, vy_ang_bc, vz_ang_bc; };
-		Vector3D v_ang;
-	};
+	double vx_ang_bc, vy_ang_bc, vz_ang_bc;
 
 	double* pax_ang, * pay_ang, * paz_ang;
 	double* pvx_ang, * pvy_ang, * pvz_ang;
@@ -136,6 +134,25 @@ protected:
 	typedef Eigen::Matrix<double, 3, 1> Vector3;
 
 	Matrix3x3 moi_mat; // moment of inertia
+
+	inline void rotate_axis(
+		Vector3D &rix, Vector3D &riy, Vector3D &riz,
+		double sin_ang, double cos_ang, Vector3D &ix)
+	{
+		riy.cross(riz, ix);
+		double riy_norm = riy.norm();
+		if (riy_norm != 0.0)
+		{
+			riy.scale(1.0 / riy_norm);
+			rix.cross(riy, riz);
+			double pj_len = ix.dot(rix);
+			double pj_ht = ix.dot(riz);
+			ix.x = (rix.x * cos_ang + riy.x * sin_ang) * pj_len;
+			ix.y = (rix.y * cos_ang + riy.y * sin_ang) * pj_len;
+			ix.z = (rix.z * cos_ang + riy.z * sin_ang) * pj_len;
+			ix.add(riz.x * pj_ht, riz.y * pj_ht, riz.z * pj_ht);
+		}
+	}
 
 public:
 	RigidTetrahedronMesh();
@@ -327,16 +344,29 @@ public:
 		vy_ang = *pvy_ang;
 		vz_ang = *pvz_ang;
 		// adjust local axises
-		double tan_ang = tan(v_ang.norm() * dt);
-		Vector3D tmp;
-		tmp.cross(v_ang, ix);
-		tmp.scale(tan_ang);
-		ix.add(tmp).normalize();
-		tmp.cross(v_ang, iy);
-		tmp.scale(tan_ang);
-		iy.add(tmp).normalize();
-		iz.cross(ix, iy);
-		iy.cross(iz, ix);
+		x_ang += vx_ang * dt;
+		trim_to_pi(x_ang);
+		y_ang += vy_ang * dt;
+		trim_to_pi(y_ang);
+		z_ang += vz_ang * dt;
+		trim_to_pi(z_ang);
+		// update ix, iy, iz
+		// rotation coordinates
+		ix.x = 1.0, ix.y = 0.0, ix.z = 0.0;
+		iy.x = 0.0, iy.y = 1.0, iy.z = 0.0;
+		iz.x = 0.0, iz.y = 0.0, iz.z = 1.0;
+		Vector3D riz(x_ang, y_ang, z_ang);
+		double riz_norm = riz.norm();
+		if (riz_norm != 0.0)
+		{
+			riz.scale(1.0 / riz_norm);
+			double sin_ang = sin(riz_norm);
+			double cos_ang = cos(riz_norm);
+			Vector3D rix, riy;
+			rotate_axis(rix, riy, riz, sin_ang, cos_ang, ix);
+			rotate_axis(rix, riy, riz, sin_ang, cos_ang, iy);
+			rotate_axis(rix, riy, riz, sin_ang, cos_ang, iz);
+		}
 	}
 
 	inline void add_con_force(double _fx, double _fy, double _fz,

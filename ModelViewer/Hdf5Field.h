@@ -23,6 +23,7 @@
 #include "Hdf5FieldExtraction_e12.h"
 #include "Hdf5FieldExtraction_e23.h"
 #include "Hdf5FieldExtraction_e31.h"
+#include "Hdf5FieldExtraction_mises_strain_2d.h"
 // chm
 #include "Hdf5FieldExtraction_m_s.h"
 #include "Hdf5FieldExtraction_m_f.h"
@@ -73,7 +74,8 @@ namespace Hdf5Field
 		vx_f = 29,
 		vy_f = 30,
 		vz_f = 31,
-		p = 32
+		p = 32,
+		mises_strain_2d = 33
 	};
 
 	namespace Hdf5Field_internal
@@ -118,7 +120,8 @@ namespace Hdf5Field
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_vx_f>, // 29
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_vy_f>, // 30
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_vz_f>, // 31
-			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_p> // 32
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_p>, // 32
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_mises_strain_2d> // 33
 		};
 		const size_t make_func_num = sizeof(make_funcs) / sizeof(make_funcs[0]);
 	}

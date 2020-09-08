@@ -95,6 +95,7 @@ RigidTetrahedronMesh::RigidTetrahedronMesh() :
 	bface_num(0), bfaces(nullptr),
 	ax_ang(0.0), ay_ang(0.0), az_ang(0.0),
 	vx_ang(0.0), vy_ang(0.0), vz_ang(0.0),
+	x_ang(0.0), y_ang(0.0), z_ang(0.0),
 	pax_ang(&ax_ang), pay_ang(&ay_ang), paz_ang(&az_ang),
 	pvx_ang(&vx_ang), pvy_ang(&vy_ang), pvz_ang(&vz_ang),
 	mx_ext(0.0), my_ext(0.0), mz_ext(0.0),
