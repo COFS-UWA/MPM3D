@@ -34,9 +34,6 @@ void test_t2d_chm_s_pipe_conference_undrained_no_geostress(int argc, char** argv
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		Model_T2D_CHM_s::Particle& pcl = pcls[p_id];
-		pcl.s11 = ini_stress[0];
-		pcl.s22 = ini_stress[1];
-		pcl.s12 = 0.0;
 		MatModel::ModifiedCamClay& mm = mms[p_id];
 		mm.set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress);
 		pcl.set_mat_model(mm);
@@ -109,7 +106,7 @@ void test_t2d_chm_s_pipe_conference_undrained_no_geostress(int argc, char** argv
 	step.solve();
 }
 
-#include "QtApp_Posp_T2D_ME_s.h"
+#include "QtApp_Posp_T2D_CHM_s.h"
 #include "test_model_view.h"
 
 void test_t2d_chm_s_pipe_conference_undrained_no_geostress_result(int argc, char** argv)
@@ -118,23 +115,23 @@ void test_t2d_chm_s_pipe_conference_undrained_no_geostress_result(int argc, char
 	rf.open("t2d_chm_s_pipe_conference_undrained_no_geostress.h5");
 
 	// single frame
-	//QtApp_Posp_T2D_ME_s app(argc, argv);
+	//QtApp_Posp_T2D_CHM_s app(argc, argv);
 	//app.set_win_size(900, 900);
 	//app.set_res_file(rf, "geostatic", 100, Hdf5Field::s22);
 	//app.set_display_range(-3.6, 3.6, -5.1, 1.1);
-	//app.set_fld_range(-20100.0, -19900.0);
-	//app.set_color_map_pos(0.8, 0.65, 0.3);
+	//app.set_color_map_fld_range(-20100.0, -19900.0);
+	//app.set_color_map_geometry(0.8, 0.65, 0.3);
 	////app.set_png_name("t2d_me_s_pipe_conference_geo");
 	//app.start();
 
 	// animation
-	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	QtApp_Posp_T2D_CHM_s app(argc, argv, QtApp_Posp_T2D_CHM_s::Animation);
 	app.set_win_size(900, 900);
 	app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	app.set_ani_time(5.0);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	app.set_fld_range(-21000.0, -19000.0);
-	app.set_color_map_pos(0.8, 0.65, 0.3);
+	app.set_color_map_fld_range(-21000.0, -19000.0);
+	app.set_color_map_geometry(0.8, 0.65, 0.3);
 	//app.set_png_name("t2d_chm_s_pipe_conference_undrained_no_geostress");
 	//app.set_gif_name("t2d_chm_s_pipe_conference_undrained_no_geostress");
 	app.start();

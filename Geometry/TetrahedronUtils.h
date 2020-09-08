@@ -454,6 +454,7 @@ protected:
 	double a1, a2, a3;
 
 public:
+	PointToTriangleDistance() {}
 	void init_triangle(Node3D& _n1, Node3D& _n2, Node3D& _n3)
 	{
 		n1.x = _n1.x;
@@ -645,5 +646,50 @@ public:
 		return;
 	}
 };
+
+template <typename Point3D>
+void cal_tetrahedron_moi(
+	double xc,
+	double yc,
+	double zc,
+	Point3D &p1,
+	Point3D &p2,
+	Point3D &p3, 
+	Point3D &p4,
+	double vol,
+	double moi_mat[6]
+	)
+{
+	moi_mat[0] = vol / 10.0 *
+		 (p1.y * p1.y + p1.y * p2.y + p2.y * p2.y + p1.y * p3.y + p2.y * p3.y
+		+ p3.y * p3.y + p1.y * p4.y + p2.y * p4.y + p3.y * p4.y + p4.y * p4.y
+		+ p1.z * p1.z + p1.z * p2.z + p2.z * p2.z + p1.z * p3.z + p2.z * p3.z
+		+ p3.z * p3.z + p1.z * p4.z + p2.z * p4.z + p3.z * p4.z + p4.z * p4.z);
+	moi_mat[1] = vol / 10.0 *
+		 (p1.x * p1.x + p1.x * p2.x + p2.x * p2.x + p1.x * p3.x + p2.x * p3.x
+		+ p3.x * p3.x + p1.x * p4.x + p2.x * p4.x + p3.x * p4.x + p4.x * p4.x
+		+ p1.z * p1.z + p1.z * p2.z + p2.z * p2.z + p1.z * p3.z + p2.z * p3.z
+		+ p3.z * p3.z + p1.z * p4.z + p2.z * p4.z + p3.z * p4.z + p4.z * p4.z);
+	moi_mat[2] = vol / 10.0 *
+		 (p1.x * p1.x + p1.x * p2.x + p2.x * p2.x + p1.x * p3.x + p2.x * p3.x
+		+ p3.x * p3.x + p1.x * p4.x + p2.x * p4.x + p3.x * p4.x + p4.x * p4.x
+		+ p1.y * p1.y + p1.y * p2.y + p2.y * p2.y + p1.y * p3.y + p2.y * p3.y
+		+ p3.y * p3.y + p1.y * p4.y + p2.y * p4.y + p3.y * p4.y + p4.y * p4.y);
+	moi_mat[3] = -vol / 20.0 *
+		 (2.0 * p1.y * p1.z + p2.y * p1.z + p3.y * p1.z + p4.y * p1.z + p1.y * p2.z
+		+ 2.0 * p2.y * p2.z + p3.y * p2.z + p4.y * p2.z + p1.y * p3.z + p2.y * p3.z
+		+ 2.0 * p3.y * p3.z + p4.y * p3.z + p1.y * p4.z + p2.y * p4.z + p3.y * p4.z
+		+ 2.0 * p4.y * p4.z);
+	moi_mat[4] = -vol / 20.0 *
+		 (2.0 * p1.x * p1.z + p2.x * p1.z + p3.x * p1.z + p4.x * p1.z + p1.x * p2.z
+		+ 2.0 * p2.x * p2.z + p3.x * p2.z + p4.x * p2.z + p1.x * p3.z + p2.x * p3.z
+		+ 2.0 * p3.x * p3.z + p4.x * p3.z + p1.x * p4.z + p2.x * p4.z + p3.x * p4.z
+		+ 2.0 * p4.x * p4.z);
+	moi_mat[5] = -vol / 20.0 *
+		 (2.0 * p1.x * p1.y + p2.x * p1.y + p3.x * p1.y + p4.x * p1.y + p1.x * p2.y
+		+ 2.0 * p2.x * p2.y + p3.x * p2.y + p4.x * p2.y + p1.x * p3.y + p2.x * p3.y
+		+ 2.0 * p3.x * p3.y + p4.x * p3.y + p1.x * p4.y + p2.x * p4.y + p3.x * p4.y
+		+ 2.0 * p4.x * p4.y);
+}
 
 #endif

@@ -15,6 +15,9 @@ struct Vector3D
 {
 	double x, y, z;
 
+	inline Vector3D() {}
+	inline Vector3D(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+
 	inline double norm() { return sqrt(x * x + y * y + z * z); }
 	inline Vector3D& normalize()
 	{
@@ -29,25 +32,19 @@ struct Vector3D
 	}
 
 	inline Vector3D& scale(double fac) noexcept
-	{
-		x *= fac; y *= fac; z *= fac; return *this;
-	}
+	{ x *= fac; y *= fac; z *= fac; return *this; }
 	inline Vector3D& reverse() noexcept
-	{
-		x = -x; y = -y; z = -z; return *this;
-	}
+	{ x = -x; y = -y; z = -z; return *this; }
 
+	inline Vector3D &add(double e1_x, double e1_y, double e1_z)
+	{ x += e1_x; y += e1_y; z += e1_z; return *this; }
 	inline Vector3D& substract(double e1_x, double e1_y, double e1_z,
-		double e2_x, double e2_y, double e2_z)
-	{
-		x = e1_x - e2_x; y = e1_y - e2_y; z = e1_z - e2_z; return *this;
-	}
+							   double e2_x, double e2_y, double e2_z)
+	{ x = e1_x - e2_x; y = e1_y - e2_y; z = e1_z - e2_z; return *this; }
 	inline double dot(double e2_x, double e2_y, double e2_z)
-	{
-		return x * e2_x + y * e2_y + z * e2_z;
-	}
+	{ return x * e2_x + y * e2_y + z * e2_z; }
 	inline Vector3D& cross(double e1_x, double e1_y, double e1_z,
-		double e2_x, double e2_y, double e2_z)
+						   double e2_x, double e2_y, double e2_z)
 	{
 		x = e1_y * e2_z - e1_z * e2_y;
 		y = e1_z * e2_x - e1_x * e2_z;
@@ -56,15 +53,14 @@ struct Vector3D
 	}
 
 	template <typename Point3D>
+	inline Vector3D& add(Point3D &p)
+	{ x += p.x; y += p.y; z += p.z; return *this; }
+	template <typename Point3D>
 	inline Vector3D& substract(Point3D& p1, Point3D& p2)
-	{
-		x = p1.x - p2.x; y = p1.y - p2.y; z = p1.z - p2.z; return *this;
-	}
+	{ x = p1.x - p2.x; y = p1.y - p2.y; z = p1.z - p2.z; return *this; }
 	template <typename Point3D>
 	inline double dot(Point3D& p2)
-	{
-		return x * p2.x + y * p2.y + z * p2.z;
-	}
+	{ return x * p2.x + y * p2.y + z * p2.z; }
 	template <typename Point3D>
 	inline Vector3D& cross(Point3D& p1, Point3D& p2)
 	{

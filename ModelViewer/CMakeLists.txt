@@ -131,6 +131,7 @@ target_include_directories(
     ${SIMULATIONS_INCLUDE_DIR}
     ${MODELVIEWER_INCLUDE_DIR}
     # External
+    ${EIGEN_INCLUDE_DIR}
     ${HDF5_INCLUDE_DIR}
     ${FREETYPE_INCLUDE_DIR}
     )

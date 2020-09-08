@@ -92,7 +92,14 @@ RigidTetrahedronMesh::RigidTetrahedronMesh() :
 	fx_con(0.0), fy_con(0.0), fz_con(0.0),
 	fx_ext(0.0), fy_ext(0.0), fz_ext(0.0),
 	grids(nullptr),
-	bface_num(0), bfaces(nullptr)
+	bface_num(0), bfaces(nullptr),
+	ax_ang(0.0), ay_ang(0.0), az_ang(0.0),
+	vx_ang(0.0), vy_ang(0.0), vz_ang(0.0),
+	pax_ang(&ax_ang), pay_ang(&ay_ang), paz_ang(&az_ang),
+	pvx_ang(&vx_ang), pvy_ang(&vy_ang), pvz_ang(&vz_ang),
+	mx_ext(0.0), my_ext(0.0), mz_ext(0.0),
+	mx_con(0.0), my_con(0.0), mz_con(0.0),
+	ix(1.0, 0.0, 0.0), iy(0.0, 1.0, 0.0), iz(0.0, 0.0, 1.0)
 {
 	init_cal_var();
 }
@@ -142,6 +149,28 @@ int RigidTetrahedronMesh::init_mesh(
 	z += dz;
 
 	extract_bfaces();
+
+	// cal moment of intertia
+	double e_moi_mat[6];
+	moi_mat.setZero();
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		Node& n1 = nodes[e.n1];
+		Node& n2 = nodes[e.n2];
+		Node& n3 = nodes[e.n3];
+		Node& n4 = nodes[e.n4];
+		cal_tetrahedron_moi(0.0, 0.0, 0.0, n1, n2, n3, n4, e.vol, e_moi_mat);
+		moi_mat(0, 0) += density * e_moi_mat[0];
+		moi_mat(1, 1) += density * e_moi_mat[1];
+		moi_mat(2, 2) += density * e_moi_mat[2];
+		moi_mat(0, 1) += density * e_moi_mat[3];
+		moi_mat(0, 2) += density * e_moi_mat[5];
+		moi_mat(1, 2) += density * e_moi_mat[4];
+	}
+	moi_mat(1, 0) = moi_mat(0, 1);
+	moi_mat(2, 0) = moi_mat(0, 2);
+	moi_mat(2, 1) = moi_mat(1, 2);
 
 	// init bg_mesh
 

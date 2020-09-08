@@ -97,7 +97,7 @@ public:
 
 	inline void set_color_map_fld_range(double min, double max)
 	{ color_map.set_range(min, max); }
-	inline void set_color_map_pos(float xpos, float ypos, float ht)
+	inline void set_color_map_geometry(float xpos, float ypos, float ht)
 	{
 		has_color_map = true;
 		cm_xpos = xpos;	cm_ypos = ypos; cm_ht = ht;

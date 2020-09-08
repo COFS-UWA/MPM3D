@@ -117,10 +117,10 @@ void test_t2d_me_s_1d_compression_horizontal_result(int argc, char** argv)
 	rf.open("t2d_me_s_1d_compression_horizontal.h5");
 
 	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
-	app.set_win_size(900, 900);
-	app.set_fld_range(0.0, 1.0);
-	app.set_res_file(rf, "compression", Hdf5Field::y);
 	app.set_ani_time(5.0);
+	app.set_color_map_fld_range(0.0, 1.0);
+	app.set_win_size(900, 900);
+	app.set_res_file(rf, "compression", Hdf5Field::y);
 	//app.set_png_name("t2d_me_s_1d_compression_horizontal");
 	//app.set_gif_name("t2d_me_s_1d_compression_horizontal");
 	app.start();
