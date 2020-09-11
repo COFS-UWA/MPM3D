@@ -6,83 +6,6 @@
 
 #include "RigidTetrahedronMesh.h"
 
-namespace
-{
-	typedef RigidTetrahedronMesh_Internal::Face Face;
-
-	class FaceMap
-	{
-	public:
-		FaceMap() {}
-		~FaceMap() {}
-
-		void add_face(size_t n1, size_t n2, size_t n3);
-		Face* output_boundary_face(size_t& bface_num);
-
-	protected:
-		struct FaceMapItem
-		{
-			size_t n1, n2, n3, elem_num;
-			FaceMapItem(size_t _n1, size_t _n2, size_t _n3) :
-				n1(_n1), n2(_n2), n3(_n3), elem_num(0) {}
-		};
-
-		typedef std::unordered_map<std::string, FaceMapItem> Map;
-		Map map;
-	};
-
-	void FaceMap::add_face(size_t n1, size_t n2, size_t n3)
-	{
-		size_t ns[3];
-		ns[0] = n1;
-		ns[1] = n2;
-		ns[2] = n3;
-		sort_array_3_acc(ns);
-		if (ns[0] == 0 && ns[1] == 3 && ns[2] == 6)
-		{
-			int efef = 0;
-		}
-		char nid_str[50];
-		snprintf(nid_str, sizeof(nid_str), "%zu_%zu_%zu", ns[0], ns[1], ns[2]);
-		auto res = map.emplace(std::string(nid_str), FaceMapItem(n1, n2, n3));
-		if (!res.second)
-			++(res.first->second.elem_num);
-	}
-
-	Face* FaceMap::output_boundary_face(size_t& bface_num)
-	{
-		size_t fnum = 0;
-		for (Map::iterator iter = map.begin(); iter != map.end(); ++iter)
-		{
-			FaceMapItem& fi = iter->second;
-			if (fi.elem_num == 0)
-				++fnum;
-		}
-
-		bface_num = fnum;
-		if (fnum == 0)
-			return nullptr;
-		Face* res = new Face[fnum];
-		Face* cur_face = res;
-		size_t fid = 0;
-		for (Map::iterator iter = map.begin(); iter != map.end(); ++iter)
-		{
-			FaceMapItem& fi = iter->second;
-			if (fi.elem_num == 0)
-			{
-				cur_face->id = fid;
-				cur_face->n1 = fi.n1;
-				cur_face->n2 = fi.n2;
-				cur_face->n3 = fi.n3;
-				++cur_face;
-				++fid;
-			}
-		}
-		return res;
-	}
-
-}
-
 RigidTetrahedronMesh::RigidTetrahedronMesh() :
 	density(1.0),
 	ax(0.0), ay(0.0), az(0.0),
@@ -102,7 +25,7 @@ RigidTetrahedronMesh::RigidTetrahedronMesh() :
 	mx_con(0.0), my_con(0.0), mz_con(0.0),
 	ix(1.0, 0.0, 0.0), iy(0.0, 1.0, 0.0), iz(0.0, 0.0, 1.0)
 {
-	init_cal_var();
+
 }
 
 RigidTetrahedronMesh::~RigidTetrahedronMesh()
@@ -115,7 +38,10 @@ int RigidTetrahedronMesh::init_mesh(
 	const char* file_name,
 	double dx,
 	double dy,
-	double dz
+	double dz,
+	double dx_ang,
+	double dy_ang,
+	double dz_ang
 	)
 {
 	int res = load_mesh_from_hdf5(file_name);
@@ -148,10 +74,84 @@ int RigidTetrahedronMesh::init_mesh(
 	x += dx;
 	y += dy;
 	z += dz;
+	x_ang += dx_ang;
+	trim_to_pi(x_ang);
+	y_ang += dy_ang;
+	trim_to_pi(y_ang);
+	z_ang += dz_ang;
+	trim_to_pi(z_ang);
 
+	// update ix, iy, iz
+	ix.x = 1.0, ix.y = 0.0, ix.z = 0.0;
+	iy.x = 0.0, iy.y = 1.0, iy.z = 0.0;
+	iz.x = 0.0, iz.y = 0.0, iz.z = 1.0;
+	rotate_axses_by_angle(cen_ang, ix, iy, iz);
+
+	cal_m_and_moi();
 	extract_bfaces();
+	
+	return res;
+}
 
-	// cal moment of intertia
+void RigidTetrahedronMesh::init_mesh_properties_after_loading()
+{
+	TetrahedronMeshTemplate<RigidTetrahedronMesh_Internal::Node,
+		RigidTetrahedronMesh_Internal::Element,
+		RigidTetrahedronMesh_Internal::Edge>::init_mesh_properties_after_loading();
+
+	cal_m_and_moi();
+	extract_bfaces();
+}
+
+void RigidTetrahedronMesh::set_init_state(
+	double _density,
+	double _fx_contact,
+	double _fy_contact,
+	double _fz_contact,
+	double _ax, double _ay, double _az,
+	double _vx, double _vy, double _vz,
+	double _x, double _y, double _z,
+	double _mx_contact, double _my_contact, double _mz_contact,
+	double _ax_ang, double _ay_ang, double _az_ang,
+	double _vx_ang, double _vy_ang, double _vz_ang,
+	double _x_ang, double _y_ang, double _z_ang
+	)
+{
+	density = _density;
+
+	fx_con = _fx_contact;
+	fy_con = _fy_contact;
+	fz_con = _fz_contact;
+	ax = _ax;
+	ay = _ay;
+	az = _az;
+	vx = _vx;
+	vy = _vy;
+	vz = _vz;
+	x = _x;
+	y = _y;
+	z = _z;
+
+	mx_con = _mx_contact;
+	my_con = _my_contact;
+	mz_con = _mz_contact;
+	ax_ang = _ax_ang;
+	ay_ang = _ay_ang;
+	az_ang = _az_ang;
+	vx_ang = _vx_ang;
+	vy_ang = _vy_ang;
+	vz_ang = _vz_ang;
+	x_ang = _x_ang;
+	y_ang = _y_ang;
+	z_ang = _z_ang;
+}
+
+void RigidTetrahedronMesh::cal_m_and_moi()
+{
+	// mass
+	m = get_vol() * density;
+
+	// moment of intertia
 	double e_moi_mat[6];
 	moi_mat.setZero();
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
@@ -172,52 +172,21 @@ int RigidTetrahedronMesh::init_mesh(
 	moi_mat(1, 0) = moi_mat(0, 1);
 	moi_mat(2, 0) = moi_mat(0, 2);
 	moi_mat(2, 1) = moi_mat(1, 2);
-
-	// init bg_mesh
-
-	return res;
-}
-
-void RigidTetrahedronMesh::set_init_state(
-	double _density,
-	double _fx_contact,
-	double _fy_contact,
-	double _fz_contact,
-	double _ax, double _ay, double _az,
-	double _vx, double _vy, double _vz,
-	double _x, double _y, double _z
-	)
-{
-	density = _density;
-	fx_con = _fx_contact;
-	fy_con = _fy_contact;
-	fz_con = _fz_contact;
-	ax = _ax;
-	ay = _ay;
-	az = _az;
-	vx = _vx;
-	vy = _vy;
-	vz = _vz;
-	x = _x;
-	y = _y;
-	z = _z;
 }
 
 void RigidTetrahedronMesh::extract_bfaces()
 {
 	clear_bfaces();
 
-	FaceMap face_map;
-	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	bfaces = extract_boundary_triangles_from_tetrahedrons<Face, Element>(elems, elem_num, bface_num);
+	if (!bfaces || bface_num == 0)
+		return;
+	for (size_t f_id = 0; f_id < bface_num; f_id++)
 	{
-		Element& e = elems[e_id];
-		face_map.add_face(e.n1, e.n2, e.n3);
-		face_map.add_face(e.n1, e.n4, e.n2);
-		face_map.add_face(e.n2, e.n4, e.n3);
-		face_map.add_face(e.n1, e.n3, e.n4);
+		Face& bf = bfaces[f_id];
+		bf.id = f_id;
 	}
 
-	bfaces = face_map.output_boundary_face(bface_num);
 	for (size_t bf_id = 0; bf_id < bface_num; ++bf_id)
 	{
 		Face &f = bfaces[bf_id];
@@ -226,7 +195,6 @@ void RigidTetrahedronMesh::extract_bfaces()
 		Node& n3 = nodes[f.n3];
 		f.pt_tri_dist.init_triangle(n1, n2, n3);
 	}
-
 }
 
 void RigidTetrahedronMesh::clear_bg_grids()

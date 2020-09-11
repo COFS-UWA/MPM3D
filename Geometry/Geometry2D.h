@@ -5,10 +5,15 @@
 
 struct Point2D
 {
-	double x, y;
+	union
+	{
+		struct { double x, y; };
+		double data[2];
+	};
 
 	inline Point2D() {}
 	inline Point2D(double _x, double _y) : x(_x), y(_y) {}
+	inline Point2D(const Point2D &other) : x(other.x), y(other.y) {}
 };
 
 struct Rect
@@ -18,7 +23,9 @@ struct Rect
 	inline Rect() {}
 	inline Rect(double _xl, double _xu, double _yl, double _yu) :
 		xl(_xl), xu(_xu), yl(_yl), yu(_yu) {}
-	
+	inline Rect(const Rect& other) :
+		xl(other.xl), xu(other.xu), yl(other.yl), yu(other.yu) {}
+
 	inline bool is_in_box(double x, double y)
 	{ return !(x < xl || x > xu || y < yl || y > yu); }
 	template <typename Point2D>
@@ -32,6 +39,7 @@ struct Vector2D
 
 	inline Vector2D() {}
 	inline Vector2D(double _x, double _y) : x(_x), y(_y) {}
+	inline Vector2D(const Vector2D &other) : x(other.x), y(other.y) {}
 
 	inline double norm() { return sqrt(x*x + y*y); }
 	inline Vector2D &normalize()
@@ -45,17 +53,32 @@ struct Vector2D
 		return *this;
 	}
 
-	inline Vector2D& scale(double fac) noexcept
-	{ x *= fac; y *= fac; return *this; }
 	inline Vector2D& reverse() noexcept
 	{ x = -x; y = -y; return *this; }
-
+	inline Vector2D& scale(double fac) noexcept
+	{ x *= fac; y *= fac; return *this; }
+	inline Vector2D& add(double e_x, double e_y)
+	{ x += e_x; y += e_y; return *this; }
+	inline Vector2D& add(double e1_x, double e1_y,
+						 double e2_x, double e2_y)
+	{ x = e1_x + e2_x; y = e1_y + e2_y; return *this; }
+	inline Vector2D& substract(double e_x, double e_y)
+	{ x -= e_x; y -= e_y; return *this; }
 	inline Vector2D& substract(double e1_x, double e1_y,
 							   double e2_x, double e2_y)
 	{ x = e1_x - e2_x; y = e1_y - e2_y; return *this; }
 	inline double dot(double e2_x, double e2_y)
 	{ return x * e2_x + y * e2_y; }
 
+	template <typename Point2D>
+	inline Vector2D& add(Point2D& p)
+	{ x += p.x; y += p.y; return *this; }
+	template <typename Point2D>
+	inline Vector2D& add(Point2D& p1, Point2D& p2)
+	{ x = p1.x + p2.x; y = p1.y + p2.y; return *this; }
+	template <typename Point2D>
+	inline Vector2D& substract(Point2D& p)
+	{ x -= p.x; y -= p.y; return *this; }
 	template <typename Point2D>
 	inline Vector2D& substract(Point2D& p1, Point2D& p2)
 	{ x = p1.x - p2.x; y = p1.y - p2.y; return *this; }

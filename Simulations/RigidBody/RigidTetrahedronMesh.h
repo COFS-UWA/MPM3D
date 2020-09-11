@@ -35,12 +35,12 @@ namespace RigidTetrahedronMesh_Internal
 		size_t n1, n2, n3;
 		PointToTriangleDistance<Node> pt_tri_dist;
 	};
+
+	typedef TetrahedronMeshTemplate<Node, Element, Edge> ParentTehClass;
 }
 
 class RigidTetrahedronMesh :
-	public TetrahedronMeshTemplate<RigidTetrahedronMesh_Internal::Node,
-								   RigidTetrahedronMesh_Internal::Element,
-								   RigidTetrahedronMesh_Internal::Edge>
+	protected RigidTetrahedronMesh_Internal::ParentTehClass
 {
 public:
 	typedef RigidTetrahedronMesh_Internal::Node Node;
@@ -54,6 +54,9 @@ public:
 		AtBoundary = 1,
 		Outside = 2
 	};
+
+protected:
+	typedef RigidTetrahedronMesh_Internal::ParentTehClass ParentTehClass;
 
 	struct FacePointer
 	{
@@ -72,53 +75,40 @@ public:
 protected:
 	double density;
 
-	double x, y, z;
+	union
+	{
+		struct { double x, y, z; };
+		Point3D cen_pos;
+	};
 	double m;
 	
 	double ax, ay, az;
 	double vx, vy, vz;
 
-	double fx_ext, fy_ext, fz_ext;
 	double ax_bc, ay_bc, az_bc;
 	double vx_bc, vy_bc, vz_bc;
 
 	double *pax, *pay, *paz;
 	double *pvx, *pvy, *pvz;
 
-	// for precision, x = x_ori + ux ...
+	// external force
+	double fx_ext, fy_ext, fz_ext;
+	// contact force
+	double fx_con, fy_con, fz_con;
+	
+	// for precision
 	double x_ori, ux;
 	double y_ori, uy;
 	double z_ori, uz;
-	// contact force
-	double fx_con, fy_con, fz_con;
-
-	inline void init_cal_var() noexcept
-	{
-		m = get_vol() * density;
-		// moi;
-		// moi_inv;
-	}
-	
-	// boundary faces
-	size_t bface_num;
-	Face* bfaces;
-
-	inline void clear_bfaces()
-	{
-		if (bfaces)
-		{
-			delete[] bfaces;
-			bfaces = nullptr;
-		}
-		bface_num = 0;
-	}
-
-	void extract_bfaces();
 
 	// rotation
 	double ax_ang, ay_ang, az_ang;
 	double vx_ang, vy_ang, vz_ang;
-	double x_ang, y_ang, z_ang;
+	union
+	{
+		struct { double x_ang, y_ang, z_ang; };
+		Vector3D cen_ang;
+	};
 
 	double ax_ang_bc, ay_ang_bc, az_ang_bc;
 	double vx_ang_bc, vy_ang_bc, vz_ang_bc;
@@ -135,24 +125,23 @@ protected:
 
 	Matrix3x3 moi_mat; // moment of inertia
 
-	inline void rotate_axis(
-		Vector3D &rix, Vector3D &riy, Vector3D &riz,
-		double sin_ang, double cos_ang, Vector3D &ix)
+	// boundary faces
+	size_t bface_num;
+	Face* bfaces;
+
+	inline void clear_bfaces()
 	{
-		riy.cross(riz, ix);
-		double riy_norm = riy.norm();
-		if (riy_norm != 0.0)
+		if (bfaces)
 		{
-			riy.scale(1.0 / riy_norm);
-			rix.cross(riy, riz);
-			double pj_len = ix.dot(rix);
-			double pj_ht = ix.dot(riz);
-			ix.x = (rix.x * cos_ang + riy.x * sin_ang) * pj_len;
-			ix.y = (rix.y * cos_ang + riy.y * sin_ang) * pj_len;
-			ix.z = (rix.z * cos_ang + riy.z * sin_ang) * pj_len;
-			ix.add(riz.x * pj_ht, riz.y * pj_ht, riz.z * pj_ht);
+			delete[] bfaces;
+			bfaces = nullptr;
 		}
+		bface_num = 0;
 	}
+
+	void extract_bfaces();
+
+	void cal_m_and_moi();
 
 public:
 	RigidTetrahedronMesh();
@@ -160,15 +149,15 @@ public:
 
 	inline double get_density() { return density; }
 	inline double get_m() const noexcept { return m; }
-	inline double get_x() const noexcept { return x; }
-	inline double get_y() const noexcept { return y; }
-	inline double get_z() const noexcept { return z; }
 	inline double get_ax() const noexcept { return ax; }
 	inline double get_ay() const noexcept { return ay; }
 	inline double get_az() const noexcept { return az; }
 	inline double get_vx() const noexcept { return vx; }
 	inline double get_vy() const noexcept { return vy; }
 	inline double get_vz() const noexcept { return vz; }
+	inline double get_x() const noexcept { return x; }
+	inline double get_y() const noexcept { return y; }
+	inline double get_z() const noexcept { return z; }
 	inline double get_fx_ext() const noexcept { return fx_ext; }
 	inline double get_fy_ext() const noexcept { return fy_ext; }
 	inline double get_fz_ext() const noexcept { return fz_ext; }
@@ -194,6 +183,9 @@ public:
 	inline double get_vx_ang() const noexcept { return vx_ang; }
 	inline double get_vy_ang() const noexcept { return vy_ang; }
 	inline double get_vz_ang() const noexcept { return vz_ang; }
+	inline double get_x_ang() const noexcept { return x_ang; }
+	inline double get_y_ang() const noexcept { return y_ang; }
+	inline double get_z_ang() const noexcept { return z_ang; }
 	inline double get_mx_ext() const noexcept { return mx_ext; }
 	inline double get_my_ext() const noexcept { return my_ext; }
 	inline double get_mz_ext() const noexcept { return mz_ext; }
@@ -216,26 +208,31 @@ public:
 	inline void set_ax_bc(double _a) { pax = &ax_bc; ax_bc = _a; }
 	inline void set_ay_bc(double _a) { pay = &ay_bc; ay_bc = _a; }
 	inline void set_az_bc(double _a) { paz = &az_bc; az_bc = _a; }
-	inline void set_a_bc(double _ax, double _ay, double _az)
-	{ set_ax_bc(_ax); set_ay_bc(_ay); set_az_bc(_az); }
 
 	inline void set_vx_bc(double _v) { pvx = &vx_bc; vx_bc = _v; }
 	inline void set_vy_bc(double _v) { pvy = &vy_bc; vy_bc = _v; }
 	inline void set_vz_bc(double _v) { pvz = &vz_bc; vz_bc = _v; }
-	inline void set_v_bc(double _vx, double _vy, double _vz)
-	{ set_vx_bc(_vx); set_vy_bc(_vy); set_vz_bc(_vz); }
 
 	inline void set_ax_ang_bc(double _a_ang) { pax_ang = &ax_ang_bc; ax_ang_bc = _a_ang; }
 	inline void set_ay_ang_bc(double _a_ang) { pay_ang = &ay_ang_bc; ay_ang_bc = _a_ang; }
 	inline void set_az_ang_bc(double _a_ang) { paz_ang = &az_ang_bc; az_ang_bc = _a_ang; }
-	inline void set_a_ang_bc(double _ax_ang, double _ay_ang, double _az_ang)
-	{ set_ax_bc(_ax_ang); set_ay_bc(_ay_ang); set_az_bc(_az_ang); }
 
-	inline void set_vx_ang_bc(double _v_ang) { pvx_ang = &vx_ang_bc; vx_bc = _v_ang; }
-	inline void set_vy_ang_bc(double _v_ang) { pvy_ang = &vy_ang_bc; vy_bc = _v_ang; }
-	inline void set_vz_ang_bc(double _v_ang) { pvz_ang = &vz_ang_bc; vz_bc = _v_ang; }
-	inline void set_v_ang_bc(double _vx_ang, double _vy_ang, double _vz_ang)
-	{ set_vx_bc(_vx_ang); set_vy_bc(_vy_ang); set_vz_bc(_vz_ang); }
+	inline void set_vx_ang_bc(double _v_ang) { pvx_ang = &vx_ang_bc; vx_ang_bc = _v_ang; }
+	inline void set_vy_ang_bc(double _v_ang) { pvy_ang = &vy_ang_bc; vy_ang_bc = _v_ang; }
+	inline void set_vz_ang_bc(double _v_ang) { pvz_ang = &vz_ang_bc; vz_ang_bc = _v_ang; }
+
+	inline void set_v_bc(
+		double _vx,
+		double _vy,
+		double _vz,
+		double _vx_ang = 0.0,
+		double _vy_ang = 0.0,
+		double _vz_ang = 0.0
+		)
+	{
+		set_vx_bc(_vx); set_vy_bc(_vy); set_vz_bc(_vz);
+		set_vx_ang_bc(_vx_ang); set_vy_ang_bc(_vy_ang); set_vz_ang_bc(_vz_ang);
+	}
 
 	inline void add_fx_ext(double _f) { fx_ext += _f; }
 	inline void add_fy_ext(double _f) { fy_ext += _f; }
@@ -250,23 +247,46 @@ public:
 		fy_ext += _fy;
 		fz_ext += _fz;
 		Point3D gp(_x, _y, _z);
-		Point3D lp = to_local_coord(gp);
+		Point3D lp;
+		to_local_coord(gp, lp);
 		mx_ext += lp.y * _fz - lp.z * _fy;
 		my_ext += lp.z * _fx - lp.x * _fz;
 		mz_ext += lp.x * _fy - lp.y * _fx;
 	}
 
-	inline size_t get_bface_num() const { return bface_num; }
-	inline Face* get_bfaces() { return bfaces; }
+	inline const Point3D& get_centre() const noexcept { return cen_pos; }
+	inline const Vector3D& get_ix() const noexcept { return ix; }
+	inline const Vector3D& get_iy() const noexcept { return iy; }
+	inline const Vector3D& get_iz() const noexcept { return iz; }
 
-	int init_mesh(const char *file_name, double dx, double dy, double dz);
+	inline size_t get_node_num() const noexcept { return ParentTehClass::get_node_num(); }
+	inline const Node* get_nodes() const noexcept { return ParentTehClass::get_nodes(); }
+	inline Node* get_nodes() noexcept { return ParentTehClass::get_nodes(); }
+	inline size_t get_elem_num() const noexcept { return ParentTehClass::get_elem_num(); }
+	inline const Element* get_elems() const noexcept { return ParentTehClass::get_elems(); }
+	inline Element* get_elems() noexcept { return ParentTehClass::get_elems(); }
+	inline size_t get_bface_num() const noexcept { return bface_num; }
+	inline const Face* get_bfaces() const noexcept { return bfaces; }
+	inline Face* get_bfaces() noexcept { return bfaces; }
+
+	int init_mesh(const char *file_name, double dx, double dy, double dz,
+				  double dx_ang, double dy_ang, double dz_ang);
 	
-	void set_init_state(double density,
-		double fx_contact, double fy_contact, double fz_contact,
-		double ax, double ay, double az,
-		double vx, double vy, double vz,
-		double x,  double y,  double z);
+	void init_mesh_properties_after_loading();
+
+public: // for reading object from file
+	void set_init_state(double _density,
+		double _fx_contact, double _fy_contact, double _fz_contact,
+		double _ax, double _ay, double _az,
+		double _vx, double _vy, double _vz,
+		double _x,  double _y,  double _z,
+		double _mx_contact, double _my_contact, double _mz_contact,
+		double _ax_ang, double _ay_ang, double _az_ang,
+		double _vx_ang, double _vy_ang, double _vz_ang,
+		double _x_ang, double _y_ang, double _z_ang);
 	
+	inline Node* alloc_nodes(size_t num) { return ParentTehClass::alloc_nodes(num); }
+	inline Element* alloc_elements(size_t num) { return ParentTehClass::alloc_elements(num); }
 	inline Face* alloc_bfaces(size_t num)
 	{
 		clear_bfaces();
@@ -277,6 +297,7 @@ public:
 		return bfaces;
 	}
 
+public: // calculation functions
 	inline void init_calculation() noexcept
 	{
 		x_ori = x;
@@ -287,6 +308,22 @@ public:
 		uz = 0.0;
 	}
 
+	inline void get_cur_bbox(Cube &bbox) const noexcept
+	{
+		double hx = (g_bbox.xu - g_bbox.xl) * 0.5;
+		double hy = (g_bbox.yu - g_bbox.yl) * 0.5;
+		double hz = (g_bbox.zu - g_bbox.zl) * 0.5;
+		double rx = abs(ix.x * hx) + abs(iy.x * hy) + abs(iz.x * hz);
+		double ry = abs(ix.y * hx) + abs(iy.y * hy) + abs(iz.y * hz);
+		double rz = abs(ix.z * hx) + abs(iy.z * hy) + abs(iz.z * hz);
+		bbox.xl = x - rx;
+		bbox.xu = x + rx;
+		bbox.yl = y - ry;
+		bbox.yu = y + ry;
+		bbox.zl = z - rz;
+		bbox.zu = z + rz;
+	}
+	
 	inline void reset_substep() noexcept
 	{
 		fx_con = 0.0;
@@ -297,7 +334,21 @@ public:
 		mz_con = 0.0;
 	}
 
-	inline void update_motion(double dt)
+	inline void add_contact_force(double _fx, double _fy, double _fz,
+								  double _x,  double  _y, double  _z) noexcept
+	{
+		fx_con += _fx;
+		fy_con += _fy;
+		fz_con += _fz;
+		Point3D gp(_x, _y, _z);
+		Point3D lp;
+		to_local_coord(gp, lp);
+		mx_ext += lp.y * _fz - lp.z * _fy;
+		my_ext += lp.z * _fx - lp.x * _fz;
+		mz_ext += lp.x * _fy - lp.y * _fx;
+	}
+	
+	inline void update_motion(double dt) noexcept
 	{
 		// update a
 		ax = (fx_ext + fx_con) / m;
@@ -329,7 +380,7 @@ public:
 		Matrix3x3 cur_moi = T_mat.transpose() * moi_mat * T_mat;
 		Vector3 v_ang_vec(vx_ang, vy_ang, vz_ang);
 		Vector3 m_vec(mx_ext + mx_con, my_ext + my_con, mz_ext + mz_con);
-		Vector3 a_ang = cur_moi.ldlt().solve(m_vec - v_ang_vec.cross(cur_moi * v_ang_vec));
+		Vector3 a_ang = cur_moi.partialPivLu().solve(m_vec - v_ang_vec.cross(cur_moi * v_ang_vec));
 		// cal angular velocity
 		ax_ang = a_ang.x();
 		ay_ang = a_ang.y();
@@ -351,55 +402,20 @@ public:
 		z_ang += vz_ang * dt;
 		trim_to_pi(z_ang);
 		// update ix, iy, iz
-		// rotation coordinates
 		ix.x = 1.0, ix.y = 0.0, ix.z = 0.0;
 		iy.x = 0.0, iy.y = 1.0, iy.z = 0.0;
 		iz.x = 0.0, iz.y = 0.0, iz.z = 1.0;
-		Vector3D riz(x_ang, y_ang, z_ang);
-		double riz_norm = riz.norm();
-		if (riz_norm != 0.0)
-		{
-			riz.scale(1.0 / riz_norm);
-			double sin_ang = sin(riz_norm);
-			double cos_ang = cos(riz_norm);
-			Vector3D rix, riy;
-			rotate_axis(rix, riy, riz, sin_ang, cos_ang, ix);
-			rotate_axis(rix, riy, riz, sin_ang, cos_ang, iy);
-			rotate_axis(rix, riy, riz, sin_ang, cos_ang, iz);
-		}
+		rotate_axses_by_angle(cen_ang, ix, iy, iz);
 	}
 
-	inline void add_con_force(double _fx, double _fy, double _fz,
-							  double _x,  double  _y, double  _z) noexcept
-	{
-		fx_con += _fx;
-		fy_con += _fy;
-		fz_con += _fz;
-		Point3D gp(_x, _y, _z);
-		Point3D lp = to_local_coord(gp);
-		mx_ext += lp.y * _fz - lp.z * _fy;
-		my_ext += lp.z * _fx - lp.x * _fz;
-		mz_ext += lp.x * _fy - lp.y * _fx;
-	}
-	
 	template <typename Point3DType>
-	inline Point3D to_local_coord(Point3DType&gp) const noexcept
-	{
-		double dx = gp.x - x;
-		double dy = gp.y - y;
-		double dz = gp.z - z;
-		return Point3D (ix.x * dx + ix.y * dy + ix.z * dz,
-						iy.x * dx + iy.y * dy + iy.z * dz,
-						iz.x * dx + iz.y * dy + iz.z * dz);
-	}
-	inline Point3D to_global_coord(Point3D &lp) const noexcept
-	{
-		double dx = ix.x * lp.x + iy.x * lp.y + iz.x * lp.z;
-		double dy = ix.y * lp.x + iy.y * lp.y + iz.y * lp.z;
-		double dz = ix.z * lp.x + iy.z * lp.y + iz.z * lp.z;
-		return Point3D(dx + x, dy + y, dz + z);
-	}
+	inline void to_local_coord(const Point3DType&gp, Point3D &lp) const noexcept
+	{ from_global_to_local_coordinate<Point3DType, Point3D>(cen_pos, ix, iy, iz, gp, lp); }
+	template <typename Point3DType>
+	inline void to_global_coord(const Point3DType &lp, Point3D &gp) const noexcept
+	{ from_local_to_global_coordinate<Point3DType, Point3D>(cen_pos, ix, iy, iz, lp, gp);	}
 
+public: // bg search grid
 	inline double get_grid_h() const noexcept { return g_h; }
 	inline size_t get_grid_x_num() const noexcept { return g_x_num; }
 	inline size_t get_grid_y_num() const noexcept { return g_y_num; }
@@ -409,22 +425,12 @@ public:
 	int init_bg_grids(double _g_h, double expand_size);
 	void set_dist_max(double _dist_max);
 
-	inline Cube get_cur_bbox()
-	{
-		Cube res;
-		res.xl = g_bbox.xl + x;
-		res.xu = g_bbox.xu + x;
-		res.yl = g_bbox.yl + y;
-		res.yu = g_bbox.yu + y;
-		res.zl = g_bbox.zl + z;
-		res.zu = g_bbox.zu + z;
-		return res;
-	}
 	template <typename Point3DType>
-	inline bool cal_dist_and_dir_to_pt(Point3DType& pt,
+	inline bool cal_dist_and_dir_to_pt(const Point3DType& gpt,
 		double& dist, double& nx, double& ny, double& nz)
 	{
-		Point3D lpt = to_local_coord(pt);
+		Point3D lpt;
+		to_local_coord<Point3DType>(gpt, lpt);
 		return cal_dist_and_dir_to_pt_internal(lpt, dist, nx, ny, nz);
 	}
 

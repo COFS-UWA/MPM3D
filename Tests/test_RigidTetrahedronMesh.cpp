@@ -33,7 +33,7 @@ namespace
 void test_RigidTetrahedronMesh_intersection(int argc, char** argv)
 {
 	TestRigidTetrahedronMesh rb;
-	rb.init_mesh("../../Asset/teh_mesh.h5", 0.0, 0.0, 0.0);
+	rb.init_mesh("../../Asset/teh_mesh.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	std::cout << "node num: " << rb.get_node_num()
 			<< ", elem num: " << rb.get_elem_num()
 			<< ", face num: " << rb.get_bface_num() << "\n";
@@ -122,7 +122,7 @@ void test_RigidTetrahedronMesh_intersection(int argc, char** argv)
 void test_RigidTetrahedronMesh_bg_grid(int argc, char** argv)
 {
 	TestRigidTetrahedronMesh rb;
-	rb.init_mesh("../../Asset/square_cap_mesh.h5", 0.0, 0.0, 0.0);
+	rb.init_mesh("../../Asset/square_cap_mesh.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	std::cout << "node num: " << rb.get_node_num()
 			  << ", elem num: " << rb.get_elem_num()
 			  << ", face num: " << rb.get_bface_num() << "\n";
@@ -166,7 +166,7 @@ void test_RigidTetrahedronMesh_bg_grid(int argc, char** argv)
 void test_RigidTetrahedronMesh_bg_grid2(int argc, char** argv)
 {
 	TestRigidTetrahedronMesh rb;
-	rb.init_mesh("../../Asset/brick_mesh_1.00_1x1x1.h5", 0.0, 0.0, 0.0);
+	rb.init_mesh("../../Asset/brick_mesh_1.00_1x1x1.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	std::cout << "node num: " << rb.get_node_num()
 			<< ", elem num: " << rb.get_elem_num()
 			<< ", face num: " << rb.get_bface_num() << "\n";
@@ -209,7 +209,7 @@ void test_RigidTetrahedronMesh_bg_grid2(int argc, char** argv)
 void test_RigidTetrahedronMesh_close_to_boundary(int argc, char** argv)
 {
 	TestRigidTetrahedronMesh rb;
-	rb.init_mesh("../../Asset/brick_mesh_0.50_5x5x5.h5", 0.0, 0.0, 0.0);
+	rb.init_mesh("../../Asset/brick_mesh_0.50_5x5x5.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	std::cout << "node num: " << rb.get_node_num()
 			<< ", elem num: " << rb.get_elem_num()
 			<< ", face num: " << rb.get_bface_num() << "\n";
@@ -245,7 +245,7 @@ void test_RigidTetrahedronMesh_close_to_boundary(int argc, char** argv)
 void test_RigidTetrahedronMesh_search_dist(int argc, char** argv)
 {
 	TestRigidTetrahedronMesh rb;
-	rb.init_mesh("../../Asset/brick_mesh_0.50_5x5x5.h5", 0.0, 0.0, 1.0);
+	rb.init_mesh("../../Asset/brick_mesh_0.50_5x5x5.h5", 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
 	std::cout << "node num: " << rb.get_node_num()
 			<< ", elem num: " << rb.get_elem_num()
 			<< ", face num: " << rb.get_bface_num() << "\n";

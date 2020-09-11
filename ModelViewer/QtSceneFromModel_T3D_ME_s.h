@@ -7,7 +7,7 @@
 #include "Model_T3D_ME_s.h"
 #include "QtTetrahedronMeshGLObject.h"
 #include "QtMonoColorBallGLObject.h"
-#include "QtTetrahedronMeshSurfaceGLObject.h"
+#include "QtRigidTetrahedronMeshGLObject.h"
 #include "QtSceneFromModel.h"
 
 class QtSceneFromModel_T3D_ME_s : public QtSceneFromModel
@@ -27,11 +27,12 @@ protected:
 	bool display_pts;
 	bool display_rb;
 	bool has_rb;
+	QtRigidTetrahedronMeshGLObject::DisplayMode rb_mode;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 	QtMonoColorBallGLObject pcls_obj;
 	QtMonoColorBallGLObject pts_obj;
-	QtTetrahedronMeshSurfaceGLObject rb_obj;
+	QtRigidTetrahedronMeshGLObject rb_obj;
 
 	// camera info
 	GLfloat fov_angle;
@@ -68,7 +69,7 @@ protected:
 
 	QOpenGLShaderProgram shader_plain3D;
 	QOpenGLShaderProgram shader_balls;
-	QOpenGLShaderProgram shader_phong;
+	QOpenGLShaderProgram shader_rigid_mesh;
 	
 public:
 	explicit QtSceneFromModel_T3D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
@@ -144,7 +145,8 @@ public:
 		}
 		return 0;
 	}
-	
+	void set_rb_display_mode(QtRigidTetrahedronMeshGLObject::DisplayMode _mode) noexcept { rb_mode = _mode; }
+
 	int initialize(int wd, int ht);
 	void draw();
 	void resize(int wd, int ht);

@@ -5,21 +5,30 @@
 
 struct Point3D
 {
-	double x, y, z;
+	union
+	{
+		struct { double x, y, z; };
+		double data[3];
+	};
 
 	inline Point3D() {}
 	inline Point3D(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+	inline Point3D(const Point3D& other) : x(other.x), y(other.y), z(other.z) {}
 };
 
 struct Vector3D
 {
-	double x, y, z;
+	union
+	{
+		struct { double x, y, z; };
+		double data[3];
+	};
 
 	inline Vector3D() {}
 	inline Vector3D(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
 	inline Vector3D(const Vector3D& other) : x(other.x), y(other.y), z(other.z) {}
 
-	inline double norm() { return sqrt(x * x + y * y + z * z); }
+	inline double norm() const noexcept { return sqrt(x * x + y * y + z * z); }
 	inline Vector3D& normalize()
 	{
 		double len = norm();
@@ -32,42 +41,82 @@ struct Vector3D
 		return *this;
 	}
 
-	inline Vector3D& scale(double fac) noexcept
-	{ x *= fac; y *= fac; z *= fac; return *this; }
 	inline Vector3D& reverse() noexcept
-	{ x = -x; y = -y; z = -z; return *this; }
-
-	inline Vector3D &add(double e1_x, double e1_y, double e1_z)
-	{ x += e1_x; y += e1_y; z += e1_z; return *this; }
-	inline Vector3D& substract(double e1_x, double e1_y, double e1_z,
-							   double e2_x, double e2_y, double e2_z)
-	{ x = e1_x - e2_x; y = e1_y - e2_y; z = e1_z - e2_z; return *this; }
-	inline double dot(double e2_x, double e2_y, double e2_z)
-	{ return x * e2_x + y * e2_y + z * e2_z; }
-	inline Vector3D& cross(double e1_x, double e1_y, double e1_z,
-						   double e2_x, double e2_y, double e2_z)
 	{
-		x = e1_y * e2_z - e1_z * e2_y;
-		y = e1_z * e2_x - e1_x * e2_z;
-		z = e1_x * e2_y - e1_y * e2_x;
+		x = -x; y = -y; z = -z; return *this;
+	}
+	inline Vector3D& scale(double fac) noexcept
+	{
+		x *= fac; y *= fac; z *= fac; return *this;
+	}
+	inline Vector3D& add(double e1_x, double e1_y, double e1_z)
+	{
+		x += e1_x; y += e1_y; z += e1_z; return *this;
+	}
+	inline Vector3D& add(double e1_x, double e1_y, double e1_z,
+		double e2_x, double e2_y, double e2_z)
+	{
+		x = e1_x + e2_x; y = e1_y + e2_x; z = e1_z + e2_z; return *this;
+	}
+	inline Vector3D& substract(double e1_x, double e1_y, double e1_z)
+	{
+		x -= e1_x; y -= e1_y; z -= e1_z; return *this;
+	}
+	inline Vector3D& substract(double e1_x, double e1_y, double e1_z,
+		double e2_x, double e2_y, double e2_z)
+	{
+		x = e1_x - e2_x; y = e1_y - e2_y; z = e1_z - e2_z; return *this;
+	}
+	inline double dot(double e2_x, double e2_y, double e2_z)
+	{
+		return x * e2_x + y * e2_y + z * e2_z;
+	}
+	inline Vector3D& cross(double e1_x, double e1_y, double e1_z,
+		double e2_x, double e2_y, double e2_z)
+	{
+		double _x = e1_y * e2_z - e1_z * e2_y;
+		double _y = e1_z * e2_x - e1_x * e2_z;
+		double _z = e1_x * e2_y - e1_y * e2_x;
+		x = _x;
+		y = _y;
+		z = _z;
 		return *this;
 	}
 
 	template <typename Point3D>
-	inline Vector3D& add(Point3D &p)
-	{ x += p.x; y += p.y; z += p.z; return *this; }
+	inline Vector3D& add(Point3D& p)
+	{
+		x += p.x; y += p.y; z += p.z; return *this;
+	}
+	template <typename Point3D>
+	inline Vector3D& add(Point3D& p1, Point3D& p2)
+	{
+		x = p1.x + p2.x; y = p1.y + p2.y; z = p1.z + p2.z; return *this;
+	}
+	template <typename Point3D>
+	inline Vector3D& substract(Point3D& p)
+	{
+		x -= p.x; y -= p.y; z -= p.z; return *this;
+	}
 	template <typename Point3D>
 	inline Vector3D& substract(Point3D& p1, Point3D& p2)
-	{ x = p1.x - p2.x; y = p1.y - p2.y; z = p1.z - p2.z; return *this; }
+	{
+		x = p1.x - p2.x; y = p1.y - p2.y; z = p1.z - p2.z; return *this;
+	}
 	template <typename Point3D>
 	inline double dot(Point3D& p2)
-	{ return x * p2.x + y * p2.y + z * p2.z; }
+	{
+		return x * p2.x + y * p2.y + z * p2.z;
+	}
 	template <typename Point3D>
 	inline Vector3D& cross(Point3D& p1, Point3D& p2)
 	{
-		x = p1.y * p2.z - p1.z * p2.y;
-		y = p1.z * p2.x - p1.x * p2.z;
-		z = p1.x * p2.y - p1.y * p2.x;
+		double _x = p1.y * p2.z - p1.z * p2.y;
+		double _y = p1.z * p2.x - p1.x * p2.z;
+		double _z = p1.x * p2.y - p1.y * p2.x;
+		x = _x;
+		y = _y;
+		z = _z;
 		return *this;
 	}
 };
@@ -80,7 +129,9 @@ struct Cube
 	inline Cube() {}
 	inline Cube(double _xl, double _xu, double _yl, double _yu, double _zl, double _zu) :
 		xl(_xl), xu(_xu), yl(_yl), yu(_yu), zl(_zl), zu(_zu) {}
-
+	inline Cube(const Cube& other) :
+		xl(other.xl), xu(other.xu), yl(other.yl), yu(other.yu), zl(other.zl), zu(other.zu) {}
+	
 	inline bool is_in_box(double x, double y, double z) const noexcept
 	{
 		return !(x < xl || x > xu || y < yl || y > yu || z < zl || z > zu);
@@ -111,8 +162,8 @@ struct IdCube
 
 	inline IdCube() {}
 	inline IdCube(long long _xl_id, long long _xu_id,
-				  long long _yl_id, long long _yu_id,
-				  long long _zl_id, long long _zu_id) :
+		long long _yl_id, long long _yu_id,
+		long long _zl_id, long long _zu_id) :
 		xl_id(_xl_id), xu_id(_xu_id), yl_id(_yl_id), yu_id(_yu_id),
 		zl_id(_zl_id), zu_id(_zu_id) {}
 
@@ -153,11 +204,11 @@ struct IdCube
 inline bool detect_cube_collision(Cube& c1, Cube& c2) noexcept
 {
 	return !(c1.xu < c2.xl || c1.xl > c2.xu ||
-			 c1.yu < c2.yl || c1.yl > c2.yu ||
-			 c1.zu < c2.zl || c1.zl > c2.zu);
+		c1.yu < c2.yl || c1.yl > c2.yu ||
+		c1.zu < c2.zl || c1.zl > c2.zu);
 }
 
-inline double cal_cube_point_distance(Cube &box, Point3D &p) noexcept
+inline double cal_cube_point_distance(Cube& box, Point3D& p) noexcept
 {
 	double cx, cy, cz, x_diff, y_diff, z_diff;
 	cx = p.x < box.xu ? p.x : box.xu;
@@ -199,7 +250,7 @@ struct OBB3DAABBCollisionSAT
 	bool it2x_not_zero, it2y_not_zero, it2z_not_zero;
 	bool it3x_not_zero, it3y_not_zero, it3z_not_zero;
 
-	inline void init_obb3d(OBB3D &obb)
+	inline void init_obb3d(OBB3D& obb)
 	{
 #define Norm_Tol (1.0e-10)
 		xhlen = obb.xlen * 0.5;
@@ -332,8 +383,8 @@ struct OBB3DAABBCollisionSAT
 			it3y_not_zero = true;
 			cen = -iy.y * obb.xo + iy.x * obb.yo;
 			radius = xhlen * abs(-iy.y * ix.x + iy.x * ix.y)
-					+ yhlen * abs(-iy.y * iy.x + iy.x * iy.y)
-					+ zhlen * abs(-iy.y * iz.x + iy.x * iz.y);
+				+ yhlen * abs(-iy.y * iy.x + iy.x * iy.y)
+				+ zhlen * abs(-iy.y * iz.x + iy.x * iz.y);
 			it3y_min = cen - radius;
 			it3y_max = cen + radius;
 		}
@@ -392,26 +443,150 @@ struct OBB3DAABBCollisionSAT
 		double it3z_cube_range = abs(-iz.y * cube_xhlen) + abs(iz.x * cube_yhlen);
 
 		return !(is_seperating_axis(ix_cube_range, ix_cube_cen, ix_min, ix_max) ||
-				 is_seperating_axis(iy_cube_range, iy_cube_cen, iy_min, iy_max) ||
-				 is_seperating_axis(iz_cube_range, iz_cube_cen, iz_min, iz_max) ||
-				(it1x_not_zero && is_seperating_axis(it1x_cube_range, it1x_cube_cen, it1x_min, it1x_max)) ||
-				(it1y_not_zero && is_seperating_axis(it1y_cube_range, it1y_cube_cen, it1y_min, it1y_max)) ||
-				(it1z_not_zero && is_seperating_axis(it1z_cube_range, it1z_cube_cen, it1z_min, it1z_max)) ||
-				(it2x_not_zero && is_seperating_axis(it2x_cube_range, it2x_cube_cen, it2x_min, it2x_max)) ||
-				(it2y_not_zero && is_seperating_axis(it2y_cube_range, it2y_cube_cen, it2y_min, it2y_max)) ||
-				(it2z_not_zero && is_seperating_axis(it2z_cube_range, it2z_cube_cen, it2z_min, it2z_max)) ||
-				(it3x_not_zero && is_seperating_axis(it3x_cube_range, it3x_cube_cen, it3x_min, it3x_max)) ||
-				(it3y_not_zero && is_seperating_axis(it3y_cube_range, it3y_cube_cen, it3y_min, it3y_max)) ||
-				(it3z_not_zero && is_seperating_axis(it3z_cube_range, it3z_cube_cen, it3z_min, it3z_max)));
+			is_seperating_axis(iy_cube_range, iy_cube_cen, iy_min, iy_max) ||
+			is_seperating_axis(iz_cube_range, iz_cube_cen, iz_min, iz_max) ||
+			(it1x_not_zero && is_seperating_axis(it1x_cube_range, it1x_cube_cen, it1x_min, it1x_max)) ||
+			(it1y_not_zero && is_seperating_axis(it1y_cube_range, it1y_cube_cen, it1y_min, it1y_max)) ||
+			(it1z_not_zero && is_seperating_axis(it1z_cube_range, it1z_cube_cen, it1z_min, it1z_max)) ||
+			(it2x_not_zero && is_seperating_axis(it2x_cube_range, it2x_cube_cen, it2x_min, it2x_max)) ||
+			(it2y_not_zero && is_seperating_axis(it2y_cube_range, it2y_cube_cen, it2y_min, it2y_max)) ||
+			(it2z_not_zero && is_seperating_axis(it2z_cube_range, it2z_cube_cen, it2z_min, it2z_max)) ||
+			(it3x_not_zero && is_seperating_axis(it3x_cube_range, it3x_cube_cen, it3x_min, it3x_max)) ||
+			(it3y_not_zero && is_seperating_axis(it3y_cube_range, it3y_cube_cen, it3y_min, it3y_max)) ||
+			(it3z_not_zero && is_seperating_axis(it3z_cube_range, it3z_cube_cen, it3z_min, it3z_max)));
 	}
 
 protected:
 	inline bool is_seperating_axis(double cube_range, double cube_cen,
-								   double obb_min, double obb_max)
+		double obb_min, double obb_max)
 	{
-		return ((obb_min - cube_cen) >  cube_range ||
-				(obb_max + cube_cen) < -cube_range);
+		return ((obb_min - cube_cen) > cube_range ||
+			(obb_max + cube_cen) < -cube_range);
 	}
 };
+
+template <typename Point3DType1, typename Point3DType2>
+void from_global_to_local_coordinate(
+	const Point3D& loc_cen,
+	const Vector3D& loc_ix,
+	const Vector3D& loc_iy,
+	const Vector3D& loc_iz,
+	const Point3DType1& gp,
+	Point3DType2& lp
+) noexcept
+{
+	double dx = gp.x - loc_cen.x;
+	double dy = gp.y - loc_cen.y;
+	double dz = gp.z - loc_cen.z;
+	lp.x = loc_ix.x * dx + loc_ix.y * dy + loc_ix.z * dz;
+	lp.y = loc_iy.x * dx + loc_iy.y * dy + loc_iy.z * dz;
+	lp.z = loc_iz.x * dx + loc_iz.y * dy + loc_iz.z * dz;
+}
+
+template <typename Point3DType1, typename Point3DType2>
+void from_local_to_global_coordinate(
+	const Point3D& loc_cen,
+	const Vector3D& loc_ix,
+	const Vector3D& loc_iy,
+	const Vector3D& loc_iz,
+	const Point3DType1& lp,
+	Point3DType2& gp
+) noexcept
+{
+	gp.x = loc_ix.x * lp.x + loc_iy.x * lp.y + loc_iz.x * lp.z + loc_cen.x;
+	gp.y = loc_ix.y * lp.x + loc_iy.y * lp.y + loc_iz.y * lp.z + loc_cen.y;
+	gp.z = loc_ix.z * lp.x + loc_iy.z * lp.y + loc_iz.z * lp.z + loc_cen.z;
+}
+
+// rotate coordinates ix, iy, iz by ang
+// pure geometric operations
+//namespace Geometry3D_Internal
+//{
+//	inline void rotate_axis(
+//		Vector3D& rix,
+//		Vector3D& riy,
+//		Vector3D& riz,
+//		double sin_ang,
+//		double cos_ang,
+//		Vector3D& axis
+//	)
+//	{
+//		riy.cross(riz, axis);
+//		double riy_norm = riy.norm();
+//		if (riy_norm != 0.0)
+//		{
+//			riy.scale(1.0 / riy_norm);
+//			rix.cross(riy, riz);
+//			double pj_len = axis.dot(rix);
+//			double pj_ht = axis.dot(riz);
+//			axis.x = (rix.x * cos_ang + riy.x * sin_ang) * pj_len + riz.x * pj_ht;
+//			axis.y = (rix.y * cos_ang + riy.y * sin_ang) * pj_len + riz.y * pj_ht;
+//			axis.z = (rix.z * cos_ang + riy.z * sin_ang) * pj_len + riz.z * pj_ht;
+//			//axis.add(riz.x * pj_ht, riz.y * pj_ht, riz.z * pj_ht);
+//		}
+//	}
+//}
+//
+//inline void rotate_axses_by_angle(
+//	const Vector3D& ang,
+//	Vector3D& ix,
+//	Vector3D& iy,
+//	Vector3D& iz
+//) noexcept
+//{
+//	Vector3D riz(ang.x, ang.y, ang.z);
+//	double riz_norm = riz.norm();
+//	if (riz_norm != 0.0)
+//	{
+//		riz.scale(1.0 / riz_norm);
+//		double sin_ang = sin(riz_norm);
+//		double cos_ang = cos(riz_norm);
+//		Vector3D rix, riy;
+//		Geometry3D_Internal::rotate_axis(rix, riy, riz, sin_ang, cos_ang, ix);
+//		Geometry3D_Internal::rotate_axis(rix, riy, riz, sin_ang, cos_ang, iy);
+//		Geometry3D_Internal::rotate_axis(rix, riy, riz, sin_ang, cos_ang, iz);
+//	}
+//}
+
+// use quaternion
+inline void rotate_axses_by_angle(
+	const Vector3D& ang,
+	Vector3D& ix,
+	Vector3D& iy,
+	Vector3D& iz
+) noexcept
+{
+	double theta, Kx, Ky, Kz;
+	theta = ang.norm();
+	if (theta != 0.0)
+	{
+		Kx = ang.x / theta;
+		Ky = ang.y / theta;
+		Kz = ang.z / theta;
+	}
+	else
+	{
+		Kx = 0.0;
+		Ky = 0.0;
+		Kz = 0.0;
+	}
+
+	// quaternion
+	double q0, q1, q2, q3;
+	q0 = cos(0.5 * theta);
+	q1 = Kx * sin(0.5 * theta);
+	q2 = Ky * sin(0.5 * theta);
+	q3 = Kz * sin(0.5 * theta);
+
+	ix.x = 1.0 - 2.0 * (q2 * q2 + q3 * q3);
+	ix.y = 2.0 * (q1 * q2 + q0 * q3);
+	ix.z = 2.0 * (q1 * q3 - q0 * q2);
+	iy.x = 2.0 * (q1 * q2 - q0 * q3);
+	iy.y = 1.0 - 2.0 * (q3 * q3 + q1 * q1);
+	iy.z = 2.0 * (q2 * q3 + q0 * q1);
+	iz.x = 2.0 * (q1 * q3 + q0 * q2);
+	iz.y = 2.0 * (q2 * q3 - q0 * q1);
+	iz.z = 1.0 - 2.0 * (q1 * q1 + q2 * q2);
+}
 
 #endif

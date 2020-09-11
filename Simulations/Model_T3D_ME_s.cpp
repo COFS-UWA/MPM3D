@@ -191,10 +191,13 @@ int Model_T3D_ME_s::init_rb(
 	const char* file_name,
 	double dx,
 	double dy,
-	double dz
+	double dz,
+	double dx_ang,
+	double dy_ang,
+	double dz_ang
 	)
 {
-	int res = rb.init_mesh(file_name, dx, dy, dz);
+	int res = rb.init_mesh(file_name, dx, dy, dz, dx_ang, dy_ang, dz_ang);
 	if (res)
 		return res;
 	rb_is_init = true;

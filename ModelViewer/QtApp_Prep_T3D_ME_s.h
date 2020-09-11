@@ -70,7 +70,7 @@ public:
 	inline void set_display_bg_mesh(bool op = true) { scene.set_display_bg_mesh(op); }
 	inline void set_display_pcls(bool op = true) { scene.set_display_pcls(op); }
 	inline void set_display_pts(bool op = true) { scene.set_display_pts(op); }
-
+	inline void set_rb_display_mode(QtRigidTetrahedronMeshGLObject::DisplayMode _mode) { scene.set_rb_display_mode(_mode); }
 	inline void set_model(Model_T3D_ME_s& model) { scene.set_model(model); }
 	
 	inline int set_pts_from_pcl_id(size_t* ids, size_t id_num, float radius)

@@ -17,8 +17,10 @@ uniform mat4 proj_mat;
 void main()
 {
     obj_type = v_type;
-    obj_pos = v_pos;
-    obj_normal = v_normal;
+    vec4 pos_tmp = view_mat * vec4(v_pos, 1.0);
+    obj_pos = pos_tmp.xyz;
+    vec4 normal_tmp = view_mat * vec4(v_normal, 0.0);
+    obj_normal = normal_tmp.xyz;
 
     if (v_type == 0u)
     {

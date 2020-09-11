@@ -14,7 +14,7 @@ void test_RigidTetrahedronMesh_display(int argc, char** argv)
 	model.init_search_grid(0.05, 0.05, 0.05);
 
 	// init rigid tetrahedron mesh
-	model.init_rb("..\\..\\Asset\\brick_mesh_1.00_1x1x1.h5", 0.0, 0.0, 1.0);
+	model.init_rb("..\\..\\Asset\\brick_mesh_1.00_1x1x1.h5", 0.0, 0.0, 1.0, 0.7854);
 	model.set_contact_params(100.0, 0.0, 0.0);
 	RigidTetrahedronMesh& rb = model.get_rb();
 	Point3D cen = rb.get_centre();
@@ -34,9 +34,11 @@ void test_RigidTetrahedronMesh_display(int argc, char** argv)
 	model.init_pcls(pcl_gen, 10.0);
 
 	QtApp_Prep_T3D_ME_s view_app(argc, argv);
-	view_app.set_win_size(900, 900);
-	view_app.set_view_dir(70.0, 35.0);
+	view_app.set_win_size(950, 950);
+	view_app.set_view_dir(0.0, 0.0);
+	view_app.set_view_dist_scale(2.0f);
 	view_app.set_light_dir(20.0, 20.0);
+	view_app.set_rb_display_mode(QtRigidTetrahedronMeshGLObject::LineFrame);
 	view_app.set_model(model);
 	view_app.start();
 }

@@ -126,14 +126,14 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_pipe_conference_undrained_no_geostress_result(argc, argv);
 
 	//test_t2d_me_s_plate_with_hole(argc, argv);
-	test_t2d_me_s_plate_with_hole_result(argc, argv);
+	//test_t2d_me_s_plate_with_hole_result(argc, argv);
 
 	//test_t2d_me_p_pipe_conference_geo(argc, argv);
 	//test_t2d_me_p_pipe_conference_geo_result(argc, argv);
 	//test_t2d_me_p_pipe_conference_restart(argc, argv);
 	//test_t2d_me_p_pipe_conference_restart_result(argc, argv);
 	
-	//test_RigidTetrahedronMesh_display(argc, argv);
+	test_RigidTetrahedronMesh_display(argc, argv);
 	//test_RigidTetrahedronMesh_intersection(argc, argv);
 	//test_RigidTetrahedronMesh_bg_grid(argc, argv);
 	//test_RigidTetrahedronMesh_bg_grid2(argc, argv);

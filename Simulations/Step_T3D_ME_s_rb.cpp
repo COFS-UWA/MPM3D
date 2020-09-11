@@ -13,7 +13,8 @@ int Step_T3D_ME_s::apply_rb_to_mesh(RigidTetrahedronMesh& rb)
 	SearchingGrid &grid = md.get_bg_grid();
 	const IdCube &grid_id_box = md.get_bg_grid_id_box();
 
-	const Cube rb_box = rb.get_cur_bbox();
+	Cube rb_box;
+	rb.get_cur_bbox(rb_box);
 	IdCube rb_id_box;
 	rb_id_box.from_cube(rb_box,
 		grid.get_xl(), grid.get_yl(), grid.get_zl(),
@@ -159,7 +160,7 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 			n4.fy_ext += pcl.N4 * fy_cont;
 			n4.fz_ext += pcl.N4 * fz_cont;
 			// currently not consider rotation
-			rb.add_con_force(
+			rb.add_contact_force(
 				-fx_cont,
 				-fy_cont,
 				-fz_cont,

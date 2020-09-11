@@ -204,7 +204,8 @@ public:
 	INIT_BC_TEMPLATE(vy, VelocityBC)
 	INIT_BC_TEMPLATE(vz, VelocityBC)
 
-	int init_rb(const char *file_name, double dx, double dy, double dz);
+	int init_rb(const char *file_name, double dx, double dy, double dz,
+				double dx_ang = 0.0, double dy_ang = 0.0, double dz_ang = 0.0);
 	inline void set_contact_params(double Kn, double Kt, double miu)
 	{ Kn_cont = Kn; Kt_cont = Kt; miu_cont = miu; }
 
