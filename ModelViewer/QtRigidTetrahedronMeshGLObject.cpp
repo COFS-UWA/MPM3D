@@ -197,7 +197,7 @@ int QtRigidTetrahedronMeshGLObject::init_line_frame(
 		vbo_index_num * sizeof(LineNodeData),
 		node_datas,
 		GL_STATIC_DRAW
-	);
+		);
 	delete[] node_datas;
 	delete[] line_datas;
 
@@ -206,14 +206,14 @@ int QtRigidTetrahedronMeshGLObject::init_line_frame(
 		1, GL_UNSIGNED_INT,
 		sizeof(LineNodeData),
 		(GLvoid*)offsetof(LineNodeData, type)
-	);
+		);
 	gl.glEnableVertexAttribArray(0);
 	// v_pos
 	gl.glVertexAttribPointer(1,
 		3, GL_FLOAT, GL_FALSE,
 		sizeof(LineNodeData),
 		(GLvoid*)offsetof(LineNodeData, x)
-	);
+		);
 	gl.glEnableVertexAttribArray(1);
 
 	const Point3D& cen = rb.get_centre();
@@ -274,8 +274,8 @@ void QtRigidTetrahedronMeshGLObject::draw(QOpenGLShaderProgram& shader)
 	{
 		gl.glPolygonMode(GL_FRONT, GL_LINE);
 		gl.glDrawArrays(GL_LINES, 0, vbo_index_num);
+		gl.glPolygonMode(GL_FRONT, GL_FILL);
 	}
-	
 }
 
 inline void QtRigidTetrahedronMeshGLObject::form_model_mat(

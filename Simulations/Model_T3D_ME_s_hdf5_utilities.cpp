@@ -477,12 +477,16 @@ int output_pcl_data_to_hdf5_file(
 	Model_T3D_ME_s::Particle* pcls = md.get_pcls();
 	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 
-	ParticleData *pcl_data = new ParticleData[pcl_num];
-	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	ParticleData* pcl_data = nullptr;
+	if (pcl_num)
 	{
-		ParticleData& pd = pcl_data[p_id];
-		Model_T3D_ME_s::Particle& pcl = pcls[p_id];
-		pd.from_pcl(pcl);
+		pcl_data = new ParticleData[pcl_num];
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+		{
+			ParticleData& pd = pcl_data[p_id];
+			Model_T3D_ME_s::Particle& pcl = pcls[p_id];
+			pd.from_pcl(pcl);
+		}
 	}
 	hid_t pcl_dt_id = get_pcl_dt_id();
 	int res = rf.write_dataset(
@@ -491,7 +495,7 @@ int output_pcl_data_to_hdf5_file(
 		pcl_num,
 		pcl_data,
 		pcl_dt_id
-	);
+		);
 	H5Tclose(pcl_dt_id);
 	delete[] pcl_data;
 
@@ -513,39 +517,42 @@ int load_pcl_data_from_hdf5_file(
 	size_t pcl_num;
 	rf.read_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 
-	ParticleData* pcls_data = new ParticleData[pcl_num];
-	hid_t pcl_dt_id = get_pcl_dt_id();
-	int res = rf.read_dataset(
-		grp_id,
-		"field",
-		pcl_num,
-		pcls_data,
-		pcl_dt_id
-	);
-	H5Tclose(pcl_dt_id);
-
-	if (res) // if detect error
+	if (pcl_num)
 	{
-		delete[] pcls_data;
-		return res;
-	}
+		ParticleData* pcls_data = new ParticleData[pcl_num];
+		hid_t pcl_dt_id = get_pcl_dt_id();
+		int res = rf.read_dataset(
+			grp_id,
+			"field",
+			pcl_num,
+			pcls_data,
+			pcl_dt_id
+		);
+		H5Tclose(pcl_dt_id);
 
-	MatModel::MatModelIdToPointerMap mm_id_map(md);
-	md.alloc_pcls(pcl_num);
-	Model_T3D_ME_s::Particle* pcls = md.get_pcls();
-	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-	{
-		ParticleData& pcl_data = pcls_data[p_id];
-		Model_T3D_ME_s::Particle& pcl = pcls[p_id];
-		MatModel::MaterialModel* pmat = mm_id_map.get_mm_by_id(pcl_data.mat_id);
-		if (!pmat)
+		if (res) // if detect error
 		{
-			throw std::exception("func load_pcl_data_from_hdf5_file error: "
-				"particle has no material model.");
+			delete[] pcls_data;
+			return res;
 		}
-		pcl_data.to_pcl(pcl, *pmat);
+
+		MatModel::MatModelIdToPointerMap mm_id_map(md);
+		md.alloc_pcls(pcl_num);
+		Model_T3D_ME_s::Particle* pcls = md.get_pcls();
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+		{
+			ParticleData& pcl_data = pcls_data[p_id];
+			Model_T3D_ME_s::Particle& pcl = pcls[p_id];
+			MatModel::MaterialModel* pmat = mm_id_map.get_mm_by_id(pcl_data.mat_id);
+			if (!pmat)
+			{
+				throw std::exception("func load_pcl_data_from_hdf5_file error: "
+					"particle has no material model.");
+			}
+			pcl_data.to_pcl(pcl, *pmat);
+		}
+		delete[] pcls_data;
 	}
-	delete[] pcls_data;
 
 	rf.close_group(pcl_data_grp_id);
 	return 0;

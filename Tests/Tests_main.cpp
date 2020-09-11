@@ -133,12 +133,16 @@ int main(int argc, char *argv[])
 	//test_t2d_me_p_pipe_conference_restart(argc, argv);
 	//test_t2d_me_p_pipe_conference_restart_result(argc, argv);
 	
-	test_RigidTetrahedronMesh_display(argc, argv);
+	//test_RigidTetrahedronMesh_display(argc, argv);
+	//test_RigidTetrahedronMesh_moi(argc, argv);
 	//test_RigidTetrahedronMesh_intersection(argc, argv);
 	//test_RigidTetrahedronMesh_bg_grid(argc, argv);
 	//test_RigidTetrahedronMesh_bg_grid2(argc, argv);
 	//test_RigidTetrahedronMesh_close_to_boundary(argc, argv);
 	//test_RigidTetrahedronMesh_search_dist(argc, argv);
+	
+	test_RigidTetrahedronMesh_rotation(argc, argv);
+	test_RigidTetrahedronMesh_rotation_result(argc, argv);
 
 	//test_t3d_me_s_cap_compression(argc, argv);
 	//test_t3d_me_s_cap_compression_result(argc, argv);

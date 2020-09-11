@@ -33,7 +33,7 @@ void test_t3d_me_s_cap_compression(int argc, char **argv)
 		pcl.set_mat_model(mm);
 	}
 
-	model.init_rb("../../Asset/square_cap_mesh.h5", -0.05, -0.05, 1.0);
+	model.init_rb(1.0, "../../Asset/square_cap_mesh.h5", -0.05, -0.05, 1.0);
 	model.set_contact_params(10.0, 10.0, 10.0);
 	RigidTetrahedronMesh& rb = model.get_rb();
 	rb.init_bg_grids(0.05, 0.07); // 0.06, 0.075

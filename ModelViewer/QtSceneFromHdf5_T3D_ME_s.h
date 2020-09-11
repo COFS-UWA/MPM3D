@@ -40,6 +40,7 @@ protected:
 	bool display_pcls;
 	bool display_rb;
 	bool has_rb;
+	QtRigidTetrahedronMeshGLObject::DisplayMode rb_mode;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 
@@ -50,7 +51,7 @@ protected:
 	size_t rb_node_num;
 	Model_hdf5_utilities::RigidTehMeshNodeData* rb_node_data;
 	size_t rb_elem_num;
-	Model_hdf5_utilities::RigidTehMeshFaceData* rb_elem_data;
+	Model_hdf5_utilities::RigidTehMeshElemData* rb_elem_data;
 	QtRigidTetrahedronMeshGLObject rb_obj;
 	
 	bool has_color_map;
@@ -103,6 +104,8 @@ public:
 	explicit QtSceneFromHdf5_T3D_ME_s(QOpenGLFunctions_3_3_Core &_gl);
 	~QtSceneFromHdf5_T3D_ME_s();
 	void close_file();
+
+	inline void set_rb_display_mode(QtRigidTetrahedronMeshGLObject::DisplayMode _mode) { rb_mode = _mode; }
 
 	inline void set_view_dir(QVector3D& _dir) { view_dir = _dir; }
 	inline void set_view_dir(float x, float y, float z)

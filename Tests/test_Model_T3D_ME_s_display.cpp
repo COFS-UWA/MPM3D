@@ -62,9 +62,10 @@ void test_Model_T3D_ME_s_display(int argc, char **argv)
 	Model_T3D_ME_s model;
 
 	// load mesh
-	//model.load_mesh_from_hdf5("..\\..\\Asset\\teh_mesh.h5");
-	model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_1.00_1x1x1.h5");
-	//model.load_mesh_from_hdf5("..\\..\\Asset\\brick_mesh_plus.h5");
+	//model.load_mesh_from_hdf5("../..\\Asset/teh_mesh.h5");
+	//model.load_mesh_from_hdf5("../../Asset/brick_mesh_1.00_1x1x1.h5");
+	//model.load_mesh_from_hdf5("../../Asset/brick_mesh_plus.h5");
+	model.load_mesh_from_hdf5("../../Asset/ball_mesh_r1.00.h5");
 
 	size_t elem_num = model.get_elem_num();
 	Model_T3D_ME_s::Element *elems = model.get_elems();

@@ -83,7 +83,7 @@ int Hdf5DataLoader::load_frame_data(size_t fm_id)
 	if (frame_id == fm_id)
 		return 0;
 
-	int res;
+	int res = 0;
 	ResultFile_hdf5& rf = *res_file;
 	char frame_name[50];
 	snprintf(frame_name, sizeof(frame_name), "frame_%zu", fm_id);
@@ -92,16 +92,22 @@ int Hdf5DataLoader::load_frame_data(size_t fm_id)
 
 	// pcl num
 	res = rf.read_attribute(pcl_data_id, "pcl_num", pcl_num);
-	if (res) return res;
+	if (res)
+		goto exit;
 
-	// pcl data
-	pcl_fld_data_mem.reserve(pcl_size * pcl_num);
-	char* pcls_data = pcl_fld_data_mem.get_mem();
-	res = rf.read_dataset(pcl_data_id, "field", pcl_num, (void*)pcls_data, pcl_dt_id);
-	if (res) return res;
+	if (pcl_num)
+	{
+		// pcl data
+		pcl_fld_data_mem.reserve(pcl_size * pcl_num);
+		char* pcls_data = pcl_fld_data_mem.get_mem();
+		res = rf.read_dataset(pcl_data_id, "field", pcl_num, (void*)pcls_data, pcl_dt_id);
+		if (res)
+			goto exit;
+	}
 
+	frame_id = fm_id;
+exit:
 	rf.close_group(pcl_data_id);
 	rf.close_group(frame_grp_id);
-	frame_id = fm_id;
 	return 0;
 }

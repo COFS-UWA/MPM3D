@@ -34,15 +34,10 @@ RigidTetrahedronMesh::~RigidTetrahedronMesh()
 	clear_bg_grids();
 }
 
-int RigidTetrahedronMesh::init_mesh(
-	const char* file_name,
-	double dx,
-	double dy,
-	double dz,
-	double dx_ang,
-	double dy_ang,
-	double dz_ang
-	)
+int RigidTetrahedronMesh::init(
+	double _density, const char* file_name,
+	double dx, double dy, double dz,
+	double dx_ang, double dy_ang, double dz_ang)
 {
 	int res = load_mesh_from_hdf5(file_name);
 	if (res)
@@ -87,10 +82,23 @@ int RigidTetrahedronMesh::init_mesh(
 	iz.x = 0.0, iz.y = 0.0, iz.z = 1.0;
 	rotate_axses_by_angle(cen_ang, ix, iy, iz);
 
+	density = _density;
 	cal_m_and_moi();
 	extract_bfaces();
-	
-	return res;
+	return 0;
+}
+
+int RigidTetrahedronMesh::init_mesh(
+	const char* file_name,
+	double dx,
+	double dy,
+	double dz,
+	double dx_ang,
+	double dy_ang,
+	double dz_ang
+	)
+{
+	return init(density, file_name, dx, dy, dz, dx_ang, dy_ang, dz_ang);
 }
 
 void RigidTetrahedronMesh::init_mesh_properties_after_loading()

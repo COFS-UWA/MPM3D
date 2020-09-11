@@ -74,6 +74,7 @@ add_executable(
     test_Model_T3D_ME_s_display.cpp
     test_RigidTetrahedronMesh.cpp
     test_RigidTetrahedronMesh_display.cpp
+    test_RigidTetrahedronMesh_rotation.cpp
     test_searching_grid3d.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_me_s_cap_compression.cpp

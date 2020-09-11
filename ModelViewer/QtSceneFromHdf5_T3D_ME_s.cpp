@@ -26,6 +26,7 @@ QtSceneFromHdf5_T3D_ME_s::QtSceneFromHdf5_T3D_ME_s(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	display_rb(true), has_rb(false), rb_obj(_gl),
+	rb_mode(QtRigidTetrahedronMeshGLObject::Surface),
 	rb_node_num(0), rb_node_data(nullptr),
 	rb_elem_num(0), rb_elem_data(nullptr),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0) {}
@@ -246,31 +247,34 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	if (res) return res;
 
 	size_t pcl_num = data_loader.get_pcl_num();
-	pcl_fld_mem.reserve(pcl_num * 5);
-	// x coord
-	double *pcl_x_data = pcl_fld_mem.get_mem();
-	x_fld.extract_pcl_fld_data(pcl_x_data);
-	// y coord
-	double *pcl_y_data = pcl_x_data + pcl_num;
-	y_fld.extract_pcl_fld_data(pcl_y_data);
-	// z coord
-	double* pcl_z_data = pcl_y_data + pcl_num;
-	z_fld.extract_pcl_fld_data(pcl_z_data);
-	// vol
-	double* pcl_vol_data = pcl_z_data + pcl_num;
-	vol_fld.extract_pcl_fld_data(pcl_vol_data);
-	// pcl fld
-	double *pcl_fld_data = pcl_vol_data + pcl_num;
-	pfld->extract_pcl_fld_data(pcl_fld_data);
-	pcls_obj.init(
-		pcl_num,
-		pcl_x_data,
-		pcl_y_data,
-		pcl_z_data,
-		pcl_vol_data,
-		pcl_fld_data,
-		0.5
-		);
+	if (pcl_num)
+	{
+		pcl_fld_mem.reserve(pcl_num * 5);
+		// x coord
+		double* pcl_x_data = pcl_fld_mem.get_mem();
+		x_fld.extract_pcl_fld_data(pcl_x_data);
+		// y coord
+		double* pcl_y_data = pcl_x_data + pcl_num;
+		y_fld.extract_pcl_fld_data(pcl_y_data);
+		// z coord
+		double* pcl_z_data = pcl_y_data + pcl_num;
+		z_fld.extract_pcl_fld_data(pcl_z_data);
+		// vol
+		double* pcl_vol_data = pcl_z_data + pcl_num;
+		vol_fld.extract_pcl_fld_data(pcl_vol_data);
+		// pcl fld
+		double* pcl_fld_data = pcl_vol_data + pcl_num;
+		pfld->extract_pcl_fld_data(pcl_fld_data);
+		pcls_obj.init(
+			pcl_num,
+			pcl_x_data,
+			pcl_y_data,
+			pcl_z_data,
+			pcl_vol_data,
+			pcl_fld_data,
+			0.5
+			);
+	}
 
 	// init rb
 	if (rf.has_group(md_data_grp_id, "RigidBody"))
@@ -309,11 +313,10 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		H5Tclose(rb_node_dt_id);
 		// rigid body face data
 		rf.read_attribute(rb_grp_id, "elem_num", rb_elem_num);
-		hid_t;
 		hid_t rb_elem_dt_id = get_rigid_teh_mesh_elem_dt_id();
 		if (rb_elem_data)
 			delete[] rb_elem_data;
-		rb_elem_data = new RigidTehMeshFaceData[rb_elem_num];
+		rb_elem_data = new RigidTehMeshElemData[rb_elem_num];
 		rf.read_dataset(
 			rb_grp_id,
 			"ElementData",
@@ -322,19 +325,34 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 			rb_elem_dt_id
 			);
 		H5Tclose(rb_elem_dt_id);
+		rf.close_group(rb_grp_id);
 		// init rb opengl buffer
 		Point3D rb_cen(rb_x, rb_y, rb_z);
 		Vector3D rb_ang(rb_x_ang, rb_y_ang, rb_z_ang);
-		rb_obj.init_faces(
-			rb_node_data,
-			rb_node_num,
-			rb_elem_data,
-			rb_elem_num,
-			rb_cen,
-			rb_ang,
-			navajowhite
-			);
-		rf.close_group(rb_grp_id);
+		if (rb_mode == QtRigidTetrahedronMeshGLObject::Surface)
+		{
+			rb_obj.init_faces(
+				rb_node_data,
+				rb_node_num,
+				rb_elem_data,
+				rb_elem_num,
+				rb_cen,
+				rb_ang,
+				navajowhite
+				);
+		}
+		else if (rb_mode == QtRigidTetrahedronMeshGLObject::LineFrame)
+		{
+			rb_obj.init_line_frame(
+				rb_node_data,
+				rb_node_num,
+				rb_elem_data,
+				rb_elem_num,
+				rb_cen,
+				rb_ang,
+				navajowhite
+				);
+		}
 		has_rb = true;
 	}
 
@@ -499,31 +517,34 @@ void QtSceneFromHdf5_T3D_ME_s::update_scene(size_t frame_id)
 	data_loader.load_frame_data(frame_id);
 
 	size_t pcl_num = data_loader.get_pcl_num();
-	pcl_fld_mem.reserve(pcl_num * 5);
-	// x coord
-	double* pcl_x_data = pcl_fld_mem.get_mem();
-	x_fld.extract_pcl_fld_data(pcl_x_data);
-	// y coord
-	double* pcl_y_data = pcl_x_data + pcl_num;
-	y_fld.extract_pcl_fld_data(pcl_y_data);
-	// z coord
-	double* pcl_z_data = pcl_y_data + pcl_num;
-	z_fld.extract_pcl_fld_data(pcl_z_data);
-	// vol
-	double* pcl_vol_data = pcl_z_data + pcl_num;
-	vol_fld.extract_pcl_fld_data(pcl_vol_data);
-	// pcl fld
-	double* pcl_fld_data = pcl_vol_data + pcl_num;
-	pfld->extract_pcl_fld_data(pcl_fld_data);
-	pcls_obj.update(
-		pcl_num,
-		pcl_x_data,
-		pcl_y_data,
-		pcl_z_data,
-		pcl_vol_data,
-		pcl_fld_data,
-		0.5
-		);
+	if (pcl_num)
+	{
+		pcl_fld_mem.reserve(pcl_num * 5);
+		// x coord
+		double* pcl_x_data = pcl_fld_mem.get_mem();
+		x_fld.extract_pcl_fld_data(pcl_x_data);
+		// y coord
+		double* pcl_y_data = pcl_x_data + pcl_num;
+		y_fld.extract_pcl_fld_data(pcl_y_data);
+		// z coord
+		double* pcl_z_data = pcl_y_data + pcl_num;
+		z_fld.extract_pcl_fld_data(pcl_z_data);
+		// vol
+		double* pcl_vol_data = pcl_z_data + pcl_num;
+		vol_fld.extract_pcl_fld_data(pcl_vol_data);
+		// pcl fld
+		double* pcl_fld_data = pcl_vol_data + pcl_num;
+		pfld->extract_pcl_fld_data(pcl_fld_data);
+		pcls_obj.update(
+			pcl_num,
+			pcl_x_data,
+			pcl_y_data,
+			pcl_z_data,
+			pcl_vol_data,
+			pcl_fld_data,
+			0.5
+			);
+	}
 
 	// rigid body centre
 	if (has_rb)

@@ -7,9 +7,11 @@ if __name__ == "__main__":
     h5_file = h5py.File("..\\Asset\\teh_mesh.h5", "w")
     mesh_grp = h5_file.create_group("Mesh")
     # write nodes
+    sqrt3 = math.sqrt(3.0)
+    sqrt2 = math.sqrt(2.0)
     nodes = [
         [0,  sqrt3, -1.0,   0.0],
-        [1,  0.0,    sqrt3, 0.0],
+        [1,  0.0,    2.0,   0.0],
         [2, -sqrt3, -1.0,   0.0],
         [3,  0.0,    0.0,   2.0*sqrt2],
     ]

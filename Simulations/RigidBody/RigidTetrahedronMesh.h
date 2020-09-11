@@ -149,6 +149,8 @@ public:
 
 	inline double get_density() { return density; }
 	inline double get_m() const noexcept { return m; }
+	inline const Matrix3x3 &get_moi() const noexcept { return moi_mat; }
+
 	inline double get_ax() const noexcept { return ax; }
 	inline double get_ay() const noexcept { return ay; }
 	inline double get_az() const noexcept { return az; }
@@ -204,6 +206,12 @@ public:
 	inline double get_vx_ang_bc() const noexcept { return vx_ang_bc; }
 	inline double get_vy_ang_bc() const noexcept { return vy_ang_bc; }
 	inline double get_vz_ang_bc() const noexcept { return vz_ang_bc; }
+
+	inline void set_density(double den)
+	{
+		density = den;
+		cal_m_and_moi();
+	}
 
 	inline void set_ax_bc(double _a) { pax = &ax_bc; ax_bc = _a; }
 	inline void set_ay_bc(double _a) { pay = &ay_bc; ay_bc = _a; }
@@ -268,6 +276,10 @@ public:
 	inline size_t get_bface_num() const noexcept { return bface_num; }
 	inline const Face* get_bfaces() const noexcept { return bfaces; }
 	inline Face* get_bfaces() noexcept { return bfaces; }
+
+	int init(double _density, const char* file_name,
+			 double dx, double dy, double dz,
+			 double dx_ang, double dy_ang, double dz_ang);
 
 	int init_mesh(const char *file_name, double dx, double dy, double dz,
 				  double dx_ang, double dy_ang, double dz_ang);

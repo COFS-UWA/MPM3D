@@ -18,6 +18,7 @@ Model_T3D_ME_s::Model_T3D_ME_s() :
 	vy_num(0), vys(nullptr),
 	vz_num(0), vzs(nullptr),
 	rb_is_init(false),
+	bg_grid_num(0), bg_grids(nullptr),
 	Kn_cont(0.0), Kt_cont(0.0), miu_cont(0.0) {}
 
 Model_T3D_ME_s::~Model_T3D_ME_s()
@@ -188,6 +189,7 @@ void Model_T3D_ME_s::clear_pcls()
 }
 
 int Model_T3D_ME_s::init_rb(
+	double density,
 	const char* file_name,
 	double dx,
 	double dy,
@@ -197,7 +199,7 @@ int Model_T3D_ME_s::init_rb(
 	double dz_ang
 	)
 {
-	int res = rb.init_mesh(file_name, dx, dy, dz, dx_ang, dy_ang, dz_ang);
+	int res = rb.init(density, file_name, dx, dy, dz, dx_ang, dy_ang, dz_ang);
 	if (res)
 		return res;
 	rb_is_init = true;

@@ -89,10 +89,10 @@ int QtRigidTetrahedronMeshGLObject::init_faces(
 	
 	struct Face { size_t n1, n2, n3; };
 	size_t bface_num;
-	const Face *bfaces = extract_edges_from_triangles<Face>(elems, elem_num, bface_num);
+	const Face *bfaces = extract_boundary_triangles_from_tetrahedrons<Face, Element>(elems, elem_num, bface_num);
 	if (!bfaces || !bface_num)
 		return -1;
-
+	
 	mode = Surface;
 	color = c;
 	vbo_index_num = bface_num * 3;
@@ -124,7 +124,7 @@ int QtRigidTetrahedronMeshGLObject::init_faces(
 		// swap n2 and n3 to be counter-clockwise
 		// for external surface
 		// n1
-		cur_nd->type = 0;
+		cur_nd->type = 1;
 		cur_nd->x = GLfloat(n1.x);
 		cur_nd->y = GLfloat(n1.y);
 		cur_nd->z = GLfloat(n1.z);
@@ -133,7 +133,7 @@ int QtRigidTetrahedronMeshGLObject::init_faces(
 		cur_nd->nz = GLfloat(face_normal.z);
 		++cur_nd;
 		// n3
-		cur_nd->type = 0;
+		cur_nd->type = 1;
 		cur_nd->x = GLfloat(n3.x);
 		cur_nd->y = GLfloat(n3.y);
 		cur_nd->z = GLfloat(n3.z);
@@ -142,7 +142,7 @@ int QtRigidTetrahedronMeshGLObject::init_faces(
 		cur_nd->nz = GLfloat(face_normal.z);
 		++cur_nd;
 		// n2
-		cur_nd->type = 0;
+		cur_nd->type = 1;
 		cur_nd->x = GLfloat(n2.x);
 		cur_nd->y = GLfloat(n2.y);
 		cur_nd->z = GLfloat(n2.z);
@@ -153,7 +153,7 @@ int QtRigidTetrahedronMeshGLObject::init_faces(
 	}
 	gl.glBufferData(
 		GL_ARRAY_BUFFER,
-		node_num * sizeof(FaceNodeData),
+		vbo_index_num * sizeof(FaceNodeData),
 		node_datas,
 		GL_STATIC_DRAW
 		);
@@ -202,10 +202,87 @@ int QtRigidTetrahedronMeshGLObject::init_line_frame(
 	const QVector3D& c
 	)
 {
-	int res = init_face<Node, Element>(nodes, node_num, elems, elem_num, cen, ang, c);
-	if (res)
-		return res;
+	if (!nodes || !node_num ||
+		!elems || !elem_num)
+		return -1;
+
+	struct Face { size_t n1, n2, n3; };
+	size_t bface_num;
+	const Face* bface_datas = extract_boundary_triangles_from_tetrahedrons<Face, Element>(elems, elem_num, bface_num);
+	if (!bface_datas || !bface_num)
+		return 0;
+
+	struct Line { size_t n1, n2; };
+	size_t line_num;
+	const Line* line_datas = extract_edges_from_triangles<Line, Face>(bface_datas, bface_num, line_num);
+	delete[] bface_datas;
+	if (!line_datas || !line_num)
+		return 0;
+
 	mode = LineFrame;
+	color = c;
+	vbo_index_num = line_num * 2;
+
+	gl.glGenVertexArrays(1, &vao);
+	if (vao == 0)
+		return -2;
+	gl.glBindVertexArray(vao);
+
+	gl.glGenBuffers(1, &vbo);
+	if (vbo == 0)
+		return -2;
+	gl.glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	LineNodeData* node_datas = new LineNodeData[vbo_index_num];
+	LineNodeData* cur_nd = node_datas;
+	for (size_t l_id = 0; l_id < line_num; ++l_id)
+	{
+		const Line& l = line_datas[l_id];
+		const Node& n1 = nodes[l.n1];
+		const Node& n2 = nodes[l.n2];
+		// n1
+		cur_nd->type = 2;
+		cur_nd->x = GLfloat(n1.x);
+		cur_nd->y = GLfloat(n1.y);
+		cur_nd->z = GLfloat(n1.z);
+		++cur_nd;
+		// n2
+		cur_nd->type = 2;
+		cur_nd->x = GLfloat(n2.x);
+		cur_nd->y = GLfloat(n2.y);
+		cur_nd->z = GLfloat(n2.z);
+		++cur_nd;
+	}
+	delete[] line_datas;
+	gl.glBufferData(
+		GL_ARRAY_BUFFER,
+		vbo_index_num * sizeof(LineNodeData),
+		node_datas,
+		GL_STATIC_DRAW
+		);
+	delete[] node_datas;
+
+	// v_type
+	gl.glVertexAttribIPointer(0,
+		1, GL_UNSIGNED_INT,
+		sizeof(LineNodeData),
+		(GLvoid*)offsetof(LineNodeData, type)
+	);
+	gl.glEnableVertexAttribArray(0);
+	// v_pos
+	gl.glVertexAttribPointer(1,
+		3, GL_FLOAT, GL_FALSE,
+		sizeof(LineNodeData),
+		(GLvoid*)offsetof(LineNodeData, x)
+	);
+	gl.glEnableVertexAttribArray(1);
+
+	Vector3D ix(1.0, 0.0, 0.0);
+	Vector3D iy(0.0, 1.0, 0.0);
+	Vector3D iz(0.0, 0.0, 1.0);
+	rotate_axses_by_angle(ang, ix, iy, iz);
+	form_model_mat(cen, ix, iy, iz);
+	
 	return 0;
 }
 

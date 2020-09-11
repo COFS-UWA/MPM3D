@@ -116,5 +116,5 @@ if __name__ == "__main__":
     # print(keyword_props)
     # file.close()
     
-    nodes, elems = get_mesh_from_inp("..\\Asset\\bar_mesh1.inp", "Part-1")
-    output_mesh_to_hdf5(nodes, elems, "..\\Asset\\bar_mesh1.h5")
+    nodes, elems = get_mesh_from_inp("../Asset/ball_mesh_r1.00.inp", "Part-1")
+    output_mesh_to_hdf5(nodes, elems, "../Asset/ball_mesh_r1.00.h5")

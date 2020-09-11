@@ -91,6 +91,7 @@ public:
 	
 	inline void set_display_bg_mesh(bool op = true) { scene.set_display_bg_mesh(op); }
 	inline void set_display_pcls(bool op = true) { scene.set_display_pcls(op); }
+	inline void set_rb_display_mode(QtRigidTetrahedronMeshGLObject::DisplayMode _mode) { scene.set_rb_display_mode(_mode); }
 
 	inline void set_color_map_fld_range(double min, double max)
 	{ scene.set_color_map_fld_range(min, max); }

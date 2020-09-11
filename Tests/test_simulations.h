@@ -61,11 +61,15 @@ void test_t2d_me_s_pipe_conference_geo_undrained(int argc, char** argv);
 void test_t2d_me_p_pipe_conference_geo(int argc, char** argv);
 void test_t2d_me_p_pipe_conference_restart(int argc, char** argv);
 
+void test_RigidTetrahedronMesh_display(int argc, char** argv);
+void test_RigidTetrahedronMesh_moi(int argc, char** argv);
 void test_RigidTetrahedronMesh_intersection(int argc, char** argv);
 void test_RigidTetrahedronMesh_bg_grid(int argc, char** argv);
 void test_RigidTetrahedronMesh_bg_grid2(int argc, char** argv);
 void test_RigidTetrahedronMesh_close_to_boundary(int argc, char** argv);
 void test_RigidTetrahedronMesh_search_dist(int argc, char** argv);
+void test_RigidTetrahedronMesh_rotation(int argc, char** argv);
+void test_RigidTetrahedronMesh_rotation_result(int argc, char** argv);
 
 void test_t3d_me_s_cap_compression(int argc, char** argv);
 
