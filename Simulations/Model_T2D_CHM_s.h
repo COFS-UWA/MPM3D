@@ -8,7 +8,7 @@
 #include "MatModelContainer.h"
 #include "SearchingGrid2D.hpp"
 #include "ParticleGenerator2D.hpp"
-#include "RigidCircle.h"
+#include "RigidBody/RigidCircle.h"
 
 namespace Model_T2D_CHM_s_Internal
 {
@@ -44,7 +44,6 @@ struct Particle
 {
 	size_t id;
 	double x, y;
-	double x_f, y_f;
 
 	double ux_s, uy_s;
 	double vx_s, vy_s;

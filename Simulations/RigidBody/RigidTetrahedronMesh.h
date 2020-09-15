@@ -33,7 +33,7 @@ namespace RigidTetrahedronMesh_Internal
 	{
 		size_t id;
 		size_t n1, n2, n3;
-		PointToTriangleDistance<Node> pt_tri_dist;
+		PointToTriangleDistance pt_tri_dist;
 	};
 
 	typedef TetrahedronMeshTemplate<Node, Element, Edge> ParentTehClass;
@@ -477,8 +477,8 @@ protected: // background grid
 		g.bfaces = fp;
 	}
 	
-	PointInTetrahedron<Node> pt_in_teh;
-	TetrahedronAABBCollisionSAT<Node> teh_aabb_collision;
+	PointInTetrahedron pt_in_teh;
+	TetrahedronAABBCollisionSAT teh_aabb_collision;
 	inline void init_teh_aabb_collision(Element& e)
 	{
 		Node& n1 = nodes[e.n1];
@@ -490,7 +490,7 @@ protected: // background grid
 	}
 	bool detect_teh_aabb_collision(Cube &box);
 
-	TriangleAABBCollisionSAT<Node> tri_aabb_collision;
+	TriangleAABBCollisionSAT tri_aabb_collision;
 	void init_tri_aabb_collision(Face& f)
 	{
 		Node& n1 = nodes[f.n1];

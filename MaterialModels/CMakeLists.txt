@@ -7,6 +7,8 @@ add_library(
     MaterialModels STATIC
     # precompiled header
     MaterialModels_pcp.h MaterialModels_pcp.cpp
+    # utilities
+    MatModelUtils.h MatModelUtils.cpp
     # Base class
     MaterialModel.h
     # Linear Elasticity
@@ -15,6 +17,10 @@ add_library(
     ModifiedCamClay.h ModifiedCamClay.cpp
     # Modified Cam Clay for completely undrained deformation
     UndrainedModifiedCamClay.h UndrainedModifiedCamClay.cpp
+    # Von mises model
+    VonMises.h VonMises.cpp
+    # Tresca model
+    Tresca.h Tresca.cpp
     # ModelContainer
     MatModelContainer.h MatModelContainer.cpp
     # Map from material model id to pointer
@@ -28,6 +34,7 @@ target_include_directories(
     ${MATERIALMODELS_INCLUDE_DIR}
     ${COMMONUTILS_INCLUDE_DIR}
     ${MEMORYUTILS_INCLUDE_DIR}
+    ${EIGEN_INCLUDE_DIR}
     )
     
 if (MSVC)

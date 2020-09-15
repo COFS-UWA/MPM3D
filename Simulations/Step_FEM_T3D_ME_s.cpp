@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "Geometry2D.h"
+#include "TriangleUtils.h"
 #include "MaterialModel.h"
 
 #include "Step_FEM_T3D_ME_s.h"

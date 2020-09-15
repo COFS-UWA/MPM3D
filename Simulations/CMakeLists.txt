@@ -18,9 +18,8 @@ add_library(
     ResultFile_hdf5.h ResultFile_hdf5.cpp
     ResultFile_XML.h
     Model_hdf5_utilities.h Model_hdf5_utilities.cpp
-    BCs.h # boundary conditions
-    # Rigid circle
-    RigidCircle.h RigidCircle.cpp
+    # boundary conditions
+    BCs.h
     # 2D ME MPM serial version
     Model_T2D_ME_s.h Model_T2D_ME_s.cpp
     Model_T2D_ME_s_hdf5_utilities.h Model_T2D_ME_s_hdf5_utilities.cpp
@@ -55,6 +54,9 @@ add_library(
     ## geostatic calculation
     Step_T2D_CHM_s_Geo.h Step_T2D_CHM_s_Geo.cpp
     TimeHistory_T2D_CHM_s_Geo_complete.h TimeHistory_T2D_CHM_s_Geo_complete.cpp
+    # 2D CHM MPM double particle sets
+    Model_T2D_CHM_d.h Model_T2D_CHM_d.cpp
+    Step_T2D_CHM_d.h Step_T2D_CHM_d.cpp
     # 2D CHM MPM parallel version
     #Model_T2D_CHM_p.h Model_T2D_CHM_p.cpp
     #Model_T2D_CHM_p_hdf5_utilities.h Model_T2D_CHM_p_hdf5_utilities.cpp

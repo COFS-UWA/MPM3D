@@ -8,6 +8,7 @@
 #include "hdf5.h"
 
 #include "Geometry2D.h"
+#include "TriangleUtils.h"
 #include "NumPairHashTable.hpp"
 
 /*=============================
@@ -132,7 +133,7 @@ public:
 
 	inline bool is_in_triangle(Element& elem, double x, double y)
 	{
-		Point2D p = { x, y };
+		Point2D p(x, y);
 		return is_in_triangle<Point2D>(elem, p);
 	}
 

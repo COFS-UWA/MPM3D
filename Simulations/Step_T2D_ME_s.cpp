@@ -262,6 +262,9 @@ int solve_substep_T2D_ME_s(void *_self)
 	if (md.rigid_circle_is_init)
 		md.apply_rigid_circle(self.dtime);
 
+	if (md.rigid_rect_is_init)
+		md.apply_rigid_rect(self.dtime);
+
 	// apply velocity bc
 	for (size_t v_id = 0; v_id < md.vx_num; ++v_id)
 	{

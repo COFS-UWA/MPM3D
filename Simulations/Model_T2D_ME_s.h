@@ -8,7 +8,8 @@
 #include "MatModelContainer.h"
 #include "SearchingGrid2D.hpp"
 #include "ParticleGenerator2D.hpp"
-#include "RigidCircle.h"
+#include "RigidBody/RigidCircle.h"
+#include "RigidBody/RigidRect.h"
 
 namespace Model_T2D_ME_s_Internal
 {
@@ -113,16 +114,18 @@ int solve_substep_T2D_ME_s(void* _self);
 class ResultFile_hdf5;
 namespace Model_T2D_ME_s_hdf5_utilities
 {
-int output_background_mesh_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_background_mesh_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_boundary_condition_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_boundary_condition_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_pcl_data_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_pcl_data_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_material_model_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_material_model_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int output_rigid_circle_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_rigid_circle_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_background_mesh_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_background_mesh_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_boundary_condition_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_boundary_condition_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_pcl_data_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_pcl_data_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_material_model_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_material_model_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_rigid_circle_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_rigid_circle_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_rigid_rect_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_rigid_rect_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
 
 struct Model_T2D_ME_s : public Model,
@@ -244,16 +247,23 @@ public:
 		return nullptr;
 	}
 
-// ===================== rigid circle =====================
 protected:
+	double K_cont; // contact stiffness
+
+	// rigid circle
 	bool rigid_circle_is_init;
 	RigidCircle rigid_circle;
-	double K_cont; // contact stiffness
 	int apply_rigid_circle(double dt);
 
-public: // interaction with rigid circle
+	// rigid rect
+	bool rigid_rect_is_init;
+	RigidRect rigid_rect;
+	int apply_rigid_rect(double dt);
+
+public:
+	// interaction with rigid circle
 	inline bool rigid_circle_is_valid() { return rigid_circle_is_init; }
-	//inline RigidCircle& get_rigid_circle() { return rigid_circle; }
+	inline RigidCircle& get_rigid_circle() { return rigid_circle; }
 	inline void init_rigid_circle(double _K_cont, double x, double y, double r, double density = 1.0)
 	{
 		rigid_circle_is_init = true;
@@ -263,8 +273,19 @@ public: // interaction with rigid circle
 	inline void set_rigid_circle_velocity(double vx, double vy, double v_ang)
 	{ rigid_circle.set_v_bc(vx, vy, v_ang); }
 
-	RigidCircle& get_rigid_circle() { return rigid_circle; }
-
+	// interaction with rigid rect
+	inline bool rigid_rect_is_valid() { return rigid_rect_is_init; }
+	inline RigidRect& get_rigid_rect() { return rigid_rect; }
+	inline void init_rigid_rect(double _K_cont,
+		double x, double y, double hx, double hy, double density = 1.0)
+	{
+		rigid_rect_is_init = true;
+		K_cont = _K_cont;
+		rigid_rect.init(x, y, hx, hy, density);
+	}
+	inline void set_rigid_rect_velocity(double vx, double vy, double v_ang)
+	{ rigid_rect.set_v_bc(vx, vy, v_ang); }
+	
 protected:
 	friend int Model_T2D_ME_s_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_ME_s_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -276,6 +297,8 @@ protected:
 	friend int Model_T2D_ME_s_hdf5_utilities::load_material_model_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_ME_s_hdf5_utilities::output_rigid_circle_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_ME_s_hdf5_utilities::load_rigid_circle_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_s_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_s_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T2D_ME_s& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 public: // for debug
 	void sum_vol_for_all_elements();

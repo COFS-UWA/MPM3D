@@ -5,7 +5,8 @@
 #include "BCs.h"
 #include "ResultFile_hdf5.h"
 #include "MatModelContainer.h"
-#include "RigidCircle.h"
+#include "RigidBody/RigidCircle.h"
+#include "RigidBody/RigidRect.h"
 #include "RigidBody/RigidTetrahedronMesh.h"
 
 namespace Model_hdf5_utilities
@@ -392,6 +393,12 @@ namespace Model_hdf5_utilities
 	int load_rigid_circle_from_hdf5_file(
 		RigidCircle& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
 
+	// rigid rect
+	int output_rigid_rect_to_hdf5_file(
+		RigidRect& rr, ResultFile_hdf5& rf, hid_t rr_grp_id);
+	int load_rigid_rect_from_hdf5_file(
+		RigidRect& rr, ResultFile_hdf5& rf, hid_t rr_grp_id);
+	
 	struct RigidTehMeshNodeData
 	{
 		unsigned long long id;

@@ -75,6 +75,7 @@ add_library(
     QtMonoColorCircleGLObject.h QtMonoColorCircleGLObject.cpp
     QtMultiColorCircleGLObject.h QtMultiColorCircleGLObject.cpp
     QtRigidCircleObject.h QtRigidCircleObject.cpp
+    QtRigidRectObject.h QtRigidRectObject.cpp
     # Model_T2D_ME_s
     # prep process module
     QtSceneFromModel_T2D_ME_s.h QtSceneFromModel_T2D_ME_s.cpp

@@ -29,8 +29,6 @@ int Step_T2D_CHM_s::init_calculation()
 		pcl.y_ori = pcl.y;
 		pcl.ux_s = 0.0;
 		pcl.uy_s = 0.0;
-		pcl.x_f_ori = pcl.x_f;
-		pcl.y_f_ori = pcl.y_f;
 		pcl.ux_f = 0.0;
 		pcl.uy_f = 0.0;
 	}
@@ -300,11 +298,11 @@ int solve_substep_T2D_CHM_s(void *_self)
 		}
 	}
 
-	// update nodal acceleration of fluid pahse
+	// update nodal acceleration of fluid phase
+	double nf, v_sign;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
-		double nf, v_sign;
 		if (n.has_mp)
 		{
 			// fx_s
@@ -513,12 +511,9 @@ int solve_substep_T2D_CHM_s(void *_self)
 			// update position
 			pcl.x = pcl.x_ori + pcl.ux_s;
 			pcl.y = pcl.y_ori + pcl.uy_s;
-			pcl.x_f = pcl.x_f_ori + pcl.ux_f;
-			pcl.y_f = pcl.y_f_ori + pcl.uy_f;
 
 			// strain enhancement appraoch
 			de_vol_s = n1.de_vol_s * pcl.N1 + n2.de_vol_s * pcl.N2 + n3.de_vol_s * pcl.N3;
-			//de_vol_s = e.de_vol_s;
 			// porosity
 			pcl.n = (de_vol_s + pcl.n) / (1.0 + de_vol_s);
 
@@ -540,13 +535,8 @@ int solve_substep_T2D_CHM_s(void *_self)
 			pcl.s22 += dstress[1];
 			pcl.s12 += dstress[3];
 
-			// pore pressure
-			//de_vol_f = n1.de_vol_f * pcl.N1 + n2.de_vol_f * pcl.N2 + n3.de_vol_f * pcl.N3;
-			//pcl.p += md.Kf * de_vol_f;
 			pcl.p = e.p;
-			// fluid density
 			pcl.density_f /= 1.0 - e.de_vol_f;
-			//pcl.density_f /= 1.0 - de_vol_f;
 		}
 	}
 	

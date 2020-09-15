@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 	//test_mcc_get_Su();
 	//test_mcc_compression();
 	//test_undrained_mcc();
+	//test_von_mises();
 
 	//test_solve_functions();
 
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
 	// pipe embedment simulation for conference
 	// coupled hydro-mechanics
 	// geostatic step
-	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
+	test_t2d_chm_s_pipe_conference_geo(argc, argv);
 	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
 	// penetration step 1
 	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);
@@ -141,8 +142,8 @@ int main(int argc, char *argv[])
 	//test_RigidTetrahedronMesh_close_to_boundary(argc, argv);
 	//test_RigidTetrahedronMesh_search_dist(argc, argv);
 	
-	test_RigidTetrahedronMesh_rotation(argc, argv);
-	test_RigidTetrahedronMesh_rotation_result(argc, argv);
+	//test_RigidTetrahedronMesh_rotation(argc, argv);
+	//test_RigidTetrahedronMesh_rotation_result(argc, argv);
 
 	//test_t3d_me_s_cap_compression(argc, argv);
 	//test_t3d_me_s_cap_compression_result(argc, argv);

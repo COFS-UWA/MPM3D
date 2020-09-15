@@ -13,6 +13,7 @@ add_library(
     Geometry3D.h
     NumPairHashTable.hpp
     # 2D geometry
+    TriangleUtils.h
     TriangleMeshTemplate.hpp
     TriangleMesh.h
     SearchingGrid2D.hpp
@@ -20,9 +21,9 @@ add_library(
     #RandomPointQueue.h RandomPointQueue.cpp
     ParticleGenerator2D.hpp
     # 3D geometry
+    TetrahedronUtils.h
     TetrahedronMeshTemplate.hpp
     TetrahedronMesh.h
-    TetrahedronUtils.h
     SearchingGrid3D.hpp
     ParticleGenerator3D.hpp
     )

@@ -4,7 +4,7 @@
 #include "hdf5.h"
 #include "ResultFile_hdf5.h"
 #include "MatModelContainer.h"
-#include "RigidCircle.h"
+#include "RigidBody/RigidCircle.h"
 #include "Model_T2D_CHM_s.h"
 
 namespace Model_T2D_CHM_s_hdf5_utilities

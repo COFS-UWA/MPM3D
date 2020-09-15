@@ -113,12 +113,14 @@ void test_t2d_me_s_plate_with_hole_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_s_plate_with_hole.h5");
 
-	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
-	app.set_ani_time(5.0);
+	QtApp_Posp_T2D_ME_s app(argc, argv);
+	app.set_res_file(rf, "load1", 100, Hdf5Field::s11);
+	//QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
+	//app.set_ani_time(5.0);
+	//app.set_res_file(rf, "load1", Hdf5Field::s11);
 	app.set_win_size(900, 900);
-	app.set_res_file(rf, "load1", Hdf5Field::s11);
 	app.set_color_map_fld_range(-30.0, 10.0);
-	//app.set_png_name("t2d_me_s_1d_plate_with_hole");
+	app.set_png_name("t2d_me_s_1d_plate_with_hole");
 	//app.set_gif_name("t2d_me_s_1d_plate_with_hole");
 	app.start();
 }

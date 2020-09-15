@@ -81,6 +81,8 @@ add_executable(
     test_t3d_chm_s_1d_consolidation.cpp
     test_fem_t3d_me_s_1d_compression.cpp
     test_fem_t3d_me_s_1d_compression2.cpp
+    test_mat_model_utils.cpp
+    test_von_mises.cpp
     )
 
 target_include_directories(

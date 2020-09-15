@@ -689,6 +689,56 @@ int load_rigid_circle_from_hdf5_file(
 	return 0;
 }
 
+int output_rigid_rect_to_hdf5_file(
+	Model_T2D_ME_s& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.rigid_rect_is_valid())
+		return 0;
+
+	hid_t rr_grp_id = rf.create_group(grp_id, "RigidRect");
+
+	rf.write_attribute(rr_grp_id, "K_cont", md.K_cont);
+
+	using Model_hdf5_utilities::output_rigid_rect_to_hdf5_file;
+	output_rigid_rect_to_hdf5_file(md.rigid_rect, rf, rr_grp_id);
+
+	rf.close_group(rr_grp_id);
+	return 0;
+}
+
+int load_rigid_rect_from_hdf5_file(
+	Model_T2D_ME_s& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(grp_id, "RigidRect"))
+		return 0;
+
+	hid_t rr_grp_id = rf.open_group(grp_id, "RigidRect");
+
+	double K_cont;
+	rf.read_attribute(rr_grp_id, "K_cont", K_cont);
+	md.K_cont = K_cont;
+
+	using Model_hdf5_utilities::load_rigid_rect_from_hdf5_file;
+	load_rigid_rect_from_hdf5_file(md.rigid_rect, rf, rr_grp_id);
+
+	md.rigid_rect_is_init = true;
+
+	rf.close_group(rr_grp_id);
+	return 0;
+}
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T2D_ME_s& md,
@@ -706,6 +756,7 @@ int output_model_to_hdf5_file(
 	output_material_model_to_hdf5_file(md, rf, md_grp_id);
 	// rigid object
 	output_rigid_circle_to_hdf5_file(md, rf, md_grp_id);
+	output_rigid_rect_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }
 
@@ -722,6 +773,7 @@ int time_history_complete_output_to_hdf5_file(
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
 	output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
+	output_rigid_rect_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -760,6 +812,8 @@ int load_me_s_model_from_hdf5_file(
 
 	// rigid object
 	load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
+	load_rigid_rect_from_hdf5_file(md, rf, th_frame_id);
+	
 	rf.close_group(th_frame_id);
 	rf.close_group(th_id);
 

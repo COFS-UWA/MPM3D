@@ -228,6 +228,9 @@ namespace Model_hdf5_utilities
 		hid_t rc_grp_id
 	)
 	{
+		if (rc_grp_id < 0)
+			return -1;
+
 		double rc_radius, rc_density;
 		double rc_rfx, rc_rfy, rc_rm;
 		double rc_ax, rc_ay, rc_a_ang;
@@ -299,6 +302,134 @@ namespace Model_hdf5_utilities
 		return 0;
 	}
 
+	// rigid rect
+	int output_rigid_rect_to_hdf5_file(
+		RigidRect& rr,
+		ResultFile_hdf5& rf,
+		hid_t rr_grp_id
+		)
+	{
+		if (rr_grp_id < 0)
+			return -1;
+
+		rf.write_attribute(rr_grp_id, "hx", rr.get_hx());
+		rf.write_attribute(rr_grp_id, "hy", rr.get_hy());
+		rf.write_attribute(rr_grp_id, "density", rr.get_density());
+		
+		rf.write_attribute(rr_grp_id, "ax", rr.get_ax());
+		rf.write_attribute(rr_grp_id, "ay", rr.get_ay());
+		rf.write_attribute(rr_grp_id, "a_angle", rr.get_a_ang());
+		rf.write_attribute(rr_grp_id, "vx", rr.get_vx());
+		rf.write_attribute(rr_grp_id, "vy", rr.get_vy());
+		rf.write_attribute(rr_grp_id, "v_angle", rr.get_v_ang());
+		rf.write_attribute(rr_grp_id, "x", rr.get_x());
+		rf.write_attribute(rr_grp_id, "y", rr.get_y());
+		rf.write_attribute(rr_grp_id, "angle", rr.get_ang());
+
+		rf.write_attribute(rr_grp_id, "fx_contact", rr.get_fx_contact());
+		rf.write_attribute(rr_grp_id, "fy_contact", rr.get_fy_contact());
+		rf.write_attribute(rr_grp_id, "m_contact", rr.get_m_contact());
+		rf.write_attribute(rr_grp_id, "fx_external", rr.get_fx_external());
+		rf.write_attribute(rr_grp_id, "fy_external", rr.get_fy_external());
+		rf.write_attribute(rr_grp_id, "m_external", rr.get_m_external());
+		
+		if (rr.has_ax_bc())
+			rf.write_attribute(rr_grp_id, "ax_bc", rr.get_ax_bc());
+		if (rr.has_ay_bc())
+			rf.write_attribute(rr_grp_id, "ay_bc", rr.get_ay_bc());
+		if (rr.has_a_ang_bc())
+			rf.write_attribute(rr_grp_id, "a_ang_bc", rr.get_a_ang_bc());
+		if (rr.has_vx_bc())
+			rf.write_attribute(rr_grp_id, "vx_bc", rr.get_vx_bc());
+		if (rr.has_vy_bc())
+			rf.write_attribute(rr_grp_id, "vy_bc", rr.get_vy_bc());
+		if (rr.has_v_ang_bc())
+			rf.write_attribute(rr_grp_id, "v_ang_bc", rr.get_v_ang());
+
+		return 0;
+	}
+
+	int load_rigid_rect_from_hdf5_file(
+		RigidRect& rr,
+		ResultFile_hdf5& rf,
+		hid_t rr_grp_id
+		)
+	{
+		if (rr_grp_id < 0)
+			return -1;
+
+		double hx, hy, density;
+		double ax, ay, a_ang;
+		double vx, vy, v_ang;
+		double x, y, ang;
+		double fx_con, fy_con, m_con;
+		rf.read_attribute(rr_grp_id, "hx", hx);
+		rf.read_attribute(rr_grp_id, "hy", hy);
+		rf.read_attribute(rr_grp_id, "density", density);
+		rf.read_attribute(rr_grp_id, "ax", ax);
+		rf.read_attribute(rr_grp_id, "ay", ay);
+		rf.read_attribute(rr_grp_id, "a_angle", a_ang);
+		rf.read_attribute(rr_grp_id, "vx", vx);
+		rf.read_attribute(rr_grp_id, "vy", vy);
+		rf.read_attribute(rr_grp_id, "v_angle", v_ang);
+		rf.read_attribute(rr_grp_id, "x", x);
+		rf.read_attribute(rr_grp_id, "y", y);
+		rf.read_attribute(rr_grp_id, "angle", ang);
+		rf.read_attribute(rr_grp_id, "fx_contact", fx_con);
+		rf.read_attribute(rr_grp_id, "fy_contact", fy_con);
+		rf.read_attribute(rr_grp_id, "m_contact", m_con);
+
+		rr.set_init_state(hx, hy, density,
+			fx_con, fy_con, m_con,
+			ax, ay, a_ang,
+			vx, vy, v_ang,
+			x, y, ang
+			);
+
+		// boundary conditions
+		double fx_ext, fy_ext, m_ext;
+		double ax_bc, ay_bc, a_ang_bc;
+		double vx_bc, vy_bc, v_ang_bc;
+		rf.read_attribute(rr_grp_id, "fx_external", fx_ext);
+		rr.add_fx_external(fx_ext);
+		rf.read_attribute(rr_grp_id, "fy_external", fy_ext);
+		rr.add_fy_external(fy_ext);
+		rf.read_attribute(rr_grp_id, "m_external", m_ext);
+		rr.add_m_external(m_ext);
+		if (rf.has_attribute(rr_grp_id, "ax_bc"))
+		{
+			rf.read_attribute(rr_grp_id, "ax_bc", ax_bc);
+			rr.set_ax_bc(ax_bc);
+		}
+		if (rf.has_attribute(rr_grp_id, "ay_bc"))
+		{
+			rf.read_attribute(rr_grp_id, "ay_bc", ay_bc);
+			rr.set_ay_bc(ay_bc);
+		}
+		if (rf.has_attribute(rr_grp_id, "a_ang_bc"))
+		{
+			rf.read_attribute(rr_grp_id, "a_ang_bc", a_ang_bc);
+			rr.set_a_ang_bc(a_ang_bc);
+		}
+		if (rf.has_attribute(rr_grp_id, "vx_bc"))
+		{
+			rf.read_attribute(rr_grp_id, "vx_bc", vx_bc);
+			rr.set_vx_bc(vx_bc);
+		}
+		if (rf.has_attribute(rr_grp_id, "vy_bc"))
+		{
+			rf.read_attribute(rr_grp_id, "vy_bc", vy_bc);
+			rr.set_vy_bc(vy_bc);
+		}
+		if (rf.has_attribute(rr_grp_id, "v_ang_bc"))
+		{
+			rf.read_attribute(rr_grp_id, "v_ang_bc", v_ang_bc);
+			rr.set_v_ang_bc(v_ang_bc);
+		}
+
+		return 0;
+	}
+	
 	// only output state info, no mesh info
 	int output_rigid_tetrahedron_mesh_state_to_hdf5_file(
 		RigidTetrahedronMesh& rtm,

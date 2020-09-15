@@ -115,10 +115,6 @@ inline bool detect_rect_collision(Rect &c1, Rect &c2) noexcept
 			 c1.yu < c2.yl || c1.yl > c2.yu);
 }
 
-template <typename Node2D, typename Point2D>
-inline double cal_triangle_area(Node2D &p1, Node2D &p2, Point2D &p3)
-{ return 0.5 * ((p1.x-p3.x)*(p2.y-p3.y) - (p2.x-p3.x)*(p1.y-p3.y)); }
-
 struct OBB2D
 {
 	double xo, yo;

@@ -23,7 +23,7 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 	pcl_generator.generate_pcls_in_grid_layout(Rect(-3.5, 3.5, -5.0, -3.5), 0.04, 0.04);
 	pcl_generator.replace_with_pcls_in_grid_layout(Rect(-2.5, 2.5, -3.5, 0.0), 0.02, 0.02);
 	pcl_generator.adjust_pcl_size_to_fit_elems(model);
-	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e6, 1.0e-11, 1.0e-3);
+	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e6, 5.0e-12, 1.0e-3);
 
 	size_t pcl_num = model.get_pcl_num();
 	Model_T2D_CHM_s::Particle* pcls = model.get_pcls();
@@ -77,6 +77,7 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 	find_2d_nodes_on_x_line(model, left_right_bc_pt_array, -3.5);
 	find_2d_nodes_on_x_line(model, left_right_bc_pt_array, 3.5, false);
 	size_t* left_right_bc_n_id = left_right_bc_pt_array.get_mem();
+	// vsx bcs
 	model.init_vsxs(left_right_bc_pt_array.get_num());
 	size_t vsx_num = model.get_vsx_num();
 	VelocityBC* vsxs = model.get_vsxs();
@@ -86,16 +87,37 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 		vbc.node_id = left_right_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
+	// vfx bcs
+	model.init_vfxs(left_right_bc_pt_array.get_num());
+	size_t vfx_num = model.get_vfx_num();
+	VelocityBC* vfxs = model.get_vfxs();
+	for (size_t v_id = 0; v_id < vfx_num; ++v_id)
+	{
+		VelocityBC& vbc = vfxs[v_id];
+		vbc.node_id = left_right_bc_n_id[v_id];
+		vbc.v = 0.0;
+	}
 	
 	IndexArray bottom_bc_pt_array(50);
 	find_2d_nodes_on_y_line(model, bottom_bc_pt_array, -5.0);
 	size_t* bottom_bc_n_ids = bottom_bc_pt_array.get_mem();
+	// vsys
 	model.init_vsys(bottom_bc_pt_array.get_num());
 	size_t vsy_num = model.get_vsy_num();
 	VelocityBC* vsys = model.get_vsys();
 	for (size_t v_id = 0; v_id < vsy_num; ++v_id)
 	{
 		VelocityBC &vbc = vsys[v_id];
+		vbc.node_id = bottom_bc_n_ids[v_id];
+		vbc.v = 0.0;
+	}
+	// vfys
+	model.init_vfys(bottom_bc_pt_array.get_num());
+	size_t vfy_num = model.get_vfy_num();
+	VelocityBC* vfys = model.get_vfys();
+	for (size_t v_id = 0; v_id < vfy_num; ++v_id)
+	{
+		VelocityBC& vbc = vfys[v_id];
 		vbc.node_id = bottom_bc_n_ids[v_id];
 		vbc.v = 0.0;
 	}

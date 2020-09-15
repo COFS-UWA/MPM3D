@@ -141,7 +141,7 @@ int Model_T2D_CHM_s::init_pcls(
 	double _Kf, double _k, double _miu)
 {
 	int res = init_pcls(pg.get_num(), n, density_s,
-		density_s, density_f, _Kf, _k, _miu);
+						density_s, density_f, _Kf, _k, _miu);
 	if (res)
 		return res;
 
@@ -153,8 +153,6 @@ int Model_T2D_CHM_s::init_pcls(
 		pcl.x = pg_pcl->x;
 		pcl.y = pg_pcl->y;
 		pcl.m_s *= pg_pcl->area * (1.0 - pcl.n);
-		pcl.x_f = pcl.x;
-		pcl.y_f = pcl.y;
 		pg_pcl = pg.next(pg_pcl);
 	}
 

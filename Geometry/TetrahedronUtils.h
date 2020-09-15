@@ -6,7 +6,11 @@
 
 template <typename Point3D>
 Cube get_tetrahedron_bounding_box(
-	Point3D& n1, Point3D& n2, Point3D& n3, Point3D& n4)
+	Point3D& n1,
+	Point3D& n2,
+	Point3D& n3,
+	Point3D& n4
+	)
 {
 	Cube res;
 	res.xl = n1.x;
@@ -93,7 +97,12 @@ Cube get_3Dtriangle_bounding_box(
 }
 
 template <typename Node3D, typename Point3D>
-inline double cal_tetrahedron_vol(Node3D& n1, Node3D& n2, Node3D& n3, Point3D& p4)
+inline double cal_tetrahedron_vol(
+	Node3D& n1,
+	Node3D& n2,
+	Node3D& n3,
+	Point3D& p4
+	)
 {
 	double v21_x, v21_y, v21_z;
 	double v31_x, v31_y, v31_z;
@@ -114,7 +123,6 @@ inline double cal_tetrahedron_vol(Node3D& n1, Node3D& n2, Node3D& n3, Point3D& p
 	return (v41_x * cp_x + v41_y * cp_y + v41_z * cp_z) / 6.0;
 }
 
-template <typename Node3D>
 struct PointInTetrahedron
 {
 protected:
@@ -124,6 +132,7 @@ protected:
 	double a4, b4, c4, coef4;
 
 public:
+	template <typename Node3D>
 	inline void init_tetrahedron(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4, double vol)
 	{
 		double inv_vol_6 = 1.0 / (6.0 * vol);
@@ -148,6 +157,7 @@ public:
 		c4 = ((n2.x - n1.x) * (n3.y - n1.y) - (n3.x - n1.x) * (n2.y - n1.y)) * inv_vol_6;
 		coef4 = a4 * n1.x + b4 * n1.y + c4 * n1.z;
 	}
+	template <typename Node3D>
 	inline void init_tetrahedron(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4)
 	{ init_tetrahedron(n1, n2, n3, n4, cal_tetrahedron_vol<Node3D, Node3D>(n1, n2, n3, n4)); }
 
@@ -195,7 +205,6 @@ public:
 	inline double dN4_dz() const noexcept { return c4; }
 };
 
-template <typename Node3D>
 struct TetrahedronAABBCollisionSAT
 {
 protected:
@@ -204,8 +213,13 @@ protected:
 	// 4 face normal + 3 * 6 edge cross product
 	Vector3D axes[22];
 
-	inline bool is_seperating_axis(Vector3D& axis,
-		Point3D& p1, Point3D& p2, Point3D& p3, Point3D& p4)
+	inline bool is_seperating_axis(
+		Vector3D& axis,
+		Point3D& p1,
+		Point3D& p2,
+		Point3D& p3,
+		Point3D& p4
+		)
 	{
 #define Norm_Tol 1.0e-10
 		if (axis.norm() < Norm_Tol)
@@ -221,7 +235,13 @@ protected:
 	}
 
 public:
-	void init_tetrahedron(Node3D& _n1, Node3D& _n2, Node3D& _n3, Node3D& _n4)
+	template <typename Node3D>
+	void init_tetrahedron(
+		Node3D& _n1,
+		Node3D& _n2,
+		Node3D& _n3,
+		Node3D& _n4
+		)
 	{
 		n1.x = _n1.x;
 		n1.y = _n1.y;
@@ -333,8 +353,6 @@ public:
 	inline const Point3D& get_n4() const noexcept { return n4; }
 };
 
-
-template <typename Node3D>
 struct TriangleAABBCollisionSAT
 {
 protected:
@@ -343,8 +361,12 @@ protected:
 	// 1 face normal + 3 * 3 edge cross product
 	Vector3D axes[10];
 
-	inline bool is_seperating_axis(Vector3D& axis,
-		Point3D& p1, Point3D& p2, Point3D& p3)
+	inline bool is_seperating_axis(
+		Vector3D& axis,
+		Point3D& p1,
+		Point3D& p2,
+		Point3D& p3
+		)
 	{
 #define Norm_Tol 1.0e-6
 		if (axis.norm() < Norm_Tol)
@@ -359,7 +381,12 @@ protected:
 	}
 
 public:
-	void init_triangle(Node3D& _n1, Node3D& _n2, Node3D& _n3)
+	template <typename Node3D>
+	void init_triangle(
+		Node3D& _n1,
+		Node3D& _n2,
+		Node3D& _n3
+		)
 	{
 		n1.x = _n1.x;
 		n1.y = _n1.y;
@@ -431,7 +458,6 @@ public:
 	inline const Point3D& get_n3() const noexcept { return n3; }
 };
 
-template <typename Node3D>
 struct PointToTriangleDistance
 {
 protected:
@@ -455,7 +481,13 @@ protected:
 
 public:
 	PointToTriangleDistance() {}
-	void init_triangle(Node3D& _n1, Node3D& _n2, Node3D& _n3)
+
+	template <typename Node3D>
+	void init_triangle(
+		Node3D& _n1,
+		Node3D& _n2,
+		Node3D& _n3
+		)
 	{
 		n1.x = _n1.x;
 		n1.y = _n1.y;

@@ -285,7 +285,6 @@ namespace MatModel
 			return divider;
 		}
 	};
-
 }
 
 #endif
