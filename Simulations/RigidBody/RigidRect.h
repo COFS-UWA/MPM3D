@@ -14,8 +14,8 @@ protected:
 	double fx, fy, m;
 
 public:
-	inline void reset_rf() noexcept { fx = 0.0; fy = 0.0; m = 0.0; }
-	inline void add_rf(
+	inline void reset_f_contact() noexcept { fx = 0.0; fy = 0.0; m = 0.0; }
+	inline void add_f_contact(
 		double _x,   double _y,
 		double _fx,  double _fy,
 		double cen_x, double cen_y
@@ -45,7 +45,12 @@ protected:
 	union { double vx; unsigned long long vx_ull; };
 	union { double vy; unsigned long long vy_ull; };
 	union { double v_ang; unsigned long long v_ang_ull; };
-	double x, y, ang; // position and angle
+	union
+	{
+		struct { double x, y; };
+		Point2D centre;
+	};
+	double ang;
 
 	union { double ax_bc; unsigned long long ax_bc_ull; };
 	union { double ay_bc; unsigned long long ay_bc_ull; };
@@ -59,9 +64,20 @@ protected:
 	double fx_ext, fy_ext, m_ext;
 	double fx_con, fy_con, m_con;
 	
+	double sin_ang, cos_ang;
+	double hhx, hhy;
+	Rect local_bbox;
 	double m, moi; // moment of inertia
 	inline void init_cal_var()
 	{
+		sin_ang = sin(ang);
+		cos_ang = cos(ang);
+		hhx = 0.5 * hx;
+		hhy = 0.5 * hy;
+		local_bbox.xl = -hhx;
+		local_bbox.xu =  hhx;
+		local_bbox.yl = -hhy;
+		local_bbox.yu =  hhy;
 		m = hx * hy * density;
 		moi = m * (hx * hx + hy * hy) / 12.0;
 	}
@@ -154,10 +170,14 @@ public: // helper function for calculation
 	{
 		double hhx = hx * 0.5;
 		double hhy = hy * 0.5;
-		box.xl = x - hhx - exp_size;
-		box.xu = x + hhx + exp_size;
-		box.yl = y - hhy - exp_size;
-		box.yu = y + hhy + exp_size;
+		double cos_ang = cos(ang);
+		double sin_ang = sin(ang);
+		double xr = abs(cos_ang * hhx) + abs(sin_ang * hhy);
+		double yr = abs(sin_ang * hhx) + abs(cos_ang * hhy);
+		box.xl = x - xr - exp_size;
+		box.xu = x + xr + exp_size;
+		box.yl = y - yr - exp_size;
+		box.yu = y + yr + exp_size;
 	}
 
 	inline void reset_f_contact() noexcept
@@ -172,7 +192,7 @@ public: // helper function for calculation
 		m_con += (_x - x) * fy - (_y - y) * fx;
 	}
 
-	// return true if point(x, y) collides with circle
+	// return true if point(x, y) collides with the rectangle
 	// also calculate overlapping distance and norm direction at that point
 	// return false if point is outside circle
 	inline bool detect_collision_with_point(
@@ -180,10 +200,17 @@ public: // helper function for calculation
 		double& overlap_dist, double& norm_x, double& norm_y
 		)
 	{
+		Point2D lp;
+		Vector2D ix(cos_ang, sin_ang), iy(-sin_ang, cos_ang);
+		from_global_to_local_coordinate(centre, ix, iy, Point2D(_x, _y), lp);
+		// need rotation when change coordinate
 		double pcl_radius = sqrt(pcl_vol) * 0.5;
-		Rect bbox;
-		get_bbox(bbox, pcl_radius);
-		if (!bbox.is_in_box(_x, _y))
+		Rect bbox(local_bbox.xl - pcl_radius,
+				local_bbox.xu + pcl_radius, 
+				local_bbox.yl - pcl_radius, 
+				local_bbox.yu + pcl_radius
+				);
+		if (!bbox.is_in_box(lp.x, lp.y))
 			return false;
 
 		unsigned char closest_edge_id;
@@ -203,9 +230,15 @@ public: // helper function for calculation
 		dist_tmp = bbox.yu - _y;
 		if (dist_tmp < overlap_dist)
 			closest_edge_id = 3;
-		const Vector2D& en = edge_normal[closest_edge_id];
-		norm_x = en.x;
-		norm_y = en.y;
+		Vector2D norm;
+		from_local_to_global_coordinate(
+			Point2D(0.0, 0.0),
+			ix, iy,
+			edge_normal[closest_edge_id],
+			norm
+			);
+		norm_x = norm.x;
+		norm_y = norm.y;
 		return true;
 	}
 
@@ -213,25 +246,27 @@ public: // helper function for calculation
 	void update_motion(double dt)
 	{
 		// update a
-		ax = (fx_con + fx_ext) / m;
-		ay = (fy_con + fy_ext) / m;
-		a_ang = (m_con + m_ext) / moi;
+		ax = (fx_ext + fx_con) / m;
+		ay = (fy_ext + fy_con) / m;
+		a_ang = (m_ext + m_con) / moi;
 		// apply abc
-		ax = (ax_ull & ~ax_bc_mask) | (ax_bc_ull & ax_bc_mask);
-		ay = (ay_ull & ~ay_bc_mask) | (ay_bc_ull & ay_bc_mask);
-		a_ang = (a_ang_ull & ~a_ang_bc_mask) | (a_ang_bc_ull & a_ang_bc_mask);
+		ax_ull = (ax_ull & ~ax_bc_mask) | (ax_bc_ull & ax_bc_mask);
+		ay_ull = (ay_ull & ~ay_bc_mask) | (ay_bc_ull & ay_bc_mask);
+		a_ang_ull = (a_ang_ull & ~a_ang_bc_mask) | (a_ang_bc_ull & a_ang_bc_mask);
 		// update velocity
 		vx += ax * dt;
 		vy += ay * dt;
 		v_ang += a_ang * dt;
 		// apply vbc
-		vx = (vx_ull & ~vx_bc_mask) | (vx_bc_ull & vx_bc_mask);
-		vy = (vy_ull & ~vy_bc_mask) | (vy_bc_ull & vy_bc_mask);
-		v_ang = (v_ang_ull & ~v_ang_bc_mask) | (v_ang_bc_ull & v_ang_bc_mask);
+		vx_ull = (vx_ull & ~vx_bc_mask) | (vx_bc_ull & vx_bc_mask);
+		vy_ull = (vy_ull & ~vy_bc_mask) | (vy_bc_ull & vy_bc_mask);
+		v_ang_ull = (v_ang_ull & ~v_ang_bc_mask) | (v_ang_bc_ull & v_ang_bc_mask);
 		// update position
 		x += vx * dt;
 		y += vy * dt;
 		ang += v_ang * dt;
+		sin_ang = sin(ang);
+		cos_ang = cos(ang);
 	}
 };
 

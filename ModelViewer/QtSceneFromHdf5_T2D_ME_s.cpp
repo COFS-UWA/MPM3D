@@ -12,12 +12,10 @@ QtSceneFromHdf5_T2D_ME_s::QtSceneFromHdf5_T2D_ME_s(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	display_rc(true), has_rc_obj(false), rc_obj(_gl),
+	display_rr(true), has_rr_obj(false), rr_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
-	bg_color(0.2f, 0.3f, 0.3f)
-{
-
-}
+	bg_color(0.2f, 0.3f, 0.3f) {}
 
 QtSceneFromHdf5_T2D_ME_s::~QtSceneFromHdf5_T2D_ME_s()
 {
@@ -89,8 +87,11 @@ void QtSceneFromHdf5_T2D_ME_s::draw()
 	if (display_bg_mesh)
 		bg_mesh_obj.draw(shader_plain2D);
 
-	if (has_rc_obj && display_bg_mesh)
+	if (has_rc_obj && display_rc)
 		rc_obj.draw(shader_plain2D);
+
+	if (has_rr_obj && display_rr)
+		rr_obj.draw(shader_plain2D);
 
 	shader_circles.bind();
 
@@ -109,7 +110,7 @@ void QtSceneFromHdf5_T2D_ME_s::draw()
 
 void QtSceneFromHdf5_T2D_ME_s::resize(int wd, int ht)
 {
-	set_viewport(wd, ht, xu - xl, yu - yl);
+	set_viewport(wd, ht, bbox.xu - bbox.xl, bbox.yu - bbox.yl);
 
 	hud_view_mat.setToIdentity();
 	hud_view_mat.ortho(0.0f, GLfloat(wd)/GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
@@ -216,29 +217,22 @@ int QtSceneFromHdf5_T2D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	// get bounding box
 	if (display_whole_model)
 	{
-		xl = nodes_data[0].x;
-		xu = xl;
-		yl = nodes_data[0].y;
-		yu = yl;
+		bbox.xl = nodes_data[0].x;
+		bbox.xu = bbox.xl;
+		bbox.yl = nodes_data[0].y;
+		bbox.yu = bbox.yl;
 		for (size_t n_id = 1; n_id < node_num; ++n_id)
 		{
 			Node2DData& n = nodes_data[n_id];
-			if (xl > n.x)
-				xl = n.x;
-			if (xu < n.x)
-				xu = n.x;
-			if (yl > n.y)
-				yl = n.y;
-			if (yu < n.y)
-				yu = n.y;
+			if (bbox.xl > n.x)
+				bbox.xl = n.x;
+			if (bbox.xu < n.x)
+				bbox.xu = n.x;
+			if (bbox.yl > n.y)
+				bbox.yl = n.y;
+			if (bbox.yu < n.y)
+				bbox.yu = n.y;
 		}
-		GLfloat xlen = xu - xl;
-		GLfloat ylen = yu - yl;
-		GLfloat padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
-		xl -= padding;
-		xu += padding;
-		yl -= padding;
-		yu += padding;
 	}
 	delete[] nodes_data;
 	delete[] elems_data;
@@ -295,10 +289,12 @@ int QtSceneFromHdf5_T2D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	gl.glActiveTexture(GL_TEXTURE0);
 	gl.glBindTexture(GL_TEXTURE_1D, color_map_texture);
 
-	// rigid circle
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
+	Rect rb_bbox;
+	// rigid circle
 	if (rf.has_group(frame_grp_id, "RigidCircle"))
 	{
 		has_rc_obj = true;
@@ -307,9 +303,38 @@ int QtSceneFromHdf5_T2D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		rf.read_attribute(rb_grp_id, "radius", rc_radius);
 		rf.read_attribute(rb_grp_id, "x", rc_x);
 		rf.read_attribute(rb_grp_id, "y", rc_y);
-		QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 		rc_obj.init(rc_x, rc_y, rc_radius, light_slate_blue, 3.0f);
 		rf.close_group(rb_grp_id);
+		rb_bbox.xl = rc_x - rc_radius;
+		rb_bbox.xu = rc_x + rc_radius;
+		rb_bbox.yl = rc_y - rc_radius;
+		rb_bbox.yu = rc_y + rc_radius;
+		bbox.envelop(rb_bbox);
+	}
+	// rigid rect
+	if (rf.has_group(frame_grp_id, "RigidRect"))
+	{
+		has_rr_obj = true;
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidRect");
+		double rr_hx, rr_hy, rr_x, rr_y, rr_ang;
+		rf.read_attribute(rb_grp_id, "hx", rr_hx);
+		rf.read_attribute(rb_grp_id, "hy", rr_hy);
+		rf.read_attribute(rb_grp_id, "x", rr_x);
+		rf.read_attribute(rb_grp_id, "y", rr_y);
+		rf.read_attribute(rb_grp_id, "angle", rr_ang);
+		rr_obj.init(rr_x, rr_y, rr_ang, rr_hx, rr_hy, light_slate_blue, 3.0f);
+		rf.close_group(rb_grp_id);
+		double cos_ang = cos(rr_ang);
+		double sin_ang = sin(rr_ang);
+		rr_hx *= 0.5;
+		rr_hy *= 0.5;
+		double xr = abs(cos_ang * rr_hx) + abs(sin_ang * rr_hy);
+		double yr = abs(sin_ang * rr_hx) + abs(cos_ang * rr_hy);
+		rb_bbox.xl = rr_x - xr;
+		rb_bbox.xu = rr_x + xr;
+		rb_bbox.yl = rr_y - yr;
+		rb_bbox.yu = rr_y + yr;
+		bbox.envelop(rb_bbox);
 	}
 	rf.close_group(frame_grp_id);
 
@@ -326,7 +351,14 @@ int QtSceneFromHdf5_T2D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	}
 
 	// viewport
-	set_viewport(wd, ht, xu - xl, yu - yl);
+	double xlen = bbox.xu - bbox.xl;
+	double ylen = bbox.yu - bbox.yl;
+	double padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
+	bbox.xl -= padding;
+	bbox.xu += padding;
+	bbox.yl -= padding;
+	bbox.yu += padding;
+	set_viewport(wd, ht, GLfloat(bbox.xu - bbox.xl), GLfloat(bbox.yu - bbox.yl));
 
 	// init shaders
 	// shader_plain2D
@@ -365,7 +397,13 @@ int QtSceneFromHdf5_T2D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	// view matrix
 	// mpm model view matrix
 	view_mat.setToIdentity();
-	view_mat.ortho(xl, xu, yl, yu, -1.0f, 1.0f);
+	view_mat.ortho(
+		GLfloat(bbox.xl),
+		GLfloat(bbox.xu),
+		GLfloat(bbox.yl),
+		GLfloat(bbox.yu),
+		-1.0f, 1.0f
+		);
 	// hud view matrix
 	hud_view_mat.setToIdentity();
 	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
@@ -415,20 +453,30 @@ void QtSceneFromHdf5_T2D_ME_s::update_scene(size_t frame_id)
 		0.5
 	);
 	
-	// rigid circle
 	ResultFile_hdf5& rf = *res_file;
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	// rigid circle
 	if (rf.has_group(frame_grp_id, "RigidCircle"))
 	{
-		has_rc_obj = true;
 		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
 		double rc_x, rc_y, rc_radius;
 		rf.read_attribute(rb_grp_id, "x", rc_x);
 		rf.read_attribute(rb_grp_id, "y", rc_y);
 		rf.read_attribute(rb_grp_id, "radius", rc_radius);
 		rc_obj.update(rc_x, rc_y, rc_radius);
+		rf.close_group(rb_grp_id);
+	}
+	// rigid rect
+	if (rf.has_group(frame_grp_id, "RigidRect"))
+	{
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidRect");
+		double rr_x, rr_y, rr_ang;
+		rf.read_attribute(rb_grp_id, "x", rr_x);
+		rf.read_attribute(rb_grp_id, "y", rr_y);
+		rf.read_attribute(rb_grp_id, "angle", rr_ang);
+		rr_obj.update(rr_x, rr_y, rr_ang);
 		rf.close_group(rb_grp_id);
 	}
 	rf.close_group(frame_grp_id);

@@ -40,6 +40,7 @@ add_executable(
     test_t2d_me_s_1d_compression.cpp
     test_t2d_me_s_1d_compression_horizontal.cpp
     test_t2d_me_s_plate_with_hole.cpp
+    test_t2d_me_s_cap_compression.cpp
     test_t2d_chm_s_1d_consolidation.cpp
     test_t2d_chm_s_undrained_compression.cpp
     # restart utilities

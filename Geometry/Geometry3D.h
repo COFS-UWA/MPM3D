@@ -466,7 +466,7 @@ protected:
 };
 
 template <typename Point3DType1, typename Point3DType2>
-void from_global_to_local_coordinate(
+inline void from_global_to_local_coordinate(
 	const Point3D& loc_cen,
 	const Vector3D& loc_ix,
 	const Vector3D& loc_iy,
@@ -484,7 +484,7 @@ void from_global_to_local_coordinate(
 }
 
 template <typename Point3DType1, typename Point3DType2>
-void from_local_to_global_coordinate(
+inline void from_local_to_global_coordinate(
 	const Point3D& loc_cen,
 	const Vector3D& loc_ix,
 	const Vector3D& loc_iy,

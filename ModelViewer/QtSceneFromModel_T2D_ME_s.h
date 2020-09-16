@@ -7,6 +7,7 @@
 #include "Model_T2D_ME_s.h"
 #include "QtTriangleMeshGLObject.h"
 #include "QtRigidCircleObject.h"
+#include "QtRigidRectObject.h"
 #include "QtMonoColorCircleGLObject.h"
 #include "QtSceneFromModel.h"
 
@@ -31,11 +32,13 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rigid_circle;
+	bool display_rigid_rect;
 	bool display_pts;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 	QtMonoColorCircleGLObject pcls_obj;
 	QtRigidCircleObject rc_obj;
+	QtRigidRectObject rr_obj;
 	// points to be high lighted
 	QtMonoColorCircleGLObject pts_obj;
 

@@ -4,12 +4,14 @@
 #include <QOpenGLShaderProgram>
 
 #include "ItemArray.hpp"
+#include "Geometry2D.h"
 #include "ResultFile_hdf5.h"
 #include "Hdf5Field.h"
 #include "QtTriangleMeshGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtMultiColorCircleGLObject.h"
 #include "QtRigidCircleObject.h"
+#include "QtRigidRectObject.h"
 #include "QtUniformColorMapObject.h"
 #include "QtSceneFromHdf5.h"
 
@@ -42,6 +44,8 @@ protected:
 	bool display_pcls;
 	bool display_rc;
 	bool has_rc_obj;
+	bool display_rr;
+	bool has_rr_obj;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 
@@ -50,13 +54,15 @@ protected:
 	QtMultiColorCircleGLObject pcls_obj;
 	
 	QtRigidCircleObject rc_obj;
+	QtRigidRectObject rr_obj;
 	
 	bool has_color_map;
 	float cm_xpos, cm_ypos, cm_ht;
 	QtUniformColorMapObject color_map_obj;
 
 	bool display_whole_model;
-	GLfloat xl, xu, yl, yu, padding_ratio;
+	Rect bbox;
+	GLfloat padding_ratio;
 
 	// viewport
 	GLint vp_x_pos, vp_y_pos;
@@ -92,7 +98,8 @@ public:
 	inline void set_display_range(double _xl, double _xu, double _yl, double _yu)
 	{
 		display_whole_model = false;
-		xl = _xl; xu = _xu; yl = _yl; yu = _yu;
+		bbox.xl = _xl; bbox.xu = _xu;
+		bbox.yl = _yl; bbox.yu = _yu;
 	}
 
 	inline void set_color_map_fld_range(double min, double max)

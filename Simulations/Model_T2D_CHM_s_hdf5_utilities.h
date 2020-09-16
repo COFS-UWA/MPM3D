@@ -6,6 +6,7 @@
 #include "MatModelContainer.h"
 #include "RigidBody/RigidCircle.h"
 #include "Model_T2D_CHM_s.h"
+#include "Step_T2D_CHM_s.h"
 
 namespace Model_T2D_CHM_s_hdf5_utilities
 {
@@ -127,7 +128,7 @@ int output_model_to_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf);
 int time_history_complete_output_to_hdf5_file(Model_T2D_CHM_s& md, ResultFile_hdf5& rf, hid_t frame_grp_id);
 
 // load model data from hdf5 to model data
-int load_CHM_s_model_from_hdf5_file(Model_T2D_CHM_s& md, const char* hdf5_name, const char* th_name, size_t frame_id);
+int load_CHM_s_model_from_hdf5_file(Model_T2D_CHM_s& md, Step_T2D_CHM_s& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 
 };
 

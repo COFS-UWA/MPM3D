@@ -282,6 +282,8 @@ namespace Model_hdf5_utilities
 			mm.set_id(id);
 			double stress[6] = { s11, s22, s33, s12, s23, s31 };
 			mm.set_param_OC(niu, kappa, lambda, fric_angle, N, stress, pc);
+			mm.e = e;
+			mm.pc = pc;
 		}
 	};
 

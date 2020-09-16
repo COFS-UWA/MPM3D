@@ -31,6 +31,25 @@ struct Rect
 	template <typename Point2D>
 	inline bool is_in_box(Point2D& point)
 	{ return is_in_box(point.x, point.y); }
+
+	inline void envelop(const Rect& other)
+	{
+		if (xl > other.xl)
+			xl = other.xl;
+		if (xu < other.xu)
+			xu = other.xu;
+		if (yl > other.yl)
+			yl = other.yl;
+		if (yu < other.yu)
+			yu = other.yu;
+	}
+	inline void envelop(const Rect& rect1, const Rect&rect2)
+	{
+		xl = rect1.xl < rect2.xl ? rect1.xl : rect2.xl;
+		xu = rect1.xu > rect2.xu ? rect1.xu : rect2.xu;
+		yl = rect1.yl < rect2.yl ? rect1.yl : rect2.yl;
+		yu = rect1.yu > rect2.yu ? rect1.yu : rect2.yu;
+	}
 };
 
 struct Vector2D
@@ -243,6 +262,64 @@ inline bool detect_obb2d_cube_collision(OBB2D& obb, Rect& rect)
 		return false;
 
 	return true;
+}
+
+template <typename Point2DType1, typename Point2DType2>
+inline void from_global_to_local_coordinate(
+	const Point2D &loc_cen,
+	const Vector2D &loc_ix,
+	const Vector2D &loc_iy,
+	const Point2DType1& gp,
+	Point2DType2& lp
+	) noexcept
+{
+	double dx = gp.x - loc_cen.x;
+	double dy = gp.y - loc_cen.y;
+	lp.x = loc_ix.x * dx + loc_ix.y * dy;
+	lp.y = loc_iy.x * dx + loc_iy.y * dy;
+}
+
+template <typename Point2DType1, typename Point2DType2>
+inline void from_local_to_global_coordinate(
+	const Point2D& loc_cen,
+	const Vector2D& loc_ix,
+	const Vector2D& loc_iy,
+	const Point2DType1& lp,
+	Point2DType2& gp
+	) noexcept
+{
+	gp.x = loc_ix.x * lp.x + loc_iy.x * lp.y + loc_cen.x;
+	gp.y = loc_ix.y * lp.x + loc_iy.y * lp.y + loc_cen.y;
+}
+
+template <typename Point2DType1, typename Point2DType2>
+inline void from_global_to_local_coordinate(
+	const Point2D& loc_cen,
+	const double angle,
+	const Point2DType1& gp,
+	Point2DType2& lp
+	) noexcept
+{
+	double dx = gp.x - loc_cen.x;
+	double dy = gp.y - loc_cen.y;
+	double sin_ang = sin(angle);
+	double cos_ang = cos(angle);
+	lp.x =  cos_ang * dx + sin_ang * dy;
+	lp.y = -sin_ang * dx + cos_ang * dy;
+}
+
+template <typename Point2DType1, typename Point2DType2>
+inline void from_local_to_global_coordinate(
+	const Point2D& loc_cen,
+	const double angle,
+	const Point2DType1& lp,
+	Point2DType2& gp
+	) noexcept
+{
+	double sin_ang = sin(angle);
+	double cos_ang = cos(angle);
+	gp.x = cos_ang * lp.x - sin_ang * lp.y + loc_cen.x;
+	gp.y = sin_ang * lp.x + cos_ang * lp.y + loc_cen.y;
 }
 
 #endif

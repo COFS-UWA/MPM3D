@@ -174,7 +174,7 @@ void test_t2d_chm_s_pipe_conference_geo_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "geostatic", Hdf5Field::s22);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	app.set_color_map_fld_range(-11.0, -9.0);
+	app.set_color_map_fld_range(-21000.0, -19000.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_s_pipe_conference_geo");
 	//app.set_gif_name("t2d_chm_s_pipe_conference_geo");

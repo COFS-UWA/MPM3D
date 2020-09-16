@@ -404,7 +404,6 @@ int solve_substep_T2D_CHM_s(void *_self)
 		}
 	}
 
-	// map variables back to particles and update their variables
 	double de11, de22, de_mean;
 	double ds11, ds22, ds12;
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
@@ -529,7 +528,7 @@ int solve_substep_T2D_CHM_s(void *_self)
 
 			// update stress using constitutive model
 			double dstrain[6] = { de11, de22, 0.0, de12, 0.0, 0.0 };
-			pcl.mm->integrate(dstrain);
+			int mm_res = pcl.mm->integrate(dstrain);
 			const double *dstress = pcl.mm->get_dstress();
 			pcl.s11 += dstress[0];
 			pcl.s22 += dstress[1];

@@ -783,6 +783,7 @@ int time_history_complete_output_to_hdf5_file(
 // load model data from hdf5 to model data
 int load_CHM_s_model_from_hdf5_file(
 	Model_T2D_CHM_s& md,
+	Step_T2D_CHM_s &step,
 	const char* hdf5_name,
 	const char* th_name,
 	size_t frame_id
@@ -812,9 +813,13 @@ int load_CHM_s_model_from_hdf5_file(
 	load_material_model_from_hdf5_file(md, rf, th_frame_id);
 	// particle data
 	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
-	
 	// rigid object
 	load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
+
+	step.is_first_step = false;
+	rf.read_attribute(th_frame_id, "total_time", step.start_time);
+	rf.read_attribute(th_frame_id, "total_substep_num", step.prev_substep_num);
+
 	rf.close_group(th_frame_id);
 	rf.close_group(th_id);
 

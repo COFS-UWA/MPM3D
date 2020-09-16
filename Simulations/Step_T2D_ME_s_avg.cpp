@@ -4,61 +4,32 @@
 #include "MaterialModel.h"
 #include "Step_T2D_ME_s.h"
 
-Step_T2D_ME_s::Step_T2D_ME_s(const char* _name) :
-	Step(_name, "Step_T2D_ME_s", &solve_substep_T2D_ME_s_avg),
-	model(nullptr), damping_ratio(0.0) {}
+#define one_third (1.0/3.0)
 
-Step_T2D_ME_s::~Step_T2D_ME_s() {}
-
-int Step_T2D_ME_s::init_calculation()
-{
-	Model_T2D_ME_s &md = *model;
-
-	if (is_first_step) {}
-
-	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
-	{
-		Particle &pcl = md.pcls[pcl_id];
-		pcl.pe = md.elems;
-		pcl.vol = pcl.m / pcl.density;
-		pcl.x_ori = pcl.x;
-		pcl.y_ori = pcl.y;
-		pcl.ux = 0.0;
-		pcl.uy = 0.0;
-	}
-
-	return 0;
-}
-
-int Step_T2D_ME_s::finalize_calculation() { return 0; }
-
-int solve_substep_T2D_ME_s(void *_self)
+int solve_substep_T2D_ME_s_avg(void *_self)
 {
 	typedef Model_T2D_ME_s::Element Element;
 	typedef Model_T2D_ME_s::Node Node;
 	typedef Model_T2D_ME_s::Particle Particle;
-	
+
 	Step_T2D_ME_s &self = *(Step_T2D_ME_s *)(_self);
 	Model_T2D_ME_s &md = *self.model;
 
-	// init nodes
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		n.has_mp = false;
-		n.m = 0.0;
+		n.am = 0.0;
+		n.vm = 0.0;
 		n.vx = 0.0;
 		n.vy = 0.0;
 		n.fx_ext = 0.0;
 		n.fy_ext = 0.0;
 		n.fx_int = 0.0;
 		n.fy_int = 0.0;
-		// strain enhancement
-		n.se_pcl_vol = 0.0;
 		n.de_vol_by_3 = 0.0;
 	}
 
-	// init elements
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element &e = md.elems[e_id];
@@ -67,44 +38,45 @@ int solve_substep_T2D_ME_s(void *_self)
 		e.s11 = 0.0;
 		e.s22 = 0.0;
 		e.s12 = 0.0;
+		e.pcl_m = 0.0;
 	}
 
-	// init particles
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
 		if (pcl.pe)
 		{
-			pcl.pe = md.find_in_which_element(pcl);
-			if (!pcl.pe)
+			if (!(pcl.pe = md.find_in_which_element(pcl)))
 				continue;
 			pcl.pe->add_pcl(pcl);
 
 			Element &e = *pcl.pe;
 			pcl.vol = pcl.m / pcl.density;
 			e.mi_pcl_vol += pcl.vol;
-			e.s11 += pcl.vol * pcl.s11;
-			e.s22 += pcl.vol * pcl.s22;
-			e.s12 += pcl.vol * pcl.s12;
+			e.s11 += pcl.s11 * pcl.vol;
+			e.s22 += pcl.s22 * pcl.vol;
+			e.s12 += pcl.s12 * pcl.vol;
+
+			e.pcl_m += pcl.m;
 
 			double mvx = pcl.m * pcl.vx;
 			double mvy = pcl.m * pcl.vy;
 			// node 1
 			Node &n1 = md.nodes[e.n1];
 			n1.has_mp = true;
-			n1.m  += pcl.N1 * pcl.m;
+			n1.vm += pcl.N1 * pcl.m;
 			n1.vx += pcl.N1 * mvx;
 			n1.vy += pcl.N1 * mvy;
 			// node 2
 			Node &n2 = md.nodes[e.n2];
 			n2.has_mp = true;
-			n2.m  += pcl.N2 * pcl.m;
+			n2.vm += pcl.N2 * pcl.m;
 			n2.vx += pcl.N2 * mvx;
 			n2.vy += pcl.N2 * mvy;
 			// node 3
 			Node &n3 = md.nodes[e.n3];
 			n3.has_mp = true;
-			n3.m  += pcl.N3 * pcl.m;
+			n3.vm += pcl.N3 * pcl.m;
 			n3.vx += pcl.N3 * mvx;
 			n3.vy += pcl.N3 * mvy;
 		}
@@ -124,13 +96,16 @@ int solve_substep_T2D_ME_s(void *_self)
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
-			// node 1
+
+			double n_pcl_m = one_third * e.pcl_m;
+			n1.am += n_pcl_m;
+			n2.am += n_pcl_m;
+			n3.am += n_pcl_m;
+
 			n1.fx_int += (e.dN1_dx * e.s11 + e.dN1_dy * e.s12) * e.mi_pcl_vol;
 			n1.fy_int += (e.dN1_dx * e.s12 + e.dN1_dy * e.s22) * e.mi_pcl_vol;
-			// node 2
 			n2.fx_int += (e.dN2_dx * e.s11 + e.dN2_dy * e.s12) * e.mi_pcl_vol;
 			n2.fy_int += (e.dN2_dx * e.s12 + e.dN2_dy * e.s22) * e.mi_pcl_vol;
-			// node 3
 			n3.fx_int += (e.dN3_dx * e.s11 + e.dN3_dy * e.s12) * e.mi_pcl_vol;
 			n3.fy_int += (e.dN3_dx * e.s12 + e.dN3_dy * e.s22) * e.mi_pcl_vol;
 		}
@@ -145,16 +120,13 @@ int solve_substep_T2D_ME_s(void *_self)
 		if (pcl.pe)
 		{
 			Element &e = *pcl.pe;
-			bf_mag = pcl.m * bf.bf;
-			// node 1
+			bf_mag = one_third * pcl.m * bf.bf;
 			Node &n1 = md.nodes[e.n1];
-			n1.fx_ext += pcl.N1 * bf_mag;
-			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.fx_ext += pcl.N2 * bf_mag;
-			// node 3
 			Node &n3 = md.nodes[e.n3];
-			n3.fx_ext += pcl.N3 * bf_mag;
+			n1.fx_ext += bf_mag;
+			n2.fx_ext += bf_mag;
+			n3.fx_ext += bf_mag;
 		}
 	}
 	for (size_t bf_id = 0; bf_id < md.bfy_num; ++bf_id)
@@ -164,16 +136,13 @@ int solve_substep_T2D_ME_s(void *_self)
 		if (pcl.pe)
 		{
 			Element &e = *pcl.pe;
-			bf_mag = pcl.m * bf.bf;
-			// node 1
+			bf_mag = one_third * pcl.m * bf.bf;
 			Node &n1 = md.nodes[e.n1];
-			n1.fy_ext += pcl.N1 * bf_mag;
-			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.fy_ext += pcl.N2 * bf_mag;
-			// node 3
 			Node &n3 = md.nodes[e.n3];
-			n3.fy_ext += pcl.N3 * bf_mag;
+			n1.fy_ext += bf_mag;
+			n2.fy_ext += bf_mag;
+			n3.fy_ext += bf_mag;
 		}
 	}
 
@@ -185,14 +154,11 @@ int solve_substep_T2D_ME_s(void *_self)
 		if (pcl.pe)
 		{
 			Element &e = *pcl.pe;
-			// node 1
 			Node &n1 = md.nodes[e.n1];
+			Node& n2 = md.nodes[e.n2];
+			Node& n3 = md.nodes[e.n3];
 			n1.fx_ext += pcl.N1 * tf.t;
-			// node 2
-			Node &n2 = md.nodes[e.n2];
 			n2.fx_ext += pcl.N2 * tf.t;
-			// node 3
-			Node &n3 = md.nodes[e.n3];
 			n3.fx_ext += pcl.N3 * tf.t;
 		}
 	}
@@ -203,29 +169,26 @@ int solve_substep_T2D_ME_s(void *_self)
 		if (pcl.pe)
 		{
 			Element &e = *pcl.pe;
-			// node 1
 			Node &n1 = md.nodes[e.n1];
-			n1.fy_ext += pcl.N1 * tf.t;
-			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.fy_ext += pcl.N2 * tf.t;
-			// node 3
 			Node &n3 = md.nodes[e.n3];
+			n1.fy_ext += pcl.N1 * tf.t;
+			n2.fy_ext += pcl.N2 * tf.t;
 			n3.fy_ext += pcl.N3 * tf.t;
 		}
 	}
 
-	// update nodal acceleration of fluid pahse
+	// update node acceleration
 	double nf;
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
-		if (n.has_mp) // or n.m_f != 0.0
+		if (n.has_mp)
 		{
 			nf = n.fx_ext - n.fx_int;
-			n.ax = (nf - self.damping_ratio * abs(nf) * get_sign(n.vx)) / n.m;
+			n.ax = (nf - self.damping_ratio * abs(nf) * get_sign(n.vx)) / n.am;
 			nf = n.fy_ext - n.fy_int;
-			n.ay = (nf - self.damping_ratio * abs(nf) * get_sign(n.vy)) / n.m;
+			n.ay = (nf - self.damping_ratio * abs(nf) * get_sign(n.vy)) / n.am;
 		}
 	}
 
@@ -241,15 +204,15 @@ int solve_substep_T2D_ME_s(void *_self)
 		n.ay = md.ays[a_id].a;
 	}
 
-	// update nodal momentum
+	// update nodal velocity
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
 		{
-			n.vx /= n.m;
+			n.vx /= n.vm;
 			n.vx += n.ax * self.dtime;
-			n.vy /= n.m;
+			n.vy /= n.vm;
 			n.vy += n.ay * self.dtime;
 		}
 	}
@@ -286,7 +249,6 @@ int solve_substep_T2D_ME_s(void *_self)
 		}
 	}
 
-	// map variables back to particles and update their variables
 	double de11, de22, de12, de_vol_by_3;
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
@@ -296,8 +258,7 @@ int solve_substep_T2D_ME_s(void *_self)
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
-
-			// strain increment
+			
 			de11 = n1.dux * e.dN1_dx + n2.dux * e.dN2_dx + n3.dux * e.dN3_dx;
 			de22 = n1.duy * e.dN1_dy + n2.duy * e.dN2_dy + n3.duy * e.dN3_dy;
 			de12 = (n1.dux * e.dN1_dy + n2.dux * e.dN2_dy + n3.dux * e.dN3_dy
@@ -311,25 +272,18 @@ int solve_substep_T2D_ME_s(void *_self)
 	}
 
 	// strain enhancement
-	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
+	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
-		Particle &pcl = md.pcls[pcl_id];
-		if (pcl.pe)
+		Element& e = md.elems[e_id];
+		if (e.pcls)
 		{
-			Element &e = *pcl.pe;
-			double vol_de_vol_by_3 = pcl.vol * e.de_vol_by_3;
-			// node 1
+			double vol_de_vol_by_3 = one_third * e.de_vol_by_3 * e.pcl_m;
 			Node &n1 = md.nodes[e.n1];
-			n1.de_vol_by_3 += pcl.N1 * vol_de_vol_by_3;
-			n1.se_pcl_vol += pcl.N1 * pcl.vol;
-			// node 2
-			Node &n2 = md.nodes[e.n2];
-			n2.de_vol_by_3 += pcl.N2 * vol_de_vol_by_3;
-			n2.se_pcl_vol += pcl.N2 * pcl.vol;
-			// node 3
-			Node &n3 = md.nodes[e.n3];
-			n3.de_vol_by_3 += pcl.N3 * vol_de_vol_by_3;
-			n3.se_pcl_vol += pcl.N3 * pcl.vol;
+			Node& n2 = md.nodes[e.n2];
+			Node& n3 = md.nodes[e.n3];
+			n1.de_vol_by_3 += vol_de_vol_by_3;
+			n2.de_vol_by_3 += vol_de_vol_by_3;
+			n3.de_vol_by_3 += vol_de_vol_by_3;
 		}
 	}
 
@@ -337,7 +291,17 @@ int solve_substep_T2D_ME_s(void *_self)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
-			n.de_vol_by_3 /= n.se_pcl_vol;
+			n.de_vol_by_3 /= n.am;
+	}
+
+	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+	{
+		Element& e = md.elems[e_id];
+		Node& n1 = md.nodes[e.n1];
+		Node& n2 = md.nodes[e.n2];
+		Node& n3 = md.nodes[e.n3];
+		if (e.pcls)
+			e.de_vol_by_3 = (n1.de_vol_by_3 + n2.de_vol_by_3 + n3.de_vol_by_3) * one_third;
 	}
 
 	double ds11, ds22, ds12;
@@ -364,7 +328,7 @@ int solve_substep_T2D_ME_s(void *_self)
 			pcl.y = pcl.y_ori + pcl.uy;
 
 			// strain
-			de_vol_by_3 = (n1.de_vol_by_3 + n2.de_vol_by_3 + n3.de_vol_by_3) / 3.0;
+			de_vol_by_3 = e.de_vol_by_3;
 			de11 = e.dde11 + de_vol_by_3;
 			de22 = e.dde22 + de_vol_by_3;
 			de12 = e.de12;
@@ -372,8 +336,6 @@ int solve_substep_T2D_ME_s(void *_self)
 			pcl.e22 += de22;
 			pcl.e12 += de12;
 
-			// stress
-			// update stress using constitutive model
 			double dstrain[6] = { de11, de22, 0.0, de12, 0.0, 0.0 };
 			pcl.mm->integrate(dstrain);
 			const double *dstress = pcl.mm->get_dstress();
@@ -381,7 +343,6 @@ int solve_substep_T2D_ME_s(void *_self)
 			pcl.s22 += dstress[1];
 			pcl.s12 += dstress[3];
 
-			// density
 			pcl.density /= 1.0 + (de_vol_by_3 * 3.0);
 		}
 	}

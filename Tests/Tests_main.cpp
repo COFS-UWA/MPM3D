@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
 	//test_t2d_me_s_1d_compression(argc, argv);
 	//test_t2d_me_s_1d_compression_static_result(argc, argv);
-	//test_t2d_me_s_1d_compression_ani_result(argc, argv);
+	test_t2d_me_s_1d_compression_ani_result(argc, argv);
 
 	//test_t2d_me_s_1d_compression_horizontal(argc, argv);
 	//test_t2d_me_s_1d_compression_horizontal_result(argc, argv);
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 	// pipe embedment simulation for conference
 	// coupled hydro-mechanics
 	// geostatic step
-	test_t2d_chm_s_pipe_conference_geo(argc, argv);
+	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
 	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
 	// penetration step 1
 	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);
@@ -107,6 +107,8 @@ int main(int argc, char *argv[])
 	// penetration step 2
 	//test_t2d_chm_s_pipe_conference_restart2(argc, argv);
 	//test_t2d_chm_s_pipe_conference_restart2_result(argc, argv);
+	// step 3
+	//test_t2d_chm_s_pipe_conference_restart3(argc, argv);
 
 	// completely drained
 	//test_t2d_me_s_pipe_conference_geo(argc, argv);
@@ -147,6 +149,9 @@ int main(int argc, char *argv[])
 
 	//test_t3d_me_s_cap_compression(argc, argv);
 	//test_t3d_me_s_cap_compression_result(argc, argv);
+
+	//test_t2d_me_s_cap_compression(argc, argv);
+	//test_t2d_me_s_cap_compression_result(argc, argv);
 
 	//system("pause");
 	return 0;

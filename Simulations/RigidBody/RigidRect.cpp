@@ -8,12 +8,12 @@ void RigidRect::init(
 	double _density
 	)
 {
-	x = _x;
-	y = _y;
-	ang = 0.0;
 	hx = _hx;
 	hy = _hy;
 	density = _density;
+	x = _x;
+	y = _y;
+	ang = 0.0;
 	init_cal_var();
 }
 
@@ -27,9 +27,6 @@ void RigidRect::set_init_state(
 	hx = _hx;
 	hy = _hy;
 	density = _density;
-	fx_con = _fx_cont;
-	fy_con = _fy_cont;
-	m_con = _m_cont;
 	ax = _ax;
 	ay = _ay;
 	a_ang = _a_ang;
@@ -39,6 +36,9 @@ void RigidRect::set_init_state(
 	x = _x;
 	y = _y;
 	ang = _ang;
+	fx_con = _fx_cont;
+	fy_con = _fy_cont;
+	m_con = _m_cont;
 	init_cal_var();
 }
 

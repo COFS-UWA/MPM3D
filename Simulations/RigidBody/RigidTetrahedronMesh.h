@@ -443,7 +443,16 @@ public: // bg search grid
 	{
 		Point3D lpt;
 		to_local_coord<Point3DType>(gpt, lpt);
-		return cal_dist_and_dir_to_pt_internal(lpt, dist, nx, ny, nz);
+		Vector3D lnorm, gnorm;
+		if (cal_dist_and_dir_to_pt_internal(lpt, dist, lnorm.x, lnorm.y, lnorm.z))
+		{
+			from_local_to_global_coordinate<Vector3D, Vector3D>(Point3D(0.0, 0.0, 0.0), ix, iy, iz, lnorm, gnorm);
+			nx = gnorm.x;
+			ny = gnorm.y;
+			nz = gnorm.z;
+			return true;
+		}
+		return false;
 	}
 
 protected: // background grid

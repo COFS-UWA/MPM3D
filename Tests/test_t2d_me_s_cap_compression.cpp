@@ -11,7 +11,7 @@
 
 #include "test_simulations.h"
 
-void test_t2d_me_s_1d_compression(int argc, char **argv)
+void test_t2d_me_s_cap_compression(int argc, char **argv)
 {
 	Model_T2D_ME_s model;
 	model.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
@@ -31,6 +31,9 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 		mm.set_param(1000.0, 0.0);
 		pcl.set_mat_model(mm);
 	}
+
+	model.init_rigid_rect(100.0, 0.1, 1.05, 0.3, 0.1);
+	model.set_rigid_rect_velocity(0.0, -0.05, 0.0);
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -60,42 +63,25 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 		vbc.node_id = vy_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
-	
-	// traction bc
-	IndexArray tbc_pt_array(50);
-	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
-	size_t* tbc_pcl_id = tbc_pt_array.get_mem();
-	model.init_tys(tbc_pt_array.get_num());
-	size_t ty_num = model.get_ty_num();
-	TractionBCAtPcl* tys = model.get_tys();
-	for (size_t t_id = 0; t_id < ty_num; ++t_id)
-	{
-		TractionBCAtPcl &tbc = tys[t_id];
-		tbc.pcl_id = tbc_pcl_id[t_id];
-		//tbc.t = 0.05 * -1.0;
-		tbc.t = 0.02 * -10.0;
-	}
 
 	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
 	//md_disp.start();
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_me_s_1d_compression.h5");
+	res_file_hdf5.create("t2d_me_s_cap_compression.h5");
 
 	ModelData_T2D_ME_s md;
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T2D_ME_s_complete out1("compression");
+	out1.set_output_init_state();
 	out1.set_interval_num(100);
 	out1.set_res_file(res_file_hdf5);
-	out1.set_output_init_state();
-
 	TimeHistory_ConsoleProgressBar out_pb;
 
 	Step_T2D_ME_s step("step1");
@@ -110,30 +96,17 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 #include "QtApp_Posp_T2D_ME_s.h"
 #include "test_model_view.h"
 
-void test_t2d_me_s_1d_compression_static_result(int argc, char** argv)
+void test_t2d_me_s_cap_compression_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_s_1d_compression.h5");
-
-	QtApp_Posp_T2D_ME_s app(argc, argv);
-	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(0.0, 1.0);
-	app.set_res_file(rf, "compression", 0, Hdf5Field::y);
-	app.set_png_name("t2d_me_s_1d_compression");
-	app.start();
-}
-
-void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv)
-{
-	ResultFile_hdf5 rf;
-	rf.open("t2d_me_s_1d_compression.h5");
+	rf.open("t2d_me_s_cap_compression.h5");
 
 	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "compression", Hdf5Field::mises_strain_2d);
 	app.set_win_size(900, 900);
 	app.set_color_map_fld_range(0.0, 1.0e-3);
-	//app.set_png_name("t2d_me_s_1d_compression");
-	app.set_gif_name("t2d_me_s_1d_compression");
+	//app.set_png_name("t2d_me_s_cap_compression");
+	//app.set_gif_name("t2d_me_s_cap_compression");
 	app.start();
 }

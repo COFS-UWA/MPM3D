@@ -20,8 +20,8 @@ struct Node
 
 	bool has_mp;
 	double m;
-	double ax, ay;
-	double vx, vy;
+	double ax, ay, am;
+	double vx, vy, vm;
 	double dux, duy;
 	double fx_ext, fy_ext;
 	double fx_int, fy_int;
@@ -90,6 +90,9 @@ struct Element
 		pcls = &pcl;
 	}
 
+	// m
+	double pcl_m;
+
 	// mixed integration
 	double mi_pcl_vol, s11, s22, s12;
 
@@ -110,6 +113,7 @@ class Step_T2D_ME_s_Geo;
 int solve_substep_T2D_ME_s_Geo(void* _self);
 class Step_T2D_ME_s;
 int solve_substep_T2D_ME_s(void* _self);
+int solve_substep_T2D_ME_s_avg(void* _self);
 
 class ResultFile_hdf5;
 namespace Model_T2D_ME_s_hdf5_utilities
@@ -136,6 +140,7 @@ struct Model_T2D_ME_s : public Model,
 	friend int solve_substep_T2D_ME_s_Geo(void* _self);
 	friend class Step_T2D_ME_s;
 	friend int solve_substep_T2D_ME_s(void *_self);
+	friend int solve_substep_T2D_ME_s_avg(void* _self);
 
 public:
 	typedef Model_T2D_ME_s_Internal::BgMesh BgMesh;

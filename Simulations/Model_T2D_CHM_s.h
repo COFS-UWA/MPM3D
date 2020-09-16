@@ -62,7 +62,6 @@ struct Particle
 
 	// calculation variables
 	double x_ori, y_ori;
-	double x_f_ori, y_f_ori;
 	double vol_s, vol, m_f;
 	inline double get_vol() { return m_s / (density_s * (1.0 - n)); }
 

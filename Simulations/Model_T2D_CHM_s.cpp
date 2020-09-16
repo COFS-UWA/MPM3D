@@ -48,8 +48,8 @@ void Model_T2D_CHM_s::init_mesh_shape_funcs()
 		Node& n2 = nodes[e.n2];
 		Node& n3 = nodes[e.n3];
 		area2 = n1.x * n2.y - n2.x * n1.y
-			+ n2.x * n3.y - n3.x * n2.y
-			+ n3.x * n1.y - n1.x * n3.y;
+			  + n2.x * n3.y - n3.x * n2.y
+			  + n3.x * n1.y - n1.x * n3.y;
 		e.a1 = (n2.y - n3.y) / area2;
 		e.b1 = (n3.x - n2.x) / area2;
 		e.coef1 = (n2.x * n3.y - n3.x * n2.y) / area2;

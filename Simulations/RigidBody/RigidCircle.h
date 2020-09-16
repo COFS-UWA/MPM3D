@@ -148,10 +148,12 @@ public:
 		double _x, double _y, double _ang);
 
 public: // helper function for calculation
-	inline Rect get_bbox(double exp_size = 0.0)
+	inline void get_bbox(Rect& bbox, double exp_size = 0.0)
 	{
-		return Rect(x - r - exp_size, x + r + exp_size,
-					y - r - exp_size, y + r + exp_size);
+		bbox.xl = x - r - exp_size;
+		bbox.xu = x + r + exp_size;
+		bbox.yl = y - r - exp_size;
+		bbox.yu = y + r + exp_size;
 	}
 
 	inline void reset_rf() { rfx = 0.0; rfy = 0.0; rm = 0.0; }

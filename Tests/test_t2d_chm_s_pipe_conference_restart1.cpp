@@ -16,10 +16,12 @@
 void test_t2d_chm_s_pipe_conference_restart1(int argc, char** argv)
 {
 	Model_T2D_CHM_s model;
+	Step_T2D_CHM_s step("step1");
 
 	using Model_T2D_CHM_s_hdf5_utilities::load_CHM_s_model_from_hdf5_file;
 	load_CHM_s_model_from_hdf5_file(
 		model,
+		step,
 		"t2d_chm_s_pipe_conference_geo.h5",
 		"geostatic",
 		101
@@ -78,7 +80,6 @@ void test_t2d_chm_s_pipe_conference_restart1(int argc, char** argv)
 	out.set_interval_num(500);
 	TimeHistory_ConsoleProgressBar out_pb;
 
-	Step_T2D_CHM_s step("step1");
 	step.set_model(model);
 	step.set_step_time(5.0);
 	step.set_dtime(2.0e-6);
@@ -100,7 +101,7 @@ void test_t2d_chm_s_pipe_conference_restart1_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	app.set_color_map_fld_range(-11.0, -9.0);
+	app.set_color_map_fld_range(-30000.0, -10000.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_s_pipe_conference_restart1");
 	//app.set_gif_name("t2d_chm_s_pipe_conference_restart1");

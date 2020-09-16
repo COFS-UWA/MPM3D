@@ -7,24 +7,15 @@ QtSceneFromModel_T2D_ME_s::QtSceneFromModel_T2D_ME_s(
 	QtSceneFromModel(_gl),
 	model(nullptr),
 	pt_num(0), pts(nullptr),
-	display_bg_mesh(true),
-	display_pcls(true),
-	display_pts(true),
-	display_rigid_circle(true),
-	bg_mesh_obj(_gl),
-	pcls_obj(_gl),
-	pts_obj(_gl),
-	rc_obj(_gl),
+	display_bg_mesh(true), bg_mesh_obj(_gl),
+	display_pcls(true), pcls_obj(_gl),
+	display_pts(true), pts_obj(_gl),
+	display_rigid_circle(true), rc_obj(_gl),
+	display_rigid_rect(true), rr_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
-	bg_color(0.2f, 0.3f, 0.3f)
-{
+	bg_color(0.2f, 0.3f, 0.3f) {}
 
-}
-
-QtSceneFromModel_T2D_ME_s::~QtSceneFromModel_T2D_ME_s()
-{
-
-}
+QtSceneFromModel_T2D_ME_s::~QtSceneFromModel_T2D_ME_s() {}
 
 void QtSceneFromModel_T2D_ME_s::set_viewport(
 	int wd, int ht, GLfloat xlen, GLfloat ylen)
@@ -79,6 +70,18 @@ int QtSceneFromModel_T2D_ME_s::initialize(int wd, int ht)
 	if (display_whole_model)
 	{
 		Rect bbox = model->get_bounding_box();
+		if (model->rigid_circle_is_valid())
+		{
+			Rect rc_bbox;
+			model->get_rigid_circle().get_bbox(rc_bbox);
+			bbox.envelop(rc_bbox);
+		}
+		if (model->rigid_rect_is_valid())
+		{
+			Rect rr_bbox;
+			model->get_rigid_rect().get_bbox(rr_bbox);
+			bbox.envelop(rr_bbox);
+		}
 		GLfloat xlen = GLfloat(bbox.xu - bbox.xl);
 		GLfloat ylen = GLfloat(bbox.yu - bbox.yl);
 		GLfloat padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
@@ -132,6 +135,21 @@ int QtSceneFromModel_T2D_ME_s::initialize(int wd, int ht)
 			);
 	}
 
+	// init rigid rect
+	if (model->rigid_rect_is_valid())
+	{
+		RigidRect& rr = model->get_rigid_rect();
+		rr_obj.init(
+			rr.get_x(),
+			rr.get_y(),
+			rr.get_ang(),
+			rr.get_hx(),
+			rr.get_hy(),
+			light_slate_blue,
+			3.0f
+			);
+	}
+
 	// init pts
 	QVector3D red(1.0f, 0.0f, 0.0f);
 	if (pts && pt_num)
@@ -152,8 +170,11 @@ void QtSceneFromModel_T2D_ME_s::draw()
 	if (display_bg_mesh)
 		bg_mesh_obj.draw(shader_plain2D);
 
-	if (display_rigid_circle && model->rigid_circle_is_valid())
+	if (model->rigid_circle_is_valid() && display_rigid_circle)
 		rc_obj.draw(shader_plain2D);
+
+	if (model->rigid_rect_is_valid() && display_rigid_rect)
+		rr_obj.draw(shader_plain2D);
 
 	shader_circles.bind();
 
