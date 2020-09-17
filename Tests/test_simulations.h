@@ -45,6 +45,8 @@ void test_t2d_me_p_test(int argc, char** argv);
 void test_t2d_me_p_1d_compression(int argc, char** argv);
 void test_t2d_me_p_rigid_circle_penetration(int argc, char** argv);
 
+void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv);
+
 // shallow pipe embedment
 // chm simulation
 void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv);

@@ -49,7 +49,7 @@ add_library(
     Model_T2D_CHM_s_hdf5_utilities.h Model_T2D_CHM_s_hdf5_utilities.cpp
     ModelData_T2D_CHM_s.h ModelData_T2D_CHM_s.cpp
     ## deformation calculation
-    Step_T2D_CHM_s.h Step_T2D_CHM_s.cpp
+    Step_T2D_CHM_s.h Step_T2D_CHM_s.cpp Step_T2D_CHM_s_avg.cpp
     TimeHistory_T2D_CHM_s_complete.h TimeHistory_T2D_CHM_s_complete.cpp
     ## geostatic calculation
     Step_T2D_CHM_s_Geo.h Step_T2D_CHM_s_Geo.cpp

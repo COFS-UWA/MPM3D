@@ -12,6 +12,7 @@ namespace Model_T2D_CHM_s_hdf5_utilities
 }
 
 int solve_substep_T2D_CHM_s(void *_self);
+int solve_substep_T2D_CHM_s_avg(void* _self);
 
 class Step_T2D_CHM_s : public Step
 {
@@ -26,6 +27,7 @@ protected:
 
 	int init_calculation() override;
 	friend int solve_substep_T2D_CHM_s(void *_self);
+	friend int solve_substep_T2D_CHM_s_avg(void* _self);
 	int finalize_calculation() override;
 
 	friend int Model_T2D_CHM_s_hdf5_utilities::load_CHM_s_model_from_hdf5_file(

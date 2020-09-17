@@ -29,6 +29,8 @@ void test_t2d_chm_s_test_restart_consolidation_step_result(int argc, char** argv
 void test_t2d_me_s_test_rigid_circle_result(int argc, char** argv);
 void test_t2d_chm_s_test_rigid_circle_result(int argc, char** argv);
 
+void test_t2d_chm_s_t_bar_smaller_soil_result(int argc, char** argv);
+
 void test_t3d_me_s_1d_compression_result(int argc, char **argv);
 void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv);
 

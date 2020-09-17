@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
 	//test_t2d_me_s_1d_compression(argc, argv);
 	//test_t2d_me_s_1d_compression_static_result(argc, argv);
-	test_t2d_me_s_1d_compression_ani_result(argc, argv);
+	//test_t2d_me_s_1d_compression_ani_result(argc, argv);
 
 	//test_t2d_me_s_1d_compression_horizontal(argc, argv);
 	//test_t2d_me_s_1d_compression_horizontal_result(argc, argv);
@@ -152,6 +152,9 @@ int main(int argc, char *argv[])
 
 	//test_t2d_me_s_cap_compression(argc, argv);
 	//test_t2d_me_s_cap_compression_result(argc, argv);
+
+	test_t2d_chm_s_t_bar_smaller_soil(argc, argv);
+	//test_t2d_chm_s_t_bar_smaller_soil_result(argc, argv);
 
 	//system("pause");
 	return 0;

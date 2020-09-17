@@ -93,7 +93,7 @@ class MeshParser:
 
 
 if __name__ == "__main__":
-    msh_filename = "plate_with_hole"
+    msh_filename = "smaller_rect_mesh"
     # parse
     msh_file_name = "../Asset/" + msh_filename + ".msh"
     msh_parser = MeshParser()

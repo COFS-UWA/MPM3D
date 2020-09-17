@@ -8,7 +8,7 @@ out_time = []
 pcl_var = []
 
 # numerical solution
-hdf5_file = py.File("..\\Build\\Tests\\t3d_me_s_1d_compression.h5", "r")
+hdf5_file = py.File("../Build/Tests/t3d_me_s_1d_compression.h5", "r")
 th_grp = hdf5_file['TimeHistory']['compression']
 
 output_num = th_grp.attrs['output_num']

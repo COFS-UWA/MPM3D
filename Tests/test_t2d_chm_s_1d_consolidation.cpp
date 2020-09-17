@@ -14,7 +14,7 @@
 void test_t2d_chm_s_1d_consolidation(int argc, char** argv)
 {
 	Model_T2D_CHM_s model;
-	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_mesh.h5");
+	model.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
 	model.init_search_grid(0.05, 0.05);
 
 	ParticleGenerator2D<Model_T2D_CHM_s> pcl_generator;
@@ -154,6 +154,6 @@ void test_t2d_chm_s_1d_compression_ani_result(int argc, char** argv)
 	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.6, 0.5, 0.4);
 	//app.set_png_name("t2d_chm_s_1d_consolidation");
-	//app.set_gif_name("t2d_chm_s_1d_consolidation");
+	app.set_gif_name("t2d_chm_s_1d_consolidation");
 	app.start();
 }

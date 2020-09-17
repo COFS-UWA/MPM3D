@@ -82,6 +82,8 @@ struct Element
 	double dN2_dx, dN2_dy;
 	double dN3_dx, dN3_dy;
 
+	bool has_pcl;
+
 	// particle list
 	Particle* pcls;
 	inline void add_pcl(Particle& pcl) noexcept
@@ -91,7 +93,7 @@ struct Element
 	}
 
 	// m
-	double pcl_m;
+	double pcl_m, pcl_density;
 
 	// mixed integration
 	double mi_pcl_vol, s11, s22, s12;
@@ -146,8 +148,8 @@ public:
 	typedef Model_T2D_ME_s_Internal::BgMesh BgMesh;
 	typedef Model_T2D_ME_s_Internal::Node Node;
 	typedef Model_T2D_ME_s_Internal::Element Element;
-	typedef Model_T2D_ME_s_Internal::Particle Particle;
 	typedef Model_T2D_ME_s_Internal::Edge Edge;
+	typedef Model_T2D_ME_s_Internal::Particle Particle;
 
 protected:
 	size_t pcl_num;

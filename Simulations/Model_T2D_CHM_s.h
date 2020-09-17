@@ -20,22 +20,22 @@ struct Node
 	bool has_mp;
 	// solid phase
 	double m_s;
-	double ax_s, ay_s;
-	double vx_s, vy_s;
+	double ax_s, ay_s, am_s;
+	double vx_s, vy_s, vm_s;
 	double dux_s, duy_s;
 	double fx_ext_s, fy_ext_s;
 	double fx_int_s, fy_int_s;
 	// fluid phase
 	double m_f;
-	double ax_f, ay_f;
-	double vx_f, vy_f;
+	double ax_f, ay_f, am_f;
+	double vx_f, vy_f, vm_f;
 	double dux_f, duy_f;
 	double fx_ext_f, fy_ext_f;
 	double fx_int_f, fy_int_f;
 	// solid - fluid interaction
 	double fx_drag, fy_drag;
 
-	// for strain enhancement approach
+	// strain enhancement
 	double pcl_vol, de_vol_s, de_vol_f;
 };
 
@@ -45,14 +45,10 @@ struct Particle
 	size_t id;
 	double x, y;
 
-	double ux_s, uy_s;
 	double vx_s, vy_s;
-
-	double ux_f, uy_f;
 	double vx_f, vy_f;
 
-	double n; // porosity
-	double m_s; // mass of solid
+	double n, m_s;
 	double density_s;
 	double density_f;
 
@@ -62,6 +58,8 @@ struct Particle
 
 	// calculation variables
 	double x_ori, y_ori;
+	double ux_s, uy_s;
+	double ux_f, uy_f;
 	double vol_s, vol, m_f;
 	inline double get_vol() { return m_s / (density_s * (1.0 - n)); }
 
@@ -106,9 +104,12 @@ struct Element
 	}
 
 	// calculation variables
-	double pcl_vol, pcl_n, s11, s22, s12, p;
+	bool has_mp;
+	double pcl_m_s, pcl_n;
+	double pcl_m_f, pcl_vol_f, pcl_density_f;
+	double pcl_vol, s11, s22, s12, p;
 	
-	// strain enhancement apprach
+	// strain enhancement
 	double dde11, dde22, de12;
 	double de_vol_s, de_vol_f;
 };
@@ -123,6 +124,7 @@ class Step_T2D_CHM_s_Geo;
 int solve_substep_T2D_CHM_s_Geo(void* _self);
 class Step_T2D_CHM_s;
 int solve_substep_T2D_CHM_s(void* _self);
+int solve_substep_T2D_CHM_s_avg(void* _self);
 class Step_T2D_CHM_s_ud;
 int solve_substep_T2D_CHM_s_ud(void *_self);
 
@@ -150,6 +152,7 @@ struct Model_T2D_CHM_s : public Model,
 	friend int solve_substep_T2D_CHM_s_Geo(void* _self);
 	friend class Step_T2D_CHM_s;
 	friend int solve_substep_T2D_CHM_s(void *_self);
+	friend int solve_substep_T2D_CHM_s_avg(void* _self);
 	friend class Step_T2D_CHM_s_ud;
 	friend int solve_substep_T2D_CHM_s_ud(void* _self);
 
