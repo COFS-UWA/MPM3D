@@ -16,8 +16,8 @@ void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv);
 void test_t2d_me_s_plate_with_hole_result(int argc, char** argv);
 void test_t2d_me_s_cap_compression_result(int argc, char** argv);
 
-void test_t2d_chm_s_1d_compression_static_result(int argc, char** argv);
-void test_t2d_chm_s_1d_compression_ani_result(int argc, char** argv);
+void test_t2d_chm_s_1d_consolidation_static_result(int argc, char** argv);
+void test_t2d_chm_s_1d_consolidation_ani_result(int argc, char** argv);
 void test_t2d_chm_s_ud_compression_result(int argc, char** argv);
 
 void test_t2d_me_s_test_restart_geo_step_result(int argc, char** argv);

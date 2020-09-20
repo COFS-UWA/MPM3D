@@ -46,7 +46,7 @@ void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv)
 	//	pcl.set_mat_model(mm);
 	//}
 
-	model.init_rigid_circle(150.0, 15.0, 10.0, 17.5, 2.5);
+	model.init_rigid_circle(10.0, 1.0, 10.0, 17.5, 2.5);
 	//model.init_rigid_circle(1.0e5, 1.0e3, 10.0, 17.41, 2.5);
 	model.set_rigid_circle_velocity(0.0, -0.25, 0.0);
 
@@ -97,13 +97,13 @@ void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv)
 		vbc.v = 0.0;
 	}
 
-	QtApp_Prep_T2D_CHM_s md_disp(argc, argv);
-	md_disp.set_win_size(900, 900);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.1);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.1);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T2D_CHM_s md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.1);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.1);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file;
 	res_file.create("t2d_chm_s_t_bar_smaller_soil.h5");
@@ -120,7 +120,7 @@ void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv)
 
 	Step_T2D_CHM_s step("step1");
 	step.set_model(model);
-	step.set_step_time(6.0);
+	step.set_step_time(6.0e-2);
 	step.set_dtime(3.0e-6);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);

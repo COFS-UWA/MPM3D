@@ -33,6 +33,8 @@ protected:
 	friend int Model_T2D_CHM_s_hdf5_utilities::load_CHM_s_model_from_hdf5_file(
 		Model_T2D_CHM_s& md, Step_T2D_CHM_s& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 
+	int apply_rigid_circle_avg(double dt);
+
 public:
 	Step_T2D_CHM_s(const char* _name);
 	~Step_T2D_CHM_s();

@@ -354,7 +354,7 @@ int solve_substep_T2D_CHM_s_avg(void *_self)
 
 	// contact with rigid circle
 	if (md.rigid_circle_is_init)
-		md.apply_rigid_circle(self.dtime);
+		self.apply_rigid_circle_avg(self.dtime);
 
 	// apply velocity bc
 	for (size_t v_id = 0; v_id < md.vsx_num; ++v_id)
@@ -458,6 +458,9 @@ int solve_substep_T2D_CHM_s_avg(void *_self)
 	}
 
 	double de12;
+	double dstrain[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	int mm_res;
+	const double* dstress;
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
@@ -490,9 +493,11 @@ int solve_substep_T2D_CHM_s_avg(void *_self)
 			pcl.e12 += de12;
 
 			// update stress
-			double dstrain[6] = { de11, de22, 0.0, de12, 0.0, 0.0 };
-			int mm_res = pcl.mm->integrate(dstrain);
-			const double *dstress = pcl.mm->get_dstress();
+			dstrain[0] = de11;
+			dstrain[1] = de22;
+			dstrain[3] = de12;
+			mm_res = pcl.mm->integrate(dstrain);
+			dstress = pcl.mm->get_dstress();
 			pcl.s11 += dstress[0];
 			pcl.s22 += dstress[1];
 			pcl.s12 += dstress[3];
@@ -503,5 +508,98 @@ int solve_substep_T2D_CHM_s_avg(void *_self)
 		}
 	}
 	
+	return 0;
+}
+
+int Step_T2D_CHM_s::apply_rigid_circle_avg(double dt)
+{
+	Model_T2D_CHM_s& md = *model;
+	RigidCircle &rc = md.rigid_circle;
+
+	rc.reset_rf();
+
+	double dist, norm_x, norm_y;
+	double fs_cont, fsx_cont, fsy_cont;
+	double ff_cont, ffx_cont, ffy_cont;
+	double nfsx_cont, nfsy_cont, ndasx, ndasy;
+	double nffx_cont, nffy_cont, ndafx, ndafy;
+	for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+	{
+		Particle& pcl = md.pcls[p_id];
+		if (pcl.pe && rc.detect_collision_with_point(
+						pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+		{
+			fs_cont = md.Ks_cont * dist;
+			fsx_cont = fs_cont * norm_x;
+			fsy_cont = fs_cont * norm_y;
+			ff_cont = md.Kf_cont * dist;
+			ffx_cont = ff_cont * norm_x;
+			ffy_cont = ff_cont * norm_y;
+			// reaction force by the rigid object
+			rc.add_rf(pcl.x, pcl.y,
+				-(fsx_cont + ffx_cont),
+				-(fsy_cont + ffy_cont)
+				);
+			// adjust velocity at nodes
+			Element& e = *pcl.pe;
+			// node 1
+			Node& n1 = md.nodes[e.n1];
+			nfsx_cont = pcl.N1 * fsx_cont;
+			nfsy_cont = pcl.N1 * fsy_cont;
+			ndasx = nfsx_cont / n1.am_s;
+			ndasy = nfsy_cont / n1.am_s;
+			n1.ax_s += ndasx;
+			n1.ay_s += ndasy;
+			n1.vx_s += ndasx * dt;
+			n1.vy_s += ndasy * dt;
+			nffx_cont = pcl.N1 * ffx_cont;
+			nffy_cont = pcl.N1 * ffy_cont;
+			ndafx = nffx_cont / n1.am_f;
+			ndafy = nffy_cont / n1.am_f;
+			n1.ax_f += ndafx;
+			n1.ay_f += ndafy;
+			n1.vx_f += ndafx * dt;
+			n1.vy_f += ndafy * dt;
+			// node 2
+			Node& n2 = md.nodes[e.n2];
+			nfsx_cont = pcl.N2 * fsx_cont;
+			nfsy_cont = pcl.N2 * fsy_cont;
+			ndasx = nfsx_cont / n2.am_s;
+			ndasy = nfsy_cont / n2.am_s;
+			n2.ax_s += ndasx;
+			n2.ay_s += ndasy;
+			n2.vx_s += ndasx * dt;
+			n2.vy_s += ndasy * dt;
+			nffx_cont = pcl.N2 * ffx_cont;
+			nffy_cont = pcl.N2 * ffy_cont;
+			ndafx = nffx_cont / n2.am_f;
+			ndafy = nffy_cont / n2.am_f;
+			n2.ax_f += ndafx;
+			n2.ay_f += ndafy;
+			n2.vx_f += ndafx * dt;
+			n2.vy_f += ndafy * dt;
+			// node 3
+			Node& n3 = md.nodes[e.n3];
+			nfsx_cont = pcl.N3 * fsx_cont;
+			nfsy_cont = pcl.N3 * fsy_cont;
+			ndasx = nfsx_cont / n3.am_s;
+			ndasy = nfsy_cont / n3.am_s;
+			n3.ax_s += ndasx;
+			n3.ay_s += ndasy;
+			n3.vx_s += ndasx * dt;
+			n3.vy_s += ndasy * dt;
+			nffx_cont = pcl.N3 * ffx_cont;
+			nffy_cont = pcl.N3 * ffy_cont;
+			ndafx = nffx_cont / n3.am_f;
+			ndafy = nffy_cont / n3.am_f;
+			n3.ax_f += ndafx;
+			n3.ay_f += ndafy;
+			n3.vx_f += ndafx * dt;
+			n3.vy_f += ndafy * dt;
+		}
+	}
+
+	rc.update_motion(dt);
+
 	return 0;
 }

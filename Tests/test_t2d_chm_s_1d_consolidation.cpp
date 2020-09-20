@@ -126,10 +126,9 @@ void test_t2d_chm_s_1d_consolidation(int argc, char** argv)
 }
 
 #include "QtApp_Posp_T2D_CHM_s.h"
-
 #include "test_model_view.h"
 
-//void test_t2d_chm_s_1d_compression_static_result(int argc, char** argv)
+//void test_t2d_chm_s_1d_consolidation_static_result(int argc, char** argv)
 //{
 //	ResultFile_hdf5 rf;
 //	rf.open("t2d_chm_s_1d_consolidation.h5");
@@ -142,7 +141,7 @@ void test_t2d_chm_s_1d_consolidation(int argc, char** argv)
 //	app.start();
 //}
 
-void test_t2d_chm_s_1d_compression_ani_result(int argc, char** argv)
+void test_t2d_chm_s_1d_consolidation_ani_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	rf.open("t2d_chm_s_1d_consolidation.h5");
