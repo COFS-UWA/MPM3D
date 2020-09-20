@@ -6,6 +6,11 @@
 #include "MatModelUtils.h"
 #include "MaterialModel.h"
 
+namespace Model_hdf5_utilities
+{
+	struct VonMisesStateData;
+}
+
 namespace MatModel
 {
 	int von_mises_integration_function(MaterialModel* _self, double dstrain[6]);
@@ -13,7 +18,7 @@ namespace MatModel
 	class VonMises : public MaterialModel
 	{
 		friend int von_mises_integration_function(MaterialModel* _self, double dstrain[6]);
-
+		friend struct Model_hdf5_utilities::VonMisesStateData;
 	protected:
 		double E, niu;
 		double cohesion;
@@ -37,18 +42,30 @@ namespace MatModel
 			double _E,
 			double _niu,
 			double _cohesion,
-			double ini_stress[6]
+			const double ini_stress[6] = nullptr
 			)
 		{
 			E = _E;
 			niu = _niu;
 			cohesion = _cohesion;
-			stress[0] = ini_stress[0];
-			stress[1] = ini_stress[1];
-			stress[2] = ini_stress[2];
-			stress[3] = ini_stress[3];
-			stress[4] = ini_stress[4];
-			stress[5] = ini_stress[5];
+			if (ini_stress)
+			{
+				stress[0] = ini_stress[0];
+				stress[1] = ini_stress[1];
+				stress[2] = ini_stress[2];
+				stress[3] = ini_stress[3];
+				stress[4] = ini_stress[4];
+				stress[5] = ini_stress[5];
+			}
+			else
+			{
+				stress[0] = 0.0;
+				stress[1] = 0.0;
+				stress[2] = 0.0;
+				stress[3] = 0.0;
+				stress[4] = 0.0;
+				stress[5] = 0.0;
+			}
 			form_De_mat();
 		}
 

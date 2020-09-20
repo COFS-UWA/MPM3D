@@ -2,67 +2,11 @@
 
 #include "Step_T2D_CHM_s_Geo.h"
 
-Step_T2D_CHM_s_Geo::Step_T2D_CHM_s_Geo(const char* _name) :
-	Step(_name, "Step_T2D_CHM_s_Geo", &solve_substep_T2D_CHM_s_Geo_avg),
-	model(nullptr), damping_ratio(0.0) {}
-
-Step_T2D_CHM_s_Geo::~Step_T2D_CHM_s_Geo() {}
-
-int Step_T2D_CHM_s_Geo::init_calculation()
+int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 {
-	Model_T2D_CHM_s &md = *model;
-
-	if (is_first_step) {}
-
-	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
-	{
-		Particle &pcl = md.pcls[pcl_id];
-		pcl.pe = md.find_in_which_element(pcl);
-		pcl.vol_s = pcl.m_s / pcl.density_s;
-		pcl.vol = pcl.vol_s / (1.0 - pcl.n);
-		pcl.m_f = pcl.vol * pcl.n * pcl.density_f;
-	}
-
-	// convergence criteria
-	// unbalanced force
-	init_f_ub = 0.0;
-	init_f_ub_is_init = false;
-	f_ub_ratio = 1.0;
-	// kinematic energy
-	e_kin_max = 0.0;
-	e_kin_max_is_init = false;
-	e_kin_prev = 0.0;
-	e_kin_ratio = 1.0;
-
-	//out_file.open("ratio_res.txt", std::ios::out | std::ios::binary);
-
-	return 0;
-}
-
-int Step_T2D_CHM_s_Geo::finalize_calculation()
-{
-	Model_T2D_CHM_s &md = *model;
-
-	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
-	{
-		Particle &pcl = md.pcls[pcl_id];
-		pcl.vx_s = 0.0;
-		pcl.vy_s = 0.0;
-		pcl.vx_f = 0.0;
-		pcl.vy_f = 0.0;
-		pcl.p = 0.0;
-	}
-
-	//out_file.close();
-
-	return 0;
-}
-
-int solve_substep_T2D_CHM_s_Geo(void *_self)
-{
-	typedef Model_T2D_CHM_s::Particle Particle;
-	typedef Model_T2D_CHM_s::Element Element;
 	typedef Model_T2D_CHM_s::Node Node;
+	typedef Model_T2D_CHM_s::Element Element;
+	typedef Model_T2D_CHM_s::Particle Particle;
 	Step_T2D_CHM_s_Geo &self = *(Step_T2D_CHM_s_Geo *)(_self);
 	Model_T2D_CHM_s &md = *self.model;
 
@@ -70,18 +14,17 @@ int solve_substep_T2D_CHM_s_Geo(void *_self)
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
-		// material point
 		n.has_mp = false;
 		// solid phase
-		n.m_s = 0.0;
+		n.am_s = 0.0;
+		n.vm_s = 0.0;
 		n.vx_s = 0.0;
 		n.vy_s = 0.0;
 		n.fx_ext_s = 0.0;
 		n.fy_ext_s = 0.0;
 		n.fx_int_s = 0.0;
 		n.fy_int_s = 0.0;
-		// strain enhancement approach
-		n.pcl_vol = 0.0;
+		// strain enhancement
 		n.de_vol_s = 0.0;
 	}
 
@@ -89,15 +32,15 @@ int solve_substep_T2D_CHM_s_Geo(void *_self)
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element &e = md.elems[e_id];
-		e.pcl_vol = 0.0;
+		e.has_mp = false;
+		e.pcl_m_s = 0.0;
 		e.pcl_n = 0.0;
+		e.pcl_vol = 0.0;
 		e.s11 = 0.0;
 		e.s22 = 0.0;
 		e.s12 = 0.0;
-		e.pcls = nullptr;
 	}
 
-	// init particles
 	double N_m_s;
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
@@ -105,7 +48,6 @@ int solve_substep_T2D_CHM_s_Geo(void *_self)
 		if (pcl.pe)
 		{
 			Element &e = *pcl.pe;
-			e.add_pcl(pcl);
 			e.pcl_vol += pcl.vol;
 			e.s11 += pcl.vol * pcl.s11;
 			e.s22 += pcl.vol * pcl.s22;

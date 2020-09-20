@@ -122,6 +122,7 @@ typedef TriangleMeshTemplate<Node, Element, Edge> BgMesh;
 
 class Step_T2D_CHM_s_Geo;
 int solve_substep_T2D_CHM_s_Geo(void* _self);
+int solve_substep_T2D_CHM_s_Geo_avg(void* _self);
 class Step_T2D_CHM_s;
 int solve_substep_T2D_CHM_s(void* _self);
 int solve_substep_T2D_CHM_s_avg(void* _self);
@@ -150,6 +151,7 @@ struct Model_T2D_CHM_s : public Model,
 {
 	friend class Step_T2D_CHM_s_Geo;
 	friend int solve_substep_T2D_CHM_s_Geo(void* _self);
+	friend int solve_substep_T2D_CHM_s_Geo_avg(void* _self);
 	friend class Step_T2D_CHM_s;
 	friend int solve_substep_T2D_CHM_s(void *_self);
 	friend int solve_substep_T2D_CHM_s_avg(void* _self);

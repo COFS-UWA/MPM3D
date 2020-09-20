@@ -1,12 +1,10 @@
 #include "Simulations_pcp.h"
 
 #include <cmath>
-
-#include "MaterialModel.h"
 #include "Step_T2D_ME_s_Geo.h"
 
 Step_T2D_ME_s_Geo::Step_T2D_ME_s_Geo(const char* _name) :
-	Step(_name, "Step_T2D_ME_s_Geo", &solve_substep_T2D_ME_s_Geo),
+	Step(_name, "Step_T2D_ME_s_Geo", &solve_substep_T2D_ME_s_Geo_avg),
 	model(nullptr), damping_ratio(0.0),
 	f_ub_ratio_bound(0.0), e_kin_ratio_bound(0.0),
 	node_has_a_or_v_bc(nullptr)
@@ -33,6 +31,7 @@ int Step_T2D_ME_s_Geo::init_calculation()
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element& e = md.elems[e_id];
+		e.has_pcl = false;
 		e.pcls = nullptr;
 	}
 	
@@ -44,6 +43,7 @@ int Step_T2D_ME_s_Geo::init_calculation()
 		{
 			Element &e = *pcl.pe;
 			e.add_pcl(pcl);
+			e.has_pcl = true;
 			Node& n1 = md.nodes[e.n1];
 			n1.has_mp = true;
 			Node& n2 = md.nodes[e.n2];
@@ -97,10 +97,9 @@ int Step_T2D_ME_s_Geo::finalize_calculation()
 
 int solve_substep_T2D_ME_s_Geo(void *_self)
 {
-	typedef Model_T2D_ME_s::Particle Particle;
-	typedef Model_T2D_ME_s::Element Element;
 	typedef Model_T2D_ME_s::Node Node;
-
+	typedef Model_T2D_ME_s::Element Element;
+	typedef Model_T2D_ME_s::Particle Particle;
 	Step_T2D_ME_s_Geo &self = *(Step_T2D_ME_s_Geo *)(_self);
 	Model_T2D_ME_s &md = *self.model;
 

@@ -30,7 +30,7 @@ add_library(
     Step_T2D_CHM_s_ud.h Step_T2D_CHM_s_ud.cpp
     TimeHistory_T2D_CHM_s_ud_complete.h TimeHistory_T2D_CHM_s_ud_complete.cpp
     ## geostatic calculation
-    Step_T2D_ME_s_Geo.h Step_T2D_ME_s_Geo.cpp
+    Step_T2D_ME_s_Geo.h Step_T2D_ME_s_Geo.cpp Step_T2D_ME_s_Geo_avg.cpp
     TimeHistory_T2D_ME_s_Geo_complete.h TimeHistory_T2D_ME_s_Geo_complete.cpp
     # 2D ME MPM parallel version
     #Model_T2D_ME_p.h Model_T2D_ME_p.cpp
@@ -52,7 +52,7 @@ add_library(
     Step_T2D_CHM_s.h Step_T2D_CHM_s.cpp Step_T2D_CHM_s_avg.cpp
     TimeHistory_T2D_CHM_s_complete.h TimeHistory_T2D_CHM_s_complete.cpp
     ## geostatic calculation
-    Step_T2D_CHM_s_Geo.h Step_T2D_CHM_s_Geo.cpp
+    Step_T2D_CHM_s_Geo.h Step_T2D_CHM_s_Geo.cpp Step_T2D_CHM_s_Geo_avg.cpp
     TimeHistory_T2D_CHM_s_Geo_complete.h TimeHistory_T2D_CHM_s_Geo_complete.cpp
     # 2D CHM MPM double particle sets
     Model_T2D_CHM_d.h Model_T2D_CHM_d.cpp

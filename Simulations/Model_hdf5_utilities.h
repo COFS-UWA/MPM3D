@@ -253,8 +253,12 @@ namespace Model_hdf5_utilities
 		double pc; // pre-consolidation stress
 		double N; // normal consolidation line
 		double Gamma; // critical state line
-		double M; // critical state line q = Mp 
-		double s11, s22, s33, s12, s23, s31; // stress state
+		double M; // critical state line q = Mp
+		union // stress state
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
 
 		inline void from_mm(MatModel::ModifiedCamClay &mm)
 		{
@@ -268,19 +272,18 @@ namespace Model_hdf5_utilities
 			N = mm.N;
 			Gamma = mm.Gamma;
 			M = mm.M;
-			const double *stress = mm.get_stress();
-			s11 = stress[0];
-			s22 = stress[1];
-			s33 = stress[2];
-			s12 = stress[3];
-			s23 = stress[4];
-			s31 = stress[5];
+			const double * mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
 		}
 
 		inline void to_mm(MatModel::ModifiedCamClay &mm)
 		{
 			mm.set_id(id);
-			double stress[6] = { s11, s22, s33, s12, s23, s31 };
 			mm.set_param_OC(niu, kappa, lambda, fric_angle, N, stress, pc);
 			mm.e = e;
 			mm.pc = pc;
@@ -322,7 +325,11 @@ namespace Model_hdf5_utilities
 		double N; // normal consolidation line
 		double Gamma; // critical state line
 		double M; // critical state line q = Mp 
-		double s11, s22, s33, s12, s23, s31; // effective stress state
+		union // effective stress state
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
 		double Kw; // bulk modulus
 		double pore_pressure; // pore pressure
 
@@ -339,13 +346,13 @@ namespace Model_hdf5_utilities
 			N = mcc.N;
 			Gamma = mcc.Gamma;
 			M = mcc.M;
-			const double* stress = mm.get_stress();
-			s11 = stress[0];
-			s22 = stress[1];
-			s33 = stress[2];
-			s12 = stress[3];
-			s23 = stress[4];
-			s31 = stress[5];
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
 			Kw = mm.Kw;
 			pore_pressure = mm.pore_pressure;
 		}
@@ -353,7 +360,6 @@ namespace Model_hdf5_utilities
 		inline void to_mm(MatModel::UndrainedModifiedCamClay& mm)
 		{
 			mm.set_id(id);
-			double stress[6] = { s11, s22, s33, s12, s23, s31 };
 			mm.set_param_OC(niu, kappa, lambda, fric_angle, N, stress, pc,
 							Kw, pore_pressure);
 		}
@@ -382,6 +388,59 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "pore_pressure", HOFFSET(UndrainedModifiedCamClayStateData, pore_pressure), H5T_NATIVE_DOUBLE);
 		return res;
 	}
+
+	// Von Mises
+	struct VonMisesStateData
+	{
+		unsigned long long id;
+		double E; // Young's modulus
+		double niu; // possion ratio
+		double cohesion;
+		union
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
+
+		inline void from_mm(MatModel::VonMises &mm)
+		{
+			id = mm.get_id();
+			E = mm.E;
+			niu = mm.niu;
+			cohesion = mm.cohesion;
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
+		}
+
+		inline void to_mm(MatModel::VonMises &mm)
+		{
+			mm.set_id(id);
+			mm.set_param(E, niu, cohesion, stress);
+		}
+	};
+
+	inline hid_t get_von_mises_hdf5_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(VonMisesStateData));
+		H5Tinsert(res, "id", HOFFSET(VonMisesStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "E", HOFFSET(VonMisesStateData, E), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "niu", HOFFSET(VonMisesStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "cohesion", HOFFSET(VonMisesStateData, cohesion), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(VonMisesStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(VonMisesStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(VonMisesStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(VonMisesStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(VonMisesStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(VonMisesStateData, s31), H5T_NATIVE_DOUBLE);
+		return res;
+	}
+
+	// Tresca
 
 	// material model container
 	int output_material_model_container_to_hdf5_file(

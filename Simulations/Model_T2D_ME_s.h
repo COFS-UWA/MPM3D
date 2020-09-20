@@ -113,6 +113,7 @@ class Model_T2D_ME_s;
 
 class Step_T2D_ME_s_Geo;
 int solve_substep_T2D_ME_s_Geo(void* _self);
+int solve_substep_T2D_ME_s_Geo_avg(void* _self);
 class Step_T2D_ME_s;
 int solve_substep_T2D_ME_s(void* _self);
 int solve_substep_T2D_ME_s_avg(void* _self);
@@ -140,6 +141,7 @@ struct Model_T2D_ME_s : public Model,
 {
 	friend class Step_T2D_ME_s_Geo;
 	friend int solve_substep_T2D_ME_s_Geo(void* _self);
+	friend int solve_substep_T2D_ME_s_Geo_avg(void* _self);
 	friend class Step_T2D_ME_s;
 	friend int solve_substep_T2D_ME_s(void *_self);
 	friend int solve_substep_T2D_ME_s_avg(void* _self);

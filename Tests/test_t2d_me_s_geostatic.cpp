@@ -14,7 +14,7 @@
 void test_t2d_me_s_geostatic(int argc, char** argv)
 {
 	Model_T2D_ME_s model;
-	model.load_mesh_from_hdf5("..\\..\\Asset\\rect_mesh.h5");
+	model.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
 	model.init_search_grid(0.05, 0.05);
 
 	ParticleGenerator2D<Model_T2D_ME_s> pcl_generator;
@@ -39,21 +39,7 @@ void test_t2d_me_s_geostatic(int argc, char** argv)
 	//	pcl.s12 = 0.0;
 	//}
 	// mcc
-	//MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(pcl_num);
-	//double K = 1.0 - sin(23.5 / 180.0 * 3.14159165359);
-	//double ini_stress[6] = { -12025.0, -20000.0, -12025.0, 0.0, 0.0, 0.0 };
-	//for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-	//{
-	//	Model_T2D_ME_s::Particle& pcl = pcls[p_id];
-	//	pcl.s11 = ini_stress[0];
-	//	pcl.s22 = ini_stress[1];
-	//	pcl.s12 = 0.0;
-	//	MatModel::ModifiedCamClay& mm = mms[p_id];
-	//	mm.set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress);
-	//  pcl.set_mat_model(mm);
-	//}
-	// undrained mcc
-	MatModel::UndrainedModifiedCamClay* mms = model.add_UndrainedModifiedCamClay(pcl_num);
+	MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(pcl_num);
 	double K = 1.0 - sin(23.5 / 180.0 * 3.14159165359);
 	double ini_stress[6] = { -12025.0, -20000.0, -12025.0, 0.0, 0.0, 0.0 };
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
@@ -62,10 +48,24 @@ void test_t2d_me_s_geostatic(int argc, char** argv)
 		pcl.s11 = ini_stress[0];
 		pcl.s22 = ini_stress[1];
 		pcl.s12 = 0.0;
-		MatModel::UndrainedModifiedCamClay& mm = mms[p_id];
-		mm.set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress, 0.0, 0.0);
-		pcl.set_mat_model(mm);
+		MatModel::ModifiedCamClay& mm = mms[p_id];
+		mm.set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress);
+	  pcl.set_mat_model(mm);
 	}
+	// undrained mcc
+	//MatModel::UndrainedModifiedCamClay* mms = model.add_UndrainedModifiedCamClay(pcl_num);
+	//double K = 1.0 - sin(23.5 / 180.0 * 3.14159165359);
+	//double ini_stress[6] = { -12025.0, -20000.0, -12025.0, 0.0, 0.0, 0.0 };
+	//for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	//{
+	//	Model_T2D_ME_s::Particle& pcl = pcls[p_id];
+	//	pcl.s11 = ini_stress[0];
+	//	pcl.s22 = ini_stress[1];
+	//	pcl.s12 = 0.0;
+	//	MatModel::UndrainedModifiedCamClay& mm = mms[p_id];
+	//	mm.set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress, 0.0, 0.0);
+	//	pcl.set_mat_model(mm);
+	//}
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -137,7 +137,6 @@ void test_t2d_me_s_geostatic(int argc, char** argv)
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(2.5e-6);
-	//step.set_damping_ratio(0.1);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -154,7 +153,7 @@ void test_t2d_me_s_geostatic_result(int argc, char** argv)
 	// single frame
 	//QtApp_Posp_T2D_ME_s app(argc, argv);
 	//app.set_win_size(900, 900);
-	//app.set_res_file(rf, "geostatic", 0, "s22");
+	//app.set_res_file(rf, "geostatic", 0, Hdf5Field::s22);
 	//app.set_fld_range(-11.0, -9.0);
 	//app.set_color_map_pos(0.7, 0.45, 0.5); // color map legend
 	////app.set_png_name("t2d_me_s_geostatic");
@@ -163,10 +162,10 @@ void test_t2d_me_s_geostatic_result(int argc, char** argv)
 	// animation
 	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_win_size(900, 900);
-	app.set_res_file(rf, "geostatic", "s22");
+	app.set_res_file(rf, "geostatic", Hdf5Field::s22);
 	app.set_ani_time(5.0);
-	app.set_fld_range(-20100.0, -19900.0);
-	app.set_color_map_pos(0.7, 0.45, 0.5); // color map legend
+	app.set_color_map_fld_range(-20100.0, -19900.0);
+	app.set_color_map_geometry(0.7, 0.45, 0.5);
 	//app.set_png_name("t2d_me_s_geostatic");
 	app.set_gif_name("t2d_me_s_geostatic");
 	app.start();

@@ -5,6 +5,7 @@
 #include "Model_T2D_ME_s.h"
 
 int solve_substep_T2D_ME_s_Geo(void *_self);
+int solve_substep_T2D_ME_s_Geo_avg(void* _self);
 
 // for single object only
 class Step_T2D_ME_s_Geo : public Step
@@ -16,12 +17,12 @@ public:
 
 protected:
 	Model_T2D_ME_s* model;
+	double damping_ratio;
 
 	int init_calculation() override;
 	friend int solve_substep_T2D_ME_s_Geo(void *_self);
+	friend int solve_substep_T2D_ME_s_Geo_avg(void* _self);
 	int finalize_calculation() override;
-
-	double damping_ratio;
 
 public:
 	Step_T2D_ME_s_Geo(const char *_name);

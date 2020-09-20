@@ -13,9 +13,11 @@ void test_t2d_chm_s_geostatic_mcc_result(int argc, char** argv);
 
 void test_t2d_me_s_1d_compression_static_result(int argc, char** argv);
 void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv);
+void test_t2d_me_s_1d_compression_horizontal_result(int argc, char** argv);
 void test_t2d_me_s_plate_with_hole_result(int argc, char** argv);
 void test_t2d_me_s_cap_compression_result(int argc, char** argv);
 void test_t2d_me_s_t_bar_smaller_soil_result(int argc, char** argv);
+void test_t2d_me_s_shallow_foundation_result(int argc, char** argv);
 
 void test_t2d_chm_s_1d_consolidation_static_result(int argc, char** argv);
 void test_t2d_chm_s_1d_consolidation_ani_result(int argc, char** argv);
@@ -39,7 +41,6 @@ void test_t3d_chm_s_1d_consolidation_result(int argc, char **argv);
 void test_t2d_me_p_geostatic_result(int argc, char** argv);
 void test_t2d_me_p_test_result(int argc, char** argv);
 void test_t2d_me_p_1d_compression_result(int argc, char** argv);
-void test_t2d_me_s_1d_compression_horizontal_result(int argc, char** argv);
 void test_t2d_me_p_rigid_circle_penetration_result(int argc, char** argv);
 
 // shallow pipe embedment

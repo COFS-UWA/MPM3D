@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 	//test_PospSingleFrame_display(argc, argv);
 	//test_PospMPM3DApp(argc, argv);
 
-	//test_t2d_me_s_geostatic(argc, argv);
-	//test_t2d_me_s_geostatic_result(argc, argv);
+	test_t2d_me_s_geostatic(argc, argv);
+	test_t2d_me_s_geostatic_result(argc, argv);
 	//test_t2d_me_s_geostatic_restart(argc, argv);
 	//test_t2d_me_s_geostatic_restart_result(argc, argv);
 
@@ -153,7 +153,10 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_cap_compression(argc, argv);
 	//test_t2d_me_s_cap_compression_result(argc, argv);
 	
-	test_t2d_me_s_t_bar_smaller_soil(argc, argv);
+	//test_t2d_me_s_shallow_foundation(argc, argv);
+	//test_t2d_me_s_shallow_foundation_result(argc, argv);
+
+	//test_t2d_me_s_t_bar_smaller_soil(argc, argv);
 	//test_t2d_me_s_t_bar_smaller_soil_result(argc, argv);
 	
 	//test_t2d_chm_s_t_bar_smaller_soil(argc, argv);

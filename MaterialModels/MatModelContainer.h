@@ -7,6 +7,8 @@
 #include "LinearElasticity.h"
 #include "ModifiedCamClay.h"
 #include "UndrainedModifiedCamClay.h"
+#include "VonMises.h"
+#include "Tresca.h"
 
 namespace MatModel
 {
@@ -83,6 +85,8 @@ public:                                          \
 		__Add_Mat_Model_to_Model_Container__(LinearElasticity);
 		__Add_Mat_Model_to_Model_Container__(ModifiedCamClay);
 		__Add_Mat_Model_to_Model_Container__(UndrainedModifiedCamClay);
+		__Add_Mat_Model_to_Model_Container__(VonMises);
+		__Add_Mat_Model_to_Model_Container__(Tresca);
 	};
 
 #undef __Add_Mat_Model_to_Model_Container__

@@ -1,17 +1,14 @@
 #include "Simulations_pcp.h"
 
-#include <cmath>
-#include "MaterialModel.h"
 #include "Step_T2D_CHM_s.h"
 
 #define one_third (1.0/3.0)
 
 int solve_substep_T2D_CHM_s_avg(void *_self)
 {
-	typedef Model_T2D_CHM_s::Element Element;
 	typedef Model_T2D_CHM_s::Node Node;
+	typedef Model_T2D_CHM_s::Element Element;
 	typedef Model_T2D_CHM_s::Particle Particle;
-
 	Step_T2D_CHM_s &self = *(Step_T2D_CHM_s *)(_self);
 	Model_T2D_CHM_s &md = *self.model;
 

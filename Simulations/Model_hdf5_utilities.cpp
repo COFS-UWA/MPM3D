@@ -80,6 +80,26 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 
+		// von mises
+		mm_num = mc.get_num_VonMises();
+		if (mm_num)
+		{
+			rf.write_attribute(mc_grp_id, "VonMises_num", mm_num);
+
+			VonMisesStateData *mm_data = new VonMisesStateData[mm_num];
+			mm_id = 0;
+			for (MatModel::VonMises* iter = mc.first_VonMises();
+				mc.is_not_end_VonMises(iter); iter = mc.next_VonMises(iter))
+			{
+				mm_data[mm_id].from_mm(*iter);
+				++mm_id;
+			}
+			hid_t vm_dt_id = get_von_mises_hdf5_dt_id();
+			rf.write_dataset(mc_grp_id, "VonMises", mm_num, mm_data, vm_dt_id);
+			H5Tclose(vm_dt_id);
+			delete[] mm_data;
+		}
+
 		return 0;
 	}
 
@@ -169,6 +189,32 @@ namespace Model_hdf5_utilities
 			{
 				UndrainedModifiedCamClayStateData& mmd = mm_data[mm_id];
 				MatModel::UndrainedModifiedCamClay& mm = mms[mm_id];
+				mmd.to_mm(mm);
+			}
+			delete[] mm_data;
+		}
+
+		// von mises
+		if (rf.has_dataset(mc_grp_id, "VonMises"))
+		{
+			rf.read_attribute(mc_grp_id, "VonMises", mm_num);
+
+			// get data
+			VonMisesStateData* mm_data = new VonMisesStateData[mm_num];
+			hid_t vm_dt_id = get_von_mises_hdf5_dt_id();
+			rf.read_dataset(
+				mc_grp_id,
+				"VonMises",
+				mm_num,
+				mm_data,
+				vm_dt_id
+				);
+			H5Tclose(vm_dt_id);
+			MatModel::VonMises* mms = mc.add_VonMises(mm_num);
+			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
+			{
+				VonMisesStateData& mmd = mm_data[mm_id];
+				MatModel::VonMises &mm = mms[mm_id];
 				mmd.to_mm(mm);
 			}
 			delete[] mm_data;

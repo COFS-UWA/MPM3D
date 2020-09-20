@@ -1,7 +1,5 @@
 #include "Simulations_pcp.h"
 
-#include <cmath>
-#include "MaterialModel.h"
 #include "Step_T2D_CHM_s.h"
 
 Step_T2D_CHM_s::Step_T2D_CHM_s(const char* _name) :
@@ -36,10 +34,9 @@ int Step_T2D_CHM_s::finalize_calculation() { return 0; }
 
 int solve_substep_T2D_CHM_s(void *_self)
 {
-	typedef Model_T2D_CHM_s::Particle Particle;
-	typedef Model_T2D_CHM_s::Element Element;
 	typedef Model_T2D_CHM_s::Node Node;
-	
+	typedef Model_T2D_CHM_s::Element Element;
+	typedef Model_T2D_CHM_s::Particle Particle;
 	Step_T2D_CHM_s &self = *(Step_T2D_CHM_s *)(_self);
 	Model_T2D_CHM_s &md = *self.model;
 
