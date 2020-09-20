@@ -32,7 +32,7 @@ void test_t2d_me_s_cap_compression(int argc, char **argv)
 		pcl.set_mat_model(mm);
 	}
 
-	model.init_rigid_rect(100.0, 0.1, 1.05, 0.3, 0.1);
+	model.init_rigid_rect(200.0, 0.1, 1.05, 0.3, 0.1);
 	model.set_rigid_rect_velocity(0.0, -0.05, 0.0);
 
 	// vx bc
@@ -49,7 +49,7 @@ void test_t2d_me_s_cap_compression(int argc, char **argv)
 		vbc.node_id = vx_bc_n_id[v_id];
 		vbc.v = 0.0;
 	}
-
+	
 	// vy bc
 	IndexArray vy_bc_pt_array(50);
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, 0.0);

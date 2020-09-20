@@ -466,7 +466,7 @@ protected:
 };
 
 template <typename Point3DType1, typename Point3DType2>
-inline void from_global_to_local_coordinate(
+inline void point_from_global_to_local_coordinate(
 	const Point3D& loc_cen,
 	const Vector3D& loc_ix,
 	const Vector3D& loc_iy,
@@ -484,7 +484,7 @@ inline void from_global_to_local_coordinate(
 }
 
 template <typename Point3DType1, typename Point3DType2>
-inline void from_local_to_global_coordinate(
+inline void point_from_local_to_global_coordinate(
 	const Point3D& loc_cen,
 	const Vector3D& loc_ix,
 	const Vector3D& loc_iy,
@@ -496,6 +496,34 @@ inline void from_local_to_global_coordinate(
 	gp.x = loc_ix.x * lp.x + loc_iy.x * lp.y + loc_iz.x * lp.z + loc_cen.x;
 	gp.y = loc_ix.y * lp.x + loc_iy.y * lp.y + loc_iz.y * lp.z + loc_cen.y;
 	gp.z = loc_ix.z * lp.x + loc_iy.z * lp.y + loc_iz.z * lp.z + loc_cen.z;
+}
+
+template <typename Vector3DType1, typename Vector3DType2>
+inline void vector_from_global_to_local_coordinate(
+	const Vector3D& loc_ix,
+	const Vector3D& loc_iy,
+	const Vector3D& loc_iz,
+	const Vector3DType1& gp,
+	Vector3DType2& lp
+	) noexcept
+{
+	lp.x = loc_ix.x * gp.x + loc_ix.y * gp.y + loc_ix.z * gp.z;
+	lp.y = loc_iy.x * gp.x + loc_iy.y * gp.y + loc_iy.z * gp.z;
+	lp.z = loc_iz.x * gp.x + loc_iz.y * gp.y + loc_iz.z * gp.z;
+}
+
+template <typename Vector3DType1, typename Vector3DType2>
+inline void vector_from_local_to_global_coordinate(
+	const Vector3D& loc_ix,
+	const Vector3D& loc_iy,
+	const Vector3D& loc_iz,
+	const Vector3DType1& lp,
+	Vector3DType2& gp
+	) noexcept
+{
+	gp.x = loc_ix.x * lp.x + loc_iy.x * lp.y + loc_iz.x * lp.z;
+	gp.y = loc_ix.y * lp.x + loc_iy.y * lp.y + loc_iz.y * lp.z;
+	gp.z = loc_ix.z * lp.x + loc_iy.z * lp.y + loc_iz.z * lp.z;
 }
 
 // rotate coordinates ix, iy, iz by ang

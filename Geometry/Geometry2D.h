@@ -265,7 +265,7 @@ inline bool detect_obb2d_cube_collision(OBB2D& obb, Rect& rect)
 }
 
 template <typename Point2DType1, typename Point2DType2>
-inline void from_global_to_local_coordinate(
+inline void point_from_global_to_local_coordinate(
 	const Point2D &loc_cen,
 	const Vector2D &loc_ix,
 	const Vector2D &loc_iy,
@@ -280,7 +280,7 @@ inline void from_global_to_local_coordinate(
 }
 
 template <typename Point2DType1, typename Point2DType2>
-inline void from_local_to_global_coordinate(
+inline void point_from_local_to_global_coordinate(
 	const Point2D& loc_cen,
 	const Vector2D& loc_ix,
 	const Vector2D& loc_iy,
@@ -292,8 +292,32 @@ inline void from_local_to_global_coordinate(
 	gp.y = loc_ix.y * lp.x + loc_iy.y * lp.y + loc_cen.y;
 }
 
+template <typename Vector2DType1, typename Vector2DType2>
+inline void vector_from_global_to_local_coordinate(
+	const Vector2D& loc_ix,
+	const Vector2D& loc_iy,
+	const Vector2DType1& gp,
+	Vector2DType2& lp
+	) noexcept
+{
+	lp.x = loc_ix.x * gp.x + loc_ix.y * gp.y;
+	lp.y = loc_iy.x * gp.x + loc_iy.y * gp.y;
+}
+
+template <typename Vector2DType1, typename Vector2DType2>
+inline void vector_from_local_to_global_coordinate(
+	const Vector2D& loc_ix,
+	const Vector2D& loc_iy,
+	const Vector2DType1& lp,
+	Vector2DType2& gp
+	) noexcept
+{
+	gp.x = loc_ix.x * lp.x + loc_iy.x * lp.y;
+	gp.y = loc_ix.y * lp.x + loc_iy.y * lp.y;
+}
+
 template <typename Point2DType1, typename Point2DType2>
-inline void from_global_to_local_coordinate(
+inline void point_from_global_to_local_coordinate(
 	const Point2D& loc_cen,
 	const double angle,
 	const Point2DType1& gp,
@@ -309,7 +333,7 @@ inline void from_global_to_local_coordinate(
 }
 
 template <typename Point2DType1, typename Point2DType2>
-inline void from_local_to_global_coordinate(
+inline void point_from_local_to_global_coordinate(
 	const Point2D& loc_cen,
 	const double angle,
 	const Point2DType1& lp,
@@ -320,6 +344,32 @@ inline void from_local_to_global_coordinate(
 	double cos_ang = cos(angle);
 	gp.x = cos_ang * lp.x - sin_ang * lp.y + loc_cen.x;
 	gp.y = sin_ang * lp.x + cos_ang * lp.y + loc_cen.y;
+}
+
+template <typename Vector2DType1, typename Vector2DType2>
+inline void vector_from_global_to_local_coordinate(
+	const double angle,
+	const Vector2DType1& gp,
+	Vector2DType2& lp
+	) noexcept
+{
+	double sin_ang = sin(angle);
+	double cos_ang = cos(angle);
+	lp.x =  cos_ang * gp.x + sin_ang * gp.y;
+	lp.y = -sin_ang * gp.x + cos_ang * gp.y;
+}
+
+template <typename Vector2DType1, typename Vector2DType2>
+inline void vector_from_local_to_global_coordinate(
+	const double angle,
+	const Vector2DType1& lp,
+	Vector2DType2& gp
+	) noexcept
+{
+	double sin_ang = sin(angle);
+	double cos_ang = cos(angle);
+	gp.x = cos_ang * lp.x - sin_ang * lp.y;
+	gp.y = sin_ang * lp.x + cos_ang * lp.y;
 }
 
 #endif

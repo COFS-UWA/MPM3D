@@ -217,10 +217,10 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 
 	// contact with rigid circle
 	if (md.rigid_circle_is_init)
-		md.apply_rigid_circle(self.dtime);
+		self.apply_rigid_circle_avg(self.dtime);
 
 	if (md.rigid_rect_is_init)
-		md.apply_rigid_rect(self.dtime);
+		self.apply_rigid_rect_avg(self.dtime);
 
 	// apply velocity bc
 	for (size_t v_id = 0; v_id < md.vx_num; ++v_id)
@@ -236,7 +236,7 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 		n.vy = md.vys[v_id].v;
 	}
 	
-	// update displacement increment of both phases
+	// update displacement increment
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
@@ -331,5 +331,121 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 		}
 	}
 	
+	return 0;
+}
+
+int Step_T2D_ME_s::apply_rigid_circle_avg(double dt)
+{
+	Model_T2D_ME_s &md = *model;
+	RigidCircle& rc = md.rigid_circle;
+	rc.reset_rf();
+
+	double dist, norm_x, norm_y;
+	double f_cont, fx_cont, fy_cont;
+	double nfx_cont, nfy_cont, ndax, nday;
+	for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+	{
+		Particle& pcl = md.pcls[p_id];
+		if (pcl.pe && rc.detect_collision_with_point(
+						pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+		{
+			f_cont = md.K_cont * dist;
+			fx_cont = f_cont * norm_x;
+			fy_cont = f_cont * norm_y;
+			rc.add_rf(pcl.x, pcl.y, -fx_cont, -fy_cont);
+			// adjust velocity at nodes
+			Element& e = *pcl.pe;
+			// node 1
+			Node& n1 = md.nodes[e.n1];
+			nfx_cont = pcl.N1 * fx_cont;
+			nfy_cont = pcl.N1 * fy_cont;
+			ndax = nfx_cont / n1.am;
+			nday = nfy_cont / n1.am;
+			n1.ax += ndax;
+			n1.ay += nday;
+			n1.vx += ndax * dt;
+			n1.vy += nday * dt;
+			// node 2
+			Node& n2 = md.nodes[e.n2];
+			nfx_cont = pcl.N2 * fx_cont;
+			nfy_cont = pcl.N2 * fy_cont;
+			ndax = nfx_cont / n2.am;
+			nday = nfy_cont / n2.am;
+			n2.ax += ndax;
+			n2.ay += nday;
+			n2.vx += ndax * dt;
+			n2.vy += nday * dt;
+			// node 3
+			Node& n3 = md.nodes[e.n3];
+			nfx_cont = pcl.N3 * fx_cont;
+			nfy_cont = pcl.N3 * fy_cont;
+			ndax = nfx_cont / n3.am;
+			nday = nfy_cont / n3.am;
+			n3.ax += ndax;
+			n3.ay += nday;
+			n3.vx += ndax * dt;
+			n3.vy += nday * dt;
+		}
+	}
+
+	rc.update_motion(dt);
+	return 0;
+}
+
+int Step_T2D_ME_s::apply_rigid_rect_avg(double dt)
+{
+	Model_T2D_ME_s& md = *model;
+	RigidRect &rr = md.rigid_rect;
+	rr.reset_f_contact();
+
+	double dist, norm_x, norm_y;
+	double f_cont, fx_cont, fy_cont;
+	double nfx_cont, nfy_cont, ndax, nday;
+	for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+	{
+		Particle& pcl = md.pcls[p_id];
+		if (pcl.pe && rr.detect_collision_with_point(
+						pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+		{
+			f_cont = md.K_cont * dist;
+			fx_cont = f_cont * norm_x;
+			fy_cont = f_cont * norm_y;
+			rr.add_f_contact(pcl.x, pcl.y, -fx_cont, -fy_cont);
+			// adjust velocity at nodes
+			Element& e = *pcl.pe;
+			// node 1
+			Node& n1 = md.nodes[e.n1];
+			nfx_cont = pcl.N1 * fx_cont;
+			nfy_cont = pcl.N1 * fy_cont;
+			ndax = nfx_cont / n1.am;
+			nday = nfy_cont / n1.am;
+			n1.ax += ndax;
+			n1.ay += nday;
+			n1.vx += ndax * dt;
+			n1.vy += nday * dt;
+			// node 2
+			Node& n2 = md.nodes[e.n2];
+			nfx_cont = pcl.N2 * fx_cont;
+			nfy_cont = pcl.N2 * fy_cont;
+			ndax = nfx_cont / n2.am;
+			nday = nfy_cont / n2.am;
+			n2.ax += ndax;
+			n2.ay += nday;
+			n2.vx += ndax * dt;
+			n2.vy += nday * dt;
+			// node 3
+			Node& n3 = md.nodes[e.n3];
+			nfx_cont = pcl.N3 * fx_cont;
+			nfy_cont = pcl.N3 * fy_cont;
+			ndax = nfx_cont / n3.am;
+			nday = nfy_cont / n3.am;
+			n3.ax += ndax;
+			n3.ay += nday;
+			n3.vx += ndax * dt;
+			n3.vy += nday * dt;
+		}
+	}
+
+	rr.update_motion(dt);
 	return 0;
 }

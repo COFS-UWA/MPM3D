@@ -146,15 +146,18 @@ int main(int argc, char *argv[])
 	
 	//test_RigidTetrahedronMesh_rotation(argc, argv);
 	//test_RigidTetrahedronMesh_rotation_result(argc, argv);
-
+	
 	//test_t3d_me_s_cap_compression(argc, argv);
 	//test_t3d_me_s_cap_compression_result(argc, argv);
-
+	
 	//test_t2d_me_s_cap_compression(argc, argv);
 	//test_t2d_me_s_cap_compression_result(argc, argv);
-
+	
+	test_t2d_me_s_t_bar_smaller_soil(argc, argv);
+	//test_t2d_me_s_t_bar_smaller_soil_result(argc, argv);
+	
 	//test_t2d_chm_s_t_bar_smaller_soil(argc, argv);
-	test_t2d_chm_s_t_bar_smaller_soil_result(argc, argv);
+	//test_t2d_chm_s_t_bar_smaller_soil_result(argc, argv);
 
 	//system("pause");
 	return 0;

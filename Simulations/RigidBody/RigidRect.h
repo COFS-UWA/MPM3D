@@ -66,7 +66,6 @@ protected:
 	
 	double sin_ang, cos_ang;
 	double hhx, hhy;
-	Rect local_bbox;
 	double m, moi; // moment of inertia
 	inline void init_cal_var()
 	{
@@ -74,15 +73,11 @@ protected:
 		cos_ang = cos(ang);
 		hhx = 0.5 * hx;
 		hhy = 0.5 * hy;
-		local_bbox.xl = -hhx;
-		local_bbox.xu =  hhx;
-		local_bbox.yl = -hhy;
-		local_bbox.yu =  hhy;
 		m = hx * hy * density;
 		moi = m * (hx * hx + hy * hy) / 12.0;
 	}
 
-	const static Vector2D edge_normal[4];
+	const static Vector2D edge_normals[4];
 
 public:
 	RigidRect() : hx(0.0), hy(0.0), density(1.0),
@@ -194,7 +189,7 @@ public: // helper function for calculation
 
 	// return true if point(x, y) collides with the rectangle
 	// also calculate overlapping distance and norm direction at that point
-	// return false if point is outside circle
+	// return false if point is outside rect
 	inline bool detect_collision_with_point(
 		double _x, double _y, double pcl_vol,
 		double& overlap_dist, double& norm_x, double& norm_y
@@ -202,40 +197,41 @@ public: // helper function for calculation
 	{
 		Point2D lp;
 		Vector2D ix(cos_ang, sin_ang), iy(-sin_ang, cos_ang);
-		from_global_to_local_coordinate(centre, ix, iy, Point2D(_x, _y), lp);
+		point_from_global_to_local_coordinate(centre, ix, iy, Point2D(_x, _y), lp);
 		// need rotation when change coordinate
 		double pcl_radius = sqrt(pcl_vol) * 0.5;
-		Rect bbox(local_bbox.xl - pcl_radius,
-				local_bbox.xu + pcl_radius, 
-				local_bbox.yl - pcl_radius, 
-				local_bbox.yu + pcl_radius
-				);
-		if (!bbox.is_in_box(lp.x, lp.y))
+		double bbox_hhx = hhx + pcl_radius;
+		double bbox_hhy = hhy + pcl_radius;
+		if (lp.x < -bbox_hhx || lp.x > bbox_hhx ||
+			lp.y < -bbox_hhy || lp.y > bbox_hhy)
 			return false;
 
-		unsigned char closest_edge_id;
 		double dist_tmp;
-		// edge 0
-		overlap_dist = _x - bbox.xl;
-		closest_edge_id = 0;
-		// edge 1
-		dist_tmp = bbox.xu - _x;
-		if (dist_tmp < overlap_dist)
-			closest_edge_id = 1;
-		// edge 2
-		dist_tmp = _y - bbox.yl;
-		if (dist_tmp < overlap_dist)
-			closest_edge_id = 2;
-		// edge 3
-		dist_tmp = bbox.yu - _y;
-		if (dist_tmp < overlap_dist)
-			closest_edge_id = 3;
+		overlap_dist = lp.x + bbox_hhx;
+		size_t norm_id = 0;
+		dist_tmp = bbox_hhx - lp.x;
+		if (overlap_dist > dist_tmp)
+		{
+			overlap_dist = dist_tmp;
+			norm_id = 1;
+		}
+		dist_tmp = lp.y + bbox_hhy;
+		if (overlap_dist > dist_tmp)
+		{
+			overlap_dist = dist_tmp;
+			norm_id = 2;
+		}
+		dist_tmp = bbox_hhy - lp.y;
+		if (overlap_dist > dist_tmp)
+		{
+			overlap_dist = dist_tmp;
+			norm_id = 3;
+		}
+
 		Vector2D norm;
-		from_local_to_global_coordinate(
-			Point2D(0.0, 0.0),
+		vector_from_local_to_global_coordinate(
 			ix, iy,
-			edge_normal[closest_edge_id],
-			norm
+			edge_normals[norm_id], norm
 			);
 		norm_x = norm.x;
 		norm_y = norm.y;

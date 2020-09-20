@@ -422,10 +422,10 @@ public: // calculation functions
 
 	template <typename Point3DType>
 	inline void to_local_coord(const Point3DType&gp, Point3D &lp) const noexcept
-	{ from_global_to_local_coordinate<Point3DType, Point3D>(cen_pos, ix, iy, iz, gp, lp); }
+	{ point_from_global_to_local_coordinate<Point3DType, Point3D>(cen_pos, ix, iy, iz, gp, lp); }
 	template <typename Point3DType>
 	inline void to_global_coord(const Point3DType &lp, Point3D &gp) const noexcept
-	{ from_local_to_global_coordinate<Point3DType, Point3D>(cen_pos, ix, iy, iz, lp, gp);	}
+	{ point_from_local_to_global_coordinate<Point3DType, Point3D>(cen_pos, ix, iy, iz, lp, gp);	}
 
 public: // bg search grid
 	inline double get_grid_h() const noexcept { return g_h; }
@@ -446,7 +446,7 @@ public: // bg search grid
 		Vector3D lnorm, gnorm;
 		if (cal_dist_and_dir_to_pt_internal(lpt, dist, lnorm.x, lnorm.y, lnorm.z))
 		{
-			from_local_to_global_coordinate<Vector3D, Vector3D>(Point3D(0.0, 0.0, 0.0), ix, iy, iz, lnorm, gnorm);
+			vector_from_local_to_global_coordinate<Vector3D, Vector3D>(ix, iy, iz, lnorm, gnorm);
 			nx = gnorm.x;
 			ny = gnorm.y;
 			nz = gnorm.z;

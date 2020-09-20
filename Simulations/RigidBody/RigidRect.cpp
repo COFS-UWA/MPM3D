@@ -42,7 +42,7 @@ void RigidRect::set_init_state(
 	init_cal_var();
 }
 
-const Vector2D RigidRect::edge_normal[4] = {
+const Vector2D RigidRect::edge_normals[4] = {
 	{ -1.0, 0.0 },
 	{  1.0, 0.0 },
 	{ 0.0, -1.0 },
