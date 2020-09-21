@@ -2,6 +2,8 @@
 
 #include "Step_T2D_CHM_s_Geo.h"
 
+#define one_third (1.0/3.0)
+
 int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 {
 	typedef Model_T2D_CHM_s::Node Node;
@@ -14,8 +16,6 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
-		n.has_mp = false;
-		// solid phase
 		n.am_s = 0.0;
 		n.vm_s = 0.0;
 		n.vx_s = 0.0;
@@ -24,7 +24,6 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 		n.fy_ext_s = 0.0;
 		n.fx_int_s = 0.0;
 		n.fy_int_s = 0.0;
-		// strain enhancement
 		n.de_vol_s = 0.0;
 	}
 
@@ -32,7 +31,6 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element &e = md.elems[e_id];
-		e.has_mp = false;
 		e.pcl_m_s = 0.0;
 		e.pcl_n = 0.0;
 		e.pcl_vol = 0.0;
@@ -48,35 +46,32 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 		if (pcl.pe)
 		{
 			Element &e = *pcl.pe;
+			e.s11 += pcl.s11 * pcl.vol;
+			e.s22 += pcl.s22 * pcl.vol;
+			e.s12 += pcl.s12 * pcl.vol;
 			e.pcl_vol += pcl.vol;
-			e.s11 += pcl.vol * pcl.s11;
-			e.s22 += pcl.vol * pcl.s22;
-			e.s12 += pcl.vol * pcl.s12;
 
 			// node 1
 			Node &n1 = md.nodes[e.n1];
-			n1.has_mp = true;
-			// solid phase
+			n1.am_s += one_third * pcl.m_s;
 			N_m_s = pcl.N1 * pcl.m_s;
-			n1.m_s += N_m_s;
+			n1.vm_s += N_m_s;
 			n1.vx_s += N_m_s * pcl.vx_s;
 			n1.vy_s += N_m_s * pcl.vy_s;
 
 			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.has_mp = true;
-			// solid phase
+			n2.am_s += one_third * pcl.m_s;
 			N_m_s = pcl.N2 * pcl.m_s;
-			n2.m_s += N_m_s;
+			n2.vm_s += N_m_s;
 			n2.vx_s += N_m_s * pcl.vx_s;
 			n2.vy_s += N_m_s * pcl.vy_s;
 
 			// node 3
 			Node &n3 = md.nodes[e.n3];
-			n3.has_mp = true;
-			// solid phase
+			n3.am_s += one_third * pcl.m_s;
 			N_m_s = pcl.N3 * pcl.m_s;
-			n3.m_s += N_m_s;
+			n3.vm_s += N_m_s;
 			n3.vx_s += N_m_s * pcl.vx_s;
 			n3.vy_s += N_m_s * pcl.vy_s;
 		}
@@ -85,7 +80,7 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element &e = md.elems[e_id];
-		if (e.pcls)
+		if (e.has_mp)
 		{
 			e.s11 /= e.pcl_vol;
 			e.s22 /= e.pcl_vol;
@@ -122,13 +117,13 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 			bf_s = (pcl.density_s - pcl.density_f) * (1.0 - pcl.n) * pcl.vol * bf.bf;
 			// node 1
 			Node &n1 = md.nodes[e.n1];
-			n1.fx_ext_s += pcl.N1 * bf_s;
+			n1.fx_ext_s += one_third * bf_s;
 			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.fx_ext_s += pcl.N2 * bf_s;
+			n2.fx_ext_s += one_third * bf_s;
 			// node 3
 			Node &n3 = md.nodes[e.n3];
-			n3.fx_ext_s += pcl.N3 * bf_s;
+			n3.fx_ext_s += one_third * bf_s;
 		}
 	}
 	for (size_t bf_id = 0; bf_id < md.bfy_num; ++bf_id)
@@ -142,13 +137,13 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 			bf_s = (pcl.density_s - pcl.density_f) * (1.0 - pcl.n) * pcl.vol* bf.bf;
 			// node 1
 			Node &n1 = md.nodes[e.n1];
-			n1.fy_ext_s += pcl.N1 * bf_s;
+			n1.fy_ext_s += one_third * bf_s;
 			// node 2
 			Node &n2 = md.nodes[e.n2];
-			n2.fy_ext_s += pcl.N2 * bf_s;
+			n2.fy_ext_s += one_third * bf_s;
 			// node 3
 			Node &n3 = md.nodes[e.n3];
-			n3.fy_ext_s += pcl.N3 * bf_s;
+			n3.fy_ext_s += one_third * bf_s;
 		}
 	}
 
@@ -190,16 +185,14 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 		}
 	}
 
-	// update nodal acceleration of fluid pahse
+	// update nodal acceleration
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
 		{
-			// fx_s
-			n.ax_s = (n.fx_ext_s - n.fx_int_s) / n.m_s;
-			// fy_s
-			n.ay_s = (n.fy_ext_s - n.fy_int_s) / n.m_s;
+			n.ax_s = (n.fx_ext_s - n.fx_int_s) / n.am_s;
+			n.ay_s = (n.fy_ext_s - n.fy_int_s) / n.am_s;
 		}
 	}
 
@@ -215,15 +208,15 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 		n.ay_s = md.asys[a_id].a;
 	}
 
-	// update nodal momentum
+	// update nodal velocity
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
 		{
-			n.vx_s /= n.m_s;
+			n.vx_s /= n.vm_s;
 			n.vx_s += n.ax_s * self.dtime;
-			n.vy_s /= n.m_s;
+			n.vy_s /= n.vm_s;
 			n.vy_s += n.ay_s * self.dtime;
 		}
 	}
@@ -247,7 +240,7 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
-			f_ub += n.m_s * n.m_s * (n.ax_s * n.ax_s + n.ay_s * n.ay_s);
+			f_ub += n.am_s * n.am_s * (n.ax_s * n.ax_s + n.ay_s * n.ay_s);
 	}
 	// initial unbalanced force
 	if (!self.init_f_ub_is_init)
@@ -265,7 +258,7 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
-			e_kin += n.m_s * (n.vx_s * n.vx_s + n.vy_s * n.vy_s);
+			e_kin += n.am_s * (n.vx_s * n.vx_s + n.vy_s * n.vy_s);
 	}
 
 	// kinetic damping
@@ -312,25 +305,22 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 		else
 			return 1;
 
-	// update displacement increment of both phases
+	// update displacement increment
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
 		{
-			// solid phase
 			n.dux_s = n.vx_s * self.dtime;
 			n.duy_s = n.vy_s * self.dtime;
 		}
 	}
 
-	// map variables back to particles and update their variables
-	double de11, de22, de_mean;
-	double ds11, ds22, ds12;
+	double de11, de22, de_vol_by_3, vol_de_vol;
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
 		Element &e = md.elems[e_id];
-		if (e.pcls)
+		if (e.has_mp)
 		{
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
@@ -342,31 +332,14 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 			 		+ n1.duy_s * e.dN1_dx + n2.duy_s * e.dN2_dx + n3.duy_s * e.dN3_dx) * 0.5;
 			// volumetric strain of solid phase
 			e.de_vol_s = de11 + de22;
-			de_mean = e.de_vol_s / 3.0;
-			e.dde11 = de11 - de_mean;
-			e.dde22 = de22 - de_mean;
-		}
-	}
+			de_vol_by_3 = e.de_vol_s / 3.0;
+			e.dde11 = de11 - de_vol_by_3;
+			e.dde22 = de22 - de_vol_by_3;
 
-	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
-	{
-		Particle &pcl = md.pcls[pcl_id];
-		if (pcl.pe)
-		{
-			Element &e = *pcl.pe;
-			double vol_de_vol_s = pcl.vol * e.de_vol_s;
-			// node 1
-			Node &n1 = md.nodes[e.n1];
-			n1.pcl_vol += pcl.N1 * pcl.vol;
-			n1.de_vol_s += pcl.N1 * vol_de_vol_s;
-			// node 2
-			Node &n2 = md.nodes[e.n2];
-			n2.pcl_vol += pcl.N2 * pcl.vol;
-			n2.de_vol_s += pcl.N2 * vol_de_vol_s;
-			// node 3
-			Node &n3 = md.nodes[e.n3];
-			n3.pcl_vol += pcl.N3 * pcl.vol;
-			n3.de_vol_s += pcl.N3 * vol_de_vol_s;
+			vol_de_vol = one_third * e.de_vol_s * e.pcl_m_s;
+			n1.de_vol_s += vol_de_vol;
+			n2.de_vol_s += vol_de_vol;
+			n3.de_vol_s += vol_de_vol;
 		}
 	}
 
@@ -374,38 +347,50 @@ int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 	{
 		Node &n = md.nodes[n_id];
 		if (n.has_mp)
-			n.de_vol_s /= n.pcl_vol;
+			n.de_vol_s /= n.am_s;
 	}
 	
-	double de12;
-	double de_vol_s, de_vol_f;
+	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+	{
+		Element& e = md.elems[e_id];
+		if (e.has_mp)
+		{
+			Node& n1 = md.nodes[e.n1];
+			Node& n2 = md.nodes[e.n2];
+			Node& n3 = md.nodes[e.n3];
+			e.de_vol_s = (n1.de_vol_s + n2.de_vol_s + n3.de_vol_s) * one_third;
+		}
+	}
+	
+	double de12, de_vol_s_by_3;
+	double dstrain[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	const double* dstress;
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
 		if (pcl.pe)
 		{
-			Element &e = *pcl.pe;
-			Node &n1 = md.nodes[e.n1];
-			Node &n2 = md.nodes[e.n2];
-			Node &n3 = md.nodes[e.n3];
+			Element& e = *pcl.pe;
+			Node& n1 = md.nodes[e.n1];
+			Node& n2 = md.nodes[e.n2];
+			Node& n3 = md.nodes[e.n3];
 
 			// velocity
 			pcl.vx_s += (n1.ax_s * pcl.N1 + n2.ax_s * pcl.N2 + n3.ax_s * pcl.N3) * self.dtime;
 			pcl.vy_s += (n1.ay_s * pcl.N1 + n2.ay_s * pcl.N2 + n3.ay_s * pcl.N3) * self.dtime;
 
-			// strain enhancement appraoch
-			de_vol_s = n1.de_vol_s * pcl.N1 + n2.de_vol_s * pcl.N2 + n3.de_vol_s * pcl.N3;
-
 			// strain
-			de_vol_s /= 3.0;
-			de11 = e.dde11 + de_vol_s;
-			de22 = e.dde22 + de_vol_s;
+			de_vol_s_by_3 = e.de_vol_s / 3.0;
+			de11 = e.dde11 + de_vol_s_by_3;
+			de22 = e.dde22 + de_vol_s_by_3;
 			de12 = e.de12;
 
-			// update stress using constitutive model
-			double dstrain[6] = { de11, de22, 0.0, de12, 0.0, 0.0 };
+			// update stress
+			dstrain[0] = de11;
+			dstrain[1] = de22;
+			dstrain[3] = de12;
 			pcl.mm->integrate(dstrain);
-			const double *dstress = pcl.mm->get_dstress();
+			dstress = pcl.mm->get_dstress();
 			pcl.s11 += dstress[0];
 			pcl.s22 += dstress[1];
 			pcl.s12 += dstress[3];

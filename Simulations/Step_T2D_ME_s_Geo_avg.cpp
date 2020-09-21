@@ -335,7 +335,6 @@ int solve_substep_T2D_ME_s_Geo_avg(void *_self)
 			Node& n2 = md.nodes[e.n2];
 			Node& n3 = md.nodes[e.n3];
 			e.de_vol_by_3 = (n1.de_vol_by_3 + n2.de_vol_by_3 + n3.de_vol_by_3) * one_third;
-			e.pcl_density /= 1.0 + (e.de_vol_by_3 * 3.0);
 		}
 	}
 	

@@ -84,9 +84,11 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 			else // not yet in contact state list
 				contact_state_list.add_pcl(pcl);
 			// Tangential relative movement
-			dtx = (pcl.vx - rb.get_vx()) * dtime; // currently no rotation
-			dty = (pcl.vy - rb.get_vy()) * dtime;
-			dtz = (pcl.vz - rb.get_vz()) * dtime;
+			Vector3D rb_v;
+			rb.get_velocity(pcl, rb_v);
+			dtx = rb_v.x * dtime;
+			dty = rb_v.y * dtime;
+			dtz = rb_v.z * dtime;
 			dtn = dtx * nx + dty * ny + dtz * nz;
 			dtx -= dtn * nx;
 			dty -= dtn * ny;
@@ -96,40 +98,37 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 			// 1. ft = 0.0 (smooth contact)
 			// do nothing
 			// 2. ft = miu * fn (frictional contact)
-			ftx_cont = 0.0;
-			fty_cont = 0.0;
-			ftz_cont = 0.0;
-			if (dt > 1.0e-10)
+			// adjust ft with new normal direction
+			Vector3D& ft_dir = cs.ft_dir;
+			ftx_cont = cs.ft_cont * ft_dir.x;
+			fty_cont = cs.ft_cont * ft_dir.y;
+			ftz_cont = cs.ft_cont * ft_dir.z;
+			double ftn = ftx_cont * nx + fty_cont * ny + ftz_cont * nz;
+			ftx_cont -= ftn * nx;
+			fty_cont -= ftn * ny;
+			ftz_cont -= ftn * nz;
+			// update ft_cont
+			if (dt != 0.0)
 			{
-				// adjust ft direction
-				Vector3D& ft_dir = cs.ft_dir;
-				double ftn = ft_dir.dot(nx, ny, nz);
-				ft_dir.x -= ftn * nx;
-				ft_dir.y -= ftn * ny;
-				ft_dir.z -= ftn * nz;
-				ft_dir.normalize();
-				// update ft
 				ft_cont = md.Kt_cont * dt;
-				ftx_cont = cs.ft_cont * ft_dir.x + ft_cont * dtx / dt;
-				fty_cont = cs.ft_cont * ft_dir.y + ft_cont * dty / dt;
-				ftz_cont = cs.ft_cont * ft_dir.z + ft_cont * dtz / dt;
-				ft_cont = sqrt(ftx_cont * ftx_cont + fty_cont * fty_cont + ftz_cont * ftz_cont);
+				ftx_cont += ft_cont * dtx / dt;
+				fty_cont += ft_cont * dty / dt;
+				ftz_cont += ft_cont * dtz / dt;
+			}
+			// modify ft_cont with limit
+			ft_cont = sqrt(ftx_cont * ftx_cont
+						 + fty_cont * fty_cont
+						 + ftz_cont * ftz_cont);
+			if (ft_cont != 0.0)
+			{
 				ft_cont_max = md.miu_cont * fn_cont;
-				if (ft_cont_max < ft_cont)
+				if (ft_cont > ft_cont_max)
 				{
-					if (ft_cont != 0.0)
-					{
-						ft_ratio = ft_cont_max / ft_cont;
-						ftx_cont *= ft_ratio;
-						fty_cont *= ft_ratio;
-						ftz_cont *= ft_ratio;
-					}
-					else
-					{
-						ftx_cont = 0.0;
-						fty_cont = 0.0;
-						ftz_cont = 0.0;
-					}
+					ft_ratio = ft_cont_max / ft_cont;
+					ftx_cont *= ft_ratio;
+					fty_cont *= ft_ratio;
+					ftz_cont *= ft_ratio;
+					ft_cont = ft_cont_max;
 				}
 				cs.ft_cont = ft_cont;
 				ft_dir.x = ftx_cont;
@@ -138,10 +137,10 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 				ft_dir.normalize();
 			}
 
+			// apply contact force to bg grid
 			fx_cont = fnx_cont + ftx_cont;
 			fy_cont = fny_cont + fty_cont;
 			fz_cont = fnz_cont + ftz_cont;
-			// apply to bg grid
 			Element &e = *pcl.pe;
 			Node& n1 = md.nodes[e.n1];
 			n1.fx_ext += pcl.N1 * fx_cont;
@@ -159,14 +158,10 @@ bool Step_T3D_ME_s::apply_pcl_contact_force(Particle& pcl, RigidTetrahedronMesh&
 			n4.fx_ext += pcl.N4 * fx_cont;
 			n4.fy_ext += pcl.N4 * fy_cont;
 			n4.fz_ext += pcl.N4 * fz_cont;
-			// currently not consider rotation
+			// apply contact force to rigid body
 			rb.add_contact_force(
-				-fx_cont,
-				-fy_cont,
-				-fz_cont,
-				0.0,
-				0.0,
-				0.0
+				-fx_cont, -fy_cont, -fz_cont,
+				pcl.x, pcl.y, pcl.z
 				);
 			return true;
 		}

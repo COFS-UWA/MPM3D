@@ -18,9 +18,21 @@ int Step_T2D_CHM_s_Geo::init_calculation()
 	{
 		Particle &pcl = md.pcls[pcl_id];
 		pcl.pe = md.find_in_which_element(pcl);
-		pcl.vol_s = pcl.m_s / pcl.density_s;
-		pcl.vol = pcl.vol_s / (1.0 - pcl.n);
-		pcl.m_f = pcl.vol * pcl.n * pcl.density_f;
+		if (pcl.pe)
+		{
+			Element& e = *pcl.pe;
+			e.add_pcl(pcl);
+			e.has_mp = true;
+			Node& n1 = md.nodes[e.n1];
+			Node& n2 = md.nodes[e.n2];
+			Node& n3 = md.nodes[e.n3];
+			n1.has_mp = true;
+			n2.has_mp = true;
+			n3.has_mp = true;
+			pcl.vol_s = pcl.m_s / pcl.density_s;
+			pcl.vol = pcl.vol_s / (1.0 - pcl.n);
+			pcl.m_f = pcl.vol * pcl.n * pcl.density_f;
+		}
 	}
 
 	// convergence criteria

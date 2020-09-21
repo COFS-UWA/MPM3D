@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 	//test_PospSingleFrame_display(argc, argv);
 	//test_PospMPM3DApp(argc, argv);
 
-	test_t2d_me_s_geostatic(argc, argv);
-	test_t2d_me_s_geostatic_result(argc, argv);
+	//test_t2d_me_s_geostatic(argc, argv);
+	//test_t2d_me_s_geostatic_result(argc, argv);
 	//test_t2d_me_s_geostatic_restart(argc, argv);
 	//test_t2d_me_s_geostatic_restart_result(argc, argv);
 

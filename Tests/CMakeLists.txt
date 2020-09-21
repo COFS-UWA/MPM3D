@@ -35,7 +35,7 @@ add_executable(
     # geostatic calculation
     test_t2d_me_s_geostatic.cpp
     #test_t2d_me_s_geostatic_restart.cpp
-    #test_t2d_chm_s_geostatic_mcc.cpp
+    test_t2d_chm_s_geostatic_mcc.cpp
     # deformation calculation
     test_t2d_me_s_1d_compression.cpp
     #test_t2d_me_s_1d_compression_horizontal.cpp

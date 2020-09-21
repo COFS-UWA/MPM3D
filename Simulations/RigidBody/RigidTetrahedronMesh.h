@@ -206,6 +206,17 @@ public:
 	inline double get_vx_ang_bc() const noexcept { return vx_ang_bc; }
 	inline double get_vy_ang_bc() const noexcept { return vy_ang_bc; }
 	inline double get_vz_ang_bc() const noexcept { return vz_ang_bc; }
+	
+	template <typename Point3DType>
+	inline void get_velocity(Point3DType &pos, Vector3D &v) const noexcept
+	{
+		double dx = pos.x - x;
+		double dy = pos.y - y;
+		double dz = pos.z - z;
+		v.x = vx + vy_ang * dz - vz_ang * dy;
+		v.y = vy + vz_ang * dx - vx_ang * dz;
+		v.z = vz + vx_ang * dy - vy_ang * dx;
+	}
 
 	inline void set_density(double den)
 	{
@@ -352,12 +363,12 @@ public: // calculation functions
 		fx_con += _fx;
 		fy_con += _fy;
 		fz_con += _fz;
-		Point3D gp(_x, _y, _z);
-		Point3D lp;
-		to_local_coord(gp, lp);
-		mx_ext += lp.y * _fz - lp.z * _fy;
-		my_ext += lp.z * _fx - lp.x * _fz;
-		mz_ext += lp.x * _fy - lp.y * _fx;
+		double dx = _x - x;
+		double dy = _y - y;
+		double dz = _z - z;
+		mx_ext += dy * _fz - dz * _fy;
+		my_ext += dz * _fx - dx * _fz;
+		mz_ext += dx * _fy - dy * _fx;
 	}
 	
 	inline void update_motion(double dt) noexcept

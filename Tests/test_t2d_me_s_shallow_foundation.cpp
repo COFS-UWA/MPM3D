@@ -28,7 +28,7 @@ void test_t2d_me_s_shallow_foundation(int argc, char** argv)
 	{
 		Model_T2D_ME_s::Particle& pcl = pcls[pcl_id];
 		MatModel::VonMises &mm = vms[pcl_id];
-		mm.set_param(1000.0, 0.0, 50.0);
+		mm.set_param(1000.0, 0.0, 5.0);
 		pcl.set_mat_model(mm);
 	}
 
