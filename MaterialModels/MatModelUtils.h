@@ -97,7 +97,7 @@ namespace MatModel
 		inline void vector6_subtract(
 			const double vec[6],
 			double res[6]
-		)
+			)
 		{
 			res[0] -= vec[0];
 			res[1] -= vec[1];
@@ -105,6 +105,20 @@ namespace MatModel
 			res[3] -= vec[3];
 			res[4] -= vec[4];
 			res[5] -= vec[5];
+		}
+
+		inline void vector6_subtract(
+			const double vec1[6],
+			const double vec2[6],
+			double res[6]
+			)
+		{
+			res[0] = vec1[0] - vec2[0];
+			res[1] = vec1[1] - vec2[1];
+			res[2] = vec1[2] - vec2[2];
+			res[3] = vec1[3] - vec2[3];
+			res[4] = vec1[4] - vec2[4];
+			res[5] = vec1[5] - vec2[5];
 		}
 
 		inline void vector6_scale(

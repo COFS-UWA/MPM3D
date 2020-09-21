@@ -142,6 +142,12 @@ int QtSceneFromModel_T3D_ME_s::initialize(int wd, int ht)
 
 	// bounding circle
 	Cube mh_bbox = model->get_bounding_box();
+	if (model->has_rb())
+	{
+		Cube rb_bbox;
+		model->get_rb().get_display_bbox(rb_bbox);
+		mh_bbox.envelop(rb_bbox);
+	}
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
 	md_centre.setY(float(mh_bbox.yl + mh_bbox.yu) * 0.5f);
 	md_centre.setZ(float(mh_bbox.zl + mh_bbox.zu) * 0.5f);

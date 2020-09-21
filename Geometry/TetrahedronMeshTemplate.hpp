@@ -129,9 +129,9 @@ public:
 	inline size_t get_edge_num() const noexcept { return edge_num; }
 	inline Edge *get_edges() const noexcept { return edges; }
 
-	inline double get_vol() { return volume; }
-	inline Point3D get_centre() { return centre; }
-	inline Cube get_bounding_box() { return bounding_box; }
+	inline double get_vol() const noexcept { return volume; }
+	inline Point3D get_centre() const noexcept { return centre; }
+	inline Cube get_bounding_box() const noexcept { return bounding_box; }
 
 	inline bool is_in_tetrahedron(Element &elem, double x, double y, double z)
 	{

@@ -24,15 +24,15 @@ void test_RigidTetrahedronMesh_rotation(int argc, char** argv)
 	rb.set_vz_bc(0.0);
 	rb.add_f_ext(1.0, 0.0, 0.0, 0.0, 0.0, 3.0);
 
-	//QtApp_Prep_T3D_ME_s md_disp(argc, argv);
-	//md_disp.set_win_size(900, 900);
-	//md_disp.set_view_dir(30.0, 30.0);
+	QtApp_Prep_T3D_ME_s md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_view_dir(30.0, 30.0);
 	//md_disp.set_view_dist_scale(4.0);
-	//md_disp.set_light_dir(90.0, 30.0);
-	////md_disp.set_rb_display_mode(QtRigidTetrahedronMeshGLObject::LineFrame);
-	//md_disp.set_model(model);
-	//md_disp.start();
-	//return;
+	md_disp.set_light_dir(90.0, 30.0);
+	//md_disp.set_rb_display_mode(QtRigidTetrahedronMeshGLObject::LineFrame);
+	md_disp.set_model(model);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_s_ball_rotation.h5");
@@ -70,12 +70,12 @@ void test_RigidTetrahedronMesh_rotation_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
-	app.set_view_dist_scale(3.0);
+	//app.set_view_dist_scale(3.0);
 	app.set_light_dir(90.0f, 30.0f);
-	app.set_color_map_fld_range(-0.01, 0.0);
-	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
+	//app.set_color_map_fld_range(-0.01, 0.0);
+	//app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_rb_display_mode(QtRigidTetrahedronMeshGLObject::LineFrame);
 	//app.set_png_name("t3d_me_s_ball_rotation");
-	//app.set_gif_name("t3d_me_s_ball_rotation");
+	app.set_gif_name("t3d_me_s_ball_rotation");
 	app.start();
 }

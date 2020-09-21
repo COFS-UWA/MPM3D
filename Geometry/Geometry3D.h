@@ -141,6 +141,31 @@ struct Cube
 	{
 		return is_in_box(point.x, point.y, point.z);
 	}
+
+	inline void envelop(const Cube &other)
+	{
+		if (xl > other.xl)
+			xl = other.xl;
+		if (xu < other.xu)
+			xu = other.xu;
+		if (yl > other.yl)
+			yl = other.yl;
+		if (yu < other.yu)
+			yu = other.yu;
+		if (zl > other.zl)
+			zl = other.zl;
+		if (zu < other.zu)
+			zu = other.zu;
+	}
+	inline void envelop(const Cube &cube1, const Cube &cube2)
+	{
+		xl = cube1.xl < cube2.xl ? cube1.xl : cube2.xl;
+		xu = cube1.xu > cube2.xu ? cube1.xu : cube2.xu;
+		yl = cube1.yl < cube2.yl ? cube1.yl : cube2.yl;
+		yu = cube1.yu > cube2.yu ? cube1.yu : cube2.yu;
+		zl = cube1.zl < cube2.zl ? cube1.zl : cube2.zl;
+		zu = cube1.zu > cube2.zu ? cube1.zu : cube2.zu;
+	}
 };
 
 // distance between 3D points

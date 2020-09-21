@@ -17,10 +17,11 @@ namespace MatModel
 	protected:
 		double E, niu;
 		double cohesion;
+		double two_c;
 
 	public:
 		Tresca() : MaterialModel(tresca_integration_function, "Tresca"),
-			E(0.0), niu(0.0), cohesion(1.0)
+			E(0.0), niu(0.0), cohesion(1.0), two_c(cohesion+cohesion)
 		{
 			for (size_t i = 0; i < 6; ++i)
 			{
@@ -37,13 +38,9 @@ namespace MatModel
 			E = _E;
 			niu = _niu;
 			cohesion = _cohesion;
+			two_c = cohesion + cohesion;
 			form_De_mat();
 		}
-
-		inline double get_p() const noexcept { return cal_p(); }
-		inline double get_q() const noexcept { return cal_q(); }
-		inline double get_f() const noexcept { return cal_q() - cohesion; }
-		inline double get_norm_f() const noexcept { return cal_q() / cohesion - 1.0; }
 
 	protected:
 		inline void form_De_mat()
@@ -65,47 +62,6 @@ namespace MatModel
 			for (size_t i = 0; i < 6; ++i)
 				for (size_t j = 0; j < 6; ++j)
 					Dep_mat[i][j] = De_mat[i][j] - De_dg_ds[i] * De_dg_ds[j] / divider;
-		}
-
-		inline double cal_p() const noexcept
-		{
-			return (s11 + s22 + s33) / 3.0;
-		}
-		inline double cal_q() const noexcept
-		{
-			double s11_s22_diff = s11 - s22;
-			double s22_s33_diff = s22 - s33;
-			double s33_s11_diff = s33 - s11;
-			double q2 = (s11_s22_diff * s11_s22_diff
-				+ s22_s33_diff * s22_s33_diff
-				+ s33_s11_diff * s33_s11_diff) * 0.5
-				+ (s12 * s12 + s23 * s23 + s31 * s31) * 3.0;
-			return sqrt(q2);
-		}
-		inline double cal_norm_f(double f) const noexcept { return f / cohesion; }
-
-		void cal_dg_stress(double dg_ds[6]) const noexcept
-		{
-			//dg_ds[0] = (s11 + s11 - s22 - s33) * 0.5 / q;
-			//dg_ds[1] = (s22 + s22 - s33 - s11) * 0.5 / q;
-			//dg_ds[2] = (s33 + s33 - s11 - s22) * 0.5 / q;
-			//dg_ds[3] = 3.0 * s12 / q;
-			//dg_ds[4] = 3.0 * s23 / q;
-			//dg_ds[5] = 3.0 * s31 / q;
-			dg_ds[0] = 0.5 * (s11 + s11 - s22 - s33);
-			dg_ds[1] = 0.5 * (s22 + s22 - s33 - s11);
-			dg_ds[2] = 0.5 * (s33 + s33 - s11 - s22);
-			dg_ds[3] = 3.0 * s12;
-			dg_ds[4] = 3.0 * s23;
-			dg_ds[5] = 3.0 * s31;
-		}
-		inline double cal_divider(double dg_ds[6]) const noexcept
-		{
-			double divider = 0.0;
-			for (size_t i = 0; i < 6; i++)
-				for (size_t j = 0; j < 6; j++)
-					divider += dg_ds[i] * De_mat[i][j] * dg_ds[j];
-			return divider;
 		}
 	};
 }

@@ -443,6 +443,22 @@ public: // bg search grid
 	inline size_t get_grid_x_num() const noexcept { return g_x_num; }
 	inline size_t get_grid_y_num() const noexcept { return g_y_num; }
 	inline size_t get_grid_z_num() const noexcept { return g_z_num; }
+	inline void get_display_bbox(Cube& bbox) const noexcept
+	{
+		bbox = get_bounding_box();
+		double hx = (bbox.xu - bbox.xl) * 0.5;
+		double hy = (bbox.yu - bbox.yl) * 0.5;
+		double hz = (bbox.zu - bbox.zl) * 0.5;
+		double rx = abs(ix.x * hx) + abs(iy.x * hy) + abs(iz.x * hz);
+		double ry = abs(ix.y * hx) + abs(iy.y * hy) + abs(iz.y * hz);
+		double rz = abs(ix.z * hx) + abs(iy.z * hy) + abs(iz.z * hz);
+		bbox.xl = x - rx;
+		bbox.xu = x + rx;
+		bbox.yl = y - ry;
+		bbox.yu = y + ry;
+		bbox.zl = z - rz;
+		bbox.zu = z + rz;
+	}
 
 	void clear_bg_grids();
 	int init_bg_grids(double _g_h, double expand_size);

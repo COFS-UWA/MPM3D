@@ -29,7 +29,13 @@ QtSceneFromHdf5_T3D_ME_s::QtSceneFromHdf5_T3D_ME_s(
 	rb_mode(QtRigidTetrahedronMeshGLObject::Surface),
 	rb_node_num(0), rb_node_data(nullptr),
 	rb_elem_num(0), rb_elem_data(nullptr),
-	has_color_map(false), color_map_obj(_gl), color_map_texture(0) {}
+	has_color_map(false), color_map_obj(_gl), color_map_texture(0)
+{
+	amb_coef = 0.3f;
+	diff_coef = 1.0f;
+	spec_coef = 0.5f;
+	spec_shininess = 32.0f;
+}
 
 QtSceneFromHdf5_T3D_ME_s::~QtSceneFromHdf5_T3D_ME_s()
 {
@@ -221,13 +227,6 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		if (mh_bbox.zu < n.z)
 			mh_bbox.zu = n.z;
 	}
-	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
-	md_centre.setY(float(mh_bbox.yl + mh_bbox.yu) * 0.5f);
-	md_centre.setZ(float(mh_bbox.zl + mh_bbox.zu) * 0.5f);
-	float dx = mh_bbox.xu - mh_bbox.xl;
-	float dy = mh_bbox.yu - mh_bbox.yl;
-	float dz = mh_bbox.zu - mh_bbox.zl;
-	md_radius = sqrt(dx * dx + dy * dy + dz * dz) * 0.5f;
 	// init bg_mesh buffer
 	QVector3D gray(0.5f, 0.5f, 0.5f);
 	res = bg_mesh_obj.init_from_elements(
@@ -354,6 +353,45 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 				);
 		}
 		has_rb = true;
+		// rb bounding box
+		Cube rb_bbox;
+		rb_bbox.xl = rb_node_data[0].x;
+		rb_bbox.xu = rb_bbox.xl;
+		rb_bbox.yl = rb_node_data[0].y;
+		rb_bbox.yu = rb_bbox.yl;
+		rb_bbox.zl = rb_node_data[0].z;
+		rb_bbox.zu = rb_bbox.zl;
+		for (size_t n_id = 1; n_id < rb_node_num; ++n_id)
+		{
+			RigidTehMeshNodeData &n = rb_node_data[n_id];
+			if (rb_bbox.xl > n.x)
+				rb_bbox.xl = n.x;
+			if (rb_bbox.xu < n.x)
+				rb_bbox.xu = n.x;
+			if (rb_bbox.yl > n.y)
+				rb_bbox.yl = n.y;
+			if (rb_bbox.yu < n.y)
+				rb_bbox.yu = n.y;
+			if (rb_bbox.zl > n.z)
+				rb_bbox.zl = n.z;
+			if (rb_bbox.zu < n.z)
+				rb_bbox.zu = n.z;
+		}
+		double hx = (rb_bbox.xu - rb_bbox.xl) * 0.5;
+		double hy = (rb_bbox.yu - rb_bbox.yl) * 0.5;
+		double hz = (rb_bbox.zu - rb_bbox.zl) * 0.5;
+		Vector3D rb_ix, rb_iy, rb_iz;
+		rotate_axses_by_angle(rb_ang, rb_ix, rb_iy, rb_iz);
+		double rx = abs(rb_ix.x * hx) + abs(rb_iy.x * hy) + abs(rb_iz.x * hz);
+		double ry = abs(rb_ix.y * hx) + abs(rb_iy.y * hy) + abs(rb_iz.y * hz);
+		double rz = abs(rb_ix.z * hx) + abs(rb_iy.z * hy) + abs(rb_iz.z * hz);
+		rb_bbox.xl = rb_x - rx;
+		rb_bbox.xu = rb_x + rx;
+		rb_bbox.yl = rb_y - ry;
+		rb_bbox.yu = rb_y + ry;
+		rb_bbox.zl = rb_z - rz;
+		rb_bbox.zu = rb_z + rz;
+		mh_bbox.envelop(rb_bbox);
 	}
 
 	// color map texture
@@ -445,6 +483,14 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 	);
 	shader_char.link();
 
+	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
+	md_centre.setY(float(mh_bbox.yl + mh_bbox.yu) * 0.5f);
+	md_centre.setZ(float(mh_bbox.zl + mh_bbox.zu) * 0.5f);
+	float dx = mh_bbox.xu - mh_bbox.xl;
+	float dy = mh_bbox.yu - mh_bbox.yl;
+	float dz = mh_bbox.zu - mh_bbox.zl;
+	md_radius = sqrt(dx * dx + dy * dy + dz * dz) * 0.5f;
+	
 	update_view_mat();
 	update_proj_mat();
 	update_light_pos();
