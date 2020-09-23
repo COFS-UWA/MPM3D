@@ -27,7 +27,7 @@ add_library(
     ## deformation calculation
     Step_T2D_ME_s.h Step_T2D_ME_s.cpp Step_T2D_ME_s_avg.cpp
     TimeHistory_T2D_ME_s_complete.h TimeHistory_T2D_ME_s_complete.cpp
-    Step_T2D_CHM_s_ud.h Step_T2D_CHM_s_ud.cpp
+    Step_T2D_CHM_s_ud.h Step_T2D_CHM_s_ud.cpp Step_T2D_CHM_s_ud_avg.cpp
     TimeHistory_T2D_CHM_s_ud_complete.h TimeHistory_T2D_CHM_s_ud_complete.cpp
     ## geostatic calculation
     Step_T2D_ME_s_Geo.h Step_T2D_ME_s_Geo.cpp Step_T2D_ME_s_Geo_avg.cpp

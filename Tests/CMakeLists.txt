@@ -46,6 +46,7 @@ add_executable(
     test_t2d_chm_s_1d_consolidation.cpp
     #test_t2d_chm_s_undrained_compression.cpp
     test_t2d_chm_s_t_bar_smaller_soil.cpp
+    test_t2d_chm_s_ud_t_bar_smaller_soil.cpp
     # restart utilities
     #test_t2d_me_s_test_restart.cpp
     #test_t2d_chm_s_test_restart.cpp

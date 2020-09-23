@@ -40,7 +40,7 @@ namespace Hdf5Field
 			"vy_f", // 30
 			"vz_f", // 31
 			"p", // 32
-			"mises_strain_2d" // 33
+			"Mises Strain" // 33
 		};
 	}
 }

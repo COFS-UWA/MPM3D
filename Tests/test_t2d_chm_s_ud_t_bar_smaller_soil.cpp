@@ -3,7 +3,7 @@
 #include "ItemArray.hpp"
 #include "utils.h"
 #include "Model_T2D_CHM_s.h"
-#include "Step_T2D_CHM_s.h"
+#include "Step_T2D_CHM_s_ud.h"
 #include "ModelData_T2D_CHM_s.h"
 #include "TimeHistory_T2D_CHM_s_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
@@ -11,7 +11,7 @@
 
 #include "test_simulations.h"
 
-void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv)
+void test_t2d_chm_s_ud_t_bar_smaller_soil(int argc, char** argv)
 {
 	Model_T2D_CHM_s model;
 	model.load_mesh_from_hdf5("../../Asset/smaller_rect_mesh.h5");
@@ -106,7 +106,7 @@ void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv)
 	//return;
 
 	ResultFile_hdf5 res_file;
-	res_file.create("t2d_chm_s_t_bar_smaller_soil.h5");
+	res_file.create("t2d_chm_s_ud_t_bar_smaller_soil.h5");
 
 	ModelData_T2D_CHM_s md("md1");
 	md.output_model(model, res_file);
@@ -118,7 +118,7 @@ void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv)
 	
 	TimeHistory_ConsoleProgressBar out_pb;
 
-	Step_T2D_CHM_s step("step1");
+	Step_T2D_CHM_s_ud step("step1");
 	step.set_model(model);
 	step.set_step_time(6.0);
 	step.set_dtime(3.0e-6);
@@ -130,10 +130,10 @@ void test_t2d_chm_s_t_bar_smaller_soil(int argc, char** argv)
 #include "QtApp_Posp_T2D_CHM_s.h"
 #include "test_model_view.h"
 
-void test_t2d_chm_s_t_bar_smaller_soil_result(int argc, char** argv)
+void test_t2d_chm_s_ud_t_bar_smaller_soil_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_s_t_bar_smaller_soil.h5");
+	rf.open("t2d_chm_s_ud_t_bar_smaller_soil.h5");
 
 	QtApp_Posp_T2D_CHM_s app(argc, argv, QtApp_Posp_T2D_CHM_s::Animation);
 	app.set_ani_time(5.0);
@@ -141,7 +141,7 @@ void test_t2d_chm_s_t_bar_smaller_soil_result(int argc, char** argv)
 	app.set_win_size(900, 900);
 	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.6, 0.5, 0.4);
-	//app.set_png_name("t2d_chm_s_t_bar_smaller_soil");
-	//app.set_gif_name("t2d_chm_s_t_bar_smaller_soil");
+	//app.set_png_name("t2d_chm_s_ud_t_bar_smaller_soil");
+	//app.set_gif_name("t2d_chm_s_ud_t_bar_smaller_soil");
 	app.start();
 }

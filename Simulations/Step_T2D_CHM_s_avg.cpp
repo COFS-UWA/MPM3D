@@ -489,7 +489,6 @@ int solve_substep_T2D_CHM_s_avg(void *_self)
 			pcl.e22 += de22;
 			pcl.e12 += de12;
 
-			// update stress
 			dstrain[0] = de11;
 			dstrain[1] = de22;
 			dstrain[3] = de12;

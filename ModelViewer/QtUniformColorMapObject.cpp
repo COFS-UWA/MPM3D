@@ -352,12 +352,12 @@ int QtUniformColorMapObject::init(
 	// adjust xpos, ypos
 	if (xpos < 0.0f)
 		xpos = 0.0f;
-	if (xpos + cmap_wd > 1.0f)
-		xpos = 1.0f - cmap_wd;
+	//if (xpos + cmap_wd > 1.0f)
+	//	xpos = 1.0f - cmap_wd;
 	if (ypos < 0.0f)
 		ypos = 0.0f;
-	if (ypos + cmap_ht > 1.0f)
-		ypos = 1.0f - cmap_ht;
+	//if (ypos + cmap_ht > 1.0f)
+	//	ypos = 1.0f - cmap_ht;
 
 	cmap_rect.xl = xpos;
 	cmap_rect.xu = xpos + cmap_wd;

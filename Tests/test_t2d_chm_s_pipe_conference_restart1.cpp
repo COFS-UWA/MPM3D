@@ -101,8 +101,10 @@ void test_t2d_chm_s_pipe_conference_restart1_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	app.set_color_map_fld_range(-30000.0, -10000.0);
-	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
+	//app.set_color_map_fld_range(-30000.0, -10000.0); // s22
+	//app.set_color_map_fld_range(0, 20000.0); // pore pressure
+	app.set_color_map_fld_range(0, 0.4); // mises strain
+	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_s_pipe_conference_restart1");
 	//app.set_gif_name("t2d_chm_s_pipe_conference_restart1");
 	app.start();

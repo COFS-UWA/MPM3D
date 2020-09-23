@@ -8,24 +8,26 @@
 // no seepage occured
 
 int solve_substep_T2D_CHM_s_ud(void *_self);
+int solve_substep_T2D_CHM_s_ud_avg(void* _self);
 
 class Step_T2D_CHM_s_ud : public Step
 {
 public:
-	typedef Model_T2D_CHM_s::Particle Particle;
-	typedef Model_T2D_CHM_s::Element Element;
 	typedef Model_T2D_CHM_s::Node Node;
+	typedef Model_T2D_CHM_s::Element Element;
+	typedef Model_T2D_CHM_s::Particle Particle;
 
 protected:
 	Model_T2D_CHM_s* model;
-
 	double damping_ratio;
 
 	int init_calculation() override;
 	friend int solve_substep_T2D_CHM_s_ud(void *_self);
+	friend int solve_substep_T2D_CHM_s_ud_avg(void* _self);
 	int finalize_calculation() override;
 
 	void apply_rigid_circle(double dtime);
+	void apply_rigid_circle_avg(double dtime);
 
 public:
 	Step_T2D_CHM_s_ud(const char* _name);
