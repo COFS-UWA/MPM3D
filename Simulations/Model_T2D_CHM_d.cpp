@@ -7,8 +7,10 @@ Model_T2D_CHM_d::Model_T2D_CHM_d() :
 	Model("Model_T2D_CHM_d"),
 	spcl_num(0), spcls(nullptr),
 	fpcl_num(0), fpcls(nullptr),
-	bfx_num(0), bfxs(nullptr),
-	bfy_num(0), bfys(nullptr),
+	bfsx_num(0), bfsxs(nullptr),
+	bfsy_num(0), bfsys(nullptr),
+	bffx_num(0), bffxs(nullptr),
+	bffy_num(0), bffys(nullptr),
 	tx_num(0), txs(nullptr),
 	ty_num(0), tys(nullptr),
 	asx_num(0), asxs(nullptr),
@@ -19,6 +21,10 @@ Model_T2D_CHM_d::Model_T2D_CHM_d() :
 	vsy_num(0), vsys(nullptr),
 	vfx_num(0), vfxs(nullptr),
 	vfy_num(0), vfys(nullptr),
+	sgrid_xl(0.0), sgrid_yl(0.0),
+	sgrid_hx(0.0), sgrid_hy(0.0),
+	sg_x_num(0), sg_y_num(0),
+	sgrids(nullptr),
 	rigid_circle_is_init(false) {}
 
 Model_T2D_CHM_d::~Model_T2D_CHM_d()
@@ -26,8 +32,10 @@ Model_T2D_CHM_d::~Model_T2D_CHM_d()
 	clear_solid_pcls();
 	clear_fluid_pcls();
 
-	clear_bfxs();
-	clear_bfys();
+	clear_bfsxs();
+	clear_bfsys();
+	clear_bffxs();
+	clear_bffys();
 	clear_txs();
 	clear_tys();
 	clear_asxs();
@@ -38,6 +46,8 @@ Model_T2D_CHM_d::~Model_T2D_CHM_d()
 	clear_vsys();
 	clear_vfxs();
 	clear_vfys();
+
+	clear_spcl_grids();
 }
 
 void Model_T2D_CHM_d::init_mesh_shape_funcs()
@@ -74,7 +84,10 @@ int Model_T2D_CHM_d::load_mesh_from_hdf5(const char* file_name)
 	return 0;
 }
 
-int Model_T2D_CHM_d::init_search_grid(double _hx, double _hy)
+int Model_T2D_CHM_d::init_search_grid(
+	double _hx,
+	double _hy
+	)
 {
 	return search_bg_grid.init(*this, _hx, _hy);
 }
@@ -138,7 +151,7 @@ int Model_T2D_CHM_d::init_fluid_pcls(
 		pcl.vy = 0.0;
 		pcl.m = m;
 		pcl.density = density;
-		pcl.p;
+		pcl.p = 0.0;
 	}
 
 	Kf = _Kf;
@@ -167,7 +180,6 @@ int Model_T2D_CHM_d::init_solid_pcls(
 		pcl.m *= pg_pcl->area * (1.0 - pcl.n);
 		pg_pcl = pg.next(pg_pcl);
 	}
-
 	return 0;
 }
 
@@ -192,7 +204,6 @@ int Model_T2D_CHM_d::init_fluid_pcls(
 		pcl.m *= pg_pcl->area;
 		pg_pcl = pg.next(pg_pcl);
 	}
-
 	return 0;
 }
 
@@ -228,89 +239,67 @@ void Model_T2D_CHM_d::clear_fluid_pcls()
 	fpcl_num = 0;
 }
 
-//int Model_T2D_CHM_d::apply_rigid_circle(double dt)
-//{
-	//rigid_circle.reset_rf();
+void Model_T2D_CHM_d::init_spcl_grids(double _hx, double _hy)
+{
 
-	//double dist, norm_x, norm_y;
-	//double fs_cont, fsx_cont, fsy_cont;
-	//double ff_cont, ffx_cont, ffy_cont;
-	//double nfsx_cont, nfsy_cont, ndasx, ndasy;
-	//double nffx_cont, nffy_cont, ndafx, ndafy;
-	//for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-	//{
-	//	Particle& pcl = pcls[p_id];
-	//	if (pcl.pe && rigid_circle.detect_collision_with_point(
-	//		pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
-	//	{
-	//		fs_cont = Ks_cont * dist;
-	//		fsx_cont = fs_cont * norm_x;
-	//		fsy_cont = fs_cont * norm_y;
-	//		ff_cont = Kf_cont * dist;
-	//		ffx_cont = ff_cont * norm_x;
-	//		ffy_cont = ff_cont * norm_y;
-	//		// reaction force by the rigid object
-	//		rigid_circle.add_rf(pcl.x, pcl.y,
-	//			-(fsx_cont + ffx_cont), -(fsy_cont + ffy_cont));
-	//		// adjust velocity at nodes
-	//		Element& e = *pcl.pe;
-	//		// node 1
-	//		Node& n1 = nodes[e.n1];
-	//		nfsx_cont = pcl.N1 * fsx_cont;
-	//		nfsy_cont = pcl.N1 * fsy_cont;
-	//		ndasx = nfsx_cont / n1.m_s;
-	//		ndasy = nfsy_cont / n1.m_s;
-	//		n1.ax_s += ndasx;
-	//		n1.ay_s += ndasy;
-	//		n1.vx_s += ndasx * dt;
-	//		n1.vy_s += ndasy * dt;
-	//		nffx_cont = pcl.N1 * ffx_cont;
-	//		nffy_cont = pcl.N1 * ffy_cont;
-	//		ndafx = nffx_cont / n1.m_f;
-	//		ndafy = nffy_cont / n1.m_f;
-	//		n1.ax_f += ndafx;
-	//		n1.ay_f += ndafy;
-	//		n1.vx_f += ndafx * dt;
-	//		n1.vy_f += ndafy * dt;
-	//		// node 2
-	//		Node& n2 = nodes[e.n2];
-	//		nfsx_cont = pcl.N2 * fsx_cont;
-	//		nfsy_cont = pcl.N2 * fsy_cont;
-	//		ndasx = nfsx_cont / n2.m_s;
-	//		ndasy = nfsy_cont / n2.m_s;
-	//		n2.ax_s += ndasx;
-	//		n2.ay_s += ndasy;
-	//		n2.vx_s += ndasx * dt;
-	//		n2.vy_s += ndasy * dt;
-	//		nffx_cont = pcl.N2 * ffx_cont;
-	//		nffy_cont = pcl.N2 * ffy_cont;
-	//		ndafx = nffx_cont / n2.m_f;
-	//		ndafy = nffy_cont / n2.m_f;
-	//		n2.ax_f += ndafx;
-	//		n2.ay_f += ndafy;
-	//		n2.vx_f += ndafx * dt;
-	//		n2.vy_f += ndafy * dt;
-	//		// node 3
-	//		Node& n3 = nodes[e.n3];
-	//		nfsx_cont = pcl.N3 * fsx_cont;
-	//		nfsy_cont = pcl.N3 * fsy_cont;
-	//		ndasx = nfsx_cont / n3.m_s;
-	//		ndasy = nfsy_cont / n3.m_s;
-	//		n3.ax_s += ndasx;
-	//		n3.ay_s += ndasy;
-	//		n3.vx_s += ndasx * dt;
-	//		n3.vy_s += ndasy * dt;
-	//		nffx_cont = pcl.N3 * ffx_cont;
-	//		nffy_cont = pcl.N3 * ffy_cont;
-	//		ndafx = nffx_cont / n3.m_f;
-	//		ndafy = nffy_cont / n3.m_f;
-	//		n3.ax_f += ndafx;
-	//		n3.ay_f += ndafy;
-	//		n3.vx_f += ndafx * dt;
-	//		n3.vy_f += ndafy * dt;
-	//	}
-	//}
+}
 
-	//rigid_circle.update_motion(dt);
-//	return 0;
-//}
+void Model_T2D_CHM_d::clear_spcl_grids()
+{
+	if (sgrids)
+	{
+		delete[] sgrids;
+		sgrids = nullptr;
+	}
+	sgrid_xl = 0.0;
+	sgrid_yl = 0.0;
+	sgrid_hx = 0.0;
+	sgrid_hy = 0.0;
+	sg_x_num = 0;
+	sg_y_num = 0;
+}
+
+void Model_T2D_CHM_d::reset_spcl_grids()
+{
+	spcl_pt_buffer.reset_and_optimize();
+	
+	size_t x_id, y_id;
+	GridSPclList *cur_g = sgrids;
+	for (y_id = 0; y_id < sg_y_num; ++y_id)
+		for (x_id = 0; x_id < sg_x_num; ++x_id)
+		{
+			cur_g->spcls = nullptr;
+			++cur_g;
+		}
+
+	double pcl_hlen;
+	for (size_t pcl_id = 0; pcl_id < spcl_num; ++pcl_id)
+	{
+		SolidParticle& spcl = spcls[pcl_id];
+		pcl_hlen = 0.5 * sqrt(spcl.vol);
+		Rect &pcl_bbox = spcl.bbox;
+		pcl_bbox.xl = spcl.x - pcl_hlen;
+		pcl_bbox.xu = spcl.x + pcl_hlen;
+		pcl_bbox.yl = spcl.y - pcl_hlen;
+		pcl_bbox.yu = spcl.y + pcl_hlen;
+		//IdRect;
+
+		x_id = (spcl.x - sgrid_xl) / sgrid_hx;
+		y_id = (spcl.y - sgrid_yl) / sgrid_hy;
+		GridSPclList& g = sgrid_by_id(x_id, y_id);
+		add_pcl(g, spcl);
+	}
+}
+
+bool Model_T2D_CHM_d::is_in_solid(double x, double y)
+{
+	size_t x_id = (x - sgrid_xl) / sgrid_hx;
+	size_t y_id = (y - sgrid_yl) / sgrid_hy;
+	GridSPclList& g = sgrid_by_id(x_id, y_id);
+	for (SPclPointer *sp = g.spcls; sp; sp = sp->next)
+	{
+		if (sp->pcl->bbox.is_in_box(x, y))
+			return true;
+	}
+	return false;
+}

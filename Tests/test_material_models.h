@@ -7,5 +7,6 @@ void test_mcc_get_Su();
 void test_mcc_compression();
 void test_undrained_mcc();
 void test_von_mises();
+void test_tresca();
 
 #endif

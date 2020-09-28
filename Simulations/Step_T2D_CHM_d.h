@@ -9,19 +9,20 @@ int solve_substep_T2D_CHM_d(void *_self);
 class Step_T2D_CHM_d : public Step
 {
 public:
-	typedef Model_T2D_CHM_d::Element Element;
 	typedef Model_T2D_CHM_d::Node Node;
+	typedef Model_T2D_CHM_d::Element Element;
 	typedef Model_T2D_CHM_d::SolidParticle SolidParticle;
 	typedef Model_T2D_CHM_d::FluidParticle FluidParticle;
 
 protected:
 	Model_T2D_CHM_d* model;
-
 	double damping_ratio;
 
 	int init_calculation() override;
 	friend int solve_substep_T2D_CHM_d(void *_self);
 	int finalize_calculation() override;
+
+	int apply_rigid_circle();
 
 public:
 	Step_T2D_CHM_d(const char* _name);

@@ -100,6 +100,26 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 
+		// tresca
+		mm_num = mc.get_num_Tresca();
+		if (mm_num)
+		{
+			rf.write_attribute(mc_grp_id, "Tresca_num", mm_num);
+
+			TrescaStateData* mm_data = new TrescaStateData[mm_num];
+			mm_id = 0;
+			for (MatModel::Tresca* iter = mc.first_Tresca();
+				 mc.is_not_end_Tresca(iter); iter = mc.next_Tresca(iter))
+			{
+				mm_data[mm_id].from_mm(*iter);
+				++mm_id;
+			}
+			hid_t tc_dt_id = get_tresca_hdf5_dt_id();
+			rf.write_dataset(mc_grp_id, "Tresca", mm_num, mm_data, tc_dt_id);
+			H5Tclose(tc_dt_id);
+			delete[] mm_data;
+		}
+		
 		return 0;
 	}
 
@@ -220,6 +240,32 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 
+		// tresca
+		if (rf.has_dataset(mc_grp_id, "Tresca"))
+		{
+			rf.read_attribute(mc_grp_id, "Tresca", mm_num);
+
+			// get data
+			TrescaStateData* mm_data = new TrescaStateData[mm_num];
+			hid_t tc_dt_id = get_tresca_hdf5_dt_id();
+			rf.read_dataset(
+				mc_grp_id,
+				"Tresca",
+				mm_num,
+				mm_data,
+				tc_dt_id
+			);
+			H5Tclose(tc_dt_id);
+			MatModel::Tresca* mms = mc.add_Tresca(mm_num);
+			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
+			{
+				TrescaStateData& mmd = mm_data[mm_id];
+				MatModel::Tresca& mm = mms[mm_id];
+				mmd.to_mm(mm);
+			}
+			delete[] mm_data;
+		}
+		
 		return 0;
 	}
 

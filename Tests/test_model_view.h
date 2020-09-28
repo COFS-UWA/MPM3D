@@ -17,6 +17,7 @@ void test_t2d_me_s_1d_compression_horizontal_result(int argc, char** argv);
 void test_t2d_me_s_plate_with_hole_result(int argc, char** argv);
 void test_t2d_me_s_cap_compression_result(int argc, char** argv);
 void test_t2d_me_s_t_bar_smaller_soil_result(int argc, char** argv);
+void test_t2d_me_s_shallow_foundation_smaller_soil_result(int argc, char** argv);
 void test_t2d_me_s_shallow_foundation_result(int argc, char** argv);
 
 void test_t2d_chm_s_1d_consolidation_static_result(int argc, char** argv);

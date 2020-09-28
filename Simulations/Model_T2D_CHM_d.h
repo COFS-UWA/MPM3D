@@ -1,8 +1,8 @@
 #ifndef __Model_T2D_CHM_d_h__
 #define __Model_T2D_CHM_d_h__
 
-#include "TriangleUtils.h"
 #include "BCs.h"
+#include "TriangleUtils.h"
 #include "TriangleMeshTemplate.hpp"
 #include "MatModelContainer.h"
 #include "SearchingGrid2D.hpp"
@@ -19,32 +19,60 @@ struct Node
 	double x, y;
 
 	// solid phase
-	bool has_mp_s;
-	double m_s;
-	double ax_s, ay_s;
-	double vx_s, vy_s;
+	double ax_s, ay_s, am_s;
+	double vx_s, vy_s, vm_s;
 	double dux_s, duy_s;
 	double fx_ext_s, fy_ext_s;
 	double fx_int_s, fy_int_s;
 	// strain enhancement
-	double pcl_vol_s, de_vol_s;
+	double de_vol_s;
 
 	// fluid phase
-	bool has_mp_f;
-	double m_f;
-	double ax_f, ay_f;
-	double vx_f, vy_f;
+	double ax_f, ay_f, am_fs, am_fp;
+	double vx_f, vy_f, vm_f;
 	double dux_f, duy_f;
 	double fx_ext_f, fy_ext_f;
 	double fx_int_f, fy_int_f;
 	// strain enhancement
-	double pcl_vol_f, de_vol_f;
+	double de_vol_fs;
+	double de_vol_fp;
 
 	// solid - fluid interaction
 	double fx_drag, fy_drag;
 };
 
-struct Element;
+struct Element
+{
+	size_t id;
+	size_t n1, n2, n3;
+
+	double area;
+	PointInTriangle pt_in_tri;
+
+	// solid
+	double pcl_vol_s, pcl_n;
+	double pcl_m_s;
+	double s11, s22, s12;
+	double dde11, dde22, de12;
+	double de_vol_s;
+
+	// seepage fluid
+	double pcl_vol_fs;
+	double pcl_m_fs;
+	double ps; // pore pressure
+	double pcl_density_fs;
+	double de_vol_fs;
+	// pure fluid
+	double pcl_vol_fp;
+	double pcl_m_fp;
+	double pp; // pore pressure
+	double pcl_density_fp;
+	double de_vol_fp;
+};
+
+struct Edge { size_t n1, n2; };
+
+typedef TriangleMeshTemplate<Node, Element, Edge> ParentMesh;
 
 struct SolidParticle
 {
@@ -68,6 +96,8 @@ struct SolidParticle
 	MatModel::MaterialModel* mm;
 	inline void set_mat_model(MatModel::MaterialModel& _mm)
 	{ _mm.ext_data_pt = this; mm = &_mm; }
+
+	Rect bbox;
 };
 
 struct FluidParticle
@@ -87,33 +117,9 @@ struct FluidParticle
 
 	Element* pe;
 	double N1, N2, N3;
+
+	bool is_seepage;
 };
-
-struct Element
-{
-	size_t id;
-	size_t n1, n2, n3;
-
-	double area;
-	PointInTriangle pt_in_tri;
-
-	// solid
-	bool has_mp_s;
-	double vol_s, n, s11, s22, s12;
-	double dde11, dde22, de12, de_vol_s;
-
-	// seepage fluid
-	bool has_mp_fs;
-	double vol_fs, p_s;
-	// pure fluid
-	bool has_mp_fp;
-	double vol_fp, p_p;
-	double de_vol_f;
-};
-
-struct Edge { size_t n1, n2; };
-
-typedef TriangleMeshTemplate<Node, Element, Edge> ParentMesh;
 
 }
 
@@ -162,18 +168,23 @@ public:
 	typedef Model_T2D_CHM_d_Internal::FluidParticle FluidParticle;
 
 protected:
-	double Kf;  // Bulk modulus of water
 	double k;   // Permeability
 	double miu; // Dynamic viscosity
+	double Kf;  // Bulk modulus of water
 
 	size_t spcl_num;
 	SolidParticle *spcls;
 	size_t fpcl_num;
 	FluidParticle *fpcls;
 
+	// contact stiffness
+	double Ks_cont, Kfs_cont, Kfp_cont;
+	
 	// boundary conditions
-	size_t bfx_num, bfy_num;
-	BodyForceAtPcl *bfxs, *bfys;
+	size_t bfsx_num, bfsy_num;
+	BodyForceAtPcl *bfsxs, *bfsys;
+	size_t bffx_num, bffy_num;
+	BodyForceAtPcl *bffxs, *bffys;
 	size_t tx_num, ty_num;
 	TractionBCAtPcl *txs, *tys;
 	size_t asx_num, asy_num;
@@ -194,17 +205,31 @@ public:
 	Model_T2D_CHM_d();
 	~Model_T2D_CHM_d();
 	
-	inline double get_bg_grid_xl() { return search_bg_grid.get_x_min(); }
-	inline double get_bg_grid_xu() { return search_bg_grid.get_x_max(); }
-	inline double get_bg_grid_yl() { return search_bg_grid.get_y_min(); }
-	inline double get_bg_grid_yu() { return search_bg_grid.get_y_max(); }
-	inline double get_bg_grid_hx() { return search_bg_grid.get_hx(); }
-	inline double get_bg_grid_hy() { return search_bg_grid.get_hy(); }
+	inline double get_bg_grid_xl() const noexcept { return search_bg_grid.get_x_min(); }
+	inline double get_bg_grid_xu() const noexcept { return search_bg_grid.get_x_max(); }
+	inline double get_bg_grid_yl() const noexcept { return search_bg_grid.get_y_min(); }
+	inline double get_bg_grid_yu() const noexcept { return search_bg_grid.get_y_max(); }
+	inline double get_bg_grid_hx() const noexcept { return search_bg_grid.get_hx(); }
+	inline double get_bg_grid_hy() const noexcept { return search_bg_grid.get_hy(); }
 
 	inline size_t get_solid_pcl_num() const noexcept { return spcl_num; }
 	inline SolidParticle* get_solid_pcls() { return spcls; }
 	inline size_t get_fluid_pcl_num() const noexcept { return fpcl_num; }
 	inline FluidParticle* get_fluid_pcls() { return fpcls; }
+
+	inline double get_Ks_cont() const noexcept { return Ks_cont; }
+	inline double get_Kfp_cont() const noexcept { return Kfp_cont; }
+	inline double get_Kfs_cont() const noexcept { return Kfs_cont; }
+	inline void set_K_cont(
+		double _Ks_cont,
+		double _Kfp_cont,
+		double _Kfs_cont
+		) noexcept
+	{
+		Ks_cont = _Ks_cont;
+		Kfp_cont = _Kfp_cont;
+		Kfs_cont = _Kfs_cont;
+	}
 
 	int init_mesh(double *node_coords, size_t n_num,
 				  size_t *elem_n_ids,  size_t e_num);
@@ -227,8 +252,10 @@ public:
 	void alloc_fluid_pcls(size_t num);
 	void clear_fluid_pcls();
 
-	INIT_BC_TEMPLATE(bfx, BodyForceAtPcl)
-	INIT_BC_TEMPLATE(bfy, BodyForceAtPcl)
+	INIT_BC_TEMPLATE(bfsx, BodyForceAtPcl)
+	INIT_BC_TEMPLATE(bfsy, BodyForceAtPcl)
+	INIT_BC_TEMPLATE(bffx, BodyForceAtPcl)
+	INIT_BC_TEMPLATE(bffy, BodyForceAtPcl)
 	INIT_BC_TEMPLATE(tx, TractionBCAtPcl)
 	INIT_BC_TEMPLATE(ty, TractionBCAtPcl)
 	INIT_BC_TEMPLATE(asx, AccelerationBC)
@@ -254,12 +281,43 @@ public:
 		return search_bg_grid.find_in_which_element<Point2D>(pt);
 	}
 
+	void init_spcl_grids(double _hx, double _hy);
+	void clear_spcl_grids();
+	void reset_spcl_grids();
+	bool is_in_solid(double x, double y);
+protected:
+	struct SPclPointer
+	{
+		SolidParticle *pcl;
+		SPclPointer *next;
+	};
+
+	struct GridSPclList
+	{
+		SPclPointer *spcls;
+	};
+
+	MemoryUtils::ItemBuffer<SPclPointer> spcl_pt_buffer;
+
+	inline void add_pcl(GridSPclList &g, SolidParticle& pcl)
+	{
+		SPclPointer &spcl_pt = *spcl_pt_buffer.alloc();
+		spcl_pt.pcl = &pcl;
+		spcl_pt.next = g.spcls;
+		g.spcls = &spcl_pt;
+	}
+
+	double sgrid_xl, sgrid_yl;
+	double sgrid_hx, sgrid_hy;
+	size_t sg_x_num, sg_y_num;
+	GridSPclList *sgrids;
+	GridSPclList& sgrid_by_id(size_t x_id, size_t y_id) noexcept
+	{ return sgrids[y_id * sg_x_num + x_id]; }
+
 // ===================== rigid circle =====================
 protected:
 	bool rigid_circle_is_init;
 	RigidCircle rigid_circle;
-	// contact stiffness
-	double Ks_cont, Kfs_cont, Kfp_cont;
 
 public: // interaction with rigid circle
 	inline bool rigid_circle_is_valid() { return rigid_circle_is_init; }
@@ -277,7 +335,6 @@ public: // interaction with rigid circle
 	}
 	inline void set_rigid_circle_velocity(double vx, double vy, double w)
 	{ rigid_circle.set_v_bc(vx, vy, w); }
-
 };
 
 #endif

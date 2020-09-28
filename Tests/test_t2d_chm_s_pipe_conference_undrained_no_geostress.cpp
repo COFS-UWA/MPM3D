@@ -129,8 +129,14 @@ void test_t2d_chm_s_pipe_conference_undrained_no_geostress_result(int argc, char
 	app.set_win_size(900, 900);
 	app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	app.set_ani_time(5.0);
-	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	app.set_color_map_fld_range(-21000.0, -19000.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::s22);
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
+	app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
+	app.set_ani_time(5.0);
+	//app.set_display_range(-3.6, 3.6, -5.1, 0.6);
+	app.set_display_range(-1.5, 1.5, -2.0, 0.5);
+	//app.set_color_map_fld_range(-10000.0, 10000.0);
+	app.set_color_map_fld_range(0.0, 2.0);
 	app.set_color_map_geometry(0.8, 0.65, 0.3);
 	//app.set_png_name("t2d_chm_s_pipe_conference_undrained_no_geostress");
 	//app.set_gif_name("t2d_chm_s_pipe_conference_undrained_no_geostress");

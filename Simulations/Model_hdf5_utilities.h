@@ -401,7 +401,6 @@ namespace Model_hdf5_utilities
 			double stress[6];
 			struct { double s11, s22, s33, s12, s23, s31; };
 		};
-
 		inline void from_mm(MatModel::VonMises &mm)
 		{
 			id = mm.get_id();
@@ -416,7 +415,6 @@ namespace Model_hdf5_utilities
 			s23 = mm_stress[4];
 			s31 = mm_stress[5];
 		}
-
 		inline void to_mm(MatModel::VonMises &mm)
 		{
 			mm.set_id(id);
@@ -441,6 +439,53 @@ namespace Model_hdf5_utilities
 	}
 
 	// Tresca
+	struct TrescaStateData
+	{
+		unsigned long long id;
+		double E; // Young's modulus
+		double niu; // possion ratio
+		double cohesion;
+		union
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
+		inline void from_mm(MatModel::Tresca& mm)
+		{
+			id = mm.get_id();
+			E = mm.E;
+			niu = mm.niu;
+			cohesion = mm.cohesion;
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
+		}
+		inline void to_mm(MatModel::Tresca& mm)
+		{
+			mm.set_id(id);
+			mm.set_param(E, niu, cohesion, stress);
+		}
+	};
+
+	inline hid_t get_tresca_hdf5_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(TrescaStateData));
+		H5Tinsert(res, "id", HOFFSET(TrescaStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "E", HOFFSET(TrescaStateData, E), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "niu", HOFFSET(TrescaStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "cohesion", HOFFSET(TrescaStateData, cohesion), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(TrescaStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(TrescaStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(TrescaStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(TrescaStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(TrescaStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(TrescaStateData, s31), H5T_NATIVE_DOUBLE);
+		return res;
+	}
 
 	// material model container
 	int output_material_model_container_to_hdf5_file(

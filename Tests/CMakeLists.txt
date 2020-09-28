@@ -42,6 +42,7 @@ add_executable(
     #test_t2d_me_s_plate_with_hole.cpp
     test_t2d_me_s_cap_compression.cpp
     test_t2d_me_s_t_bar_smaller_soil.cpp
+    test_t2d_me_s_shallow_foundation_smaller_soil.cpp
     test_t2d_me_s_shallow_foundation.cpp
     test_t2d_chm_s_1d_consolidation.cpp
     #test_t2d_chm_s_undrained_compression.cpp
@@ -88,6 +89,7 @@ add_executable(
     test_fem_t3d_me_s_1d_compression2.cpp
     test_mat_model_utils.cpp
     test_von_mises.cpp
+    test_tresca.cpp
     )
 
 target_include_directories(

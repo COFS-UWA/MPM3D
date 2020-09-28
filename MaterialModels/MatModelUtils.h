@@ -230,6 +230,98 @@ namespace MatModel
 				+ vec1[5] * mat[5][2] * vec2[2] + vec1[5] * mat[5][3] * vec2[3]
 				+ vec1[5] * mat[5][4] * vec2[4] + vec1[5] * mat[5][5] * vec2[5];
 		}
+
+		inline void matrix6x6_copy(
+			const double mat[6][6],
+			double res[6][6]
+			)
+		{
+			res[0][0] = mat[0][0];
+			res[0][1] = mat[0][1];
+			res[0][2] = mat[0][2];
+			res[0][3] = mat[0][3];
+			res[0][4] = mat[0][4];
+			res[0][5] = mat[0][5];
+			res[1][0] = mat[1][0];
+			res[1][1] = mat[1][1];
+			res[1][2] = mat[1][2];
+			res[1][3] = mat[1][3];
+			res[1][4] = mat[1][4];
+			res[1][5] = mat[1][5];
+			res[2][0] = mat[2][0];
+			res[2][1] = mat[2][1];
+			res[2][2] = mat[2][2];
+			res[2][3] = mat[2][3];
+			res[2][4] = mat[2][4];
+			res[2][5] = mat[2][5];
+			res[3][0] = mat[3][0];
+			res[3][1] = mat[3][1];
+			res[3][2] = mat[3][2];
+			res[3][3] = mat[3][3];
+			res[3][4] = mat[3][4];
+			res[3][5] = mat[3][5];
+			res[4][0] = mat[4][0];
+			res[4][1] = mat[4][1];
+			res[4][2] = mat[4][2];
+			res[4][3] = mat[4][3];
+			res[4][4] = mat[4][4];
+			res[4][5] = mat[4][5];
+			res[5][0] = mat[5][0];
+			res[5][1] = mat[5][1];
+			res[5][2] = mat[5][2];
+			res[5][3] = mat[5][3];
+			res[5][4] = mat[5][4];
+			res[5][5] = mat[5][5];
+		}
+
+		inline void matrix6x6_prod_matrix6x6(
+			const double mat1[6][6],
+			const double mat2[6][6],
+			double res[6][6]
+			)
+		{
+#define mat_prod(i, j) res[i][j] = \
+		  mat1[i][0] * mat2[0][j] + mat1[i][1] * mat2[1][j] \
+		+ mat1[i][2] * mat2[2][j] + mat1[i][3] * mat2[3][j] \
+		+ mat1[i][4] * mat2[4][j] + mat1[i][5] * mat2[5][j]
+			mat_prod(0, 0);
+			mat_prod(0, 1);
+			mat_prod(0, 2);
+			mat_prod(0, 3);
+			mat_prod(0, 4);
+			mat_prod(0, 5);
+			mat_prod(1, 0);
+			mat_prod(1, 1);
+			mat_prod(1, 2);
+			mat_prod(1, 3);
+			mat_prod(1, 4);
+			mat_prod(1, 5);
+			mat_prod(2, 0);
+			mat_prod(2, 1);
+			mat_prod(2, 2);
+			mat_prod(2, 3);
+			mat_prod(2, 4);
+			mat_prod(2, 5);
+			mat_prod(3, 0);
+			mat_prod(3, 1);
+			mat_prod(3, 2);
+			mat_prod(3, 3);
+			mat_prod(3, 4);
+			mat_prod(3, 5);
+			mat_prod(4, 0);
+			mat_prod(4, 1);
+			mat_prod(4, 2);
+			mat_prod(4, 3);
+			mat_prod(4, 4);
+			mat_prod(4, 5);
+			mat_prod(5, 0);
+			mat_prod(5, 1);
+			mat_prod(5, 2);
+			mat_prod(5, 3);
+			mat_prod(5, 4);
+			mat_prod(5, 5);
+#undef mat_prod
+		}
 	}
 }
 

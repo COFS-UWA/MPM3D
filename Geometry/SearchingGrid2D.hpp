@@ -49,14 +49,14 @@ public:
 		grids(nullptr), mesh(nullptr) {}
 	~SearchingGrid2D() { clear(); }
 
-	inline double get_hx() { return hx; }
-	inline double get_hy() { return hy; }
-	inline double get_x_min() { return x_min; }
-	inline double get_x_max() { return x_max; }
-	inline double get_y_min() { return y_min; }
-	inline double get_y_max() { return y_max; }
-	inline size_t get_grid_num() { return num; }
-	inline Grid *get_grids() { return grids; }
+	inline double get_hx() const noexcept { return hx; }
+	inline double get_hy() const noexcept { return hy; }
+	inline double get_x_min() const noexcept { return x_min; }
+	inline double get_x_max() const noexcept { return x_max; }
+	inline double get_y_min() const noexcept { return y_min; }
+	inline double get_y_max() const noexcept { return y_max; }
+	inline size_t get_grid_num() const noexcept { return num; }
+	inline Grid *get_grids() const noexcept { return grids; }
 
 	int init(TriangleMesh &_mesh, double hx, double hy)
 	{

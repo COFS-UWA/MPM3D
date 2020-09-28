@@ -29,6 +29,14 @@ void test_t2d_chm_s_pipe_conference_restart1(int argc, char** argv)
 
 	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 
+	for (size_t i = 0; i < model.get_pcl_num(); i++)
+	{
+		Model_T2D_CHM_s::Particle& pcl = model.get_pcls()[i];
+		pcl.m_s *= 0.25;
+		pcl.density_s *= 0.25;
+		pcl.density_f *= 0.25;
+	}
+
 	//IndexArray mid_tbc_pt_array, left_right_tbc_pt_array;
 	//mid_tbc_pt_array.reserve(100);
 	//left_right_tbc_pt_array.reserve(100);
