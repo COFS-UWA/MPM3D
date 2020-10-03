@@ -55,10 +55,12 @@ public:
 	inline double get_x_max() const noexcept { return x_max; }
 	inline double get_y_min() const noexcept { return y_min; }
 	inline double get_y_max() const noexcept { return y_max; }
+	inline size_t get_x_num() const noexcept { return x_num; }
+	inline size_t get_y_num() const noexcept { return y_num; }
 	inline size_t get_grid_num() const noexcept { return num; }
 	inline Grid *get_grids() const noexcept { return grids; }
 
-	int init(TriangleMesh &_mesh, double hx, double hy)
+	int init(const TriangleMesh &_mesh, double hx, double hy)
 	{
 		Rect &mesh_bbox = _mesh.get_bounding_box();
 		if (alloc_grids(mesh_bbox, hx, hy) < 0)

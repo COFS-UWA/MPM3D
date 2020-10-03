@@ -15,7 +15,7 @@ namespace TriangleMesh_Internal
 	{
 		size_t id;
 		size_t n1, n2, n3;
-		double vol;
+		double area;
 	};
 
 	struct Edge { size_t n1, n2; };

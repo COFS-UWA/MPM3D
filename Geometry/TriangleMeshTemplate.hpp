@@ -269,14 +269,14 @@ protected: // helper for load_mesh_from_hdf5()
 	}
 
 public: // initialize mesh
-	int init_mesh(double* node_coords, size_t node_num, size_t* elem_indices, size_t elem_num)
+	int init_mesh(const double* node_coords, size_t node_num, const size_t* elem_indices, size_t elem_num)
 	{
 		if (node_num == 0 || elem_num == 0)
 			return -1;
 		clear();
 		// init nodes
 		alloc_nodes(node_num);
-		double* pnode_coord = node_coords;
+		const double* pnode_coord = node_coords;
 		for (size_t n_id = 0; n_id < node_num; ++n_id)
 		{
 			nodes[n_id].id = n_id;
@@ -287,7 +287,7 @@ public: // initialize mesh
 		}
 		// init elements
 		alloc_elements(elem_num);
-		size_t* pelem_index = elem_indices;
+		const size_t* pelem_index = elem_indices;
 		for (size_t e_id = 0; e_id < elem_num; ++e_id)
 		{
 			elems[e_id].id = e_id;

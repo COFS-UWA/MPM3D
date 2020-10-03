@@ -161,8 +161,11 @@ int main(int argc, char *argv[])
 
 	//test_t2d_chm_s_ud_t_bar_smaller_soil(argc, argv);
 	//test_t2d_chm_s_ud_t_bar_smaller_soil_result(argc, argv);
+	
+	test_t2d_me_s_shallow_foundation_smaller_soil(argc, argv);
+	//test_t2d_me_s_shallow_foundation_smaller_soil_result(argc, argv);
 
-	test_t2d_me_s_shallow_foundation(argc, argv);
+	//test_t2d_me_s_shallow_foundation(argc, argv);
 	//test_t2d_me_s_shallow_foundation_result(argc, argv);
 	
 	//system("pause");

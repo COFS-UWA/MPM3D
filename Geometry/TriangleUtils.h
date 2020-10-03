@@ -95,6 +95,16 @@ public:
 	inline double dN2_dy() const noexcept { return b2; }
 	inline double dN3_dx() const noexcept { return a3; }
 	inline double dN3_dy() const noexcept { return b3; }
+
+	inline double get_a1() const noexcept { return a1; }
+	inline double get_b1() const noexcept { return b1; }
+	inline double get_coef1() const noexcept { return coef1; }
+	inline double get_a2() const noexcept { return a2; }
+	inline double get_b2() const noexcept { return b2; }
+	inline double get_coef2() const noexcept { return coef2; }
+	inline double get_a3() const noexcept { return a3; }
+	inline double get_b3() const noexcept { return b3; }
+	inline double get_coef3() const noexcept { return coef3; }
 };
 
 
