@@ -2,7 +2,7 @@
 
 #include "Step_T2D_CHM_s_Geo.h"
 
-#define one_third (1.0/3.0)
+#define one_third (1.0f/3.0f)
 
 int solve_substep_T2D_CHM_s_Geo_avg(void *_self)
 {

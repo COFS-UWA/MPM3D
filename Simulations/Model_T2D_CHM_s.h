@@ -242,7 +242,7 @@ protected: // helper functions
 public:
 	using BgMesh::is_in_triangle;
 
-	inline bool is_in_triangle(Element &e, Particle &p)
+	inline bool is_in_triangle(const Element &e, Particle &p)
 	{
 		double a = e.a1 * p.x + e.b1 * p.y + e.coef1;
 		double b = e.a2 * p.x + e.b2 * p.y + e.coef2;
@@ -262,7 +262,7 @@ public:
 
 	// search using background grid
 	template <typename Point2D>
-	inline Element* find_in_which_element(Point2D& pcl)
+	inline const Element* find_in_which_element(Point2D& pcl) const noexcept
 	{
 		return search_bg_grid.find_in_which_element<Point2D>(pcl);
 	}

@@ -285,7 +285,7 @@ void Model_T2D_ME_s::sum_vol_for_all_elements()
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		Particle& pcl = pcls[p_id];
-		if (!(pcl.pe = find_in_which_element(pcl)))
+		if (!(pcl.pe = const_cast<Element *>(find_in_which_element(pcl))))
 			continue;
 		pcl.pe->add_pcl(pcl);
 		pcl.vol = pcl.m / pcl.density;

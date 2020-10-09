@@ -75,7 +75,7 @@ int solve_substep_T2D_ME_s(void *_self)
 		Particle &pcl = md.pcls[pcl_id];
 		if (pcl.pe)
 		{
-			pcl.pe = md.find_in_which_element(pcl);
+			pcl.pe = const_cast<Element *>(md.find_in_which_element(pcl));
 			if (!pcl.pe)
 				continue;
 			pcl.pe->add_pcl(pcl);

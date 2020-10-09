@@ -300,15 +300,13 @@ int ParticleGenerator2D<TriangleMesh>::
 		ei.init();
 	}
 
-	Element* pe;
+	const Element* pe;
 	Particle* pcl_tmp;
 	Particle *pcl = first();
 	size_t pid = 0;
 	while (is_not_end(pcl))
 	{
 		++pid;
-		if (pid == 871)
-			pe = mesh.find_in_which_element_bf(*pcl);
 		pe = mesh.find_in_which_element(*pcl);
 		if (!pe)
 		{

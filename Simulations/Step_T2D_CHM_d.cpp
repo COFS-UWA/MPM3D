@@ -2,7 +2,7 @@
 
 #include "Step_T2D_CHM_d.h"
 
-#define one_third (1.0/3.0)
+#define one_third (1.0f/3.0f)
 
 Step_T2D_CHM_d::Step_T2D_CHM_d(const char* _name) :
 	Step(_name, "Step_T2D_CHM_d", &solve_substep_T2D_CHM_d),
@@ -116,7 +116,7 @@ int solve_substep_T2D_CHM_d(void *_self)
 		SolidParticle &pcl = md.spcls[pcl_id];
 		if (pcl.pe)
 		{
-			if (!(pcl.pe = md.find_in_which_element(pcl)))
+			if (!(pcl.pe = const_cast<Element *>(md.find_in_which_element(pcl))))
 				continue;
 
 			pcl.vol = pcl.vol_s / (1.0 - pcl.n);
@@ -157,7 +157,7 @@ int solve_substep_T2D_CHM_d(void *_self)
 		FluidParticle &pcl = md.fpcls[pcl_id];
 		if (pcl.pe)
 		{
-			if (!(pcl.pe = md.find_in_which_element(pcl)))
+			if (!(pcl.pe = const_cast<Element *>(md.find_in_which_element(pcl))))
 				continue;
 
 			pcl.vol = pcl.m / pcl.density;

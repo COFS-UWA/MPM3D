@@ -121,28 +121,37 @@ public:
 	}
 
 	inline size_t get_node_num() const noexcept { return node_num; }
-	inline Node* get_nodes() const noexcept { return nodes; }
+	inline const Node* get_nodes() const noexcept { return nodes; }
+	inline Node* get_nodes() noexcept { return nodes; }
 	inline size_t get_elem_num() const noexcept { return elem_num; }
-	inline Element* get_elems() const noexcept { return elems; }
+	inline const Element* get_elems() const noexcept { return elems; }
+	inline Element* get_elems() noexcept { return elems; }
 	inline size_t get_edge_num() const noexcept { return edge_num; }
-	inline Edge* get_edges() const noexcept { return edges; }
+	inline const Edge* get_edges() const noexcept { return edges; }
+	inline Edge* get_edges() noexcept { return edges; }
 
-	inline double get_area() { return area; }
-	inline Point2D get_centre() { return centre; }
-	inline Rect get_bounding_box() { return bounding_box; }
+	inline double get_area() const noexcept { return area; }
+	inline const Point2D &get_centre() const noexcept { return centre; }
+	inline const Rect &get_bounding_box() const noexcept { return bounding_box; }
 
-	inline bool is_in_triangle(Element& elem, double x, double y)
+	inline bool is_in_triangle(
+		const Element& elem,
+		double x, double y
+		) const noexcept
 	{
 		Point2D p(x, y);
 		return is_in_triangle<Point2D>(elem, p);
 	}
 
 	template <typename Point2D>
-	inline bool is_in_triangle(Element& elem, Point2D& p)
+	inline bool is_in_triangle(
+		const Element& elem,
+		const Point2D& p
+		) const noexcept
 	{
-		Node& n1 = nodes[elem.n1];
-		Node& n2 = nodes[elem.n2];
-		Node& n3 = nodes[elem.n3];
+		const Node& n1 = nodes[elem.n1];
+		const Node& n2 = nodes[elem.n2];
+		const Node& n3 = nodes[elem.n3];
 
 		double area1, area2, area3;
 		area1 = cal_triangle_area<Node, Point2D>(n1, n2, p);

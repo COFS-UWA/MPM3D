@@ -26,13 +26,13 @@ struct Rect
 	inline Rect(const Rect& other) :
 		xl(other.xl), xu(other.xu), yl(other.yl), yu(other.yu) {}
 
-	inline bool is_in_box(double x, double y)
+	inline bool is_in_box(double x, double y) const noexcept
 	{ return !(x < xl || x > xu || y < yl || y > yu); }
 	template <typename Point2D>
-	inline bool is_in_box(Point2D& point)
+	inline bool is_in_box(Point2D& point) const noexcept
 	{ return is_in_box(point.x, point.y); }
 
-	inline void envelop(const Rect& other)
+	inline void envelop(const Rect& other) noexcept
 	{
 		if (xl > other.xl)
 			xl = other.xl;
@@ -43,7 +43,10 @@ struct Rect
 		if (yu < other.yu)
 			yu = other.yu;
 	}
-	inline void envelop(const Rect& rect1, const Rect&rect2)
+	inline void envelop(
+		const Rect &rect1,
+		const Rect &rect2
+		) noexcept
 	{
 		xl = rect1.xl < rect2.xl ? rect1.xl : rect2.xl;
 		xu = rect1.xu > rect2.xu ? rect1.xu : rect2.xu;
@@ -60,8 +63,8 @@ struct Vector2D
 	inline Vector2D(double _x, double _y) : x(_x), y(_y) {}
 	inline Vector2D(const Vector2D &other) : x(other.x), y(other.y) {}
 
-	inline double norm() { return sqrt(x*x + y*y); }
-	inline Vector2D &normalize()
+	inline double norm() const noexcept { return sqrt(x*x + y*y); }
+	inline Vector2D &normalize() noexcept
 	{
 		double len = norm();
 		if (len != 0.0)
@@ -72,43 +75,43 @@ struct Vector2D
 		return *this;
 	}
 
-	inline Vector2D& reverse() noexcept
+	inline Vector2D &reverse() noexcept
 	{ x = -x; y = -y; return *this; }
-	inline Vector2D& scale(double fac) noexcept
+	inline Vector2D &scale(double fac) noexcept
 	{ x *= fac; y *= fac; return *this; }
-	inline Vector2D& add(double e_x, double e_y)
+	inline Vector2D& add(double e_x, double e_y) noexcept
 	{ x += e_x; y += e_y; return *this; }
 	inline Vector2D& add(double e1_x, double e1_y,
-						 double e2_x, double e2_y)
+						 double e2_x, double e2_y) noexcept
 	{ x = e1_x + e2_x; y = e1_y + e2_y; return *this; }
-	inline Vector2D& substract(double e_x, double e_y)
+	inline Vector2D& substract(double e_x, double e_y) noexcept
 	{ x -= e_x; y -= e_y; return *this; }
 	inline Vector2D& substract(double e1_x, double e1_y,
-							   double e2_x, double e2_y)
+							   double e2_x, double e2_y) noexcept
 	{ x = e1_x - e2_x; y = e1_y - e2_y; return *this; }
-	inline double dot(double e2_x, double e2_y)
+	inline double dot(double e2_x, double e2_y) const noexcept
 	{ return x * e2_x + y * e2_y; }
 
 	template <typename Point2D>
-	inline Vector2D& add(Point2D& p)
+	inline Vector2D& add(Point2D& p) noexcept
 	{ x += p.x; y += p.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& add(Point2D& p1, Point2D& p2)
+	inline Vector2D& add(Point2D& p1, Point2D& p2) noexcept
 	{ x = p1.x + p2.x; y = p1.y + p2.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& substract(Point2D& p)
+	inline Vector2D& substract(Point2D& p) noexcept
 	{ x -= p.x; y -= p.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& substract(Point2D& p1, Point2D& p2)
+	inline Vector2D& substract(Point2D& p1, Point2D& p2) noexcept
 	{ x = p1.x - p2.x; y = p1.y - p2.y; return *this; }
 	template <typename Point2D>
-	inline double dot(Point2D& p2)
+	inline double dot(Point2D& p2) const noexcept
 	{ return x * p2.x + y * p2.y; }
 };
 
 // distance between 2D points
 template <typename Node2D, typename Point2D>
-inline double cal_point2d_distance(Node2D &p1, Point2D &p2) noexcept
+inline double cal_point2d_distance(const Node2D &p1, const Point2D &p2) noexcept
 {
 	double dx = p1.x - p2.x;
 	double dy = p1.y - p2.y;
@@ -116,7 +119,7 @@ inline double cal_point2d_distance(Node2D &p1, Point2D &p2) noexcept
 }
 
 // distance between rectangle and point
-inline double cal_rect_point_distance(Rect& rec, Point2D& p) noexcept
+inline double cal_rect_point_distance(const Rect& rec, const Point2D& p) noexcept
 {
 	double cx, cy, x_diff, y_diff;
 	cx = p.x < rec.xu ? p.x : rec.xu;
@@ -128,7 +131,7 @@ inline double cal_rect_point_distance(Rect& rec, Point2D& p) noexcept
 	return sqrt(x_diff * x_diff + y_diff * y_diff);
 }
 
-inline bool detect_rect_collision(Rect &c1, Rect &c2) noexcept
+inline bool detect_rect_collision(const Rect &c1, const Rect &c2) noexcept
 {
 	return !(c1.xu < c2.xl || c1.xl > c2.xu ||
 			 c1.yu < c2.yl || c1.yl > c2.yu);
@@ -152,7 +155,7 @@ struct OBB2DAABBCollisionSAT
 	double it2x_min, it2x_max;
 	double it2y_min, it2y_max;
 
-	inline void init_obb2d(OBB2D& obb)
+	inline void init_obb2d(const OBB2D& obb) noexcept
 	{
 		xhlen = obb.xlen * 0.5;
 		yhlen = obb.ylen * 0.5;
@@ -168,7 +171,7 @@ struct OBB2DAABBCollisionSAT
 		iy_min = cen - yhlen;
 		iy_max = cen + yhlen;
 	}
-	inline bool detect_collision_with_rect(Rect& rect)
+	inline bool detect_collision_with_rect(const Rect& rect) const noexcept
 	{
 		double rect_xm = (rect.xl + rect.xu) * 0.5;
 		double rect_ym = (rect.yl + rect.yu) * 0.5;
@@ -183,15 +186,22 @@ struct OBB2DAABBCollisionSAT
 	}
 
 protected:
-	inline bool is_seperating_axis(double rect_range, double rect_cen,
-		double obb_min, double obb_max)
+	inline bool is_seperating_axis(
+		double rect_range,
+		double rect_cen,
+		double obb_min,
+		double obb_max
+		) const noexcept
 	{
 		return ((obb_min - rect_cen) >  rect_range ||
 				(obb_max + rect_cen) < -rect_range);
 	}
 };
 
-inline bool detect_obb2d_cube_collision(OBB2D& obb, Rect& rect)
+inline bool detect_obb2d_cube_collision(
+	const OBB2D &obb,
+	const Rect &rect
+	) noexcept
 {
 	double rect_xl = rect.xl - obb.xo;
 	double rect_xu = rect.xu - obb.xo;
@@ -202,7 +212,7 @@ inline bool detect_obb2d_cube_collision(OBB2D& obb, Rect& rect)
 
 	double tmp1, tmp2, proj_min, proj_max;
 	// ix as seperating axis
-	Vector2D &obb_ix = obb.ix;
+	const Vector2D &obb_ix = obb.ix;
 	tmp1 = rect_xl * obb_ix.x;
 	tmp2 = rect_xu * obb_ix.x;
 	if (tmp1 > tmp2)
@@ -232,7 +242,7 @@ inline bool detect_obb2d_cube_collision(OBB2D& obb, Rect& rect)
 		return false;
 
 	// iy as seperating axis
-	Vector2D& obb_iy = obb.iy;
+	const Vector2D& obb_iy = obb.iy;
 	tmp1 = rect_xl * obb_iy.x;
 	tmp2 = rect_xu * obb_iy.x;
 	if (tmp1 > tmp2)

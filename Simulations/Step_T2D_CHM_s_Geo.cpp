@@ -17,7 +17,7 @@ int Step_T2D_CHM_s_Geo::init_calculation()
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
-		pcl.pe = md.find_in_which_element(pcl);
+		pcl.pe = const_cast<Element *>(md.find_in_which_element(pcl));
 		if (pcl.pe)
 		{
 			Element& e = *pcl.pe;

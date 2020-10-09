@@ -32,10 +32,6 @@ add_library(
     ## geostatic calculation
     Step_T2D_ME_s_Geo.h Step_T2D_ME_s_Geo.cpp Step_T2D_ME_s_Geo_avg.cpp
     TimeHistory_T2D_ME_s_Geo_complete.h TimeHistory_T2D_ME_s_Geo_complete.cpp
-    # 2D ME MPM multi-thread version
-    ## deformation calculation
-    Model_T2D_ME_mt.h Model_T2D_ME_mt.cpp
-    Step_T2D_ME_mt.h Step_T2D_ME_mt.cpp
     #TimeHistory_T2D_ME_p_complete.h TimeHistory_T2D_ME_p_complete.cpp
     # 2D CHM MPM serial version
     Model_T2D_CHM_s.h Model_T2D_CHM_s.cpp
@@ -86,13 +82,13 @@ target_include_directories(
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
     ${HDF5_INCLUDE_DIR}
-    ${TBB_INCLUDE_DIR}
+    #${TBB_INCLUDE_DIR}
     )
 
-target_link_directories(
-    Simulations PUBLIC
-    ${TBB_LIBRARIES_DIR}
-    )
+# target_link_directories(
+    # Simulations PUBLIC
+    # ${TBB_LIBRARIES_DIR}
+    # )
 
 target_link_libraries(
     Simulations PUBLIC
@@ -102,7 +98,7 @@ target_link_libraries(
     Geometry
     # External dependencies
     ${HDF5_LIBRARIES}
-    TBB
+    #TBB
     )
 
 if (MSVC)

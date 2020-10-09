@@ -267,16 +267,22 @@ public:
 	INIT_BC_TEMPLATE(vfx, VelocityBC)
 	INIT_BC_TEMPLATE(vfy, VelocityBC)
 
-	inline bool is_in_triangle(Element& e, double x, double y)
+	inline bool is_in_triangle(
+		const Element& e,
+		double x, double y
+		) const noexcept
 	{ return e.pt_in_tri.is_in_triangle(x, y); }
 
 	template <typename Point2D>
-	inline bool is_in_triangle(Element &e, Point2D &pt)
+	inline bool is_in_triangle(
+		const Element &e,
+		const Point2D &pt
+		) const noexcept
 	{ return e.pt_in_tri.is_in_triangle<Point2D>(pt); }
 
 	// search using background grid
 	template <typename Point2D>
-	inline Element* find_in_which_element(Point2D& pt)
+	inline const Element* find_in_which_element(const Point2D& pt)
 	{
 		return search_bg_grid.find_in_which_element<Point2D>(pt);
 	}
@@ -285,6 +291,7 @@ public:
 	void clear_spcl_grids();
 	void reset_spcl_grids();
 	bool is_in_solid(double x, double y);
+
 protected:
 	struct SPclPointer
 	{

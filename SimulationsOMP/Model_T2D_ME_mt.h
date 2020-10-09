@@ -19,22 +19,17 @@ struct Model_T2D_ME_mt : public Model,
 	friend class Step_T2D_ME_mt;
 	friend int solve_substep_T2D_ME_mt(void* _self);
 	
-protected:
-	struct PclMass { float m; };
+public:
 	struct PclBodyForce { float bfx, bfy; };
 	struct PclTraction { float tx, ty; };
 	struct PclPos { float x, y; };
 
-	struct PclIndex { uint32_t id; };
-	struct PclDensity { float density; };
 	struct PclDisp { float ux, uy; };
 	struct PclV { float vx, vy; };
 	struct PclShapeFunc { float N1, N2, N3; };
 	struct PclStress { float s11, s22, s12; };
-	struct ElemPclList { uint32_t end_id; };
 
 	struct ElemNodeIndex { uint32_t n1, n2, n3; };
-	struct ElemArea { float area; };
 	struct ElemShapeFuncAB
 	{
 		union { float a1; float dN1_dx; };
@@ -46,78 +41,69 @@ protected:
 	};
 	struct ElemShapeFuncC { float c1, c2, c3; };
 
-	struct ElemDensity { float density; };
 	struct ElemStrainInc { float de11, de22, de12; };
 	struct ElemStress { float s11, s22, s12; };
-	struct ElemAm { float am; };
-	struct ElemAmDeVol { float am_de_vol; };
 
 	struct ElemNodeVM { float vm, vmx, vmy; };
 	struct ElemNodeForce { float fx, fy; };
 
-	struct NodeElemList { uint32_t end_id; };
-	struct NodeA { float ax, ay; };
-	struct NodeV { float vx, vy; };
-	struct NodeAm { float am; };
-	struct NodeDeVol { float de_vol; };
-
+	struct PclSortedVarArray
+	{
+		uint32_t* pcl_index; // ori_pcl_num
+		float* pcl_density; // ori_pcl_num
+		PclDisp* pcl_disp; // ori_pcl_num
+		PclV* pcl_v; // ori_pcl_num
+		PclShapeFunc* pcl_N; // ori_pcl_num
+		PclStress* pcl_stress; // ori_pcl_num
+		uint32_t* elem_has_pcl_num; // elem_num
+	};
+	
+protected:
 	uint32_t pcl_num;
 	uint32_t elem_num;
 	uint32_t node_num;
-
-	uint32_t vx_bc_n_num;
-	uint32_t* vx_bc_n_ids; // vx_bc_n_num
-	uint32_t vy_bc_n_num;
-	uint32_t* vy_bc_n_ids; // vy_bc_n_num
+	uint32_t vx_bc_num;
+	uint32_t vy_bc_num;
 	
-	PclMass *pcl_m; // ori_pcl_num
+	float *pcl_m; // ori_pcl_num
 	PclBodyForce* pcl_bf; // ori_pcl_num
 	PclTraction* pcl_t; // ori_pcl_num
 	PclPos* pcl_pos; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
 
-	uint32_t cur_pcl_sorted_var_id;
-	
-	struct PclSortedVarArray
-	{
-		PclIndex* pcl_index; // ori_pcl_num
-		PclDensity* pcl_density; // ori_pcl_num
-		PclDisp* pcl_disp; // ori_pcl_num
-		PclV* pcl_v; // ori_pcl_num
-		PclShapeFunc* pcl_N; // ori_pcl_num
-		PclStress* pcl_stress; // ori_pcl_num
-		ElemPclList* elem_pcl_list; // elem_num
-	};
 	PclSortedVarArray pcl_sorted_var_array[2];
 
+	// element data
 	ElemNodeIndex *elem_node_id; // elem_num
-	ElemArea* elem_area;
+	float *elem_area; // elem_num
 	ElemShapeFuncAB* elem_sf_ab; // elem_num
 	ElemShapeFuncC* elem_sf_c; // elem_num
 
-	ElemDensity* elem_density; // elem_num
+	// element calculation data
+	float *elem_density; // elem_num
 	ElemStrainInc *elem_de; // elem_num
 	ElemStress *elem_stress; // elem_num
-	ElemAm *elem_am; // elem_num
-	ElemAmDeVol *elem_am_de_vol; // elem_num
+	float *elem_am; // elem_num
+	float *elem_am_de_vol; // elem_num
 
+	// element-node data
 	ElemNodeVM* elem_node_vm; // elem_num * 3
 	ElemNodeForce* elem_node_force; // elem_num * 3
-
+	
 	uint32_t *elem_id_array; // elem_num * 3 
 	uint32_t *node_elem_id_array; // elem_num * 3
-	NodeElemList *node_elem_list;  // node_num
+	uint32_t *node_elem_list;  // node_num
 
-	NodeA *node_a; // node_num
-	NodeV* node_v; // node_num
-	NodeAm* node_am; // node_num
-	NodeDeVol *node_de_vol; // node_num
+	float *node_ax; // node_num
+	float *node_ay; // node_num
+	float *node_vx; // node_num
+	float *node_vy; // node_num
+	float *node_am; // node_num
+	float *node_de_vol; // node_num
 
-	// for counting sort
-	uint32_t* pcl_unsorted_id_array; // pcl_num
-	uint32_t* pcl_in_elem_id_array; // pcl_num 
-	uint32_t* elem_has_pcl_num_array; // elem_num
-	uint32_t* pcl_new_to_cur_map; // pcl_num
+	// nodal velocity bcs
+	uint32_t* vx_bcs; // vx_bc_num
+	uint32_t* vy_bcs; // vy_bc_num
 
 // ======== Non calculation data ========
 	uint32_t ori_pcl_num;
@@ -143,7 +129,6 @@ public:
 	void clear_mesh();
 	void init_mesh(const TriangleMesh& mesh);
 	
-	void alloc_search_grid(size_t _x_num, size_t _y_num);
 	void clear_search_grid();
 	int init_search_grid(const TriangleMesh& mesh, double _hx, double _hy);
 	

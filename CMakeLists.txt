@@ -28,8 +28,14 @@ add_subdirectory(Geometry/)
 # Simulations
 add_subdirectory(Simulations/)
 
+# Simulations OMP
+add_subdirectory(SimulationsOMP/)
+
 # ModelViewer
 add_subdirectory(ModelViewer/)
 
 # Tests
 add_subdirectory(Tests/)
+
+# TestsParallel
+add_subdirectory(TestsParallel/)

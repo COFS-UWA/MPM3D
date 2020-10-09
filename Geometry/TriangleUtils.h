@@ -6,11 +6,11 @@
 
 template <typename Point2D>
 inline void get_triangle_bounding_box(
-	Point2D& n1,
-	Point2D& n2,
-	Point2D& n3,
+	const Point2D& n1,
+	const Point2D& n2,
+	const Point2D& n3,
 	Rect &res
-	)
+	) noexcept
 {
 	res.xl = n1.x;
 	if (res.xl > n2.x)
@@ -35,7 +35,11 @@ inline void get_triangle_bounding_box(
 }
 
 template <typename Node2D, typename Point2D>
-inline double cal_triangle_area(Node2D& p1, Node2D& p2, Point2D& p3)
+inline double cal_triangle_area(
+	const Node2D& p1,
+	const Node2D& p2,
+	const Point2D& p3
+	) noexcept
 { return 0.5 * ((p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)); }
 
 struct PointInTriangle
@@ -47,7 +51,12 @@ protected:
 
 public:
 	template <typename Node2D>
-	inline void init_triangle(Node2D& n1, Node2D& n2, Node2D& n3, double area)
+	inline void init_triangle(
+		const Node2D& n1,
+		const Node2D& n2,
+		const Node2D& n3,
+		double area
+		) noexcept
 	{
 		double area2 = area * 2.0;
 		a1 = (n2.y - n3.y) / area2;
@@ -61,10 +70,14 @@ public:
 		coef3 = (n1.x * n2.y - n2.x * n1.y) / area2;
 	}
 	template <typename Node2D>
-	inline void init_triangle(Node2D& n1, Node2D& n2, Node2D& n3)
+	inline void init_triangle(
+		const Node2D& n1,
+		const Node2D& n2,
+		const Node2D& n3
+		) noexcept
 	{ init_triangle(n1, n2, n3, cal_triangle_area<Node2D, Node2D>(n1, n2, n3)); }
 
-	inline bool is_in_triangle(double x, double y)
+	inline bool is_in_triangle(double x, double y) const noexcept
 	{
 		double N1v = N1(x, y);
 		double N2v = N2(x, y);
@@ -74,7 +87,7 @@ public:
 				 N3v < 0.0 || N3v > 1.0);
 	}
 	template <typename Point2D>
-	inline bool is_in_triangle(Point2D& p)
+	inline bool is_in_triangle(const Point2D& p) const noexcept
 	{ return is_in_triangle(p.x, p.y); }
 
 	// shape functions

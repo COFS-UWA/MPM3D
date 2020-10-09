@@ -1,0 +1,48 @@
+#===================================
+#
+# SimulationsOMP Project
+#
+#===================================
+add_library(
+    SimulationsOMP STATIC
+    # precomplied header
+    SimulationsOMP_pcp.h SimulationsOMP_pcp.cpp
+    # 2D ME MPM multi-thread version
+    ## deformation calculation
+    Model_T2D_ME_mt.h Model_T2D_ME_mt.cpp
+    Step_T2D_ME_mt.h Step_T2D_ME_mt.cpp
+    #TimeHistory_T2D_ME_p_complete.h TimeHistory_T2D_ME_p_complete.cpp
+    )
+
+set(SIMULATIONS_OMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
+
+target_include_directories(
+    SimulationsOMP PUBLIC
+    # Internal dependencies
+    ${COMMONUTILS_INCLUDE_DIR}
+    ${MEMORYUTILS_INCLUDE_DIR}
+    ${FILEUTILS_INCLUDE_DIR}
+    ${MATERIALMODELS_INCLUDE_DIR}
+    ${GEOMETRY_INCLUDE_DIR}
+    ${SIMULATIONS_INCLUDE_DIR}
+    ${SIMULATIONS_OMP_INCLUDE_DIR}
+    # External dependencies
+    ${EIGEN_INCLUDE_DIR}
+    ${HDF5_INCLUDE_DIR}
+    )
+
+target_link_libraries(
+    SimulationsOMP PUBLIC
+    # Internal dependencies
+    MemoryUtils
+    MaterialModels
+    Geometry
+    Simulations
+    # External dependencies
+    ${HDF5_LIBRARIES}
+    )
+
+if (MSVC)
+    target_compile_definitions(SimulationsOMP PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_options(SimulationsOMP PRIVATE -YcSimulationsOMP_pcp.h)
+endif()

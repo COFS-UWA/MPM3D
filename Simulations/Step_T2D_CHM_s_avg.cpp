@@ -2,7 +2,7 @@
 
 #include "Step_T2D_CHM_s.h"
 
-#define one_third (1.0/3.0)
+#define one_third (1.0f/3.0f)
 
 int solve_substep_T2D_CHM_s_avg(void *_self)
 {
@@ -63,7 +63,7 @@ int solve_substep_T2D_CHM_s_avg(void *_self)
 		Particle &pcl = md.pcls[pcl_id];
 		if (pcl.pe)
 		{
-			if (!(pcl.pe = md.find_in_which_element(pcl)))
+			if (!(pcl.pe = const_cast<Element *>(md.find_in_which_element(pcl))))
 				continue;
 
 			pcl.vol = pcl.vol_s / (1.0 - pcl.n);
