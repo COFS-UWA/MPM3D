@@ -10,8 +10,10 @@ add_library(
     # 2D ME MPM multi-thread version
     ## deformation calculation
     Model_T2D_ME_mt.h Model_T2D_ME_mt.cpp
+    Model_T2D_ME_mt_hdf5_utilities.h Model_T2D_ME_mt_hdf5_utilities.cpp
+    ModelData_T2D_ME_mt.h ModelData_T2D_ME_mt.cpp
     Step_T2D_ME_mt.h Step_T2D_ME_mt.cpp
-    #TimeHistory_T2D_ME_p_complete.h TimeHistory_T2D_ME_p_complete.cpp
+    TimeHistory_T2D_ME_mt_complete.h TimeHistory_T2D_ME_mt_complete.cpp
     )
 
 set(SIMULATIONS_OMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
@@ -41,6 +43,11 @@ target_link_libraries(
     # External dependencies
     ${HDF5_LIBRARIES}
     )
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(SimulationsOMP PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 if (MSVC)
     target_compile_definitions(SimulationsOMP PRIVATE _CRT_SECURE_NO_WARNINGS)

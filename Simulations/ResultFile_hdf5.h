@@ -57,11 +57,15 @@ public:
 	bool has_attribute(hid_t grp_id, const char* name);
 	// write
 	int write_attribute(hid_t grp_id, const char *name, double value);
+	int write_attribute(hid_t grp_id, const char* name, float value);
 	int write_attribute(hid_t grp_id, const char *name, size_t value);
+	int write_attribute(hid_t grp_id, const char* name, uint32_t value);
 	int write_attribute(hid_t grp_id, const char *name, size_t num, const char *str);
 	// read
 	int read_attribute(hid_t grp_id, const char *name, double &value);
+	int read_attribute(hid_t grp_id, const char* name, float &value);
 	int read_attribute(hid_t grp_id, const char *name, size_t &value);
+	int read_attribute(hid_t grp_id, const char* name, uint32_t &value);
 	int read_attribute(hid_t grp_id, const char *name, size_t num, const char *str);
 
 	// model data group

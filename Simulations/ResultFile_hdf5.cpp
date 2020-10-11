@@ -282,6 +282,21 @@ int ResultFile_hdf5::write_attribute(
 
 int ResultFile_hdf5::write_attribute(
 	hid_t grp_id,
+	const char* name,
+	float value
+	)
+{
+	hid_t dataspace_id = H5Screate(H5S_SCALAR);
+	hid_t attr_id = H5Acreate(grp_id, name, H5T_NATIVE_FLOAT,
+		dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+	H5Awrite(attr_id, H5T_NATIVE_FLOAT, &value);
+	H5Aclose(attr_id);
+	H5Sclose(dataspace_id);
+	return 0;
+}
+
+int ResultFile_hdf5::write_attribute(
+	hid_t grp_id,
 	const char *name,
 	size_t value
 	)
@@ -291,6 +306,21 @@ int ResultFile_hdf5::write_attribute(
 	hid_t attr_id = H5Acreate(grp_id, name, H5T_NATIVE_ULLONG,
 							  dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
 	H5Awrite(attr_id, H5T_NATIVE_ULLONG, &_value);
+	H5Aclose(attr_id);
+	H5Sclose(dataspace_id);
+	return 0;
+}
+
+int ResultFile_hdf5::write_attribute(
+	hid_t grp_id,
+	const char* name,
+	uint32_t value
+	)
+{
+	hid_t dataspace_id = H5Screate(H5S_SCALAR);
+	hid_t attr_id = H5Acreate(grp_id, name, H5T_NATIVE_ULONG,
+		dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+	H5Awrite(attr_id, H5T_NATIVE_ULONG, &value);
 	H5Aclose(attr_id);
 	H5Sclose(dataspace_id);
 	return 0;
@@ -329,6 +359,22 @@ int ResultFile_hdf5::read_attribute(
 
 int ResultFile_hdf5::read_attribute(
 	hid_t grp_id,
+	const char* name,
+	float &value
+	)
+{
+	hid_t dataspace_id = H5Screate(H5S_SCALAR);
+	hid_t attr_id = H5Aopen(grp_id, name, H5P_DEFAULT);
+	if (attr_id < 0)
+		return -1;
+	H5Aread(attr_id, H5T_NATIVE_FLOAT, &value);
+	H5Aclose(attr_id);
+	H5Sclose(dataspace_id);
+	return 0;
+}
+
+int ResultFile_hdf5::read_attribute(
+	hid_t grp_id,
 	const char *name,
 	size_t &value
 	)
@@ -341,6 +387,21 @@ int ResultFile_hdf5::read_attribute(
 	H5Aclose(attr_id);
 	H5Sclose(dataspace_id);
 	value = (size_t)_value;
+	return 0;
+}
+
+int ResultFile_hdf5::read_attribute(
+	hid_t grp_id,
+	const char* name,
+	uint32_t &value
+)
+{
+	hid_t dataspace_id = H5Screate(H5S_SCALAR);
+	hid_t attr_id = H5Aopen(grp_id, name, H5P_DEFAULT);
+	if (attr_id < 0) return -1;
+	H5Aread(attr_id, H5T_NATIVE_ULLONG, &value);
+	H5Aclose(attr_id);
+	H5Sclose(dataspace_id);
 	return 0;
 }
 

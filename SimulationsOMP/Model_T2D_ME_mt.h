@@ -10,15 +10,32 @@
 #include "ParticleGenerator2D.hpp"
 #include "TriangleMesh.h"
 
+class Model_T2D_ME_mt;
 class Step_T2D_ME_mt;
 int solve_substep_T2D_ME_mt(void* _self);
+
+class ResultFile_hdf5;
+class Step_T2D_ME_mt;
+namespace Model_T2D_ME_mt_hdf5_utilities
+{
+	struct ParticleData;
+	int output_background_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_background_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_boundary_condition_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_boundary_condition_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_pcl_data_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_material_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_material_model_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+}
 
 struct Model_T2D_ME_mt : public Model,
 	public MatModel::MatModelContainer
 {
 	friend class Step_T2D_ME_mt;
 	friend int solve_substep_T2D_ME_mt(void* _self);
-	
+	friend class Model_T2D_ME_mt_hdf5_utilities::ParticleData;
+
 public:
 	struct PclBodyForce { float bfx, bfy; };
 	struct PclTraction { float tx, ty; };
@@ -111,6 +128,9 @@ protected:
 
 	char *mesh_mem_raw;
 
+	struct NodePos { float x, y; };
+	NodePos *node_pos;
+
 	// boundary conditions
 	size_t bfx_num, bfy_num;
 	BodyForceAtPcl* bfxs, * bfys;
@@ -121,18 +141,31 @@ public:
 	Model_T2D_ME_mt();
 	~Model_T2D_ME_mt();
 
-	inline size_t get_pcl_num() const noexcept { return size_t(pcl_num); }
-	inline size_t get_elem_num() const noexcept { return size_t(elem_num); }
-	inline size_t get_node_num() const noexcept { return size_t(node_num); }
+	inline uint32_t get_pcl_num() const noexcept { return pcl_num; }
+	inline uint32_t get_ori_pcl_num() const noexcept { return ori_pcl_num; }
+	inline uint32_t get_elem_num() const noexcept { return elem_num; }
+	inline uint32_t get_node_num() const noexcept { return node_num; }
 	inline MatModel::MaterialModel **get_mat_models() noexcept { return pcl_mat_model; }
 
+	inline float get_bg_grid_xl() const noexcept { return grid_xl; }
+	inline float get_bg_grid_yl() const noexcept { return grid_yl; }
+	inline float get_bg_grid_hx() const noexcept { return grid_hx; }
+	inline float get_bg_grid_hy() const noexcept { return grid_hy; }
+	inline uint32_t get_grid_x_num() const noexcept { return grid_x_num; }
+	inline uint32_t get_grid_y_num() const noexcept { return grid_y_num; }
+	class MeshBgGrid;
+	inline MeshBgGrid* get_grids() noexcept { return grids; }
+	inline uint32_t* get_grid_elem_id_array() noexcept { return grid_elem_id_array; }
+	
 	void clear_mesh();
+	void alloc_mesh(size_t n_num, size_t e_num);
 	void init_mesh(const TriangleMesh& mesh);
 	
 	void clear_search_grid();
 	int init_search_grid(const TriangleMesh& mesh, double _hx, double _hy);
 	
 	void alloc_pcls(size_t num);
+	void alloc_pcls(size_t num, size_t ori_num);
 	void clear_pcls();
 	int init_pcls(size_t num, double m, double density);
 	int Model_T2D_ME_mt::init_pcls(
@@ -201,6 +234,15 @@ protected:
 		}
 		return UINT32_MAX;
 	}
+
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_boundary_condition_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_boundary_condition_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 };
 
 #endif

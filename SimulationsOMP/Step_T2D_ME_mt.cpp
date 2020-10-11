@@ -139,6 +139,16 @@ namespace Step_T2D_ME_mt_Internal
 	uint32_t* elem_bin_offset;
 }
 
+uint32_t Step_T2D_ME_mt::get_pcl_num()
+{
+	return Step_T2D_ME_mt_Internal::pcl_num;
+}
+
+uint32_t Step_T2D_ME_mt::get_sorted_var_id()
+{
+	return Step_T2D_ME_mt_Internal::pcl_sorted_var_id;
+}
+
 int Step_T2D_ME_mt::init_calculation()
 {
 	using Step_T2D_ME_mt_Internal::divide_task_to_thread;

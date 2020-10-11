@@ -4,10 +4,19 @@
 #include "Step.h"
 #include "Model_T2D_ME_mt.h"
 
+class Model_T2D_ME_mt;
+class Step_T2D_ME_mt;
+namespace Model_T2D_ME_mt_hdf5_utilities
+{
+	int load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+}
+
 int solve_substep_T2D_ME_mt(void* _self);
 
 class Step_T2D_ME_mt : public Step
 {
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+
 protected:
 	uint32_t thread_num;
 
@@ -57,6 +66,9 @@ public:
 	~Step_T2D_ME_mt();
 
 	inline void set_thread_num(uint32_t th_num) noexcept { thread_num = th_num; }
+
+	static uint32_t get_pcl_num();
+	static uint32_t get_sorted_var_id();
 };
 
 #endif
