@@ -5,6 +5,7 @@
 
 int main(int argc, char *argv[])
 {
+	test_t2d_me_mt_test1(argc, argv);
 
 	system("pause");
 	return 0;

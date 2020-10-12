@@ -194,9 +194,10 @@ int output_boundary_condition_to_hdf5_file(
 		return -1;
 
 	hid_t bc_grp_id = rf.create_group(grp_id, "BoundaryCondition");
-
-	rf.write_attribute(bc_grp_id, "pcl_num", md.pcl_num);
 	
+	rf.write_attribute(bc_grp_id, "vx_num", md.vx_bc_num);
+	rf.write_attribute(bc_grp_id, "vy_num", md.vy_bc_num);
+
 	// velocity bc
 	hid_t vbc_dt_id = get_vbc_dt_id();
 	VelocityBCData* vbcds;

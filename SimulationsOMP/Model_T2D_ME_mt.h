@@ -153,9 +153,8 @@ public:
 	inline float get_bg_grid_hy() const noexcept { return grid_hy; }
 	inline uint32_t get_grid_x_num() const noexcept { return grid_x_num; }
 	inline uint32_t get_grid_y_num() const noexcept { return grid_y_num; }
-	class MeshBgGrid;
-	inline MeshBgGrid* get_grids() noexcept { return grids; }
-	inline uint32_t* get_grid_elem_id_array() noexcept { return grid_elem_id_array; }
+	inline const uint32_t* get_grid_elem_list_id_array() const noexcept { return grid_elem_list_id_array; }
+	inline const uint32_t* get_grid_elem_list() const noexcept { return grid_elem_list; }
 	
 	void clear_mesh();
 	void alloc_mesh(size_t n_num, size_t e_num);
@@ -168,9 +167,7 @@ public:
 	void alloc_pcls(size_t num, size_t ori_num);
 	void clear_pcls();
 	int init_pcls(size_t num, double m, double density);
-	int Model_T2D_ME_mt::init_pcls(
-		ParticleGenerator2D<TriangleMesh>& pg,
-		double density);
+	int init_pcls(ParticleGenerator2D<TriangleMesh>& pg, double density);
 
 	INIT_BC_TEMPLATE(bfx, BodyForceAtPcl)
 	INIT_BC_TEMPLATE(bfy, BodyForceAtPcl)
@@ -206,29 +203,30 @@ protected:
 	}
 	
 	// background grid for mesh
-	struct MeshBgGrid
-	{
-		uint32_t elem_start_id, elem_end_id;
-	};
-
 	float grid_xl, grid_yl;
+	float grid_xu, grid_yu;
 	float grid_hx, grid_hy;
 	uint32_t grid_x_num, grid_y_num;
-	MeshBgGrid *grids;
-	uint32_t* grid_elem_id_array;
+	uint32_t* grid_elem_list_id_array;
+	uint32_t* grid_elem_list;
 
 	inline uint32_t find_pcl_in_which_elem(
 		float pcl_x, float pcl_y,
 		PclShapeFunc& pcl_sf
 		) noexcept
 	{
+		if (pcl_x < grid_xl || pcl_x > grid_xu ||
+			pcl_y < grid_yl || pcl_y > grid_yu)
+			return UINT32_MAX;
 		uint32_t x_id, y_id, elem_id;
 		x_id = (pcl_x - grid_xl) / grid_hx;
 		y_id = (pcl_y - grid_yl) / grid_hy;
-		MeshBgGrid &g = grids[grid_x_num * y_id + x_id];
-		for (uint32_t e_id = g.elem_start_id; e_id < g.elem_end_id; ++e_id)
+		uint32_t g_id = grid_x_num * y_id + x_id;
+		uint32_t elem_end_id = grid_elem_list[g_id + 1];
+		for (uint32_t e_id = grid_elem_list[g_id];
+			 e_id < elem_end_id; ++e_id)
 		{
-			elem_id = grid_elem_id_array[e_id];
+			elem_id = grid_elem_list_id_array[e_id];
 			if (is_in_element(pcl_x, pcl_y, elem_id, pcl_sf))
 				return elem_id;
 		}

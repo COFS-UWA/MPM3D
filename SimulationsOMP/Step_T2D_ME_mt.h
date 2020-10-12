@@ -37,6 +37,7 @@ protected:
 
 	void clear_mem();
 
+public:
 	int init_calculation() override;
 	friend int solve_substep_T2D_ME_mt(void* _self);
 	int finalize_calculation() override;
