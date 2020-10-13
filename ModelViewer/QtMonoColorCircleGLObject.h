@@ -32,18 +32,21 @@ public:
 
 	// Particle2D has member x, y and area
 	template <typename Particle2D>
-	int init(Particle2D* pcls, size_t pcl_num, QVector3D &c, float radius_scale = 0.5f);
+	int init(const Particle2D* pcls, size_t pcl_num, QVector3D &c, float radius_scale = 0.5f);
+
+	template <typename Particle2D>
+	int init(const Particle2D* pcls, const float *pcl_m, const float *pcl_density, size_t pcl_num, QVector3D& c, float radius_scale = 0.5f);
 
 	// Point2D has member x and y
 	template <typename Point2D>
-	int init(Point2D *pts, size_t pt_num, float pcl_radius, QVector3D &c);
+	int init(const Point2D *pts, size_t pt_num, float pcl_radius, QVector3D &c);
 
 	void draw(QOpenGLShaderProgram& shader);
 };
 
 template <typename Particle2D>
 int QtMonoColorCircleGLObject::init(
-	Particle2D* pcls,
+	const Particle2D* pcls,
 	size_t pcl_num,
 	QVector3D &c,
 	float radius_scale
@@ -56,7 +59,7 @@ int QtMonoColorCircleGLObject::init(
 	PointData* pt_datas = new PointData[pcl_num];
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		Particle2D& pcl = pcls[p_id];
+		const Particle2D& pcl = pcls[p_id];
 		PointData& pd = pt_datas[p_id];
 		pd.type = 0; // mono color
 		pd.x = GLfloat(pcl.x);
@@ -69,9 +72,39 @@ int QtMonoColorCircleGLObject::init(
 	return 0;
 }
 
+template <typename Particle2D>
+int QtMonoColorCircleGLObject::init(
+	const Particle2D* pcls,
+	const float *pcl_m,
+	const float *pcl_density,
+	size_t pcl_num,
+	QVector3D& c,
+	float radius_scale
+	)
+{
+	clear();
+
+	color = c;
+
+	PointData* pt_datas = new PointData[pcl_num];
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		const Particle2D& pcl = pcls[p_id];
+		PointData& pd = pt_datas[p_id];
+		pd.type = 0; // mono color
+		pd.x = GLfloat(pcl.x);
+		pd.y = GLfloat(pcl.y);
+		pd.radius = sqrt(GLfloat(pcl_m[p_id]/pcl_density[p_id]) / 3.14159265359f)
+			* radius_scale;
+	}
+	int res = init_gl_buffer(pt_datas, pcl_num);
+	delete[] pt_datas;
+	return 0;
+}
+
 template <typename Point2D>
 int QtMonoColorCircleGLObject::init(
-	Point2D* pts,
+	const Point2D* pts,
 	size_t _pt_num,
 	float pt_radius,
 	QVector3D& c
@@ -84,7 +117,7 @@ int QtMonoColorCircleGLObject::init(
 	PointData* pt_datas = new PointData[_pt_num];
 	for (size_t p_id = 0; p_id < _pt_num; ++p_id)
 	{
-		Point2D& pt = pts[p_id];
+		const Point2D& pt = pts[p_id];
 		PointData& pd = pt_datas[p_id];
 		pd.type = 0; // mono color
 		pd.x = GLfloat(pt.x);

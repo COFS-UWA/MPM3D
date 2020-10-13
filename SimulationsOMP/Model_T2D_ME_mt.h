@@ -64,6 +64,8 @@ public:
 	struct ElemNodeVM { float vm, vmx, vmy; };
 	struct ElemNodeForce { float fx, fy; };
 
+	struct NodePos { float x, y; };
+	
 	struct PclSortedVarArray
 	{
 		uint32_t* pcl_index; // ori_pcl_num
@@ -128,7 +130,6 @@ protected:
 
 	char *mesh_mem_raw;
 
-	struct NodePos { float x, y; };
 	NodePos *node_pos;
 
 	// boundary conditions
@@ -141,11 +142,22 @@ public:
 	Model_T2D_ME_mt();
 	~Model_T2D_ME_mt();
 
-	inline uint32_t get_pcl_num() const noexcept { return pcl_num; }
 	inline uint32_t get_ori_pcl_num() const noexcept { return ori_pcl_num; }
-	inline uint32_t get_elem_num() const noexcept { return elem_num; }
+	inline uint32_t get_pcl_num() const noexcept { return pcl_num; }
+	inline const PclPos* get_pcl_pos() const noexcept { return pcl_pos; }
+	inline const float *get_pcl_m() const noexcept { return pcl_m; }
+	inline const float* get_pcl_density0() const noexcept { return pcl_sorted_var_array[0].pcl_density; }
 	inline uint32_t get_node_num() const noexcept { return node_num; }
+	inline const NodePos* get_node_pos() const noexcept { return node_pos; }
+	inline uint32_t get_elem_num() const noexcept { return elem_num; }
+	inline const ElemNodeIndex* get_elem_node_index() const noexcept { return elem_node_id; }
 	inline MatModel::MaterialModel **get_mat_models() noexcept { return pcl_mat_model; }
+	Rect get_mesh_bbox();
+
+	inline uint32_t get_vx_bc_num() const noexcept { return vx_bc_num; }
+	inline const uint32_t* get_vx_bcs() const noexcept { return vx_bcs; }
+	inline uint32_t get_vy_bc_num() const noexcept { return vy_bc_num; }
+	inline const uint32_t* get_vy_bcs() const noexcept { return vy_bcs; }
 
 	inline float get_bg_grid_xl() const noexcept { return grid_xl; }
 	inline float get_bg_grid_yl() const noexcept { return grid_yl; }
@@ -183,7 +195,7 @@ public:
 	void alloc_vy_bcs(size_t vy_bc_num);
 	void clear_vy_bcs();
 	void init_fixed_vx_bc(size_t vx_bc_num, const size_t *vx_bcs);
-	void init_fixed_vy_bf(size_t vy_bc_num, const size_t* vy_bcs);
+	void init_fixed_vy_bc(size_t vy_bc_num, const size_t* vy_bcs);
 
 protected:
 	inline bool is_in_element(

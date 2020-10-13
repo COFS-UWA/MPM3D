@@ -19,6 +19,7 @@ public:
 
 	virtual bool validate_data_type() = 0;
 	virtual int extract_pcl_fld_data(double *pcl_fld_data) = 0;
+	virtual int extract_pcl_fld_data_f(float* pcl_fld_data) { return 0; }
 };
 
 #endif

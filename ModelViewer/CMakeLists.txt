@@ -83,6 +83,13 @@ add_library(
     # post process module
     QtSceneFromHdf5_T2D_ME_s.h QtSceneFromHdf5_T2D_ME_s.cpp
     QtApp_Posp_T2D_ME_s.h QtApp_Posp_T2D_ME_s.cpp
+    # Model_T2D_ME_mt
+    # prep process module
+    QtSceneFromModel_T2D_ME_mt.h QtSceneFromModel_T2D_ME_mt.cpp
+    QtApp_Prep_T2D_ME_mt.h QtApp_Prep_T2D_ME_mt.cpp
+    # post process module
+    QtSceneFromHdf5_T2D_ME_mt.h QtSceneFromHdf5_T2D_ME_mt.cpp
+    QtApp_Posp_T2D_ME_mt.h QtApp_Posp_T2D_ME_mt.cpp
     # Model_T2D_ME_p
     # prep process module
     #QtSceneFromModel_T2D_ME_p.h QtSceneFromModel_T2D_ME_p.cpp
@@ -130,6 +137,7 @@ target_include_directories(
     ${MATERIALMODELS_INCLUDE_DIR}
     ${GEOMETRY_INCLUDE_DIR}
     ${SIMULATIONS_INCLUDE_DIR}
+    ${SIMULATIONS_OMP_INCLUDE_DIR}
     ${MODELVIEWER_INCLUDE_DIR}
     # External
     ${EIGEN_INCLUDE_DIR}

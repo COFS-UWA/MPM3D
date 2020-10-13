@@ -81,7 +81,7 @@ namespace Model_T3D_CHM_s_Internal
 			mm = &_mm;
 		}
 
-		inline double get_vol() { return m_s / (density_s * (1.0 - n)); }
+		inline double get_vol() const noexcept { return m_s / (density_s * (1.0 - n)); }
 	};
 
 	struct Element

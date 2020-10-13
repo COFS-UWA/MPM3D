@@ -81,6 +81,54 @@ int QtMultiColorCircleGLObject::update(
     return res;
 }
 
+int QtMultiColorCircleGLObject::init(
+    size_t pcl_num,
+    float *pcl_x_data,
+    float *pcl_y_data,
+    float *pcl_vol_data,
+    float *pcl_fld_data,
+    float radius_scale
+    )
+{
+    pt_data_mem.reserve(pcl_num);
+    PointData* pt_data = pt_data_mem.get_mem();
+    for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+    {
+        PointData& pd = pt_data[pcl_id];
+        pd.type = 1; // multi color
+        pd.x = GLfloat(pcl_x_data[pcl_id]);
+        pd.y = GLfloat(pcl_y_data[pcl_id]);
+        pd.radius = GLfloat(sqrt(pcl_vol_data[pcl_id]) * 0.5) * radius_scale;
+        pd.fld = GLfloat(pcl_fld_data[pcl_id]);
+    }
+    int res = init_gl_buffer(pt_data, pcl_num);
+    return res;
+}
+
+int QtMultiColorCircleGLObject::update(
+    size_t pcl_num,
+    float *pcl_x_data,
+    float *pcl_y_data,
+    float *pcl_vol_data,
+    float *pcl_fld_data,
+    float radius_scale
+)
+{
+    pt_data_mem.reserve(pcl_num);
+    PointData* pt_data = pt_data_mem.get_mem();
+    for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+    {
+        PointData& pd = pt_data[pcl_id];
+        pd.type = 1; // multi color
+        pd.x = GLfloat(pcl_x_data[pcl_id]);
+        pd.y = GLfloat(pcl_y_data[pcl_id]);
+        pd.radius = GLfloat(sqrt(pcl_vol_data[pcl_id]) * 0.5) * radius_scale;
+        pd.fld = GLfloat(pcl_fld_data[pcl_id]);
+    }
+    int res = update_gl_buffer(pt_data, pcl_num);
+    return res;
+}
+
 void QtMultiColorCircleGLObject::draw(QOpenGLShaderProgram& shader)
 {
     (void)shader;

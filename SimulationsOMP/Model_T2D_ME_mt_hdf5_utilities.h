@@ -13,9 +13,12 @@ struct ParticleData
 {
 	uint32_t id;
 	float m;
-	float bfx, bfy;
-	float tx, ty;
-	float x, y;
+	float bfx;
+	float bfy;
+	float tx;
+	float ty;
+	float x;
+	float y;
 	float density;
 	float vol;
 	float vx;
@@ -23,7 +26,7 @@ struct ParticleData
 	float s11;
 	float s22;
 	float s12;
-	unsigned long mat_id; // material model id
+	uint32_t mat_id; // material model id
 
 	void from_pcl(
 		Model_T2D_ME_mt &md,
@@ -95,9 +98,13 @@ inline hid_t get_pcl_dt_id()
 	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(ParticleData));
 	H5Tinsert(res, "id", HOFFSET(ParticleData, id), H5T_NATIVE_ULONG);
 	H5Tinsert(res, "m", HOFFSET(ParticleData, m), H5T_NATIVE_FLOAT);
-	H5Tinsert(res, "density", HOFFSET(ParticleData, density), H5T_NATIVE_FLOAT);
+	H5Tinsert(res, "bfx", HOFFSET(ParticleData, bfx), H5T_NATIVE_FLOAT);
+	H5Tinsert(res, "bfy", HOFFSET(ParticleData, bfy), H5T_NATIVE_FLOAT);
+	H5Tinsert(res, "tx", HOFFSET(ParticleData, tx), H5T_NATIVE_FLOAT);
+	H5Tinsert(res, "ty", HOFFSET(ParticleData, ty), H5T_NATIVE_FLOAT);
 	H5Tinsert(res, "x", HOFFSET(ParticleData, x), H5T_NATIVE_FLOAT);
 	H5Tinsert(res, "y", HOFFSET(ParticleData, y), H5T_NATIVE_FLOAT);
+	H5Tinsert(res, "density", HOFFSET(ParticleData, density), H5T_NATIVE_FLOAT);
 	H5Tinsert(res, "vol", HOFFSET(ParticleData, vol), H5T_NATIVE_FLOAT);
 	H5Tinsert(res, "vx", HOFFSET(ParticleData, vx), H5T_NATIVE_FLOAT);
 	H5Tinsert(res, "vy", HOFFSET(ParticleData, vy), H5T_NATIVE_FLOAT);

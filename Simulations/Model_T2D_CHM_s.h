@@ -61,7 +61,7 @@ struct Particle
 	double ux_s, uy_s;
 	double ux_f, uy_f;
 	double vol_s, vol, m_f;
-	inline double get_vol() { return m_s / (density_s * (1.0 - n)); }
+	inline double get_vol() const noexcept { return m_s / (density_s * (1.0 - n)); }
 
 	Element* pe;
 	double N1, N2, N3;

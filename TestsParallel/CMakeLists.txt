@@ -7,11 +7,13 @@ add_executable(
     TestsParallel
     # precompiled header
     TestsParallel_pcp.h TestsParallel_pcp.cpp
+    test_parallel_utils.h
     test_simulations_omp.h
     test_model_view_omp.h
     # entry
     TestsParallel_main.cpp
     test_t2d_me_mt_test1.cpp
+    test_t2d_me_mt_test2.cpp
     )
 
 target_include_directories(

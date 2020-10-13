@@ -48,7 +48,7 @@ struct Particle
 	// calculation variables
 	double x_ori, y_ori;
 	double vol;
-	inline double get_vol() { return m / density; }
+	inline double get_vol() const noexcept { return m / density; }
 	
 	Element* pe;
 	double N1, N2, N3;

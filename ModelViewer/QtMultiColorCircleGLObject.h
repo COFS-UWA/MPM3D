@@ -40,6 +40,12 @@ public:
 	int update(size_t pcl_num, double* pcl_x_data, double* pcl_y_data,
 		double* pcl_vol_data, double* pcl_fld_data, float radius_scale);
 
+	int init(size_t pcl_num, float* pcl_x_data, float* pcl_y_data,
+		float *pcl_vol_data, float* pcl_fld_data, float radius_scale);
+
+	int update(size_t pcl_num, float *pcl_x_data, float *pcl_y_data,
+		float *pcl_vol_data, float *pcl_fld_data, float radius_scale);
+	
 	void draw(QOpenGLShaderProgram& shader);
 };
 

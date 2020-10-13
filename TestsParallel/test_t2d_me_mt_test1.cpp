@@ -23,9 +23,9 @@ void test_t2d_me_mt_test1(int argc, char** argv)
 	model.init_search_grid(tri_mesh, 0.6, 0.6);
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 1.0, 0.0, 1.0), 0.25, 0.25);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 1.0, 0.0, 1.0), 0.25, 0.25);
 	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 1.0, 0.5, 1.5), 0.25, 0.25);
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 1.0, 1.0, 2.0), 0.25, 0.25);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 1.0, 1.0, 2.0), 0.25, 0.25);
 	model.init_pcls(pcl_generator, 10.0);
 	MatModel::MaterialModel **mms = model.get_mat_models();
 	MatModel::LinearElasticity *les = model.add_LinearElasticity(model.get_pcl_num());
@@ -41,17 +41,17 @@ void test_t2d_me_mt_test1(int argc, char** argv)
 	ModelData_T2D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	//TimeHistory_T2D_ME_mt_complete out("test");
-	//out.set_res_file(res_file_hdf5);
-	//out.set_output_init_state();
-	//out.set_interval_num(10);
+	TimeHistory_T2D_ME_mt_complete out("test");
+	out.set_res_file(res_file_hdf5);
+	out.set_output_init_state();
+	out.set_interval_num(10);
 	//TimeHistory_ConsoleProgressBar out_pb;
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0e-1);
-	step.set_dtime(1.0e-1);
-	//step.add_time_history(out);
+	step.set_step_time(1.0);
+	step.set_dtime(1.0e-5);
+	step.add_time_history(out);
 	//step.add_time_history(out_pb);
 	//step.set_thread_num(3);
 	//step.init_calculation();

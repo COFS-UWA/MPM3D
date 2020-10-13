@@ -35,3 +35,20 @@ int Hdf5FieldExtraction_vz::extract_pcl_fld_data(double* pcl_fld_data)
 	}
 	return 0;
 }
+
+int Hdf5FieldExtraction_vz::extract_pcl_fld_data_f(float *pcl_fld_data)
+{
+	if (!vz_fld_is_found)
+		return -1;
+
+	Hdf5DataLoader& loader = *data_loader;
+	size_t pcl_size = loader.get_pcl_size();
+	size_t pcl_num = loader.get_pcl_num();
+	char* cur_pcl = loader.get_pcl_field_data();
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		pcl_fld_data[pcl_id] = *(float *)(cur_pcl + vz_offset);
+		cur_pcl += pcl_size;
+	}
+	return 0;
+}

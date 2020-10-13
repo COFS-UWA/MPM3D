@@ -33,6 +33,28 @@ Model_T2D_ME_mt::~Model_T2D_ME_mt()
 	clear_vy_bcs();
 }
 
+Rect Model_T2D_ME_mt::get_mesh_bbox()
+{
+	if (!node_num)
+		return Rect(0.0, 0.0, 0.0, 0.0);
+
+	Rect res(node_pos[0].x, node_pos[0].x,
+			 node_pos[0].y, node_pos[0].y);
+	for (uint32_t n_id = 1; n_id < node_num; ++n_id)
+	{
+		NodePos& np = node_pos[n_id];
+		if (res.xl > np.x)
+			res.xl = np.x;
+		if (res.xu < np.x)
+			res.xu = np.x;
+		if (res.yl > np.y)
+			res.yl = np.y;
+		if (res.yu < np.y)
+			res.yu = np.y;
+	}
+	return res;
+}
+
 void Model_T2D_ME_mt::clear_mesh()
 {
 	if (mesh_mem_raw)
@@ -728,7 +750,7 @@ void Model_T2D_ME_mt::init_fixed_vx_bc(
 		vx_bcs[bc_id] = uint32_t(bcs[bc_id]);
 }
 
-void Model_T2D_ME_mt::init_fixed_vy_bf(
+void Model_T2D_ME_mt::init_fixed_vy_bc(
 	size_t bc_num,
 	const size_t* bcs
 	)

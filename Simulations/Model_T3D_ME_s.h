@@ -61,7 +61,7 @@ namespace Model_T3D_ME_s_Internal
 			mm = &_mm;
 		}
 
-		inline double get_vol() { return m / density; }
+		inline double get_vol() const noexcept { return m / density; }
 
 		ContactState contact_state;
 	};
