@@ -14,6 +14,7 @@ add_executable(
     TestsParallel_main.cpp
     test_t2d_me_mt_test1.cpp
     test_t2d_me_mt_test2.cpp
+    test_Step_OMP.cpp
     )
 
 target_include_directories(

@@ -108,7 +108,7 @@ protected:
 	int output_time_history();
 	int finalize_time_history();
 
-private: // helper data and functions (called after init "next_time")
+protected: // helper data and functions (called after init "next_time")
 	double next_output_time;
 	// get output with the latest "next_time"
 	TimeHistory *get_latest_time_history(TimeHistoryList &th_list);

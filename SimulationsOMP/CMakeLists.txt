@@ -8,6 +8,7 @@ add_library(
     # precomplied header
     SimulationsOMP_pcp.h SimulationsOMP_pcp.cpp
     # 2D ME MPM multi-thread version
+    Step_OMP.h Step_OMP.cpp
     ## deformation calculation
     Model_T2D_ME_mt.h Model_T2D_ME_mt.cpp
     Model_T2D_ME_mt_hdf5_utilities.h Model_T2D_ME_mt_hdf5_utilities.cpp
