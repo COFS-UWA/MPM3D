@@ -9,9 +9,8 @@
 Model_T2D_ME_mt::Model_T2D_ME_mt() :
 	ori_pcl_num(0), pcl_num(0),
 	pcl_mem_raw(nullptr), pcl_mat_model(nullptr),
+	node_num(0), elem_num(0),
 	mesh_mem_raw(nullptr),
-	vx_bc_num(0), vx_bcs(nullptr),
-	vy_bc_num(0), vy_bcs(nullptr),
 	bfx_num(0), bfxs(nullptr),
 	bfy_num(0), bfys(nullptr),
 	tx_num(0), txs(nullptr),
@@ -29,8 +28,6 @@ Model_T2D_ME_mt::~Model_T2D_ME_mt()
 	clear_bfys();
 	clear_txs();
 	clear_tys();
-	clear_vx_bcs();
-	clear_vy_bcs();
 }
 
 Rect Model_T2D_ME_mt::get_mesh_bbox()
@@ -80,7 +77,8 @@ void Model_T2D_ME_mt::alloc_mesh(
 		+ sizeof(ElemNodeVM) * 3 + sizeof(ElemNodeForce) * 3
 		+ sizeof(uint32_t) * 3 + sizeof(uint32_t) * 3) * e_num
 		+ (sizeof(uint32_t) + sizeof(NodePos)
-		+ sizeof(float) * 6) * n_num;
+		+ sizeof(NodeA) + sizeof(NodeV) + sizeof(NodeHasVBC)
+		+ sizeof(float) * 2) * n_num;
 	mesh_mem_raw = new char[mem_len];
 
 	char* cur_mem = mesh_mem_raw;
@@ -126,14 +124,12 @@ void Model_T2D_ME_mt::alloc_mesh(
 
 	node_pos = (NodePos*)cur_mem;
 	cur_mem += sizeof(NodePos) * node_num;
-	node_ax = (float*)cur_mem;
-	cur_mem += sizeof(float) * node_num;
-	node_ay = (float*)cur_mem;
-	cur_mem += sizeof(float) * node_num;
-	node_vx = (float*)cur_mem;
-	cur_mem += sizeof(float) * node_num;
-	node_vy = (float*)cur_mem;
-	cur_mem += sizeof(float) * node_num;
+	node_a = (NodeA *)cur_mem;
+	cur_mem += sizeof(NodeA) * node_num;
+	node_v = (NodeV *)cur_mem;
+	cur_mem += sizeof(NodeV) * node_num;
+	node_has_vbc = (NodeHasVBC *)cur_mem;
+	cur_mem += sizeof(NodeHasVBC) * node_num;
 	node_am = (float*)cur_mem;
 	cur_mem += sizeof(float) * node_num;
 	node_de_vol = (float*)cur_mem;
@@ -706,48 +702,16 @@ void Model_T2D_ME_mt::init_tys(
 	}
 }
 
-void Model_T2D_ME_mt::clear_vx_bcs()
-{
-	if (vx_bcs)
-	{
-		delete[] vx_bcs;
-		vx_bcs = nullptr;
-	}
-	vx_bc_num = 0;
-}
-
-void Model_T2D_ME_mt::alloc_vx_bcs(size_t num)
-{
-	clear_vx_bcs();
-	vx_bc_num = num;
-	vx_bcs = new uint32_t[num];
-}
-
-void Model_T2D_ME_mt::clear_vy_bcs()
-{
-	if (vy_bcs)
-	{
-		delete[] vy_bcs;
-		vy_bcs = nullptr;
-	}
-	vy_bc_num = 0;
-}
-
-void Model_T2D_ME_mt::alloc_vy_bcs(size_t num)
-{
-	clear_vy_bcs();
-	vy_bc_num = num;
-	vy_bcs = new uint32_t[num];
-}
-
 void Model_T2D_ME_mt::init_fixed_vx_bc(
 	size_t bc_num,
 	const size_t* bcs
 	)
 {
-	alloc_vx_bcs(bc_num);
 	for (size_t bc_id = 0; bc_id < bc_num; ++bc_id)
-		vx_bcs[bc_id] = uint32_t(bcs[bc_id]);
+	{
+		if (bcs[bc_id] < node_num)
+			node_has_vbc[bcs[bc_id]].has_vx_bc = true;
+	}
 }
 
 void Model_T2D_ME_mt::init_fixed_vy_bc(
@@ -755,7 +719,9 @@ void Model_T2D_ME_mt::init_fixed_vy_bc(
 	const size_t* bcs
 	)
 {
-	alloc_vy_bcs(bc_num);
 	for (size_t bc_id = 0; bc_id < bc_num; ++bc_id)
-		vy_bcs[bc_id] = uint32_t(bcs[bc_id]);
+	{
+		if (bcs[bc_id] < node_num)
+			node_has_vbc[bcs[bc_id]].has_vy_bc = true;
+	}
 }

@@ -12,7 +12,8 @@
 
 class Model_T2D_ME_mt;
 class Step_T2D_ME_mt;
-int solve_substep_T2D_ME_mt(void* _self);
+int substep_func_omp_T2D_ME_mt(void* _self, uint32_t my_th_id,
+	float dt, float cur_time, uint32_t substp_id);
 
 class ResultFile_hdf5;
 class Step_T2D_ME_mt;
@@ -33,7 +34,8 @@ struct Model_T2D_ME_mt : public Model,
 	public MatModel::MatModelContainer
 {
 	friend class Step_T2D_ME_mt;
-	friend int solve_substep_T2D_ME_mt(void* _self);
+	friend int substep_func_omp_T2D_ME_mt(void* _self,
+		uint32_t my_th_id, float dt, float cur_time, uint32_t substp_id);
 	friend class Model_T2D_ME_mt_hdf5_utilities::ParticleData;
 
 public:
@@ -64,8 +66,15 @@ public:
 	struct ElemNodeVM { float vm, vmx, vmy; };
 	struct ElemNodeForce { float fx, fy; };
 
+	struct NodeA { float ax, ay; };
+	union NodeV
+	{
+		struct { float vx, vy; };
+		struct { uint32_t vx_ui, vy_ui; };
+	};
 	struct NodePos { float x, y; };
-	
+	struct NodeHasVBC { bool has_vx_bc, has_vy_bc; };
+
 	struct PclSortedVarArray
 	{
 		uint32_t* pcl_index; // ori_pcl_num
@@ -81,8 +90,6 @@ protected:
 	uint32_t pcl_num;
 	uint32_t elem_num;
 	uint32_t node_num;
-	uint32_t vx_bc_num;
-	uint32_t vy_bc_num;
 	
 	float *pcl_m; // ori_pcl_num
 	PclBodyForce* pcl_bf; // ori_pcl_num
@@ -113,16 +120,11 @@ protected:
 	uint32_t *node_elem_id_array; // elem_num * 3
 	uint32_t *node_elem_list;  // node_num
 
-	float *node_ax; // node_num
-	float *node_ay; // node_num
-	float *node_vx; // node_num
-	float *node_vy; // node_num
+	NodeA *node_a;
+	NodeV *node_v;
+	NodeHasVBC *node_has_vbc;
 	float *node_am; // node_num
 	float *node_de_vol; // node_num
-
-	// nodal velocity bcs
-	uint32_t* vx_bcs; // vx_bc_num
-	uint32_t* vy_bcs; // vy_bc_num
 
 // ======== Non calculation data ========
 	uint32_t ori_pcl_num;
@@ -154,10 +156,7 @@ public:
 	inline MatModel::MaterialModel **get_mat_models() noexcept { return pcl_mat_model; }
 	Rect get_mesh_bbox();
 
-	inline uint32_t get_vx_bc_num() const noexcept { return vx_bc_num; }
-	inline const uint32_t* get_vx_bcs() const noexcept { return vx_bcs; }
-	inline uint32_t get_vy_bc_num() const noexcept { return vy_bc_num; }
-	inline const uint32_t* get_vy_bcs() const noexcept { return vy_bcs; }
+	inline const NodeHasVBC *get_has_vbcs() const noexcept { return node_has_vbc; }
 
 	inline float get_bg_grid_xl() const noexcept { return grid_xl; }
 	inline float get_bg_grid_yl() const noexcept { return grid_yl; }
@@ -190,10 +189,6 @@ public:
 	void init_txs(size_t t_num, const size_t *t_pcls, const double *ts);
 	void init_tys(size_t t_num, const size_t *t_pcls, const double *ts);
 
-	void alloc_vx_bcs(size_t vx_bc_num);
-	void clear_vx_bcs();
-	void alloc_vy_bcs(size_t vy_bc_num);
-	void clear_vy_bcs();
 	void init_fixed_vx_bc(size_t vx_bc_num, const size_t *vx_bcs);
 	void init_fixed_vy_bc(size_t vy_bc_num, const size_t* vy_bcs);
 

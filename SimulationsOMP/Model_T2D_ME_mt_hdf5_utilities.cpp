@@ -195,52 +195,21 @@ int output_boundary_condition_to_hdf5_file(
 
 	hid_t bc_grp_id = rf.create_group(grp_id, "BoundaryCondition");
 	
-	rf.write_attribute(bc_grp_id, "vx_num", md.vx_bc_num);
-	rf.write_attribute(bc_grp_id, "vy_num", md.vy_bc_num);
+	rf.write_attribute(bc_grp_id, "node_num", md.node_num);
 
-	// velocity bc
-	hid_t vbc_dt_id = get_vbc_dt_id();
-	VelocityBCData* vbcds;
-	// vx
-	if (md.vx_bc_num)
+	hid_t n_vbc_dt_id = get_node_vbc_dt_id();
+	NodeVBCData* nvbc_data = new NodeVBCData[md.node_num];
+	rf.write_dataset(bc_grp_id, "NodeVelocityBC", md.node_num, nvbc_data, n_vbc_dt_id);
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
-		vbcds = new VelocityBCData[md.vx_bc_num];
-		for (size_t v_id = 0; v_id < md.vx_bc_num; ++v_id)
-		{
-			VelocityBCData& vbcd = vbcds[v_id];
-			vbcd.node_id = md.vx_bcs[v_id];
-			vbcd.v = 0.0;
-		}
-		rf.write_dataset(
-			bc_grp_id,
-			"VelocityBC_x",
-			md.vx_bc_num,
-			vbcds,
-			vbc_dt_id
-			);
-		delete[] vbcds;
+		NodeVBCData& nvbc = nvbc_data[n_id];
+		Model_T2D_ME_mt::NodeHasVBC& md_nvbc = md.node_has_vbc[n_id];
+		nvbc.has_vx_bc = md_nvbc.has_vx_bc;
+		nvbc.has_vy_bc = md_nvbc.has_vy_bc;
 	}
-	// vy
-	if (md.vy_bc_num)
-	{
-		vbcds = new VelocityBCData[md.vy_bc_num];
-		for (size_t v_id = 0; v_id < md.vy_bc_num; ++v_id)
-		{
-			VelocityBCData& vbcd = vbcds[v_id];
-			vbcd.node_id = md.vy_bcs[v_id];
-			vbcd.v = 0.0;
-		}
-		rf.write_dataset(
-			bc_grp_id,
-			"VelocityBC_y",
-			md.vy_bc_num,
-			vbcds,
-			vbc_dt_id
-			);
-		delete[] vbcds;
-	}
-	H5Tclose(vbc_dt_id);
-
+	delete[] nvbc_data;
+	H5Tclose(n_vbc_dt_id);
+	
 	rf.close_group(bc_grp_id);
 	return 0;
 }
@@ -258,40 +227,20 @@ int load_boundary_condition_from_hdf5_file(
 
 	hid_t bc_id = rf.open_group(md_id, "BoundaryCondition");
 	
-	rf.read_attribute(bc_id, "vx_num", md.vx_bc_num);
-	rf.read_attribute(bc_id, "vy_num", md.vy_bc_num);
+	rf.read_attribute(bc_id, "node_num", md.node_num);
 	
-	// velocity bcs
-	hid_t vbc_dt_id = get_vbc_dt_id();
-	VelocityBCData *vbcds;
-	uint32_t v_id;
-	// vx
-	if (md.vx_bc_num)
+	hid_t n_vbc_dt_id = get_node_vbc_dt_id();
+	NodeVBCData *nvbc_data = new NodeVBCData[md.node_num];
+	rf.read_dataset(bc_id, "NodeVelocityBC", md.node_num, nvbc_data, n_vbc_dt_id);
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
-		md.alloc_vx_bcs(md.vx_bc_num);
-		vbcds = new VelocityBCData[md.vx_bc_num];
-		rf.read_dataset(bc_id, "VelocityBC_x", md.vx_bc_num, vbcds, vbc_dt_id);
-		for (v_id = 0; v_id < md.vx_bc_num; ++v_id)
-		{
-			VelocityBCData& vbcd = vbcds[v_id];
-			md.vx_bcs[v_id] = uint32_t(vbcd.node_id);
-		}
-		delete[] vbcds;
+		NodeVBCData& nvbc = nvbc_data[n_id];
+		Model_T2D_ME_mt::NodeHasVBC &md_nvbc = md.node_has_vbc[n_id];
+		md_nvbc.has_vx_bc = nvbc.has_vx_bc;
+		md_nvbc.has_vy_bc = nvbc.has_vy_bc;
 	}
-	// vy
-	if (md.vy_bc_num)
-	{
-		md.alloc_vy_bcs(md.vy_bc_num);
-		vbcds = new VelocityBCData[md.vy_bc_num];
-		rf.read_dataset(bc_id, "VelocityBC_y", md.vy_bc_num, vbcds, vbc_dt_id);
-		for (v_id = 0; v_id < md.vy_bc_num; ++v_id)
-		{
-			VelocityBCData& vbcd = vbcds[v_id];
-			md.vy_bcs[v_id] = uint32_t(vbcd.node_id);
-		}
-		delete[] vbcds;
-	}
-	H5Tclose(vbc_dt_id);
+	delete[] nvbc_data;
+	H5Tclose(n_vbc_dt_id);
 
 	rf.close_group(bc_id);
 	return 0;

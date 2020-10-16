@@ -161,6 +161,20 @@ inline hid_t get_element_dt_id()
 	return res;
 }
 
+struct NodeVBCData
+{
+	bool has_vx_bc;
+	bool has_vy_bc;
+};
+
+inline hid_t get_node_vbc_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(NodeVBCData));
+	H5Tinsert(res, "has_vx_bc", HOFFSET(NodeVBCData, has_vx_bc), H5T_NATIVE_HBOOL);
+	H5Tinsert(res, "has_vy_bc", HOFFSET(NodeVBCData, has_vy_bc), H5T_NATIVE_HBOOL);
+	return res;
+}
+
 int output_background_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_background_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
