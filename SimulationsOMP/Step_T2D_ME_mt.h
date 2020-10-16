@@ -78,7 +78,18 @@ protected:
 protected:
 	// task division
 	CacheAlignedMem task_range_mem;
-	uint32_t *pcl_range, *elem_range;
+	union PclRange
+	{
+		uint32_t id;
+		char padding[Cache_Alignment];
+	};
+	union ElemRange
+	{
+		uint32_t id;
+		char padding[Cache_Alignment];
+	};
+	PclRange* pcl_range;
+	ElemRange *elem_range;
 	uint32_t* node_elem_range, *node_range;
 
 	// radix sort

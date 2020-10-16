@@ -224,7 +224,7 @@ protected:
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu)
-			return UINT32_MAX;
+			return elem_num;
 		uint32_t x_id, y_id, elem_id;
 		x_id = (pcl_x - grid_xl) / grid_hx;
 		y_id = (pcl_y - grid_yl) / grid_hy;
@@ -237,7 +237,7 @@ protected:
 			if (is_in_element(pcl_x, pcl_y, elem_id, pcl_sf))
 				return elem_id;
 		}
-		return UINT32_MAX;
+		return elem_num;
 	}
 
 	friend int Model_T2D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
