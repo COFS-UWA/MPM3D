@@ -12,14 +12,13 @@
 
 #include "test_simulations_omp.h"
 
-void test_t2d_me_mt_test1(int argc, char** argv)
+void test_t2d_me_mt_test1(int argc, char **argv)
 {
-	Model_T2D_ME_mt model;
-
 	TriangleMesh tri_mesh;
 	tri_mesh.load_mesh_from_hdf5("../../Asset/square_mesh.h5");
+	
+	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
-
 	model.init_search_grid(tri_mesh, 0.6, 0.6);
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
@@ -49,7 +48,8 @@ void test_t2d_me_mt_test1(int argc, char** argv)
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
+	//step.set_step_time(1.0);
+	step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out);
 	//step.add_time_history(out_pb);

@@ -83,7 +83,6 @@ public:
 		PclV* pcl_v; // ori_pcl_num
 		PclShapeFunc* pcl_N; // ori_pcl_num
 		PclStress* pcl_stress; // ori_pcl_num
-		uint32_t* elem_has_pcl_num; // elem_num
 	};
 	
 protected:
@@ -111,6 +110,7 @@ protected:
 	ElemStress *elem_stress; // elem_num
 	float *elem_am; // elem_num
 	float *elem_am_de_vol; // elem_num
+	uint32_t* elem_has_pcl_num; // elem_num
 
 	// element-node data
 	ElemNodeVM* elem_node_vm; // elem_num * 3

@@ -29,13 +29,13 @@ struct ParticleData
 	uint32_t mat_id; // material model id
 
 	void from_pcl(
-		Model_T2D_ME_mt &md,
+		Model_T2D_ME_mt& md,
 		uint32_t pcl_offset,
 		uint32_t pcl_sorted_var_id
 		)
 	{
-		Model_T2D_ME_mt::PclSortedVarArray &psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id];
+		Model_T2D_ME_mt::PclSortedVarArray& psva
+			= md.pcl_sorted_var_array[pcl_sorted_var_id ^ 1];
 		id = psva.pcl_index[pcl_offset];
 		m = md.pcl_m[id];
 		density = psva.pcl_density[pcl_offset];
@@ -54,6 +54,40 @@ struct ParticleData
 		vx = pcl_v.vx;
 		vy = pcl_v.vy;
 		Model_T2D_ME_mt::PclStress& pcl_stress = psva.pcl_stress[pcl_offset];
+		s11 = pcl_stress.s11;
+		s22 = pcl_stress.s22;
+		s12 = pcl_stress.s12;
+		mat_id = md.pcl_mat_model[id]->get_id();
+	}
+	
+	void from_pcl(
+		Model_T2D_ME_mt& md,
+		uint32_t pcl_offset,
+		uint32_t pcl_sorted_var_id,
+		uint32_t *new_to_ori_pcl_map
+		)
+	{
+		Model_T2D_ME_mt::PclSortedVarArray &psva
+			= md.pcl_sorted_var_array[pcl_sorted_var_id ^ 1];
+		uint32_t ori_pcl_id = new_to_ori_pcl_map[pcl_offset];
+		id = psva.pcl_index[ori_pcl_id];
+		m = md.pcl_m[id];
+		density = psva.pcl_density[ori_pcl_id];
+		Model_T2D_ME_mt::PclBodyForce& pcl_bf = md.pcl_bf[id];
+		bfx = pcl_bf.bfx;
+		bfy = pcl_bf.bfy;
+		Model_T2D_ME_mt::PclTraction& pcl_t = md.pcl_t[id];
+		tx = pcl_t.tx;
+		ty = pcl_t.ty;
+		Model_T2D_ME_mt::PclPos& pcl_pos = md.pcl_pos[id];
+		Model_T2D_ME_mt::PclDisp& pcl_disp = psva.pcl_disp[ori_pcl_id];
+		x = pcl_pos.x + pcl_disp.ux;
+		y = pcl_pos.y + pcl_disp.uy;
+		vol = m / density;
+		Model_T2D_ME_mt::PclV& pcl_v = psva.pcl_v[ori_pcl_id];
+		vx = pcl_v.vx;
+		vy = pcl_v.vy;
+		Model_T2D_ME_mt::PclStress& pcl_stress = psva.pcl_stress[ori_pcl_id];
 		s11 = pcl_stress.s11;
 		s22 = pcl_stress.s22;
 		s12 = pcl_stress.s12;

@@ -12,10 +12,10 @@
 	((Cache_Alignment + (offset) - ((address) & Cache_Mask)) & Cache_Mask)
 
 #define Cache_Aligned_Address(address) \
-	((void *)((address) + Cache_Alignment_Padding(size_t(address))))
+	((void *)(size_t(address) + Cache_Alignment_Padding(size_t(address))))
 
 #define Cache_Offset_Address(address, offset) \
-	((void *)((address) + Cache_Offset_Padding(size_t(address), offset)))
+	((void *)(size_t(address) + Cache_Offset_Padding(size_t(address), offset)))
 
 template <typename Item>
 inline Item *cache_aligned(Item *address)

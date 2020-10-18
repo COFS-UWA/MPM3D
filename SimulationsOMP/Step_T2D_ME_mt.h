@@ -62,6 +62,7 @@ protected:
 	ElemStress* elem_stress;
 	float* elem_am;
 	float* elem_am_de_vol;
+	uint32_t* elem_has_pcl_num;
 
 	ElemNodeVM* elem_node_vm;
 	ElemNodeForce* elem_node_force;
@@ -136,6 +137,7 @@ public:
 
 	inline uint32_t get_pcl_num() const noexcept { return pcl_num; }
 	inline uint32_t get_sorted_var_id() const noexcept { return pcl_sorted_var_id; }
+	inline uint32_t* get_new_to_ori_pcl_map() const noexcept { return new_to_ori_pcl_map0; }
 };
 
 #endif

@@ -73,7 +73,7 @@ void Model_T2D_ME_mt::alloc_mesh(
 		+ sizeof(ElemShapeFuncAB) + sizeof(ElemShapeFuncC)
 		+ sizeof(uint32_t) * 2 + sizeof(float)
 		+ sizeof(ElemStrainInc) + sizeof(ElemStress)
-		+ sizeof(float) + sizeof(float)
+		+ sizeof(float) + sizeof(float) + sizeof(uint32_t)
 		+ sizeof(ElemNodeVM) * 3 + sizeof(ElemNodeForce) * 3
 		+ sizeof(uint32_t) * 3 + sizeof(uint32_t) * 3) * e_num
 		+ (sizeof(uint32_t) + sizeof(NodePos)
@@ -91,13 +91,6 @@ void Model_T2D_ME_mt::alloc_mesh(
 	elem_sf_c = (ElemShapeFuncC*)cur_mem;
 	cur_mem += sizeof(ElemShapeFuncC) * elem_num;
 
-	// elem pcl list 0
-	pcl_sorted_var_array[0].elem_has_pcl_num = (uint32_t*)cur_mem;
-	cur_mem += sizeof(uint32_t) * elem_num;
-	// elem pcl list 1
-	pcl_sorted_var_array[1].elem_has_pcl_num = (uint32_t*)cur_mem;
-	cur_mem += sizeof(uint32_t) * elem_num;
-
 	elem_density = (float*)cur_mem;
 	cur_mem += sizeof(float) * elem_num;
 	elem_de = (ElemStrainInc*)cur_mem;
@@ -109,6 +102,8 @@ void Model_T2D_ME_mt::alloc_mesh(
 	cur_mem += sizeof(float) * elem_num;
 	elem_am_de_vol = (float*)cur_mem;
 	cur_mem += sizeof(float) * elem_num;
+	elem_has_pcl_num = (uint32_t *)cur_mem;
+	cur_mem += sizeof(uint32_t) * elem_num;
 
 	elem_node_vm = (ElemNodeVM*)cur_mem;
 	cur_mem += sizeof(ElemNodeVM) * elem_num * 3;
@@ -212,6 +207,10 @@ void Model_T2D_ME_mt::init_mesh(const TriangleMesh &mesh)
 		node_bin_tmp[n_id] += node_bin_tmp[n_id - 1];
 		node_elem_list[n_id] = node_bin_tmp[n_id];
 	}
+
+	//for (n_id = 0; n_id < node_num; ++n_id)
+	//	std::cout << node_elem_list[n_id] << ", ";
+	//std::cout << "\n";
 	
 	for (e_id = elem_num, e_id3 = elem_num3-1; e_id--; e_id3 -= 3)
 	{

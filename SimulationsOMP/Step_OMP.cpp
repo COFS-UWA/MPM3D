@@ -53,7 +53,6 @@ int Step_OMP::solve()
 				}
 
 				(*cal_substep_func_omp)(this, my_th_id, dt, cur_time, substp_id);
-#pragma omp barrier
 
 				++substp_id;
 				cur_time = new_time;
