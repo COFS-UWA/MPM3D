@@ -248,6 +248,9 @@ void Model_T2D_ME_mt::init_mesh(const TriangleMesh &mesh)
 		NodePos& np = node_pos[n_id];
 		np.x = float(n.x);
 		np.y = float(n.y);
+		NodeHasVBC &n_vbc = node_has_vbc[n_id];
+		n_vbc.has_vx_bc = false;
+		n_vbc.has_vy_bc = false;
 	}
 }
 
@@ -476,8 +479,6 @@ int Model_T2D_ME_mt::init_pcls(size_t num, double m, double density)
 	alloc_pcls(num);
 
 	PclSortedVarArray& psva0 = pcl_sorted_var_array[0];
-	PclSortedVarArray& psva1 = pcl_sorted_var_array[1];
-
 	size_t p_id;
 	for (p_id = 0; p_id < num; ++p_id)
 	{
@@ -493,9 +494,6 @@ int Model_T2D_ME_mt::init_pcls(size_t num, double m, double density)
 		PclV& p_v = psva0.pcl_v[p_id];
 		p_v.vx = 0.0f;
 		p_v.vy = 0.0f;
-		PclDisp& p_u = psva0.pcl_disp[p_id];
-		p_u.ux = 0.0f;
-		p_u.uy = 0.0f;
 		PclStress& p_s = psva0.pcl_stress[p_id];
 		p_s.s11 = 0.0f;
 		p_s.s22 = 0.0f;
@@ -688,6 +686,9 @@ void Model_T2D_ME_mt::init_tys(
 			PclTraction &t = pcl_t[p_id];
 			t.ty += ts[t_id];
 		}
+		//for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+		//	std::cout << pcl_t[p_id].ty << ", ";
+		//std::cout << "\n";
 	}
 	else
 	{

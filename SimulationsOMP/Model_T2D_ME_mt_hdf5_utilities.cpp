@@ -199,7 +199,6 @@ int output_boundary_condition_to_hdf5_file(
 
 	hid_t n_vbc_dt_id = get_node_vbc_dt_id();
 	NodeVBCData* nvbc_data = new NodeVBCData[md.node_num];
-	rf.write_dataset(bc_grp_id, "NodeVelocityBC", md.node_num, nvbc_data, n_vbc_dt_id);
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		NodeVBCData& nvbc = nvbc_data[n_id];
@@ -207,6 +206,7 @@ int output_boundary_condition_to_hdf5_file(
 		nvbc.has_vx_bc = md_nvbc.has_vx_bc;
 		nvbc.has_vy_bc = md_nvbc.has_vy_bc;
 	}
+	rf.write_dataset(bc_grp_id, "NodeVelocityBC", md.node_num, nvbc_data, n_vbc_dt_id);
 	delete[] nvbc_data;
 	H5Tclose(n_vbc_dt_id);
 	

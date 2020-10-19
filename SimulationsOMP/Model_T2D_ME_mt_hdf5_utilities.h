@@ -35,7 +35,7 @@ struct ParticleData
 		)
 	{
 		Model_T2D_ME_mt::PclSortedVarArray& psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id ^ 1];
+			= md.pcl_sorted_var_array[pcl_sorted_var_id];
 		id = psva.pcl_index[pcl_offset];
 		m = md.pcl_m[id];
 		density = psva.pcl_density[pcl_offset];
@@ -61,7 +61,7 @@ struct ParticleData
 	}
 	
 	void from_pcl(
-		Model_T2D_ME_mt& md,
+		Model_T2D_ME_mt &md,
 		uint32_t pcl_offset,
 		uint32_t pcl_sorted_var_id,
 		uint32_t *new_to_ori_pcl_map

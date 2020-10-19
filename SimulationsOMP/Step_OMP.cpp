@@ -10,15 +10,9 @@ Step_OMP::Step_OMP(
 	const char* _type,
 	CalSubstepFuncOMP _func_omp
 	) : Step(_name, _type), thread_num(1),
-	cal_substep_func_omp(_func_omp)
-{
+	cal_substep_func_omp(_func_omp) {}
 
-}
-
-Step_OMP::~Step_OMP()
-{
-
-}
+Step_OMP::~Step_OMP() {}
 
 int Step_OMP::solve()
 {
@@ -60,21 +54,21 @@ int Step_OMP::solve()
 			} while (cur_time < next_output_time_minus_tol);
 
 #pragma omp barrier
-#pragma omp master
-			output_time_history();
-			next_output_time_minus_tol = float(next_output_time) - time_tol;
-#pragma omp barrier
 
-		} while (cur_time < stp_time_minus_tol);
-	
 #pragma omp master
-		substep_index = uint32_t(substp_id);
-		current_time = double(cur_time);
+			{
+				substep_index = uint32_t(substp_id);
+				current_time = double(cur_time);
+				current_time_plus_tol = double(cur_time + time_tol);
+				output_time_history();
+				next_output_time_minus_tol = float(next_output_time) - time_tol;
+			}
+#pragma omp barrier
+		} while (cur_time < stp_time_minus_tol);
 	}
 
 	finalize_calculation();
 	finalize_time_history();
-
 	return 0;
 }
 

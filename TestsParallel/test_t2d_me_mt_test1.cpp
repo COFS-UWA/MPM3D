@@ -34,6 +34,13 @@ void test_t2d_me_mt_test1(int argc, char **argv)
 		mms[p_id] = &les[p_id];
 	}
 
+	size_t vx_bc_ids[] = { 0, 1 };
+	model.init_fixed_vx_bc(2, vx_bc_ids);
+
+	size_t ty_pcl_ids[] = { 12, 13, 14, 15 };
+	double ty_pcl[] = { -1.0, -1.0, -1.0, -1.0 };
+	model.init_tys(4, ty_pcl_ids, ty_pcl);
+
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_test1.h5");
 
@@ -49,11 +56,11 @@ void test_t2d_me_mt_test1(int argc, char **argv)
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
 	//step.set_step_time(1.0);
-	step.set_step_time(1.0e-5);
+	step.set_step_time(2.0e-5);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out);
 	//step.add_time_history(out_pb);
-	//step.set_thread_num(3);
+	step.set_thread_num(3);
 	//step.init_calculation();
 	//step.finalize_calculation();
 	step.solve();

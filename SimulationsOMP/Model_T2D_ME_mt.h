@@ -230,10 +230,10 @@ protected:
 		y_id = (pcl_y - grid_yl) / grid_hy;
 		uint32_t g_id = grid_x_num * y_id + x_id;
 		uint32_t elem_end_id = grid_elem_list[g_id + 1];
-		for (uint32_t e_id = grid_elem_list[g_id];
-			 e_id < elem_end_id; ++e_id)
+		for (uint32_t el_id = grid_elem_list[g_id];
+			 el_id < elem_end_id; ++el_id)
 		{
-			elem_id = grid_elem_list_id_array[e_id];
+			elem_id = grid_elem_list_id_array[el_id];
 			if (is_in_element(pcl_x, pcl_y, elem_id, pcl_sf))
 				return elem_id;
 		}

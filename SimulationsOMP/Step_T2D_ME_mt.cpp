@@ -28,7 +28,6 @@ namespace
 		for (i = 1; i < thread_num; ++i)
 			data_range[i] = Block_Low(i, thread_num, data_num);
 	}
-
 	inline void swap(size_t &a, size_t &b)
 	{
 		a = a ^ b;
@@ -73,10 +72,10 @@ int Step_T2D_ME_mt::init_calculation()
 
 	new_to_ori_pcl_map0 = (uint32_t *)sort_var_mem.alloc(sizeof(uint32_t) * (size_t(md.pcl_num) * 4 + 2) + Cache_Alignment * 3);
 	new_to_ori_pcl_map1 = cache_aligned(new_to_ori_pcl_map0 + md.pcl_num);
-	pcl_in_elem_array0 = cache_aligned(new_to_ori_pcl_map1 + md.pcl_num + 1);
+	pcl_in_elem_array0 = cache_aligned(new_to_ori_pcl_map1 + md.pcl_num);
 	pcl_in_elem_array1 = cache_aligned(pcl_in_elem_array0 + md.pcl_num + 1);
-	pcl_in_elem_array0[-1] = UINT32_MAX;
-	pcl_in_elem_array1[-1] = UINT32_MAX;
+	pcl_in_elem_array0[md.pcl_num] = md.elem_num;
+	pcl_in_elem_array1[md.pcl_num] = md.elem_num;
 
 	elem_count_bin = (uint32_t *)elem_bin_mem.alloc(sizeof(uint32_t) * thread_num * 0x100 * 2);
 	elem_sum_bin = elem_count_bin + size_t(thread_num) * 0x100;
@@ -135,12 +134,11 @@ int Step_T2D_ME_mt::init_calculation()
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 	
-	for (th_id = 1; th_id < thread_num+1; ++th_id)
+	for (th_id = 1; th_id < thread_num + 1; ++th_id)
 		pcl_range[th_id].id = Block_Low(th_id, thread_num, pcl_num);
 	PclSortedVarArray &psva = md.pcl_sorted_var_array[0];
-	uint32_t pcl_in_elem_id;
 	uint32_t pcl_num1 = 0;
-#pragma omp parallel reduction(+:pcl_num1)
+#pragma omp parallel
 	{
 		union
 		{
@@ -167,7 +165,7 @@ int Step_T2D_ME_mt::init_calculation()
 		uint32_t my_th_id = omp_get_thread_num();
 		uint32_t p_id0 = pcl_range[my_th_id].id;
 		uint32_t p_id1 = pcl_range[my_th_id + 1].id;
-		uint32_t pcl_in_mesh_num = 0;
+		uint32_t pcl_in_elem_id, pcl_in_mesh_num = 0;
 		for (uint32_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			PclDisp& p_d = psva.pcl_disp[p_id];
@@ -190,8 +188,10 @@ int Step_T2D_ME_mt::init_calculation()
 			new_to_ori_pcl_map[p_id] = p_id;
 			pcl_in_elem_array[p_id] = pcl_in_elem_id;
 		}
-		pcl_num1 += pcl_in_mesh_num;
 
+#pragma omp critical
+		pcl_num1 += pcl_in_mesh_num;
+		
 //#pragma omp single
 //		{
 //			for (uint32_t p_id = 0; p_id < pcl_num; p_id++)
@@ -233,7 +233,6 @@ int Step_T2D_ME_mt::init_calculation()
 				for (bin_id = 0; bin_id < 0x100; ++bin_id)
 					my_sbin[bin_id] += other_cbin[bin_id];
 			}
-
 			for (th_id = my_th_id + 1; th_id < thread_num; ++th_id)
 			{
 				other_cbin = elem_count_bin + (size_t(th_id) << 8);
@@ -244,8 +243,8 @@ int Step_T2D_ME_mt::init_calculation()
 			for (uint32_t p_id = p_id1; p_id-- > p_id0;)
 			{
 				data_digit = (pcl_in_elem_array[p_id] >> digit_disp) & 0xFF;
-				pcl_in_elem_array_tmp[--my_cbin[data_digit]] = pcl_in_elem_array[p_id];
-				new_to_ori_pcl_map_tmp[my_cbin[data_digit]] = new_to_ori_pcl_map[p_id];
+				pcl_in_elem_array_tmp[--my_sbin[data_digit]] = pcl_in_elem_array[p_id];
+				new_to_ori_pcl_map_tmp[my_sbin[data_digit]] = new_to_ori_pcl_map[p_id];
 			}
 
 			swap(new_to_ori_pcl_map_ui, new_to_ori_pcl_map_tmp_ui);
@@ -263,20 +262,22 @@ int Step_T2D_ME_mt::init_calculation()
 
 		// divide pcl and element task
 		p_id1 = Block_Low(my_th_id + 1, thread_num, pcl_num1);
-		pcl_in_elem_id = pcl_in_elem_array[int64_t(p_id1) - 1];
-		while (p_id1 < pcl_num1 && pcl_in_elem_id == pcl_in_elem_array[p_id1])
-			++p_id1;
-		pcl_range[my_th_id + 1].id = p_id1;
-		elem_range[my_th_id + 1].id = pcl_in_elem_id + 1;
+		if (p_id1 < pcl_num1)
+		{
+			pcl_in_elem_id = pcl_in_elem_array[p_id1];
+			while (pcl_in_elem_id == pcl_in_elem_array[p_id1 + 1])
+				++p_id1;
+			pcl_range[my_th_id + 1].id = p_id1 + 1;
+			elem_range[my_th_id + 1].id = pcl_in_elem_id + 1;
+		}
+		else
+		{
+			pcl_range[my_th_id + 1].id = pcl_num1;
+			elem_range[my_th_id + 1].id = md.elem_num;
+		}
 	}
 
-	//for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
-	//	std::cout << new_to_ori_pcl_map0[p_id] << ", ";
-	//std::cout << "\n";
-	//for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
-	//	std::cout << pcl_in_elem_array0[p_id] << ", ";
-	//std::cout << "\n";
-
+	//std::cout << pcl_num << "\n";
 	//for (uint32_t th_id = 0; th_id < th_num_1; ++th_id)
 	//	std::cout << pcl_range[th_id].id << ", ";
 	//std::cout << "\n";
@@ -284,6 +285,13 @@ int Step_T2D_ME_mt::init_calculation()
 	//	std::cout << elem_range[th_id].id << ", ";
 	//std::cout << "\n";
 
+	//for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
+	//	std::cout << new_to_ori_pcl_map0[p_id] << ", ";
+	//std::cout << "\n";
+	//for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
+	//	std::cout << pcl_in_elem_array0[p_id] << ", ";
+	//std::cout << "\n";
+	
 	pcl_num = pcl_num1;	
 	return 0;
 }
@@ -328,13 +336,12 @@ int substep_func_omp_T2D_ME_mt(
 
 	PclSortedVarArray& pscv0 = self.pcl_sorted_var_array[self.pcl_sorted_var_id];
 	uint32_t* pcl_index0 = pscv0.pcl_index;
-	float* pcl_density0 = pscv0.pcl_density;
-	PclDisp* pcl_disp0 = pscv0.pcl_disp;
-	PclV* pcl_v0 = pscv0.pcl_v;
+	float *pcl_density0 = pscv0.pcl_density;
+	PclDisp *pcl_disp0 = pscv0.pcl_disp;
+	PclV *pcl_v0 = pscv0.pcl_v;
 	PclShapeFunc* pcl_N0 = pscv0.pcl_N;
 	PclStress* pcl_stress0 = pscv0.pcl_stress;
-	self.pcl_sorted_var_id ^= 1;
-	PclSortedVarArray& pscv1 = self.pcl_sorted_var_array[self.pcl_sorted_var_id];
+	PclSortedVarArray& pscv1 = self.pcl_sorted_var_array[self.pcl_sorted_var_id ^ 1];
 	uint32_t* pcl_index1 = pscv1.pcl_index;
 	float* pcl_density1 = pscv1.pcl_density;
 	PclDisp* pcl_disp1 = pscv1.pcl_disp;
@@ -437,38 +444,47 @@ int substep_func_omp_T2D_ME_mt(
 
 			p_vol = p_m / pcl_density1[old_pcl_id];
 			e_pcl_vol += p_vol;
-			PclStress& p_s = pcl_stress1[old_pcl_id];
-			e_s11 += p_s.s11 * p_vol;
-			e_s22 += p_s.s22 * p_vol;
-			e_s12 += p_s.s12 * p_vol;
-			PclShapeFunc& p_N = pcl_N1[old_pcl_id];
+			PclStress& p_s1 = pcl_stress1[old_pcl_id];
+			PclStress& p_s0 = pcl_stress0[g_p_id];
+			p_s0.s11 = p_s1.s11;
+			p_s0.s22 = p_s1.s22;
+			p_s0.s12 = p_s1.s12;
+			e_s11 += p_s0.s11 * p_vol;
+			e_s22 += p_s0.s22 * p_vol;
+			e_s12 += p_s0.s12 * p_vol;
+
+			PclShapeFunc& p_N1 = pcl_N1[old_pcl_id];
 			PclShapeFunc& p_N0 = pcl_N0[g_p_id];
-			p_N0.N1 = p_N.N1;
-			p_N0.N2 = p_N.N2;
-			p_N0.N3 = p_N.N3;
-			PclV& p_v = pcl_v1[old_pcl_id];
+			p_N0.N1 = p_N1.N1;
+			p_N0.N2 = p_N1.N2;
+			p_N0.N3 = p_N1.N3;
+			PclV& p_v1 = pcl_v1[old_pcl_id];
 			PclV& p_v0 = pcl_v0[g_p_id];
-			p_v0.vx = p_v.vx;
-			p_v0.vy = p_v.vy;
-			p_N_m = p_N.N1 * p_m;
+			p_v0.vx = p_v1.vx;
+			p_v0.vy = p_v1.vy;
+
+			// map velocity
+			p_N_m = p_N0.N1 * p_m;
 			en_vm1.vm += p_N_m;
-			en_vm1.vmx += p_N_m * p_v.vx;
-			en_vm1.vmy += p_N_m * p_v.vy;
-			p_N_m = p_N.N2 * p_m;
+			en_vm1.vmx += p_N_m * p_v0.vx;
+			en_vm1.vmy += p_N_m * p_v0.vy;
+			p_N_m = p_N0.N2 * p_m;
 			en_vm2.vm += p_N_m;
-			en_vm2.vmx += p_N_m * p_v.vx;
-			en_vm2.vmy += p_N_m * p_v.vy;
-			p_N_m = p_N.N3 * p_m;
+			en_vm2.vmx += p_N_m * p_v0.vx;
+			en_vm2.vmy += p_N_m * p_v0.vy;
+			p_N_m = p_N0.N3 * p_m;
 			en_vm3.vm += p_N_m;
-			en_vm3.vmx += p_N_m * p_v.vx;
-			en_vm3.vmy += p_N_m * p_v.vy;
+			en_vm3.vmx += p_N_m * p_v0.vx;
+			en_vm3.vmy += p_N_m * p_v0.vy;
+
+			// add traction
 			PclTraction& p_t = self.pcl_t[ori_pcl_id];
-			en_f1.fx += p_N.N1 * p_t.tx;
-			en_f1.fy += p_N.N1 * p_t.ty;
-			en_f2.fx += p_N.N2 * p_t.tx;
-			en_f2.fy += p_N.N2 * p_t.ty;
-			en_f3.fx += p_N.N3 * p_t.tx;
-			en_f3.fy += p_N.N3 * p_t.ty;
+			en_f1.fx += p_N0.N1 * p_t.tx;
+			en_f1.fy += p_N0.N1 * p_t.ty;
+			en_f2.fx += p_N0.N2 * p_t.tx;
+			en_f2.fy += p_N0.N2 * p_t.ty;
+			en_f3.fx += p_N0.N3 * p_t.tx;
+			en_f3.fy += p_N0.N3 * p_t.ty;
 		}
 		self.elem_density[e_id] = e_pcl_m / e_pcl_vol;
 		e_s11 /= e_pcl_vol;
@@ -496,7 +512,7 @@ int substep_func_omp_T2D_ME_mt(
 	}
 #pragma omp barrier
 
-	// update nodal variables
+	// update node variables
 	uint32_t n_id, n_id0, n_id1;
 	uint32_t ne_id, ne_id1;
 	n_id0 = self.node_range[my_th_id];
@@ -536,8 +552,8 @@ int substep_func_omp_T2D_ME_mt(
 			node_v.vx = n_vmx / n_vm + node_a.ax * dt;
 			node_v.vy = n_vmy / n_vm + node_a.ay * dt;
 			NodeHasVBC& node_has_vbc = self.node_has_vbc[n_id];
-			node_v.vx_ui &= (uint32_t(node_has_vbc.has_vx_bc) + UINT32_MAX - 1);
-			node_v.vy_ui &= (uint32_t(node_has_vbc.has_vy_bc) + UINT32_MAX - 1);
+			node_v.vx_ui &= uint32_t(node_has_vbc.has_vx_bc) + UINT32_MAX - 1;
+			node_v.vy_ui &= uint32_t(node_has_vbc.has_vy_bc) + UINT32_MAX - 1;
 		}
 	}
 #pragma omp barrier
@@ -582,7 +598,9 @@ int substep_func_omp_T2D_ME_mt(
 	}
 
 #pragma omp master
-	self.new_pcl_num = 0;
+	{
+		self.new_pcl_num = 0;
+	}
 
 #pragma omp barrier
 
@@ -615,30 +633,31 @@ int substep_func_omp_T2D_ME_mt(
 			MatModel::MaterialModel &pcl_mm = *self.pcl_mat_model[ori_pcl_id];
 			int32_t mm_res = pcl_mm.integrate(dstrain);
 			const double *dstress = pcl_mm.get_dstress();
-			PclStress& p_s = pcl_stress0[g_p_id];
-			p_s.s11 += float(dstress[0]);
-			p_s.s22 += float(dstress[1]);
-			p_s.s12 += float(dstress[3]);
+			PclStress& p_s0 = pcl_stress0[g_p_id];
+			p_s0.s11 += float(dstress[0]);
+			p_s0.s22 += float(dstress[1]);
+			p_s0.s12 += float(dstress[3]);
 
 			PclShapeFunc& p_N = pcl_N0[g_p_id];
 
 			NodeA& n_a1 = self.node_a[e_n_id.n1];
 			NodeA& n_a2 = self.node_a[e_n_id.n2];
 			NodeA& n_a3 = self.node_a[e_n_id.n3];
-			PclV& p_v = pcl_v0[g_p_id];
-			p_v.vx += (p_N.N1 * n_a1.ax + p_N.N2 * n_a2.ax + p_N.N3 * n_a3.ax) * dt;
-			p_v.vy += (p_N.N1 * n_a1.ay + p_N.N2 * n_a2.ay + p_N.N3 * n_a3.ay) * dt;
+			PclV& p_v0 = pcl_v0[g_p_id];
+			p_v0.vx += (p_N.N1 * n_a1.ax + p_N.N2 * n_a2.ax + p_N.N3 * n_a3.ax) * dt;
+			p_v0.vy += (p_N.N1 * n_a1.ay + p_N.N2 * n_a2.ay + p_N.N3 * n_a3.ay) * dt;
 
 			NodeV& n_v1 = self.node_v[e_n_id.n1];
 			NodeV& n_v2 = self.node_v[e_n_id.n2];
 			NodeV& n_v3 = self.node_v[e_n_id.n3];
-			PclDisp& p_d = pcl_disp0[g_p_id];
-			p_d.ux += (p_N.N1 * n_v1.vx + p_N.N2 * n_v2.vx + p_N.N3 * n_v3.vx) * dt;
-			p_d.uy += (p_N.N1 * n_v1.vy + p_N.N2 * n_v2.vy + p_N.N3 * n_v3.vy) * dt;
+			PclDisp& p_d1 = pcl_disp1[new_to_ori_pcl_map[g_p_id]];
+			PclDisp& p_d0 = pcl_disp0[g_p_id];
+			p_d0.ux = p_d1.ux + (p_N.N1 * n_v1.vx + p_N.N2 * n_v2.vx + p_N.N3 * n_v3.vx) * dt;
+			p_d0.uy = p_d1.uy + (p_N.N1 * n_v1.vy + p_N.N2 * n_v2.vy + p_N.N3 * n_v3.vy) * dt;
 
 			PclPos& p_p = self.pcl_pos[ori_pcl_id];
-			float pcl_x = p_p.x + p_d.ux;
-			float pcl_y = p_p.y + p_d.uy;
+			float pcl_x = p_p.x + p_d0.ux;
+			float pcl_y = p_p.y + p_d0.uy;
 
 			pcl_in_elem_id = e_id;
 			if (!md.is_in_element(pcl_x, pcl_y, e_id, p_N))
@@ -659,12 +678,16 @@ int substep_func_omp_T2D_ME_mt(
 	}
 
 #pragma omp critical
-	self.new_pcl_num += pcl_in_mesh_num;
+	{
+		self.new_pcl_num += pcl_in_mesh_num;
+	}
 
 #pragma omp barrier
 
 #pragma omp master
-	self.pcl_num = self.new_pcl_num;
+	{
+		self.pcl_num = self.new_pcl_num;
+	}
 
 	// sort particle variables
 	uint32_t* my_cbin = self.elem_count_bin + size_t(my_th_id) * 0x100;
@@ -698,7 +721,6 @@ int substep_func_omp_T2D_ME_mt(
 			for (bin_id = 0; bin_id < 0x100; ++bin_id)
 				my_sbin[bin_id] += other_cbin[bin_id];
 		}
-
 		uint32_t thread_num = self.thread_num;
 		for (th_id = my_th_id + 1; th_id < thread_num; ++th_id)
 		{
@@ -710,8 +732,8 @@ int substep_func_omp_T2D_ME_mt(
 		for (p_id = p_id1; p_id-- > p_id0;)
 		{
 			data_digit = (pcl_in_elem_array[p_id] >> digit_disp) & 0xFF;
-			pcl_in_elem_array_tmp[--my_cbin[data_digit]] = pcl_in_elem_array[p_id];
-			new_to_ori_pcl_map_tmp[my_cbin[data_digit]] = new_to_ori_pcl_map[p_id];
+			pcl_in_elem_array_tmp[--my_sbin[data_digit]] = pcl_in_elem_array[p_id];
+			new_to_ori_pcl_map_tmp[my_sbin[data_digit]] = new_to_ori_pcl_map[p_id];
 		}
 
 		swap(new_to_ori_pcl_map_ui, new_to_ori_pcl_map_tmp_ui);
@@ -725,22 +747,50 @@ int substep_func_omp_T2D_ME_mt(
 		self.new_to_ori_pcl_map1 = new_to_ori_pcl_map_tmp;
 		self.pcl_in_elem_array0 = pcl_in_elem_array;
 		self.pcl_in_elem_array1 = pcl_in_elem_array_tmp;
+		self.pcl_sorted_var_id ^= 1;
 	}
 	
-	// divide pcl and element task
-	p_id1 = Block_Low(my_th_id+1, self.thread_num, self.pcl_num);
-	pcl_in_elem_id = pcl_in_elem_array[int64_t(p_id1) - 1];
-	while (p_id1 < self.pcl_num && pcl_in_elem_id == pcl_in_elem_array[p_id1])
-		++p_id1;
-	self.pcl_range[my_th_id + 1].id = p_id1;
-	self.elem_range[my_th_id + 1].id = pcl_in_elem_id + 1;
+//#pragma omp single
+//	{
+//		for (p_id = 0; p_id < self.pcl_num; ++p_id)
+//		{
+//			uint32_t old_id = self.new_to_ori_pcl_map0[p_id];
+//			std::cout << pscv0.pcl_index[old_id] << ", ";
+//		}
+//		std::cout << "\n";
+//		for (p_id = 0; p_id < self.pcl_num; ++p_id)
+//			std::cout << self.new_to_ori_pcl_map0[p_id] << ", ";
+//		std::cout << "\n";
+//		for (p_id = 0; p_id < self.pcl_num; ++p_id)
+//			std::cout << self.pcl_in_elem_array0[p_id] << ", ";
+//		std::cout << "\n";
+//	}
 
-	//for (uint32_t th_id = 0; th_id < thread_num + 1; ++th_id)
-	//	std::cout << pcl_range[th_id] << ", ";
-	//std::cout << "\n";
-	//for (uint32_t th_id = 0; th_id < thread_num + 1; ++th_id)
-	//	std::cout << elem_range[th_id] << ", ";
-	//std::cout << "\n";
+	// divide pcl and element task
+	p_id1 = Block_Low(my_th_id + 1, self.thread_num, self.pcl_num);
+	if (p_id1 < self.pcl_num)
+	{
+		pcl_in_elem_id = pcl_in_elem_array[p_id1];
+		while (pcl_in_elem_id == pcl_in_elem_array[p_id1 + 1])
+			++p_id1;
+		self.pcl_range[my_th_id + 1].id = p_id1 + 1;
+		self.elem_range[my_th_id + 1].id = pcl_in_elem_id + 1;
+	}
+	else
+	{
+		self.pcl_range[my_th_id + 1].id = self.pcl_num;
+		self.elem_range[my_th_id + 1].id = self.elem_num;
+	}
+
+//#pragma omp single
+//	{
+//		for (uint32_t th_id = 0; th_id < self.thread_num + 1; ++th_id)
+//			std::cout << self.pcl_range[th_id].id << ", ";
+//		std::cout << "\n";
+//		for (uint32_t th_id = 0; th_id < self.thread_num + 1; ++th_id)
+//			std::cout << self.elem_range[th_id].id << ", ";
+//		std::cout << "\n";
+//	}
 
 #pragma omp barrier
 	return 0;
