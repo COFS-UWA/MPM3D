@@ -8,12 +8,14 @@ add_executable(
     # precompiled header
     TestsParallel_pcp.h TestsParallel_pcp.cpp
     test_parallel_utils.h
+    test_parallel_utils2.h
     test_simulations_omp.h
     test_model_view_omp.h
     # entry
     TestsParallel_main.cpp
     test_t2d_me_mt_test1.cpp
     test_t2d_me_mt_test2.cpp
+    test_t2d_me_s_test2.cpp
     test_Step_OMP.cpp
     )
 

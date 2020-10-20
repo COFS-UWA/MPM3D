@@ -1,8 +1,12 @@
 #include "Simulations_pcp.h"
 
 #include <cmath>
+#include <fstream>
+
 #include "MaterialModel.h"
 #include "Step_T2D_ME_s.h"
+
+std::fstream res_file_t2d_me_s;
 
 Step_T2D_ME_s::Step_T2D_ME_s(const char* _name) :
 	Step(_name, "Step_T2D_ME_s", &solve_substep_T2D_ME_s_avg),
@@ -26,6 +30,23 @@ int Step_T2D_ME_s::init_calculation()
 		pcl.ux = 0.0;
 		pcl.uy = 0.0;
 	}
+
+	//res_file_t2d_me_s.open("me_s_res.txt", std::ios::out | std::ios::binary);
+
+	//typedef SearchingGrid2D<Model_T2D_ME_s> SGrid;
+	//auto &bg_grid = md.get_bg_grid();
+	//size_t g_id = 0;
+	//for (size_t y_id = 0; y_id < bg_grid.get_y_num(); ++y_id)
+	//	for (size_t x_id = 0; x_id < bg_grid.get_x_num(); ++x_id)
+	//	{
+	//		res_file_t2d_me_s << g_id << ": ";
+	//		auto& g = bg_grid.get_grid(x_id, y_id);
+	//		for (SGrid::ElemPointer *ept = g.pelems;
+	//			 ept; ept = ept->next)
+	//			res_file_t2d_me_s << ept->e->id << ", ";
+	//		res_file_t2d_me_s << "\n";
+	//		++g_id;
+	//	}
 
 	return 0;
 }

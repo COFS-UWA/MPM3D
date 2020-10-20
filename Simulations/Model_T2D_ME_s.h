@@ -174,6 +174,7 @@ public:
 	Model_T2D_ME_s();
 	~Model_T2D_ME_s();
 
+	inline SearchingGrid2D<Model_T2D_ME_s>& get_bg_grid() { return search_bg_grid; }
 	inline double get_bg_grid_xl() { return search_bg_grid.get_x_min(); }
 	inline double get_bg_grid_xu() { return search_bg_grid.get_x_max(); }
 	inline double get_bg_grid_yl() { return search_bg_grid.get_y_min(); }

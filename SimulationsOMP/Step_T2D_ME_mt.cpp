@@ -1,6 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <iostream>
+#include <fstream>
 #include <omp.h>
 
 #include "Step_T2D_ME_mt.h"
@@ -8,6 +9,8 @@
 #define one_third (1.0f/3.0f)
 #define N_min (1.0e-10f)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
+
+static std::fstream res_file_t2d_me_mt;
 
 Step_T2D_ME_mt::Step_T2D_ME_mt(const char* _name) : 
 	Step_OMP(_name, "Step_T2D_ME_mt", &substep_func_omp_T2D_ME_mt) {}
@@ -38,6 +41,8 @@ namespace
 
 int Step_T2D_ME_mt::init_calculation()
 {
+	res_file_t2d_me_mt.open("me_mt_res.txt", std::ios::out | std::ios::binary);
+	
 	Model_T2D_ME_mt &md = *(Model_T2D_ME_mt *)model;
 
 	omp_set_num_threads(thread_num);
@@ -194,12 +199,21 @@ int Step_T2D_ME_mt::init_calculation()
 		
 //#pragma omp single
 //		{
+//			//for (uint32_t p_id = 0; p_id < pcl_num; p_id++)
+//			//	std::cout << new_to_ori_pcl_map[p_id] << ", ";
+//			//std::cout << "\n";
+//			//for (uint32_t p_id = 0; p_id < pcl_num; p_id++)
+//			//	std::cout << pcl_in_elem_array[p_id] << ", ";
+//			//std::cout << "\n";
+//
+//			uint32_t pcl_id_sum = 0;
 //			for (uint32_t p_id = 0; p_id < pcl_num; p_id++)
-//				std::cout << new_to_ori_pcl_map[p_id] << ", ";
-//			std::cout << "\n";
-//			for (uint32_t p_id = 0; p_id < pcl_num; p_id++)
-//				std::cout << pcl_in_elem_array[p_id] << ", ";
-//			std::cout << "\n";
+//			{
+//				res_file_t2d_me_mt << new_to_ori_pcl_map[p_id] << ", "
+//								  << pcl_in_elem_array[p_id] << ",\n";
+//				pcl_id_sum += new_to_ori_pcl_map[p_id];
+//			}
+//			res_file_t2d_me_mt << pcl_id_sum << "\n";
 //		}
 
 		uint32_t* my_cbin = elem_count_bin + size_t(my_th_id) * 0x100;
@@ -292,6 +306,46 @@ int Step_T2D_ME_mt::init_calculation()
 	//	std::cout << pcl_in_elem_array0[p_id] << ", ";
 	//std::cout << "\n";
 	
+	//for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
+	//	res_file_t2d_me_mt << new_to_ori_pcl_map0[p_id] << ", "
+	//					   << pcl_in_elem_array0[p_id] << ",\n";
+	//res_file_t2d_me_mt << "\n";
+	
+	//uint32_t pcl_id_sum = 0;
+	//for (uint32_t p_id = 0; p_id < pcl_num; p_id++)
+	//{
+	//	res_file_t2d_me_mt << new_to_ori_pcl_map0[p_id] << ", "
+	//					  << pcl_in_elem_array0[p_id] << ",\n";
+	//	pcl_id_sum += new_to_ori_pcl_map0[p_id];
+	//}
+	//res_file_t2d_me_mt << pcl_id_sum << "\n";
+	//for (uint32_t p_id = 1; p_id < pcl_num; p_id++)
+	//	assert(pcl_in_elem_array0[p_id - 1] <= pcl_in_elem_array0[p_id]);
+
+	uint32_t e_id = 0;
+	for (uint32_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		res_file_t2d_me_mt << n_id << ": ";
+		uint32_t e_id1 = node_elem_list[n_id];
+		for (; e_id < e_id1; ++e_id)
+			//res_file_t2d_me_mt << elem_id_array[e_id] << ", ";
+			res_file_t2d_me_mt << node_elem_id_array[e_id] << ", ";
+		res_file_t2d_me_mt << "\n";
+	}
+
+	//uint32_t g_id = 0;
+	//for (uint32_t y_id = 0; y_id < md.grid_y_num; ++y_id)
+	//	for (uint32_t x_id = 0; x_id < md.grid_x_num; ++x_id)
+	//	{
+	//		res_file_t2d_me_mt << g_id << ": ";
+	//		uint32_t e_id0 = md.grid_elem_list[g_id];
+	//		uint32_t e_id1 = md.grid_elem_list[g_id + 1];
+	//		for (uint32_t e_id = e_id0; e_id < e_id1; ++e_id)
+	//			res_file_t2d_me_mt << md.grid_elem_list_id_array[e_id] << ", ";
+	//		res_file_t2d_me_mt << "\n";
+	//		++g_id;
+	//	}
+
 	pcl_num = pcl_num1;	
 	return 0;
 }

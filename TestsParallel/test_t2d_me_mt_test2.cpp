@@ -82,7 +82,7 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	step.set_dtime(1.0e-5);
 	//step.add_time_history(out);
 	step.add_time_history(out_pb);
-	step.set_thread_num(3);
+	//step.set_thread_num(3);
 	step.init_calculation();
 	//step.finalize_calculation();
 	//std::chrono::system_clock::time_point t0 = std::chrono::system_clock::now();

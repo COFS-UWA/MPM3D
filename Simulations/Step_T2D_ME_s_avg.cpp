@@ -1,8 +1,12 @@
 #include "Simulations_pcp.h"
 
+#include <fstream>
+
 #include "Step_T2D_ME_s.h"
 
 #define one_third (1.0/3.0)
+
+extern std::fstream res_file_t2d_me_s;
 
 int solve_substep_T2D_ME_s_avg(void *_self)
 {
@@ -46,6 +50,9 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 		{
 			if (!(pcl.pe = const_cast<Element *>(md.find_in_which_element(pcl))))
 				continue;
+
+			//if (self.substep_index == 0)
+			//	res_file_t2d_me_s << pcl.id << ", " << pcl.pe->id << ",\n";
 
 			pcl.vol = pcl.m / pcl.density;
 			
