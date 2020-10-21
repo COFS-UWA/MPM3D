@@ -52,7 +52,7 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 				continue;
 
 			//if (self.substep_index == 0)
-			//	res_file_t2d_me_s << pcl.id << ", " << pcl.pe->id << ",\n";
+				//	res_file_t2d_me_s << pcl.id << ", " << pcl.pe->id << ",\n";
 
 			pcl.vol = pcl.m / pcl.density;
 			
@@ -83,6 +83,17 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 			n3.vy += pcl.N3 * mvy;
 		}
 	}
+
+	//if (self.substep_index == 0)
+	//{
+	//	for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+	//	{
+	//		Particle& pcl = md.pcls[p_id];
+	//		res_file_t2d_me_s << p_id << ", "
+	//			<< pcl.N1 << ", " << pcl.N2 << ", "
+	//			<< pcl.N3 << ",\n";
+	//	}
+	//}
 
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{

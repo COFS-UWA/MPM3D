@@ -262,7 +262,7 @@ public:
 
 	// search using background grid
 	template <typename Point2D>
-	inline const Element* find_in_which_element(Point2D& pcl) const noexcept
+	inline Element* find_in_which_element(Point2D& pcl)
 	{
 		return search_bg_grid.find_in_which_element<Point2D>(pcl);
 	}

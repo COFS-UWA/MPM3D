@@ -71,9 +71,8 @@ void Model_T2D_ME_mt::alloc_mesh(
 
 	size_t mem_len = (sizeof(ElemNodeIndex) + sizeof(float)
 		+ sizeof(ElemShapeFuncAB) + sizeof(ElemShapeFuncC)
-		+ sizeof(uint32_t) * 2 + sizeof(float)
+		+ sizeof(float) * 4
 		+ sizeof(ElemStrainInc) + sizeof(ElemStress)
-		+ sizeof(float) + sizeof(float) + sizeof(uint32_t)
 		+ sizeof(ElemNodeVM) * 3 + sizeof(ElemNodeForce) * 3
 		+ sizeof(uint32_t) * 3 + sizeof(uint32_t) * 3) * e_num
 		+ (sizeof(uint32_t) + sizeof(NodePos)
@@ -93,17 +92,16 @@ void Model_T2D_ME_mt::alloc_mesh(
 
 	elem_density = (float*)cur_mem;
 	cur_mem += sizeof(float) * elem_num;
-	elem_de = (ElemStrainInc*)cur_mem;
+	elem_pcl_m = (float*)cur_mem;
+	cur_mem += sizeof(float) * elem_num;
+	elem_pcl_vol = (float*)cur_mem;
+	cur_mem += sizeof(float) * elem_num;
+	elem_de = (ElemStrainInc *)cur_mem;
 	cur_mem += sizeof(ElemStrainInc) * elem_num;
-	elem_stress = (ElemStress*)cur_mem;
+	elem_stress = (ElemStress *)cur_mem;
 	cur_mem += sizeof(ElemStress) * elem_num;
-
-	elem_am = (float*)cur_mem;
+	elem_m_de_vol = (float*)cur_mem;
 	cur_mem += sizeof(float) * elem_num;
-	elem_am_de_vol = (float*)cur_mem;
-	cur_mem += sizeof(float) * elem_num;
-	elem_has_pcl_num = (uint32_t *)cur_mem;
-	cur_mem += sizeof(uint32_t) * elem_num;
 
 	elem_node_vm = (ElemNodeVM*)cur_mem;
 	cur_mem += sizeof(ElemNodeVM) * elem_num * 3;
@@ -271,7 +269,7 @@ void Model_T2D_ME_mt::clear_search_grid()
 }
 
 int Model_T2D_ME_mt::init_search_grid(
-	const TriangleMesh& mesh,
+	TriangleMesh& mesh,
 	double _hx,
 	double _hy
 	)
@@ -679,12 +677,12 @@ void Model_T2D_ME_mt::init_tys(
 {
 	if (pcl_mem_raw && ori_pcl_num)
 	{
-		size_t p_id;
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
-			p_id = t_pcls[t_id];
+			size_t p_id = t_pcls[t_id];
 			PclTraction &t = pcl_t[p_id];
 			t.ty += ts[t_id];
+			int efef = 0;
 		}
 		//for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 		//	std::cout << pcl_t[p_id].ty << ", ";

@@ -58,11 +58,11 @@ protected:
 	ElemShapeFuncC* elem_sf_c;
 
 	float* elem_density;
+	float* elem_pcl_m;
+	float* elem_pcl_vol;
 	ElemStrainInc* elem_de;
 	ElemStress* elem_stress;
-	float* elem_am;
-	float* elem_am_de_vol;
-	uint32_t* elem_has_pcl_num;
+	float* elem_m_de_vol;
 
 	ElemNodeVM* elem_node_vm;
 	ElemNodeForce* elem_node_force;
@@ -84,14 +84,10 @@ protected:
 		uint32_t id;
 		char padding[Cache_Alignment];
 	};
-	union ElemRange
-	{
-		uint32_t id;
-		char padding[Cache_Alignment];
-	};
 	PclRange* pcl_range;
-	ElemRange *elem_range;
-	uint32_t* node_elem_range, *node_range;
+	uint32_t *elem_range;
+	uint32_t *node_range;
+	uint32_t* node_elem_range;
 
 	// radix sort
 	CacheAlignedMem sort_var_mem;

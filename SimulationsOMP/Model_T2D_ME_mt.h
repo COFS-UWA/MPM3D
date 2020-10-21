@@ -106,11 +106,11 @@ protected:
 
 	// element calculation data
 	float *elem_density; // elem_num
+	float *elem_pcl_m; // elem_num
+	float *elem_pcl_vol; // elem_num
 	ElemStrainInc *elem_de; // elem_num
 	ElemStress *elem_stress; // elem_num
-	float *elem_am; // elem_num
-	float *elem_am_de_vol; // elem_num
-	uint32_t* elem_has_pcl_num; // elem_num
+	float *elem_m_de_vol; // elem_num
 
 	// element-node data
 	ElemNodeVM* elem_node_vm; // elem_num * 3
@@ -172,7 +172,7 @@ public:
 	void init_mesh(const TriangleMesh& mesh);
 	
 	void clear_search_grid();
-	int init_search_grid(const TriangleMesh& mesh, double _hx, double _hy);
+	int init_search_grid(TriangleMesh& mesh, double _hx, double _hy);
 	
 	void alloc_pcls(size_t num);
 	void alloc_pcls(size_t num, size_t ori_num);

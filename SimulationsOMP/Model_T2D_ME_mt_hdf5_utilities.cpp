@@ -289,37 +289,41 @@ int output_pcl_data_to_hdf5_file(
 	Step_T2D_ME_mt& stp,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
-	)
+)
 {
 	if (grp_id < 0)
 		return -1;
 
 	hid_t pcl_data_grp_id = rf.create_group(grp_id, "ParticleData");
-	
+
 	uint32_t ori_pcl_num = md.get_ori_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "ori_pcl_num", ori_pcl_num);
 	uint32_t pcl_num = stp.get_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 
-	uint32_t sorted_var_id = stp.get_sorted_var_id();
-	uint32_t* new_to_ori_pcl_id = stp.get_new_to_ori_pcl_map();
-	ParticleData* pcl_data = new ParticleData[pcl_num];
-	uint32_t p_id;
-	for (p_id = 0; p_id < md.pcl_num; ++p_id)
+	int res = 0;
+	if (pcl_num)
 	{
-		ParticleData& pd = pcl_data[p_id];
-		pd.from_pcl(md, p_id, sorted_var_id, new_to_ori_pcl_id);
+		uint32_t sorted_var_id = stp.get_sorted_var_id();
+		uint32_t* new_to_ori_pcl_id = stp.get_new_to_ori_pcl_map();
+		ParticleData* pcl_data = new ParticleData[pcl_num];
+		uint32_t p_id;
+		for (p_id = 0; p_id < pcl_num; ++p_id)
+		{
+			ParticleData& pd = pcl_data[p_id];
+			pd.from_pcl(md, p_id, sorted_var_id, new_to_ori_pcl_id);
+		}
+		hid_t pcl_dt_id = get_pcl_dt_id();
+		res = rf.write_dataset(
+			pcl_data_grp_id,
+			"field",
+			pcl_num,
+			pcl_data,
+			pcl_dt_id
+			);
+		H5Tclose(pcl_dt_id);
+		delete[] pcl_data;
 	}
-	hid_t pcl_dt_id = get_pcl_dt_id();
-	int res = rf.write_dataset(
-		pcl_data_grp_id,
-		"field",
-		pcl_num,
-		pcl_data,
-		pcl_dt_id
-		);
-	H5Tclose(pcl_dt_id);
-	delete[] pcl_data;
 
 	rf.close_group(pcl_data_grp_id);
 	return res;
@@ -342,39 +346,43 @@ int load_pcl_data_from_hdf5_file(
 	md.ori_pcl_num = ori_pcl_num;
 	md.pcl_num = pcl_num;
 
-	ParticleData* pcls_data = new ParticleData[pcl_num];
-	hid_t pcl_dt_id = get_pcl_dt_id();
-	int res = rf.read_dataset(
-		pcl_data_grp_id,
-		"field",
-		pcl_num,
-		pcls_data,
-		pcl_dt_id
+	if (pcl_num && rf.has_dataset(pcl_data_grp_id, "ParticleData"))
+	{
+		ParticleData* pcls_data = new ParticleData[pcl_num];
+		hid_t pcl_dt_id = get_pcl_dt_id();
+		int res = rf.read_dataset(
+			pcl_data_grp_id,
+			"field",
+			pcl_num,
+			pcls_data,
+			pcl_dt_id
 		);
-	H5Tclose(pcl_dt_id);
-	
-	if (res)
-	{
-		delete[] pcls_data;
-		rf.close_group(pcl_data_grp_id);
-	}
+		H5Tclose(pcl_dt_id);
 
-	MatModel::MatModelIdToPointerMap mm_id_map(md);
-	md.alloc_pcls(pcl_num, ori_pcl_num);
-	uint32_t p_id;
-	for (p_id = 0; p_id < pcl_num; ++p_id)
-	{
-		ParticleData& pcl_data = pcls_data[p_id];
-		MatModel::MaterialModel *pmat = mm_id_map.get_mm_by_id(pcl_data.mat_id);
-		if (!pmat)
+		if (res)
 		{
-			throw std::exception("func load_pcl_data_from_hdf5_file error: "
-				"particle has no material model.");
+			delete[] pcls_data;
+			rf.close_group(pcl_data_grp_id);
+			return res;
 		}
-		pcl_data.to_pcl(md, p_id, 0, *pmat);
+
+		MatModel::MatModelIdToPointerMap mm_id_map(md);
+		
+		md.alloc_pcls(pcl_num, ori_pcl_num);
+		for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
+		{
+			ParticleData& pcl_data = pcls_data[p_id];
+			MatModel::MaterialModel* pmat = mm_id_map.get_mm_by_id(pcl_data.mat_id);
+			if (!pmat)
+			{
+				throw std::exception("func load_pcl_data_from_hdf5_file error: "
+					"particle has no material model.");
+			}
+			pcl_data.to_pcl(md, p_id, 0, *pmat);
+		}
+		delete[] pcls_data;
 	}
 
-	delete[] pcls_data;
 	rf.close_group(pcl_data_grp_id);
 	return 0;
 }

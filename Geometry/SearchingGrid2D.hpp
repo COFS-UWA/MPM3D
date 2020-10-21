@@ -18,7 +18,7 @@ public:
 	
 	struct ElemPointer
 	{
-		const MeshElement *e;
+		MeshElement *e;
 		ElemPointer *next;
 	};
 
@@ -35,11 +35,11 @@ protected:
 	size_t x_num, y_num, num;
 	Grid *grids;
 
-	const TriangleMesh *mesh;
+	TriangleMesh *mesh;
 	size_t node_num;
-	const MeshNode *nodes;
+	MeshNode *nodes;
 	size_t elem_num;
-	const MeshElement *elems;
+	MeshElement *elems;
 
 	MemoryUtils::ItemBuffer<ElemPointer> pe_buffer;
 
@@ -60,7 +60,7 @@ public:
 	inline size_t get_grid_num() const noexcept { return num; }
 	inline Grid *get_grids() const noexcept { return grids; }
 
-	int init(const TriangleMesh &_mesh, double hx, double hy)
+	int init(TriangleMesh &_mesh, double hx, double hy)
 	{
 		const Rect &mesh_bbox = _mesh.get_bounding_box();
 		if (alloc_grids(mesh_bbox, hx, hy) < 0)
@@ -93,7 +93,7 @@ public:
 	}
 
 	template <typename Point2D>
-	inline const MeshElement *find_in_which_element(const Point2D &point) const noexcept
+	inline MeshElement *find_in_which_element(Point2D &point)
 	{
 		if (point.x < x_min || point.x > x_max ||
 			point.y < y_min || point.y > y_max)
@@ -104,7 +104,7 @@ public:
 		const Grid &g = get_grid(x_id, y_id);
 		for (ElemPointer *pelem = g.pelems; pelem; pelem = pelem->next)
 		{
-			const MeshElement *elem = pelem->e;
+			MeshElement *elem = pelem->e;
 			if (mesh->is_in_triangle(*elem, point))
 				return elem;
 		}
@@ -143,7 +143,7 @@ public:
 		return 0;
 	}
 
-	inline void set_mesh_info(const TriangleMesh &_mesh)
+	inline void set_mesh_info(TriangleMesh &_mesh)
 	{
 		mesh = &_mesh;
 		node_num = mesh->get_node_num();
@@ -152,7 +152,7 @@ public:
 		elems = mesh->get_elems();
 	}
 
-	void add_elem_to_grids(const MeshElement &elem)
+	void add_elem_to_grids(MeshElement &elem)
 	{
 		Rect elem_bbox;
 		get_elem_bbox(elem, elem_bbox);
@@ -187,7 +187,7 @@ public:
 protected:
 	inline void add_elem_to_grid(
 		Grid &g,
-		const MeshElement &e
+		MeshElement &e
 		) noexcept
 	{
 		ElemPointer *pe = pe_buffer.alloc();

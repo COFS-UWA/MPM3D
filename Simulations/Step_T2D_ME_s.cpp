@@ -48,6 +48,15 @@ int Step_T2D_ME_s::init_calculation()
 	//		++g_id;
 	//	}
 
+	//for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+	//{
+	//	Element& e = md.elems[e_id];
+	//	res_file_t2d_me_s << e_id << ", "
+	//		<< e.a1 << ", " << e.b1 << ", " << e.coef1 << ", "
+	//		<< e.a2 << ", " << e.b2 << ", " << e.coef2 << ", "
+	//		<< e.a3 << ", " << e.b3 << ", " << e.coef3 << ",\n";
+	//}
+
 	return 0;
 }
 

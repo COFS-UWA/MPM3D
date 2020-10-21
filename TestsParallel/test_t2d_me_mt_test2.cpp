@@ -35,6 +35,14 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 		mms[p_id] = &les[p_id];
 	}
 
+	IndexArray tbc_pt_array(50);
+	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
+	MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
+	double ty_mag = 0.02 * -10.0;
+	for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
+		tys_mem.add(ty_mag);
+	model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tys_mem.get_mem());
+
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
 	find_2d_nodes_on_x_line(model, vx_bc_pt_array, 0.0);
@@ -45,15 +53,6 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	IndexArray vy_bc_pt_array(50);
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, 0.0);
 	model.init_fixed_vy_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
-
-	// traction bc
-	//IndexArray tbc_pt_array(50);
-	//find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
-	//MemoryUtils::ItemArray<double> tbc_load(50);
-	//double load = 0.02 * -10.0;
-	//for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
-	//	tbc_load.add(load);
-	//model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tbc_load.get_mem());
 
 	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
@@ -80,15 +79,12 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
-	//step.add_time_history(out);
+	step.add_time_history(out);
 	step.add_time_history(out_pb);
-	//step.set_thread_num(3);
-	step.init_calculation();
+	//step.set_thread_num(2);
+	//step.init_calculation();
 	//step.finalize_calculation();
-	//std::chrono::system_clock::time_point t0 = std::chrono::system_clock::now();
-	//step.solve();
-	//std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
-	//std::cout << "time: " << std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count() << "\n";
+	step.solve();
 }
 
 #include "QtApp_Posp_T2D_ME_mt.h"
@@ -103,7 +99,7 @@ void test_t2d_me_mt_test2_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "loading", Hdf5Field::s22);
 	app.set_win_size(900, 900);
-	//app.set_color_map_fld_range(-20.0, 0.0);
+	app.set_color_map_fld_range(-20.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_s_pipe_conference_restart1");
 	//app.set_gif_name("t2d_chm_s_pipe_conference_restart1");

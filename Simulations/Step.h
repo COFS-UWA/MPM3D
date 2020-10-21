@@ -76,17 +76,17 @@ public:
 	inline Model &get_model() const noexcept { return *model; }
 
 	// time length of this step
-	inline double get_step_time() { return step_time; }
+	inline double get_step_time() const noexcept { return step_time; }
 	// time from the start of this step
-	inline double get_current_time() { return current_time; }
+	inline double get_current_time() const noexcept { return current_time; }
 	// total time from the start of the whole simulation
-	inline double get_total_time() { return start_time + current_time; }
+	inline double get_total_time() const noexcept { return start_time + current_time; }
 	// number of substep from the start of this step
-	inline size_t get_substep_index() { return substep_index; }
+	inline size_t get_substep_index() const noexcept { return substep_index; }
 	// total number of substep from the start of the whole simulation
-	inline size_t get_total_substep_index() { return prev_substep_num + substep_index; }
+	inline size_t get_total_substep_index() const noexcept { return prev_substep_num + substep_index; }
 	// size of time increment
-	inline double get_dtime() { return dtime; }
+	inline double get_dtime() const noexcept { return dtime; }
 
 protected:
 	// initialization before calculation
