@@ -64,7 +64,7 @@ struct ParticleData
 		Model_T2D_ME_mt &md,
 		uint32_t pcl_offset,
 		uint32_t pcl_sorted_var_id,
-		uint32_t *new_to_ori_pcl_map
+		const uint32_t *new_to_ori_pcl_map
 		)
 	{
 		Model_T2D_ME_mt::PclSortedVarArray &psva

@@ -51,9 +51,6 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 			if (!(pcl.pe = const_cast<Element *>(md.find_in_which_element(pcl))))
 				continue;
 
-			//if (self.substep_index == 0)
-				//	res_file_t2d_me_s << pcl.id << ", " << pcl.pe->id << ",\n";
-
 			pcl.vol = pcl.m / pcl.density;
 			
 			Element &e = *pcl.pe;
@@ -83,17 +80,6 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 			n3.vy += pcl.N3 * mvy;
 		}
 	}
-
-	//if (self.substep_index == 0)
-	//{
-	//	for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
-	//	{
-	//		Particle& pcl = md.pcls[p_id];
-	//		res_file_t2d_me_s << p_id << ", "
-	//			<< pcl.N1 << ", " << pcl.N2 << ", "
-	//			<< pcl.N3 << ",\n";
-	//	}
-	//}
 
 	for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
 	{
@@ -125,8 +111,19 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 			// node 3
 			n3.fx_int += (e.dN3_dx * e.s11 + e.dN3_dy * e.s12) * e.mi_pcl_vol;
 			n3.fy_int += (e.dN3_dx * e.s12 + e.dN3_dy * e.s22) * e.mi_pcl_vol;
+		
+			if (self.substep_index == 1 && (n1.id == 11 || n2.id == 11 || n3.id == 11))
+				int efe = 0;
 		}
 	}
+
+	//for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
+	//{
+	//	Element &e = md.elems[e_id];
+	//	res_file_t2d_me_s << e_id << ", "
+	//		<< e.pcl_m << ", " << e.pcl_density << ", "
+	//		<< e.s11 << ", " << e.s22 << ", " << e.s12 << ",\n";
+	//}
 
 	// body force
 	double bf_mag;
@@ -234,6 +231,14 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 		}
 	}
 
+	//for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	//{
+	//	Node& n = md.nodes[n_id];
+	//	res_file_t2d_me_s << n_id << ", " << n.am << ", "
+	//		<< n.ax << ", " << n.ay << ", "
+	//		<< n.vx << ", " << n.vy << ",\n";
+	//}
+
 	// contact with rigid circle
 	if (md.rigid_circle_is_init)
 		self.apply_rigid_circle_avg(self.dtime);
@@ -275,7 +280,7 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
-			
+
 			de11 = n1.dux * e.dN1_dx + n2.dux * e.dN2_dx + n3.dux * e.dN3_dx;
 			de22 = n1.duy * e.dN1_dy + n2.duy * e.dN2_dy + n3.duy * e.dN3_dy;
 			de12 = (n1.dux * e.dN1_dy + n2.dux * e.dN2_dy + n3.dux * e.dN3_dy
@@ -289,6 +294,10 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 			n1.de_vol_by_3 += vol_de_vol_by_3;
 			n2.de_vol_by_3 += vol_de_vol_by_3;
 			n3.de_vol_by_3 += vol_de_vol_by_3;
+		
+			//res_file_t2d_me_s << e_id << ", "
+			//	<< e.dde11 << ", " << e.dde22 << ", "
+			//	<< e.de12 << ",\n";
 		}
 	}
 
@@ -338,6 +347,9 @@ int solve_substep_T2D_ME_s_avg(void *_self)
 			pcl.e11 += de11;
 			pcl.e22 += de22;
 			pcl.e12 += de12;
+
+			if (self.substep_index == 0 && pcl.id == 350)
+				int efef = 0;
 
 			double dstrain[6] = { de11, de22, 0.0, de12, 0.0, 0.0 };
 			pcl.mm->integrate(dstrain);

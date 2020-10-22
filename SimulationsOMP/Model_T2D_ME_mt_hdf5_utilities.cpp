@@ -304,14 +304,14 @@ int output_pcl_data_to_hdf5_file(
 	int res = 0;
 	if (pcl_num)
 	{
-		uint32_t sorted_var_id = stp.get_sorted_var_id();
-		uint32_t* new_to_ori_pcl_id = stp.get_new_to_ori_pcl_map();
+		uint32_t sorted_var_id = stp.get_pcl_sorted_var_id();
+		const uint32_t* new_to_prev_pcl_map = stp.get_new_to_prev_pcl_map();
 		ParticleData* pcl_data = new ParticleData[pcl_num];
 		uint32_t p_id;
 		for (p_id = 0; p_id < pcl_num; ++p_id)
 		{
 			ParticleData& pd = pcl_data[p_id];
-			pd.from_pcl(md, p_id, sorted_var_id, new_to_ori_pcl_id);
+			pd.from_pcl(md, p_id, sorted_var_id, new_to_prev_pcl_map);
 		}
 		hid_t pcl_dt_id = get_pcl_dt_id();
 		res = rf.write_dataset(

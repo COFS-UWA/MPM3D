@@ -31,31 +31,7 @@ int Step_T2D_ME_s::init_calculation()
 		pcl.uy = 0.0;
 	}
 
-	//res_file_t2d_me_s.open("me_s_res.txt", std::ios::out | std::ios::binary);
-
-	//typedef SearchingGrid2D<Model_T2D_ME_s> SGrid;
-	//auto &bg_grid = md.get_bg_grid();
-	//size_t g_id = 0;
-	//for (size_t y_id = 0; y_id < bg_grid.get_y_num(); ++y_id)
-	//	for (size_t x_id = 0; x_id < bg_grid.get_x_num(); ++x_id)
-	//	{
-	//		res_file_t2d_me_s << g_id << ": ";
-	//		auto& g = bg_grid.get_grid(x_id, y_id);
-	//		for (SGrid::ElemPointer *ept = g.pelems;
-	//			 ept; ept = ept->next)
-	//			res_file_t2d_me_s << ept->e->id << ", ";
-	//		res_file_t2d_me_s << "\n";
-	//		++g_id;
-	//	}
-
-	//for (size_t e_id = 0; e_id < md.elem_num; ++e_id)
-	//{
-	//	Element& e = md.elems[e_id];
-	//	res_file_t2d_me_s << e_id << ", "
-	//		<< e.a1 << ", " << e.b1 << ", " << e.coef1 << ", "
-	//		<< e.a2 << ", " << e.b2 << ", " << e.coef2 << ", "
-	//		<< e.a3 << ", " << e.b3 << ", " << e.coef3 << ",\n";
-	//}
+	res_file_t2d_me_s.open("me_s_res.txt", std::ios::out | std::ios::binary);
 
 	return 0;
 }

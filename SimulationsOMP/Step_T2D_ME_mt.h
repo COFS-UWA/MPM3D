@@ -39,7 +39,6 @@ protected:
 	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
 	typedef Model_T2D_ME_mt::NodePos NodePos;
 
-	uint32_t pcl_num;
 	uint32_t elem_num;
 	uint32_t node_num;
 
@@ -49,7 +48,6 @@ protected:
 	PclPos* pcl_pos;
 	MatModel::MaterialModel** pcl_mat_model;
 
-	uint32_t pcl_sorted_var_id;
 	PclSortedVarArray pcl_sorted_var_array[2];
 
 	ElemNodeIndex* elem_node_id;
@@ -90,17 +88,19 @@ protected:
 	uint32_t* node_elem_range;
 
 	// radix sort
-	CacheAlignedMem sort_var_mem;
-	uint32_t* new_to_ori_pcl_map0;
-	uint32_t* new_to_ori_pcl_map1;
-	uint32_t* pcl_in_elem_array0;
-	uint32_t* pcl_in_elem_array1;
 	CacheAlignedMem elem_bin_mem;
-	uint32_t *elem_count_bin;
+	uint32_t* elem_count_bin;
 	uint32_t* elem_sum_bin;
+	
+	CacheAlignedMem radix_sort_var_mem;
+	uint32_t* new_to_prev_pcl_maps[2];
+	uint32_t* pcl_in_elem_arrays[2];
 
+	uint32_t pcl_sorted_var_id;
+	uint32_t radix_sort_var_id;
+	uint32_t pcl_num;
 	uint32_t new_pcl_num;
-
+	
 public:
 	int init_calculation() override;
 	friend int substep_func_omp_T2D_ME_mt(void* _self,
@@ -132,8 +132,8 @@ public:
 	~Step_T2D_ME_mt();
 
 	inline uint32_t get_pcl_num() const noexcept { return pcl_num; }
-	inline uint32_t get_sorted_var_id() const noexcept { return pcl_sorted_var_id; }
-	inline uint32_t* get_new_to_ori_pcl_map() const noexcept { return new_to_ori_pcl_map0; }
+	inline uint32_t get_pcl_sorted_var_id() const noexcept { return pcl_sorted_var_id; }
+	inline const uint32_t *get_new_to_prev_pcl_map() const noexcept { return new_to_prev_pcl_maps[radix_sort_var_id]; }
 };
 
 #endif

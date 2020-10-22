@@ -17,6 +17,23 @@ void test_t2d_me_s_test2(int argc, char **argv)
 	model.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
 	model.init_search_grid(0.05, 0.05);
 
+	Model_T2D_ME_s::Particle pcl;
+	pcl.x = 0.0700950846;
+	pcl.y = 0.946040322;
+	auto *elem = model.find_in_which_element(pcl);
+	double a1 = elem->a1;
+	double a2 = elem->a2;
+	double a3 = elem->a3;
+	double b1 = elem->b1;
+	double b2 = elem->b2;
+	double b3 = elem->b3;
+	double c1 = elem->coef1;
+	double c2 = elem->coef2;
+	double c3 = elem->coef3;
+
+	Point2D pt2d(0.0700950846, 0.946040322);
+	elem = model.find_in_which_element(pt2d);
+
 	ParticleGenerator2D<Model_T2D_ME_s> pcl_generator;
 	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	model.init_pcls(pcl_generator, 10.0);
@@ -82,8 +99,12 @@ void test_t2d_me_s_test2(int argc, char **argv)
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
-	//size_t disp_n_id = 32;
-	//md_disp.set_pts_from_node_id(&disp_n_id, 1, 0.01);
+	////size_t disp_n_id = 11;
+	////md_disp.set_pts_from_node_id(&disp_n_id, 1, 0.01);
+	//Model_T2D_ME_s::Particle disp_pcl;
+	//disp_pcl.x = 0.0700950846;
+	//disp_pcl.y = 0.946040322;
+	//md_disp.set_pts(&disp_pcl, 1, 0.01);
 	//md_disp.start();
 	//return;
 

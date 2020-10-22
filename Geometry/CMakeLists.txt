@@ -14,6 +14,7 @@ add_library(
     NumPairHashTable.hpp
     # 2D geometry
     TriangleUtils.h
+    TriangleUtils_f.h
     TriangleMeshTemplate.hpp
     TriangleMesh.h
     SearchingGrid2D.hpp

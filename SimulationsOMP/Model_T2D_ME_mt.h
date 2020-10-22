@@ -203,7 +203,8 @@ protected:
 		ElemShapeFuncC& e_sfc = elem_sf_c[elem_id];
 		pcl_sf.N1 = e_sfab.a1 * pcl_x + e_sfab.b1 * pcl_y + e_sfc.c1;
 		pcl_sf.N2 = e_sfab.a2 * pcl_x + e_sfab.b2 * pcl_y + e_sfc.c2;
-		pcl_sf.N3 = 1.0f - pcl_sf.N1 - pcl_sf.N2;
+		//pcl_sf.N3 = 1.0f - pcl_sf.N1 - pcl_sf.N2;
+		pcl_sf.N3 = e_sfab.a3 * pcl_x + e_sfab.b3 * pcl_y + e_sfc.c3; // for numerical accuracy
 		return pcl_sf.N1 >= 0.0f && pcl_sf.N1 <= 1.0f
 			&& pcl_sf.N2 >= 0.0f && pcl_sf.N2 <= 1.0f
 			&& pcl_sf.N3 >= 0.0f && pcl_sf.N3 <= 1.0f;
@@ -217,6 +218,7 @@ protected:
 	uint32_t* grid_elem_list_id_array;
 	uint32_t* grid_elem_list;
 
+public:
 	inline uint32_t find_pcl_in_which_elem(
 		float pcl_x, float pcl_y,
 		PclShapeFunc& pcl_sf

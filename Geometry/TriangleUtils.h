@@ -120,7 +120,6 @@ public:
 	inline double get_coef3() const noexcept { return coef3; }
 };
 
-
 //template <typename Node3D>
 //struct TriangleAABBCollisionSAT
 //{

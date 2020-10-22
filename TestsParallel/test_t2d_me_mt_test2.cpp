@@ -22,9 +22,10 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	model.init_mesh(tri_mesh);
 	model.init_search_grid(tri_mesh, 0.05, 0.05);
 
+	//Model_T2D_ME_mt::PclShapeFunc p_N;
+	//uint32_t e_id = model.find_pcl_in_which_elem(0.0700950846, 0.946040322f, p_N);
+	
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
-	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	model.init_pcls(pcl_generator, 10.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
@@ -38,7 +39,7 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	IndexArray tbc_pt_array(50);
 	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
 	MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
-	double ty_mag = 0.02 * -10.0;
+	double ty_mag = 0.02f * -10.0f;
 	for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
 		tys_mem.add(ty_mag);
 	model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tys_mem.get_mem());
@@ -81,7 +82,7 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
-	//step.set_thread_num(2);
+	//step.set_thread_num(3);
 	//step.init_calculation();
 	//step.finalize_calculation();
 	step.solve();
