@@ -27,7 +27,7 @@ protected:
 	Hdf5FieldExtraction_y y_fld;
 	Hdf5FieldExtraction_vol vol_fld;
 	Hdf5FieldExtraction* pfld;
-	MemoryUtils::ItemArray<float> pcl_fld_mem;
+	MemoryUtils::ItemArray<double> pcl_fld_mem;
 
 	std::string field_name;
 	hid_t th_id;

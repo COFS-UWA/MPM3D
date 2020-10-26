@@ -40,7 +40,7 @@ int output_background_mesh_to_hdf5_file(
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
 		NodeData &node_data = nodes_data[n_id];
-		node_data.id = uint32_t(n_id);
+		node_data.id = n_id;
 		Model_T2D_ME_mt::NodePos &np = node_pos[n_id];
 		node_data.x = np.x;
 		node_data.y = np.y;
@@ -59,17 +59,17 @@ int output_background_mesh_to_hdf5_file(
 	// element indices
 	ElementData *elems_data = new ElementData[elem_num];
 	Model_T2D_ME_mt::ElemNodeIndex *e_node_index = md.elem_node_id;
-	float* e_area = md.elem_area;
+	double* e_area = md.elem_area;
 	Model_T2D_ME_mt::ElemShapeFuncAB* e_sf_ab = md.elem_sf_ab;
 	Model_T2D_ME_mt::ElemShapeFuncC* e_sf_c = md.elem_sf_c;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		ElementData &elem_data = elems_data[e_id];
-		elem_data.id = uint32_t(e_id);
+		elem_data.id = e_id;
 		Model_T2D_ME_mt::ElemNodeIndex &eni = e_node_index[e_id];
-		elem_data.n1 = uint32_t(eni.n1);
-		elem_data.n2 = uint32_t(eni.n2);
-		elem_data.n3 = uint32_t(eni.n3);
+		elem_data.n1 = eni.n1;
+		elem_data.n2 = eni.n2;
+		elem_data.n3 = eni.n3;
 		elem_data.area = e_area[e_id];
 		Model_T2D_ME_mt::ElemShapeFuncAB& esfab = e_sf_ab[e_id];
 		elem_data.a1 = esfab.a1;
@@ -94,12 +94,11 @@ int output_background_mesh_to_hdf5_file(
 	H5Tclose(ed_dt_id);
 	delete[] elems_data;
 
-	// outpu bg mesh
+	// output bg mesh...
 
 	rf.close_group(bg_mesh_grp_id);
 	return 0;
 }
-
 
 int load_background_mesh_from_hdf5_file(
 	Model_T2D_ME_mt &md,
@@ -126,7 +125,7 @@ int load_background_mesh_from_hdf5_file(
 		node_num,
 		nodes_data,
 		nd_dt_id
-	);
+		);
 	H5Tclose(nd_dt_id);
 	Model_T2D_ME_mt::NodePos *node_pos = md.node_pos;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
@@ -257,13 +256,13 @@ int output_ori_pcl_data_to_hdf5_file(
 
 	hid_t pcl_data_grp_id = rf.create_group(grp_id, "ParticleData");
 
-	uint32_t ori_pcl_num = md.get_ori_pcl_num();
+	size_t ori_pcl_num = md.get_ori_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "ori_pcl_num", ori_pcl_num);
-	uint32_t pcl_num = md.get_pcl_num();
+	size_t pcl_num = md.get_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 
 	ParticleData* pcl_data = new ParticleData[pcl_num];
-	uint32_t p_id;
+	size_t p_id;
 	for (p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		ParticleData& pd = pcl_data[p_id];
@@ -296,18 +295,18 @@ int output_pcl_data_to_hdf5_file(
 
 	hid_t pcl_data_grp_id = rf.create_group(grp_id, "ParticleData");
 
-	uint32_t ori_pcl_num = md.get_ori_pcl_num();
+	size_t ori_pcl_num = md.get_ori_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "ori_pcl_num", ori_pcl_num);
-	uint32_t pcl_num = stp.get_pcl_num();
+	size_t pcl_num = stp.get_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 
 	int res = 0;
 	if (pcl_num)
 	{
-		uint32_t sorted_var_id = stp.get_pcl_sorted_var_id();
-		const uint32_t* new_to_prev_pcl_map = stp.get_new_to_prev_pcl_map();
+		size_t sorted_var_id = stp.get_pcl_sorted_var_id();
+		const size_t* new_to_prev_pcl_map = stp.get_new_to_prev_pcl_map();
 		ParticleData* pcl_data = new ParticleData[pcl_num];
-		uint32_t p_id;
+		size_t p_id;
 		for (p_id = 0; p_id < pcl_num; ++p_id)
 		{
 			ParticleData& pd = pcl_data[p_id];
@@ -340,7 +339,7 @@ int load_pcl_data_from_hdf5_file(
 
 	hid_t pcl_data_grp_id = rf.open_group(grp_id, "ParticleData");
 
-	uint32_t ori_pcl_num, pcl_num;
+	size_t ori_pcl_num, pcl_num;
 	rf.read_attribute(pcl_data_grp_id, "ori_pcl_num", ori_pcl_num);
 	rf.read_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 	md.ori_pcl_num = ori_pcl_num;
@@ -369,7 +368,7 @@ int load_pcl_data_from_hdf5_file(
 		MatModel::MatModelIdToPointerMap mm_id_map(md);
 		
 		md.alloc_pcls(pcl_num, ori_pcl_num);
-		for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 		{
 			ParticleData& pcl_data = pcls_data[p_id];
 			MatModel::MaterialModel* pmat = mm_id_map.get_mm_by_id(pcl_data.mat_id);

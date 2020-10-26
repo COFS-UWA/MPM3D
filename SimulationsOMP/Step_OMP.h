@@ -3,23 +3,19 @@
 
 #include "Step.h"
 
-typedef int (*CalSubstepFuncOMP)(void* _self, uint32_t my_th_id,
-	float dt, float cur_time, uint32_t substp_id);
+typedef int (*CalSubstepFuncOMP)(void* _self, size_t my_th_id,
+	double dt, double cur_time, size_t substp_id);
 
-int substep_func_omp_default(void *_self, uint32_t my_th_id, 
-	float dt, float cur_time, uint32_t substp_id);
+int substep_func_omp_default(void *_self, size_t my_th_id, 
+	double dt, double cur_time, size_t substp_id);
 
 class Step_OMP : public Step
 {
 protected:
-	uint32_t thread_num;
-	float dt;
-	float time_tol_f;
-	float stp_time;
-	float stp_time_minus_tol;
-	float next_output_time_minus_tol;
-	uint32_t substp_id;
-	float cur_time, new_time;
+	size_t thread_num;
+	double new_time;
+	double step_time_minus_tol;
+	double next_output_time_minus_tol;
 	bool output_not_needed, step_not_end;
 	bool continue_cal;
 
@@ -30,7 +26,7 @@ public:
 		CalSubstepFuncOMP _func_omp = &substep_func_omp_default);
 	~Step_OMP();
 
-	inline void set_thread_num(uint32_t th_num) noexcept { thread_num = th_num; }
+	inline void set_thread_num(size_t th_num) noexcept { thread_num = th_num; }
 
 	int solve() override;
 

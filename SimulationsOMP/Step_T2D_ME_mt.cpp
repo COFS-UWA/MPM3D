@@ -1,13 +1,12 @@
 #include "SimulationsOMP_pcp.h"
 
-#include <iostream>
 #include <fstream>
 #include <omp.h>
 
 #include "Step_T2D_ME_mt.h"
 
-#define one_third (1.0f/3.0f)
-#define N_min (1.0e-5f)
+#define one_third (1.0/3.0)
+#define N_min (1.0e-8)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
 static std::fstream res_file_t2d_me_mt;
@@ -20,15 +19,14 @@ Step_T2D_ME_mt::~Step_T2D_ME_mt() {}
 namespace
 {
 	inline void divide_task_to_thread(
-		uint32_t thread_num,
-		uint32_t data_num,
-		uint32_t data_range[] // len = thread_num+1
+		size_t thread_num,
+		size_t data_num,
+		size_t data_range[] // len = thread_num+1
 		)
 	{
 		data_range[0] = 0;
 		data_range[thread_num] = data_num;
-		register uint32_t i;
-		for (i = 1; i < thread_num; ++i)
+		for (register size_t i = 1; i < thread_num; ++i)
 			data_range[i] = Block_Low(i, thread_num, data_num);
 	}
 }
@@ -41,34 +39,33 @@ int Step_T2D_ME_mt::init_calculation()
 
 	omp_set_num_threads(thread_num);
 
-	uint32_t th_num_1 = thread_num + 1;
-	char *mem_range = (char *)task_range_mem.alloc((sizeof(PclRange) + sizeof(uint32_t) * 3) * size_t(th_num_1));
+	size_t th_num_1 = thread_num + 1;
+	char *mem_range = (char *)task_range_mem.alloc((sizeof(PclRange) + sizeof(size_t) * 3) * th_num_1);
 	pcl_range = (PclRange *)mem_range;
 	mem_range += sizeof(PclRange) * th_num_1;
-	elem_range = (uint32_t *)mem_range;
-	mem_range += sizeof(uint32_t) * th_num_1;
-	node_elem_range = (uint32_t *)mem_range;
-	mem_range += sizeof(uint32_t) * th_num_1;
-	node_range = (uint32_t*)mem_range;
+	elem_range = (size_t *)mem_range;
+	mem_range += sizeof(size_t) * th_num_1;
+	node_elem_range = (size_t *)mem_range;
+	mem_range += sizeof(size_t) * th_num_1;
+	node_range = (size_t*)mem_range;
 
 	pcl_range[0].id = 0;
 	divide_task_to_thread(thread_num, md.elem_num, elem_range);
 	divide_task_to_thread(thread_num, md.node_num, node_range);
 	node_elem_range[0] = 0;
-	uint32_t th_id;
-	for (th_id = 0; th_id < thread_num; ++th_id)
-		node_elem_range[th_id + 1] = md.node_elem_list[node_range[th_id+1] - 1];
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		node_elem_range[th_id + 1] = md.node_elem_list[node_range[th_id + 1] - 1];
 
 	radix_sort_var_id = 0;
-	new_to_prev_pcl_maps[0] = (uint32_t *)radix_sort_var_mem.alloc(sizeof(uint32_t) * (size_t(md.pcl_num) * 4 + 2) + Cache_Alignment * 3);
+	new_to_prev_pcl_maps[0] = (size_t *)radix_sort_var_mem.alloc(sizeof(size_t) * (md.pcl_num * 4 + 2) + Cache_Alignment * 3);
 	new_to_prev_pcl_maps[1] = cache_aligned(new_to_prev_pcl_maps[0] + md.pcl_num);
 	pcl_in_elem_arrays[0] = cache_aligned(new_to_prev_pcl_maps[1] + md.pcl_num);
 	pcl_in_elem_arrays[1] = cache_aligned(pcl_in_elem_arrays[0] + md.pcl_num + 1);
 	pcl_in_elem_arrays[0][md.pcl_num] = md.elem_num;
 	pcl_in_elem_arrays[1][md.pcl_num] = md.elem_num;
 
-	elem_count_bin = (uint32_t *)elem_bin_mem.alloc(sizeof(uint32_t) * thread_num * 0x100 * 2);
-	elem_sum_bin = elem_count_bin + size_t(thread_num) * 0x100;
+	elem_count_bin = (size_t *)elem_bin_mem.alloc(sizeof(size_t) * thread_num * 0x100 * 2);
+	elem_sum_bin = elem_count_bin + thread_num * 0x100;
 
 	pcl_num = md.pcl_num;
 	elem_num = md.elem_num;
@@ -124,37 +121,38 @@ int Step_T2D_ME_mt::init_calculation()
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 	
-	for (th_id = 1; th_id < th_num_1; ++th_id)
+	for (size_t th_id = 1; th_id < th_num_1; ++th_id)
 		pcl_range[th_id].id = Block_Low(th_id, thread_num, pcl_num);
 	PclSortedVarArray &psva = md.pcl_sorted_var_array[0];
-	uint32_t next_pcl_num = 0;
+	size_t next_pcl_num = 0;
 #pragma omp parallel
 	{
-		uint32_t my_th_id = omp_get_thread_num();
+		size_t my_th_id = size_t(omp_get_thread_num());
 		
-		uint32_t e_id0 = elem_range[my_th_id];
-		uint32_t e_id1 = elem_range[my_th_id + 1];
-		memset(elem_pcl_m + e_id0, 0, (e_id1 - e_id0) * sizeof(float));
-		memset(elem_pcl_vol + e_id0, 0, (e_id1 - e_id0) * sizeof(float));
+		// init elem vars
+		size_t e_id0 = elem_range[my_th_id];
+		size_t e_id1 = elem_range[my_th_id + 1];
+		memset(elem_pcl_m + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
+		memset(elem_pcl_vol + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
 		memset(elem_stress + e_id0, 0, (e_id1 - e_id0) * sizeof(ElemStress));
 		memset(elem_node_vm + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeVM));
 		memset(elem_node_force + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeForce));
 
-		uint32_t sort_var_id = radix_sort_var_id;
-		uint32_t* new_to_prev_pcl_map = new_to_prev_pcl_maps[sort_var_id];
-		uint32_t* new_to_prev_pcl_map_tmp = new_to_prev_pcl_maps[sort_var_id ^ 1];
-		uint32_t* pcl_in_elem_array = pcl_in_elem_arrays[sort_var_id];
-		uint32_t* pcl_in_elem_array_tmp = pcl_in_elem_arrays[sort_var_id ^ 1];
+		size_t sort_var_id = radix_sort_var_id;
+		size_t* new_to_prev_pcl_map = new_to_prev_pcl_maps[sort_var_id];
+		size_t* new_to_prev_pcl_map_tmp = new_to_prev_pcl_maps[sort_var_id ^ 1];
+		size_t* pcl_in_elem_array = pcl_in_elem_arrays[sort_var_id];
+		size_t* pcl_in_elem_array_tmp = pcl_in_elem_arrays[sort_var_id ^ 1];
 
-		uint32_t p_id0 = pcl_range[my_th_id].id;
-		uint32_t p_id1 = pcl_range[my_th_id + 1].id;
-		uint32_t pcl_in_mesh_num = 0;
-		uint32_t e_id, p_id;
+		size_t p_id0 = pcl_range[my_th_id].id;
+		size_t p_id1 = pcl_range[my_th_id + 1].id;
+		size_t pcl_in_mesh_num = 0;
+		size_t e_id, p_id;
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			PclDisp& p_d = psva.pcl_disp[p_id];
-			p_d.ux = 0.0f;
-			p_d.uy = 0.0f;
+			p_d.ux = 0.0;
+			p_d.uy = 0.0;
 
 			PclPos& p_p = md.pcl_pos[p_id];
 			PclShapeFunc& p_N = psva.pcl_N[p_id];
@@ -176,14 +174,14 @@ int Step_T2D_ME_mt::init_calculation()
 #pragma omp critical
 		next_pcl_num += pcl_in_mesh_num;
 		
-		uint32_t* my_cbin = elem_count_bin + size_t(my_th_id) * 0x100;
-		uint32_t* my_sbin = elem_sum_bin + size_t(my_th_id) * 0x100;
-		uint32_t data_digit, bin_id, th_id;
-		uint32_t* other_cbin;
-		for (uint32_t digit_disp = 0, elem_num_tmp = elem_num;
+		size_t* my_cbin = elem_count_bin + my_th_id * 0x100;
+		size_t* my_sbin = elem_sum_bin + my_th_id * 0x100;
+		size_t data_digit, bin_id, th_id;
+		size_t* other_cbin;
+		for (size_t digit_disp = 0, elem_num_tmp = elem_num;
 			 elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
 		{
-			memset(my_cbin, 0, sizeof(uint32_t) * 0x100);
+			memset(my_cbin, 0, sizeof(size_t) * 0x100);
 
 			for (p_id = p_id0; p_id < p_id1; ++p_id)
 			{
@@ -201,13 +199,13 @@ int Step_T2D_ME_mt::init_calculation()
 
 			for (th_id = 0; th_id < my_th_id; ++th_id)
 			{
-				other_cbin = elem_count_bin + (size_t(th_id) << 8);
+				other_cbin = elem_count_bin + (th_id << 8);
 				for (bin_id = 0; bin_id < 0x100; ++bin_id)
 					my_sbin[bin_id] += other_cbin[bin_id];
 			}
 			for (th_id = my_th_id + 1; th_id < thread_num; ++th_id)
 			{
-				other_cbin = elem_count_bin + (size_t(th_id) << 8);
+				other_cbin = elem_count_bin + (th_id << 8);
 				for (bin_id = 1; bin_id < 0x100; ++bin_id)
 					my_sbin[bin_id] += other_cbin[bin_id - 1];
 			}
@@ -250,6 +248,14 @@ int Step_T2D_ME_mt::init_calculation()
 		}
 	}
 
+	K_cont = md.K_cont;
+	mem_range = (char*)contact_mem.alloc((sizeof(size_t) + sizeof(ContPos)) * md.pcl_num + Cache_Alignment);
+	contact_state = (size_t*)mem_range;
+	mem_range += sizeof(size_t) * md.pcl_num;
+	contact_pos = (ContPos*)cache_aligned(mem_range);
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+		contact_state[p_id] = SIZE_MAX;
+	
 	return 0;
 }
 
@@ -262,10 +268,10 @@ int Step_T2D_ME_mt::finalize_calculation()
 
 int substep_func_omp_T2D_ME_mt(
 	void* _self,
-	uint32_t my_th_id,
-	float dt,
-	float cur_time,
-	uint32_t substp_id
+	size_t my_th_id,
+	double dt,
+	double cur_time,
+	size_t substp_id
 	)
 {
 	typedef Model_T2D_ME_mt::PclBodyForce PclBodyForce;
@@ -292,33 +298,33 @@ int substep_func_omp_T2D_ME_mt(
 	Model_T2D_ME_mt& md = *(Model_T2D_ME_mt*)(self.model);
 
 	PclSortedVarArray& pscv0 = self.pcl_sorted_var_array[self.pcl_sorted_var_id];
-	uint32_t* pcl_index0 = pscv0.pcl_index;
-	float *pcl_density0 = pscv0.pcl_density;
+	size_t* pcl_index0 = pscv0.pcl_index;
+	double *pcl_density0 = pscv0.pcl_density;
 	PclDisp *pcl_disp0 = pscv0.pcl_disp;
 	PclV *pcl_v0 = pscv0.pcl_v;
 	PclShapeFunc* pcl_N0 = pscv0.pcl_N;
 	PclStress* pcl_stress0 = pscv0.pcl_stress;
 
 	PclSortedVarArray& pscv1 = self.pcl_sorted_var_array[self.pcl_sorted_var_id ^ 1];
-	uint32_t* pcl_index1 = pscv1.pcl_index;
-	float* pcl_density1 = pscv1.pcl_density;
+	size_t* pcl_index1 = pscv1.pcl_index;
+	double* pcl_density1 = pscv1.pcl_density;
 	PclDisp* pcl_disp1 = pscv1.pcl_disp;
 	PclV *pcl_v1 = pscv1.pcl_v;
 	PclShapeFunc *pcl_N1 = pscv1.pcl_N;
 	PclStress *pcl_stress1 = pscv1.pcl_stress;
 
-	uint32_t sort_var_id = self.radix_sort_var_id;
-	uint32_t* new_to_prev_pcl_map = self.new_to_prev_pcl_maps[sort_var_id];
-	uint32_t* new_to_prev_pcl_map_tmp = self.new_to_prev_pcl_maps[sort_var_id ^ 1];
-	uint32_t* pcl_in_elem_array = self.pcl_in_elem_arrays[sort_var_id];
-	uint32_t* pcl_in_elem_array_tmp = self.pcl_in_elem_arrays[sort_var_id ^ 1];
+	size_t sort_var_id = self.radix_sort_var_id;
+	size_t* new_to_prev_pcl_map = self.new_to_prev_pcl_maps[sort_var_id];
+	size_t* new_to_prev_pcl_map_tmp = self.new_to_prev_pcl_maps[sort_var_id ^ 1];
+	size_t* pcl_in_elem_array = self.pcl_in_elem_arrays[sort_var_id];
+	size_t* pcl_in_elem_array_tmp = self.pcl_in_elem_arrays[sort_var_id ^ 1];
 
-	uint32_t p_id0 = self.pcl_range[my_th_id].id;
-	uint32_t p_id1 = self.pcl_range[my_th_id + 1].id;
-	uint32_t p_id, e_id;
-	uint32_t prev_pcl_id, ori_pcl_id;
-	float p_m, p_vol, p_N_m;
-	float one_third_bfx, one_third_bfy;
+	size_t p_id0 = self.pcl_range[my_th_id].id;
+	size_t p_id1 = self.pcl_range[my_th_id + 1].id;
+	size_t p_id, e_id;
+	size_t prev_pcl_id, ori_pcl_id;
+	double p_m, p_vol, p_N_m;
+	double one_third_bfx, one_third_bfy;
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		prev_pcl_id = new_to_prev_pcl_map[p_id];
@@ -390,12 +396,12 @@ int substep_func_omp_T2D_ME_mt(
 	}
 #pragma omp barrier
 
-	uint32_t e_id0 = self.elem_range[my_th_id];
-	uint32_t e_id1 = self.elem_range[my_th_id + 1];
-	float e_pcl_vol;
+	size_t e_id0 = self.elem_range[my_th_id];
+	size_t e_id1 = self.elem_range[my_th_id + 1];
+	double e_pcl_vol;
 	for (e_id = e_id0; e_id < e_id1; ++e_id)
 	{
-		if (self.elem_pcl_vol[e_id] != 0.0f)
+		if (self.elem_pcl_vol[e_id] != 0.0)
 		{
 			e_pcl_vol = self.elem_pcl_vol[e_id];
 			self.elem_density[e_id] = self.elem_pcl_m[e_id] / e_pcl_vol;
@@ -421,18 +427,18 @@ int substep_func_omp_T2D_ME_mt(
 #pragma omp barrier
 
 	// update node variables
-	uint32_t n_id0 = self.node_range[my_th_id];
-	uint32_t n_id1 = self.node_range[my_th_id + 1];
-	uint32_t ne_id = self.node_elem_range[my_th_id];
-	uint32_t n_id, ne_id1, node_var_id;
+	size_t n_id0 = self.node_range[my_th_id];
+	size_t n_id1 = self.node_range[my_th_id + 1];
+	size_t ne_id = self.node_elem_range[my_th_id];
+	size_t n_id, ne_id1, node_var_id, bc_mask;
 	for (n_id = n_id0; n_id < n_id1; ++n_id)
 	{
-		float n_am = 0.0f;
-		float n_fx = 0.0f;
-		float n_fy = 0.0f;
-		float n_vm = 0.0f;
-		float n_vmx = 0.0f;
-		float n_vmy = 0.0f;
+		double n_am = 0.0;
+		double n_fx = 0.0;
+		double n_fy = 0.0;
+		double n_vm = 0.0;
+		double n_vmx = 0.0;
+		double n_vmy = 0.0;
 		ne_id1 = self.node_elem_list[n_id];
 		for (; ne_id < ne_id1; ++ne_id)
 		{
@@ -447,30 +453,34 @@ int substep_func_omp_T2D_ME_mt(
 			n_vmy += nvm.vmy;
 		}
 		NodeA &node_a = self.node_a[n_id];
-		if (n_am != 0.0f)
+		if (n_am != 0.0)
 		{
 			n_am *= one_third;
 			self.node_am[n_id] = n_am;
 			node_a.ax = n_fx / n_am;
 			node_a.ay = n_fy / n_am;
 		}
-		if (n_vm != 0.0f)
+		if (n_vm != 0.0)
 		{
 			NodeV& node_v = self.node_v[n_id];
 			node_v.vx = n_vmx / n_vm + node_a.ax * dt;
 			node_v.vy = n_vmy / n_vm + node_a.ay * dt;
 			NodeHasVBC& node_has_vbc = self.node_has_vbc[n_id];
-			node_v.vx_ui &= uint32_t(node_has_vbc.has_vx_bc) + UINT32_MAX;
-			node_v.vy_ui &= uint32_t(node_has_vbc.has_vy_bc) + UINT32_MAX;
+			bc_mask = size_t(node_has_vbc.has_vx_bc) + SIZE_MAX;
+			node_a.ax_ui &= bc_mask;
+			node_v.vx_ui &= bc_mask;
+			bc_mask = size_t(node_has_vbc.has_vy_bc) + SIZE_MAX;
+			node_a.ay_ui &= bc_mask;
+			node_v.vy_ui &= bc_mask;
 		}
 	}
 #pragma omp barrier
 
 	// cal element strain and strain enhancement
-	float e_de_vol;
+	double e_de_vol;
 	for (e_id = e_id0; e_id < e_id1; ++e_id)
 	{
-		if (self.elem_pcl_vol[e_id] != 0.0f)
+		if (self.elem_pcl_vol[e_id] != 0.0)
 		{
 			ElemNodeIndex& e_n_id = self.elem_node_id[e_id];
 			ElemShapeFuncAB& e_sf = self.elem_sf_ab[e_id];
@@ -481,7 +491,7 @@ int substep_func_omp_T2D_ME_mt(
 			e_de.de11 = (e_sf.dN1_dx * n_v1.vx + e_sf.dN2_dx * n_v2.vx + e_sf.dN3_dx * n_v3.vx) * dt;
 			e_de.de22 = (e_sf.dN1_dy * n_v1.vy + e_sf.dN2_dy * n_v2.vy + e_sf.dN3_dy * n_v3.vy) * dt;
 			e_de.de12 = (e_sf.dN1_dx * n_v1.vy + e_sf.dN2_dx * n_v2.vy + e_sf.dN3_dx * n_v3.vy
-					   + e_sf.dN1_dy * n_v1.vx + e_sf.dN2_dy * n_v2.vx + e_sf.dN3_dy * n_v3.vx) * dt * 0.5f;
+					   + e_sf.dN1_dy * n_v1.vx + e_sf.dN2_dy * n_v2.vx + e_sf.dN3_dy * n_v3.vx) * dt * 0.5;
 			e_de_vol = e_de.de11 + e_de.de22;
 			self.elem_m_de_vol[e_id] = self.elem_pcl_m[e_id] * e_de_vol;
 			e_de_vol *= one_third;
@@ -491,14 +501,14 @@ int substep_func_omp_T2D_ME_mt(
 	}
 #pragma omp barrier
 
-	float n_am_de_vol;
+	double n_am_de_vol;
 	ne_id = self.node_elem_range[my_th_id];
 	for (n_id = n_id0; n_id < n_id1; ++n_id)
 	{
-		if (self.node_am[n_id] != 0.0f)
+		if (self.node_am[n_id] != 0.0)
 		{
 			ne_id1 = self.node_elem_list[n_id];
-			n_am_de_vol = 0.0f;
+			n_am_de_vol = 0.0;
 			for (; ne_id < ne_id1; ++ne_id)
 				n_am_de_vol += self.elem_m_de_vol[self.elem_id_array[ne_id]];
 			self.node_de_vol[n_id] = n_am_de_vol * one_third / self.node_am[n_id];
@@ -506,21 +516,21 @@ int substep_func_omp_T2D_ME_mt(
 		else
 		{
 			ne_id = self.node_elem_list[n_id];
-			self.node_de_vol[n_id] = 0.0f;
+			self.node_de_vol[n_id] = 0.0;
 		}
 	}
 #pragma omp barrier
 
 	for (e_id = e_id0; e_id < e_id1; ++e_id)
 	{
-		if (self.elem_pcl_vol[e_id] != 0.0f)
+		if (self.elem_pcl_vol[e_id] != 0.0)
 		{
 			ElemNodeIndex& e_n_id = self.elem_node_id[e_id];
 			e_de_vol = one_third * 
 				 (self.node_de_vol[e_n_id.n1]
 				+ self.node_de_vol[e_n_id.n2]
 				+ self.node_de_vol[e_n_id.n3]);
-			self.elem_density[e_id] /= (1.0f + e_de_vol);
+			self.elem_density[e_id] /= (1.0 + e_de_vol);
 			e_de_vol *= one_third;
 			ElemStrainInc& e_de = self.elem_de[e_id];
 			e_de.de11 += e_de_vol;
@@ -535,9 +545,9 @@ int substep_func_omp_T2D_ME_mt(
 #pragma omp barrier
 
 	// update particle variables
-	float pcl_x, pcl_y;
+	double pcl_x, pcl_y;
 	double dstrain[6] = { 0.0 };
-	uint32_t pcl_in_mesh_num = 0;
+	size_t pcl_in_mesh_num = 0;
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		e_id = pcl_in_elem_array[p_id];
@@ -548,16 +558,16 @@ int substep_func_omp_T2D_ME_mt(
 		// update stress
 		ori_pcl_id = pcl_index0[p_id];
 		ElemStrainInc& e_de = self.elem_de[e_id];
-		dstrain[0] = double(e_de.de11);
-		dstrain[1] = double(e_de.de22);
-		dstrain[3] = double(e_de.de12);
+		dstrain[0] = e_de.de11;
+		dstrain[1] = e_de.de22;
+		dstrain[3] = e_de.de12;
 		MatModel::MaterialModel &pcl_mm = *self.pcl_mat_model[ori_pcl_id];
 		int32_t mm_res = pcl_mm.integrate(dstrain);
 		const double *dstress = pcl_mm.get_dstress();
 		PclStress& p_s0 = pcl_stress0[p_id];
-		p_s0.s11 += float(dstress[0]);
-		p_s0.s22 += float(dstress[1]);
-		p_s0.s12 += float(dstress[3]);
+		p_s0.s11 += dstress[0];
+		p_s0.s22 += dstress[1];
+		p_s0.s12 += dstress[3];
 
 		ElemNodeIndex& e_n_id = self.elem_node_id[e_id];
 		PclShapeFunc& p_N = pcl_N0[p_id];
@@ -608,21 +618,21 @@ int substep_func_omp_T2D_ME_mt(
 	// reset element variables
 	e_id0 = self.elem_range[my_th_id];
 	e_id1 = self.elem_range[my_th_id + 1];
-	memset(self.elem_pcl_m + e_id0, 0, (e_id1 - e_id0) * sizeof(float));
-	memset(self.elem_pcl_vol + e_id0, 0, (e_id1 - e_id0) * sizeof(float));
+	memset(self.elem_pcl_m + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
+	memset(self.elem_pcl_vol + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
 	memset(self.elem_stress + e_id0, 0, (e_id1 - e_id0) * sizeof(ElemStress));
 	memset(self.elem_node_vm + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeVM));
 	memset(self.elem_node_force + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeForce));
 	
 	// sort particle variables
-	uint32_t* my_cbin = self.elem_count_bin + size_t(my_th_id) * 0x100;
-	uint32_t* my_sbin = self.elem_sum_bin + size_t(my_th_id) * 0x100;
-	uint32_t data_digit, bin_id, th_id;
-	uint32_t* other_cbin;
-	for (uint32_t digit_disp = 0, elem_num_tmp = self.elem_num;
+	size_t* my_cbin = self.elem_count_bin + size_t(my_th_id) * 0x100;
+	size_t* my_sbin = self.elem_sum_bin + size_t(my_th_id) * 0x100;
+	size_t data_digit, bin_id, th_id;
+	size_t* other_cbin;
+	for (size_t digit_disp = 0, elem_num_tmp = self.elem_num;
 		 elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
 	{
-		memset(my_cbin, 0, 0x100 * sizeof(uint32_t));
+		memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
@@ -695,5 +705,66 @@ int substep_func_omp_T2D_ME_mt(
 	}
 
 #pragma omp barrier
+	return 0;
+}
+
+int Step_T2D_ME_mt::apply_rigid_rect_avg(size_t my_th_id, double dt)
+{
+	double dist, norm_x, norm_y;
+	double f_cont, fx_cont, fy_cont;
+	double nfx_cont, nfy_cont;
+	size_t p_id0 = pcl_range[my_th_id].id;
+	size_t p_id1 = pcl_range[my_th_id + 1].id;
+	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+	{
+		PclPos& p_p = pcl_pos[pcl_index0[p_id]];
+		::Particle& pcl = md.pcls[p_id];
+		if (pcl.pe && rr.detect_collision_with_point(
+			pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+		{
+			f_cont = md.K_cont * dist;
+			fx_cont = f_cont * norm_x;
+			fy_cont = f_cont * norm_y;
+			rr.add_f_contact(pcl.x, pcl.y, -fx_cont, -fy_cont);
+			// apply contact force to mesh
+			
+
+			// adjust velocity at nodes
+			Element& e = *pcl.pe;
+			// node 1
+			Node& n1 = md.nodes[e.n1];
+			nfx_cont = pcl.N1 * fx_cont;
+			nfy_cont = pcl.N1 * fy_cont;
+			ndax = nfx_cont / n1.am;
+			nday = nfy_cont / n1.am;
+			n1.ax += ndax;
+			n1.ay += nday;
+			n1.vx += ndax * dt;
+			n1.vy += nday * dt;
+			// node 2
+			Node& n2 = md.nodes[e.n2];
+			nfx_cont = pcl.N2 * fx_cont;
+			nfy_cont = pcl.N2 * fy_cont;
+			ndax = nfx_cont / n2.am;
+			nday = nfy_cont / n2.am;
+			n2.ax += ndax;
+			n2.ay += nday;
+			n2.vx += ndax * dt;
+			n2.vy += nday * dt;
+			// node 3
+			Node& n3 = md.nodes[e.n3];
+			nfx_cont = pcl.N3 * fx_cont;
+			nfy_cont = pcl.N3 * fy_cont;
+			ndax = nfx_cont / n3.am;
+			nday = nfy_cont / n3.am;
+			n3.ax += ndax;
+			n3.ay += nday;
+			n3.vx += ndax * dt;
+			n3.vy += nday * dt;
+		}
+	}
+
+	rr.update_motion(dt);
+
 	return 0;
 }

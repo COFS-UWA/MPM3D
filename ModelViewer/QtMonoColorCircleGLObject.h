@@ -35,7 +35,7 @@ public:
 	int init(const Particle2D* pcls, size_t pcl_num, QVector3D &c, float radius_scale = 0.5f);
 
 	template <typename Particle2D>
-	int init(const Particle2D* pcls, const float *pcl_m, const float *pcl_density, size_t pcl_num, QVector3D& c, float radius_scale = 0.5f);
+	int init(const Particle2D* pcls, const double *pcl_m, const double *pcl_density, size_t pcl_num, QVector3D& c, float radius_scale = 0.5f);
 
 	// Point2D has member x and y
 	template <typename Point2D>
@@ -75,8 +75,8 @@ int QtMonoColorCircleGLObject::init(
 template <typename Particle2D>
 int QtMonoColorCircleGLObject::init(
 	const Particle2D* pcls,
-	const float *pcl_m,
-	const float *pcl_density,
+	const double *pcl_m,
+	const double *pcl_density,
 	size_t pcl_num,
 	QVector3D& c,
 	float radius_scale

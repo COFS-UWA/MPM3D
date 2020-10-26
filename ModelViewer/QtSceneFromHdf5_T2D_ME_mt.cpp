@@ -251,17 +251,17 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	size_t pcl_num = data_loader.get_pcl_num();
 	pcl_fld_mem.reserve(pcl_num * 4);
 	// x coord
-	float *pcl_x_data = pcl_fld_mem.get_mem();
-	x_fld.extract_pcl_fld_data_f(pcl_x_data);
+	double *pcl_x_data = pcl_fld_mem.get_mem();
+	x_fld.extract_pcl_fld_data(pcl_x_data);
 	// y coord
-	float *pcl_y_data = pcl_x_data + pcl_num;
-	y_fld.extract_pcl_fld_data_f(pcl_y_data);
+	double *pcl_y_data = pcl_x_data + pcl_num;
+	y_fld.extract_pcl_fld_data(pcl_y_data);
 	// vol
-	float *pcl_vol_data = pcl_y_data + pcl_num;
-	vol_fld.extract_pcl_fld_data_f(pcl_vol_data);
+	double *pcl_vol_data = pcl_y_data + pcl_num;
+	vol_fld.extract_pcl_fld_data(pcl_vol_data);
 	// pcl fld
-	float *pcl_fld_data = pcl_vol_data + pcl_num;
-	pfld->extract_pcl_fld_data_f(pcl_fld_data);
+	double *pcl_fld_data = pcl_vol_data + pcl_num;
+	pfld->extract_pcl_fld_data(pcl_fld_data);
 	pcls_obj.init(
 		pcl_num,
 		pcl_x_data,
@@ -437,17 +437,17 @@ void QtSceneFromHdf5_T2D_ME_mt::update_scene(size_t frame_id)
 	size_t pcl_num = data_loader.get_pcl_num();
 	pcl_fld_mem.reserve(pcl_num * 4);
 	// x coord
-	float *pcl_x_data = pcl_fld_mem.get_mem();
-	x_fld.extract_pcl_fld_data_f(pcl_x_data);
+	double *pcl_x_data = pcl_fld_mem.get_mem();
+	x_fld.extract_pcl_fld_data(pcl_x_data);
 	// y coord
-	float *pcl_y_data = pcl_x_data + pcl_num;
-	y_fld.extract_pcl_fld_data_f(pcl_y_data);
+	double *pcl_y_data = pcl_x_data + pcl_num;
+	y_fld.extract_pcl_fld_data(pcl_y_data);
 	// vol
-	float *pcl_vol_data = pcl_y_data + pcl_num;
-	vol_fld.extract_pcl_fld_data_f(pcl_vol_data);
+	double *pcl_vol_data = pcl_y_data + pcl_num;
+	vol_fld.extract_pcl_fld_data(pcl_vol_data);
 	// pcl fld
-	float *pcl_fld_data = pcl_vol_data + pcl_num;
-	pfld->extract_pcl_fld_data_f(pcl_fld_data);
+	double *pcl_fld_data = pcl_vol_data + pcl_num;
+	pfld->extract_pcl_fld_data(pcl_fld_data);
 	pcls_obj.update(
 		pcl_num,
 		pcl_x_data,

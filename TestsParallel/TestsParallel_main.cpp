@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
 	//test_t2d_me_mt_test1(argc, argv);
 	
-	test_t2d_me_mt_test2(argc, argv);
+	//test_t2d_me_mt_test2(argc, argv);
 	//test_t2d_me_mt_test2_result(argc, argv);
 	
 	//test_t2d_me_s_test2(argc, argv);
