@@ -75,6 +75,7 @@ int Step_T2D_ME_mt::init_calculation()
 	pcl_bf = md.pcl_bf;
 	pcl_t = md.pcl_t;
 	pcl_pos = md.pcl_pos;
+	pcl_vol = md.pcl_vol;
 	pcl_mat_model = md.pcl_mat_model;
 
 	pcl_sorted_var_id = 1;
@@ -124,6 +125,7 @@ int Step_T2D_ME_mt::init_calculation()
 	for (size_t th_id = 1; th_id < th_num_1; ++th_id)
 		pcl_range[th_id].id = Block_Low(th_id, thread_num, pcl_num);
 	PclSortedVarArray &psva = md.pcl_sorted_var_array[0];
+	PclSortedVarArray& psva1 = md.pcl_sorted_var_array[1];
 	size_t next_pcl_num = 0;
 #pragma omp parallel
 	{
@@ -137,6 +139,7 @@ int Step_T2D_ME_mt::init_calculation()
 		memset(elem_stress + e_id0, 0, (e_id1 - e_id0) * sizeof(ElemStress));
 		memset(elem_node_vm + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeVM));
 		memset(elem_node_force + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeForce));
+		memset(elem_m_de_vol + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(double));
 
 		size_t sort_var_id = radix_sort_var_id;
 		size_t* new_to_prev_pcl_map = new_to_prev_pcl_maps[sort_var_id];
@@ -153,6 +156,9 @@ int Step_T2D_ME_mt::init_calculation()
 			PclDisp& p_d = psva.pcl_disp[p_id];
 			p_d.ux = 0.0;
 			p_d.uy = 0.0;
+			PclDisp& p_d1 = psva1.pcl_disp[p_id];
+			p_d1.ux = 0.0;
+			p_d1.uy = 0.0;
 
 			PclPos& p_p = md.pcl_pos[p_id];
 			PclShapeFunc& p_N = psva.pcl_N[p_id];
@@ -250,9 +256,9 @@ int Step_T2D_ME_mt::init_calculation()
 
 	K_cont = md.K_cont;
 	mem_range = (char*)contact_mem.alloc((sizeof(size_t) + sizeof(ContPos)) * md.pcl_num + Cache_Alignment);
-	contact_state = (size_t*)mem_range;
+	contact_state = (size_t *)mem_range;
 	mem_range += sizeof(size_t) * md.pcl_num;
-	contact_pos = (ContPos*)cache_aligned(mem_range);
+	contact_pos = (ContPos *)cache_aligned(mem_range);
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 		contact_state[p_id] = SIZE_MAX;
 	
@@ -340,6 +346,7 @@ int substep_func_omp_T2D_ME_mt(
 
 		// map pcl volume
 		p_vol = p_m / pcl_density1[prev_pcl_id];
+		self.pcl_vol[p_id] = p_vol;
 		self.elem_pcl_vol[e_id] += p_vol;
 
 		// map stress
@@ -394,7 +401,31 @@ int substep_func_omp_T2D_ME_mt(
 		en_f3.fx += one_third_bfx + p_N0.N3 * p_t.tx;
 		en_f3.fy += one_third_bfy + p_N0.N3 * p_t.ty;
 	}
+
+	if (md.has_rigid_rect())
+	{
+		RigidRect& rr = md.get_rigid_rect();
+		RigidRectForce rr_force;
+		self.apply_rigid_rect_avg(
+			my_th_id, dt,
+			pcl_in_elem_array, pscv0,
+			rr_force
+			);
+#pragma omp critical
+		{
+			rr.combine(rr_force);
+		}
+	}
 #pragma omp barrier
+
+#pragma omp master
+	{
+		if (md.has_rigid_rect())
+		{
+			RigidRect& rr = md.get_rigid_rect();
+			rr.update_motion(dt);
+		}
+	}
 
 	size_t e_id0 = self.elem_range[my_th_id];
 	size_t e_id1 = self.elem_range[my_th_id + 1];
@@ -480,6 +511,8 @@ int substep_func_omp_T2D_ME_mt(
 	double e_de_vol;
 	for (e_id = e_id0; e_id < e_id1; ++e_id)
 	{
+		if (e_id == 51)
+			int efe = 0;
 		if (self.elem_pcl_vol[e_id] != 0.0)
 		{
 			ElemNodeIndex& e_n_id = self.elem_node_id[e_id];
@@ -552,6 +585,9 @@ int substep_func_omp_T2D_ME_mt(
 	{
 		e_id = pcl_in_elem_array[p_id];
 
+		if (p_id == 618)
+			int efe = 0;
+
 		// update density
 		pcl_density0[p_id] = self.elem_density[e_id];
 
@@ -623,7 +659,8 @@ int substep_func_omp_T2D_ME_mt(
 	memset(self.elem_stress + e_id0, 0, (e_id1 - e_id0) * sizeof(ElemStress));
 	memset(self.elem_node_vm + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeVM));
 	memset(self.elem_node_force + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeForce));
-	
+	memset(self.elem_m_de_vol + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(double));
+
 	// sort particle variables
 	size_t* my_cbin = self.elem_count_bin + size_t(my_th_id) * 0x100;
 	size_t* my_sbin = self.elem_sum_bin + size_t(my_th_id) * 0x100;
@@ -708,63 +745,59 @@ int substep_func_omp_T2D_ME_mt(
 	return 0;
 }
 
-int Step_T2D_ME_mt::apply_rigid_rect_avg(size_t my_th_id, double dt)
+int Step_T2D_ME_mt::apply_rigid_rect_avg(
+	size_t my_th_id,
+	double dt,
+	size_t *pcl_in_elem_array,
+	PclSortedVarArray &cur_pscv,
+	RigidRectForce &rr_force
+	)
 {
+	rr_force.reset_f_contact();
+
+	double p_x, p_y;
 	double dist, norm_x, norm_y;
 	double f_cont, fx_cont, fy_cont;
-	double nfx_cont, nfy_cont;
+	size_t e_id, pcl_ori_id;
 	size_t p_id0 = pcl_range[my_th_id].id;
 	size_t p_id1 = pcl_range[my_th_id + 1].id;
+	Model_T2D_ME_mt& md = *(Model_T2D_ME_mt*)model;
+	RigidRect& rr = md.get_rigid_rect();
+	const Point2D &rr_centre = rr.get_centre();
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		PclPos& p_p = pcl_pos[pcl_index0[p_id]];
-		::Particle& pcl = md.pcls[p_id];
-		if (pcl.pe && rr.detect_collision_with_point(
-			pcl.x, pcl.y, pcl.vol, dist, norm_x, norm_y))
+		pcl_ori_id = cur_pscv.pcl_index[p_id];
+		PclPos& p_p = pcl_pos[pcl_ori_id];
+		PclDisp& p_d = cur_pscv.pcl_disp[p_id];
+		p_x = p_p.x + p_d.ux;
+		p_y = p_p.y + p_d.uy;
+		if (rr.detect_collision_with_point(
+			p_x, p_y, pcl_vol[p_id],
+			dist, norm_x, norm_y))
 		{
-			f_cont = md.K_cont * dist;
+			f_cont = K_cont * dist;
 			fx_cont = f_cont * norm_x;
 			fy_cont = f_cont * norm_y;
-			rr.add_f_contact(pcl.x, pcl.y, -fx_cont, -fy_cont);
+			// apply contact force to rigid body
+			rr_force.add_f_contact(
+				p_x, p_y,
+				-fx_cont, -fy_cont,
+				rr_centre.x, rr_centre.y
+				);
 			// apply contact force to mesh
-			
-
-			// adjust velocity at nodes
-			Element& e = *pcl.pe;
-			// node 1
-			Node& n1 = md.nodes[e.n1];
-			nfx_cont = pcl.N1 * fx_cont;
-			nfy_cont = pcl.N1 * fy_cont;
-			ndax = nfx_cont / n1.am;
-			nday = nfy_cont / n1.am;
-			n1.ax += ndax;
-			n1.ay += nday;
-			n1.vx += ndax * dt;
-			n1.vy += nday * dt;
-			// node 2
-			Node& n2 = md.nodes[e.n2];
-			nfx_cont = pcl.N2 * fx_cont;
-			nfy_cont = pcl.N2 * fy_cont;
-			ndax = nfx_cont / n2.am;
-			nday = nfy_cont / n2.am;
-			n2.ax += ndax;
-			n2.ay += nday;
-			n2.vx += ndax * dt;
-			n2.vy += nday * dt;
-			// node 3
-			Node& n3 = md.nodes[e.n3];
-			nfx_cont = pcl.N3 * fx_cont;
-			nfy_cont = pcl.N3 * fy_cont;
-			ndax = nfx_cont / n3.am;
-			nday = nfy_cont / n3.am;
-			n3.ax += ndax;
-			n3.ay += nday;
-			n3.vx += ndax * dt;
-			n3.vy += nday * dt;
+			PclShapeFunc &p_N = cur_pscv.pcl_N[p_id];
+			e_id = pcl_in_elem_array[p_id];
+			ElemNodeForce& en_f1 = elem_node_force[e_id * 3];
+			en_f1.fx += p_N.N1 * fx_cont;
+			en_f1.fy += p_N.N1 * fy_cont;
+			ElemNodeForce& en_f2 = elem_node_force[e_id * 3 + 1];
+			en_f2.fx += p_N.N2 * fx_cont;
+			en_f2.fy += p_N.N2 * fy_cont;
+			ElemNodeForce& en_f3 = elem_node_force[e_id * 3 + 2];
+			en_f3.fx += p_N.N3 * fx_cont;
+			en_f3.fy += p_N.N3 * fy_cont;
 		}
 	}
-
-	rr.update_motion(dt);
 
 	return 0;
 }

@@ -320,7 +320,7 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 	ori_pcl_num = size_t(num);
 	pcl_num = ori_pcl_num;
 	mem_len = (sizeof(double) + sizeof(PclBodyForce)
-			 + sizeof(PclTraction) + sizeof(PclPos)
+			 + sizeof(PclTraction) + sizeof(PclPos) + sizeof(double)
 			+ (sizeof(size_t) + sizeof(double)
 			 + sizeof(PclDisp) + sizeof(PclV)
 			 + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2
@@ -336,6 +336,8 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(PclTraction) * num;
 	pcl_pos = (PclPos *)cur_mem;
 	cur_mem += sizeof(PclPos) * num;
+	pcl_vol = (double *)cur_mem;
+	cur_mem += sizeof(double) * num;
 
 	PclSortedVarArray &psva0 = pcl_sorted_var_array[0];
 	psva0.pcl_index = (size_t *)cur_mem;

@@ -46,6 +46,7 @@ protected:
 	PclBodyForce* pcl_bf;
 	PclTraction* pcl_t;
 	PclPos* pcl_pos;
+	double* pcl_vol;
 	MatModel::MaterialModel** pcl_mat_model;
 
 	PclSortedVarArray pcl_sorted_var_array[2];
@@ -107,7 +108,9 @@ protected:
 	struct ContPos { double x, y; };
 	ContPos* contact_pos;
 
-	int apply_rigid_rect_avg(size_t my_th_id, double dt);
+	int apply_rigid_rect_avg(size_t my_th_id, double dt,
+		size_t* pcl_in_elem_array, PclSortedVarArray& cur_pscv,
+		RigidRectForce& rr_force);
 
 public:
 	int init_calculation() override;

@@ -95,7 +95,8 @@ public:
 
 	inline double get_hx() const noexcept { return hx; }
 	inline double get_hy() const noexcept { return hy; }
-	
+	inline const Point2D &get_centre() const noexcept { return centre; }
+
 	inline double get_density() const noexcept { return density; }
 	inline double get_m() const noexcept { return m; }
 	inline double get_moi() const noexcept { return moi; }
@@ -176,17 +177,29 @@ public: // helper function for calculation
 	}
 
 	inline void reset_f_contact() noexcept
-	{ fx_con = 0.0; fy_con = 0.0; m_con = 0.0; }
+	{
+		fx_con = 0.0;
+		fy_con = 0.0;
+		m_con = 0.0;
+	}
 
 	inline void add_f_contact(
 		double _x, double _y,
 		double fx, double fy
 		) noexcept
 	{
-		fx_con += fx; fy_con += fy;
+		fx_con += fx;
+		fy_con += fy;
 		m_con += (_x - x) * fy - (_y - y) * fx;
 	}
 
+	inline void combine(const RigidRectForce& other) noexcept
+	{
+		fx_con += other.fx;
+		fy_con += other.fy;
+		m_con += other.m;
+	}
+	
 	// return true if point(x, y) collides with the rectangle
 	// also calculate overlapping distance and norm direction at that point
 	// return false if point is outside rect

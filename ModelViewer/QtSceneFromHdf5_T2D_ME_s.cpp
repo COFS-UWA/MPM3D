@@ -265,7 +265,7 @@ int QtSceneFromHdf5_T2D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		pcl_vol_data,
 		pcl_fld_data,
 		0.5
-	);
+		);
 	
 	// color map texture
 	size_t color_map_texture_size;

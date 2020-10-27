@@ -124,7 +124,6 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 		);
 
 	// init rigid circle
-	//QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 	//if (model->rigid_circle_is_valid())
 	//{
 	//	RigidCircle &rc = model->get_rigid_circle();
@@ -137,20 +136,21 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 	//		);
 	//}
 
-	//// init rigid rect
-	//if (model->rigid_rect_is_valid())
-	//{
-	//	RigidRect& rr = model->get_rigid_rect();
-	//	rr_obj.init(
-	//		rr.get_x(),
-	//		rr.get_y(),
-	//		rr.get_ang(),
-	//		rr.get_hx(),
-	//		rr.get_hy(),
-	//		light_slate_blue,
-	//		3.0f
-	//		);
-	//}
+	// init rigid rect
+	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
+	if (model->has_rigid_rect())
+	{
+		RigidRect& rr = model->get_rigid_rect();
+		rr_obj.init(
+			rr.get_x(),
+			rr.get_y(),
+			rr.get_ang(),
+			rr.get_hx(),
+			rr.get_hy(),
+			light_slate_blue,
+			3.0f
+			);
+	}
 
 	// init pts
 	QVector3D red(1.0f, 0.0f, 0.0f);
@@ -175,8 +175,8 @@ void QtSceneFromModel_T2D_ME_mt::draw()
 	//if (model->rigid_circle_is_valid() && display_rigid_circle)
 	//	rc_obj.draw(shader_plain2D);
 
-	//if (model->rigid_rect_is_valid() && display_rigid_rect)
-	//	rr_obj.draw(shader_plain2D);
+	if (model->has_rigid_rect() && display_rigid_rect)
+		rr_obj.draw(shader_plain2D);
 
 	shader_circles.bind();
 

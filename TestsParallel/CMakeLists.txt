@@ -13,10 +13,11 @@ add_executable(
     test_model_view_omp.h
     # entry
     TestsParallel_main.cpp
+    test_Step_OMP.cpp
     test_t2d_me_mt_test1.cpp
     test_t2d_me_mt_test2.cpp
     test_t2d_me_s_test2.cpp
-    test_Step_OMP.cpp
+    test_t2d_me_mt_strip_footing_smaller.cpp
     )
 
 target_include_directories(

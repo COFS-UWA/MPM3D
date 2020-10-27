@@ -298,23 +298,6 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
 	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 	Rect rb_bbox;
-	// rigid circle
-	if (rf.has_group(frame_grp_id, "RigidCircle"))
-	{
-		has_rc_obj = true;
-		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
-		double rc_radius, rc_x, rc_y;
-		rf.read_attribute(rb_grp_id, "radius", rc_radius);
-		rf.read_attribute(rb_grp_id, "x", rc_x);
-		rf.read_attribute(rb_grp_id, "y", rc_y);
-		rc_obj.init(rc_x, rc_y, rc_radius, light_slate_blue, 3.0f);
-		rf.close_group(rb_grp_id);
-		rb_bbox.xl = rc_x - rc_radius;
-		rb_bbox.xu = rc_x + rc_radius;
-		rb_bbox.yl = rc_y - rc_radius;
-		rb_bbox.yu = rc_y + rc_radius;
-		bbox.envelop(rb_bbox);
-	}
 	// rigid rect
 	if (rf.has_group(frame_grp_id, "RigidRect"))
 	{
@@ -455,23 +438,12 @@ void QtSceneFromHdf5_T2D_ME_mt::update_scene(size_t frame_id)
 		pcl_vol_data,
 		pcl_fld_data,
 		0.5
-	);
+		);
 	
 	ResultFile_hdf5& rf = *res_file;
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	// rigid circle
-	if (rf.has_group(frame_grp_id, "RigidCircle"))
-	{
-		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
-		double rc_x, rc_y, rc_radius;
-		rf.read_attribute(rb_grp_id, "x", rc_x);
-		rf.read_attribute(rb_grp_id, "y", rc_y);
-		rf.read_attribute(rb_grp_id, "radius", rc_radius);
-		rc_obj.update(rc_x, rc_y, rc_radius);
-		rf.close_group(rb_grp_id);
-	}
 	// rigid rect
 	if (rf.has_group(frame_grp_id, "RigidRect"))
 	{
