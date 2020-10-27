@@ -467,6 +467,7 @@ int load_material_model_from_hdf5_file(
 
 int output_rigid_rect_to_hdf5_file(
 	Model_T2D_ME_mt& md,
+	Step_T2D_ME_mt &stp,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -481,8 +482,64 @@ int output_rigid_rect_to_hdf5_file(
 
 	rf.write_attribute(rr_grp_id, "K_cont", md.K_cont);
 
+	RigidRect& rr = md.get_rigid_rect();
+	rf.write_attribute(rr_grp_id, "hx", rr.get_hx());
+	rf.write_attribute(rr_grp_id, "hy", rr.get_hy());
+	rf.write_attribute(rr_grp_id, "density", rr.get_density());
+
+	rf.write_attribute(rr_grp_id, "ax", rr.get_ax());
+	rf.write_attribute(rr_grp_id, "ay", rr.get_ay());
+	rf.write_attribute(rr_grp_id, "a_angle", rr.get_a_ang());
+	rf.write_attribute(rr_grp_id, "vx", rr.get_vx());
+	rf.write_attribute(rr_grp_id, "vy", rr.get_vy());
+	rf.write_attribute(rr_grp_id, "v_angle", rr.get_v_ang());
+	rf.write_attribute(rr_grp_id, "x", rr.get_x());
+	rf.write_attribute(rr_grp_id, "y", rr.get_y());
+	rf.write_attribute(rr_grp_id, "angle", rr.get_ang());
+
+	rf.write_attribute(rr_grp_id, "fx_contact", stp.get_rr_fx_contact());
+	rf.write_attribute(rr_grp_id, "fy_contact", stp.get_rr_fy_contact());
+	rf.write_attribute(rr_grp_id, "m_contact", stp.get_rr_m_contact());
+	rf.write_attribute(rr_grp_id, "fx_external", rr.get_fx_external());
+	rf.write_attribute(rr_grp_id, "fy_external", rr.get_fy_external());
+	rf.write_attribute(rr_grp_id, "m_external", rr.get_m_external());
+
+	if (rr.has_ax_bc())
+		rf.write_attribute(rr_grp_id, "ax_bc", rr.get_ax_bc());
+	if (rr.has_ay_bc())
+		rf.write_attribute(rr_grp_id, "ay_bc", rr.get_ay_bc());
+	if (rr.has_a_ang_bc())
+		rf.write_attribute(rr_grp_id, "a_ang_bc", rr.get_a_ang_bc());
+	if (rr.has_vx_bc())
+		rf.write_attribute(rr_grp_id, "vx_bc", rr.get_vx_bc());
+	if (rr.has_vy_bc())
+		rf.write_attribute(rr_grp_id, "vy_bc", rr.get_vy_bc());
+	if (rr.has_v_ang_bc())
+		rf.write_attribute(rr_grp_id, "v_ang_bc", rr.get_v_ang());
+
+	rf.close_group(rr_grp_id);
+	return 0;
+}
+
+int output_rigid_rect_to_hdf5_file(
+	Model_T2D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_rigid_rect())
+		return 0;
+
+	hid_t rr_grp_id = rf.create_group(grp_id, "RigidRect");
+
+	rf.write_attribute(rr_grp_id, "K_cont", md.K_cont);
+
+	RigidRect &rr = md.get_rigid_rect();
 	using Model_hdf5_utilities::output_rigid_rect_to_hdf5_file;
-	output_rigid_rect_to_hdf5_file(md.rigid_rect, rf, rr_grp_id);
+	output_rigid_rect_to_hdf5_file(rr, rf, rr_grp_id);
 
 	rf.close_group(rr_grp_id);
 	return 0;
@@ -538,9 +595,9 @@ int output_model_to_hdf5_file(
 
 // output the particle data and material models to hdf5 (used by time history)
 int time_history_complete_output_to_hdf5_file(
-	Model_T2D_ME_mt& md,
-	Step_T2D_ME_mt& stp,
-	ResultFile_hdf5& rf,
+	Model_T2D_ME_mt &md,
+	Step_T2D_ME_mt &stp,
+	ResultFile_hdf5 &rf,
 	hid_t frame_grp_id
 	)
 {
@@ -550,7 +607,7 @@ int time_history_complete_output_to_hdf5_file(
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
 	//output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
-	output_rigid_rect_to_hdf5_file(md, rf, frame_grp_id);
+	output_rigid_rect_to_hdf5_file(md, stp, rf, frame_grp_id);
 	return 0;
 }
 

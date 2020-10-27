@@ -67,6 +67,7 @@ namespace MatModel
 				stress[5] = 0.0;
 			}
 			form_De_mat();
+			form_Dep_mat();
 		}
 
 		inline double get_p() const noexcept { return cal_p(); }

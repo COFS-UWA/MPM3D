@@ -88,7 +88,7 @@ void test_t2d_me_mt_strip_footing_smaller_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "loading", Hdf5Field::s22);
 	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(0.0, 1.0e-3);
+	app.set_color_map_fld_range(-10.0, 0.0);
 	//app.set_png_name("t2d_me_s_shallow_foundation");
 	//app.set_gif_name("t2d_me_s_shallow_foundation");
 	app.start();

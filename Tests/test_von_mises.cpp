@@ -89,6 +89,6 @@ void test_von_mises()
 				 << vm.get_norm_f() << ", "
 				 << res << "\n";
 	}
-
+	
 	res_file.close();
 }

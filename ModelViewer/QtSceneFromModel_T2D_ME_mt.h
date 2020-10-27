@@ -39,7 +39,8 @@ protected:
 	QtMonoColorCircleGLObject pts_obj;
 
 	bool display_whole_model;
-	GLfloat xl, xu, yl, yu, padding_ratio;
+	GLfloat padding_ratio;
+	Rect display_bbox;
 
 	// viewport info
 	GLint vp_x_pos, vp_y_pos;
@@ -74,7 +75,10 @@ public:
 	inline void set_display_range(double _xl, double _xu, double _yl, double _yu)
 	{
 		display_whole_model = false;
-		xl = _xl; xu = _xu; yl = _yl; yu = _yu;
+		display_bbox.xl = _xl;
+		display_bbox.xu = _xu;
+		display_bbox.yl = _yl;
+		display_bbox.yu = _yu;
 	}
 
 	inline void set_model(Model_T2D_ME_mt& _model) { model = &_model; }

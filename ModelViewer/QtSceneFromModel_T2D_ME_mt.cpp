@@ -76,27 +76,36 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 		//	model->get_rigid_circle().get_bbox(rc_bbox);
 		//	bbox.envelop(rc_bbox);
 		//}
-		//if (model->rigid_rect_is_valid())
-		//{
-		//	Rect rr_bbox;
-		//	model->get_rigid_rect().get_bbox(rr_bbox);
-		//	bbox.envelop(rr_bbox);
-		//}
+		if (model->has_rigid_rect())
+		{
+			Rect rr_bbox;
+			model->get_rigid_rect().get_bbox(rr_bbox);
+			bbox.envelop(rr_bbox);
+		}
 		GLfloat xlen = GLfloat(bbox.xu - bbox.xl);
 		GLfloat ylen = GLfloat(bbox.yu - bbox.yl);
 		GLfloat padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
-		xl = GLfloat(bbox.xl) - padding;
-		xu = GLfloat(bbox.xu) + padding;
-		yl = GLfloat(bbox.yl) - padding;
-		yu = GLfloat(bbox.yu) + padding;
+		display_bbox.xl = GLfloat(bbox.xl) - padding;
+		display_bbox.xu = GLfloat(bbox.xu) + padding;
+		display_bbox.yl = GLfloat(bbox.yl) - padding;
+		display_bbox.yu = GLfloat(bbox.yu) + padding;
 	}
 
 	// viewport
-	set_viewport(wd, ht, xu - xl, yu - yl);
+	set_viewport(wd, ht, 
+		display_bbox.xu - display_bbox.xl,
+		display_bbox.yu - display_bbox.yl
+		);
 
 	// view matrix
 	view_mat.setToIdentity();
-	view_mat.ortho(xl, xu, yl, yu, -1.0f, 1.0f);
+	view_mat.ortho(
+		display_bbox.xl,
+		display_bbox.xu,
+		display_bbox.yl,
+		display_bbox.yu,
+		-1.0f, 1.0f
+		);
 	shader_plain2D.bind();
 	shader_plain2D.setUniformValue("view_mat", view_mat);
 	shader_circles.bind();
@@ -189,7 +198,10 @@ void QtSceneFromModel_T2D_ME_mt::draw()
 
 void QtSceneFromModel_T2D_ME_mt::resize(int wd, int ht)
 {
-	set_viewport(wd, ht, xu - xl, yu - yl);
+	set_viewport(wd, ht,
+		display_bbox.xu - display_bbox.xl,
+		display_bbox.yu - display_bbox.yl
+		);
 }
 
 int QtSceneFromModel_T2D_ME_mt::set_pts_from_pcl_id(

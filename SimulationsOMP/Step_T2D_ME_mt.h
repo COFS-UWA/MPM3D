@@ -103,10 +103,11 @@ protected:
 	size_t new_pcl_num;
 	
 	double K_cont;
+	double rr_fx_cont, rr_fy_cont, rr_m_cont;
+	struct ContPos { double x, y; };
 	CacheAlignedMem contact_mem;
 	size_t* contact_state;
-	struct ContPos { double x, y; };
-	ContPos* contact_pos;
+	ContPos *contact_pos;
 
 	int apply_rigid_rect_avg(size_t my_th_id, double dt,
 		size_t* pcl_in_elem_array, PclSortedVarArray& cur_pscv,
@@ -145,6 +146,9 @@ public:
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
 	inline size_t get_pcl_sorted_var_id() const noexcept { return pcl_sorted_var_id; }
 	inline const size_t *get_new_to_prev_pcl_map() const noexcept { return new_to_prev_pcl_maps[radix_sort_var_id]; }
+	inline double get_rr_fx_contact() const noexcept { return rr_fx_cont; }
+	inline double get_rr_fy_contact() const noexcept { return rr_fy_cont; }
+	inline double get_rr_m_contact() const noexcept { return rr_m_cont; }
 };
 
 #endif

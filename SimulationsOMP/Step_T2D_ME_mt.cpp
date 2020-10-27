@@ -122,6 +122,15 @@ int Step_T2D_ME_mt::init_calculation()
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 	
+	if (md.has_rigid_rect())
+	{
+		RigidRect &rr = md.get_rigid_rect();
+		rr_fx_cont = 0.0;
+		rr_fy_cont = 0.0;
+		rr_m_cont = 0.0;
+		rr.reset_f_contact();
+	}
+
 	for (size_t th_id = 1; th_id < th_num_1; ++th_id)
 		pcl_range[th_id].id = Block_Low(th_id, thread_num, pcl_num);
 	PclSortedVarArray &psva = md.pcl_sorted_var_array[0];
@@ -406,6 +415,7 @@ int substep_func_omp_T2D_ME_mt(
 	{
 		RigidRect& rr = md.get_rigid_rect();
 		RigidRectForce rr_force;
+		rr_force.reset_f_contact();
 		self.apply_rigid_rect_avg(
 			my_th_id, dt,
 			pcl_in_elem_array, pscv0,
@@ -585,9 +595,6 @@ int substep_func_omp_T2D_ME_mt(
 	{
 		e_id = pcl_in_elem_array[p_id];
 
-		if (p_id == 618)
-			int efe = 0;
-
 		// update density
 		pcl_density0[p_id] = self.elem_density[e_id];
 
@@ -651,16 +658,6 @@ int substep_func_omp_T2D_ME_mt(
 	}
 #pragma omp barrier
 
-	// reset element variables
-	e_id0 = self.elem_range[my_th_id];
-	e_id1 = self.elem_range[my_th_id + 1];
-	memset(self.elem_pcl_m + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
-	memset(self.elem_pcl_vol + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
-	memset(self.elem_stress + e_id0, 0, (e_id1 - e_id0) * sizeof(ElemStress));
-	memset(self.elem_node_vm + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeVM));
-	memset(self.elem_node_force + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeForce));
-	memset(self.elem_m_de_vol + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(double));
-
 	// sort particle variables
 	size_t* my_cbin = self.elem_count_bin + size_t(my_th_id) * 0x100;
 	size_t* my_sbin = self.elem_sum_bin + size_t(my_th_id) * 0x100;
@@ -713,6 +710,16 @@ int substep_func_omp_T2D_ME_mt(
 #pragma omp barrier
 	}
 	
+	// reset element variables
+	e_id0 = self.elem_range[my_th_id];
+	e_id1 = self.elem_range[my_th_id + 1];
+	memset(self.elem_pcl_m + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
+	memset(self.elem_pcl_vol + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
+	memset(self.elem_stress + e_id0, 0, (e_id1 - e_id0) * sizeof(ElemStress));
+	memset(self.elem_node_vm + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeVM));
+	memset(self.elem_node_force + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeForce));
+	memset(self.elem_m_de_vol + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(double));
+
 	if (my_th_id == 0)
 	{
 		self.pcl_range[self.thread_num].id = self.new_pcl_num;
@@ -720,6 +727,15 @@ int substep_func_omp_T2D_ME_mt(
 		self.pcl_sorted_var_id ^= 1;
 		self.pcl_num = self.new_pcl_num;
 		
+		if (md.has_rigid_rect())
+		{
+			RigidRect &rr = md.get_rigid_rect();
+			self.rr_fx_cont = rr.get_fx_contact();
+			self.rr_fy_cont = rr.get_fy_contact();
+			self.rr_m_cont = rr.get_m_contact();
+			rr.reset_f_contact();
+		}
+
 		if (self.new_pcl_num)
 			self.continue_calculation();
 		else
@@ -753,8 +769,6 @@ int Step_T2D_ME_mt::apply_rigid_rect_avg(
 	RigidRectForce &rr_force
 	)
 {
-	rr_force.reset_f_contact();
-
 	double p_x, p_y;
 	double dist, norm_x, norm_y;
 	double f_cont, fx_cont, fy_cont;
