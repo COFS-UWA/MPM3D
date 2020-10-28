@@ -203,6 +203,10 @@ public:
 	inline double dN4_dx() const noexcept { return a4; }
 	inline double dN4_dy() const noexcept { return b4; }
 	inline double dN4_dz() const noexcept { return c4; }
+	inline double get_coef1() const noexcept { return coef1; }
+	inline double get_coef2() const noexcept { return coef2; }
+	inline double get_coef3() const noexcept { return coef3; }
+	inline double get_coef4() const noexcept { return coef4; }
 };
 
 struct TetrahedronAABBCollisionSAT

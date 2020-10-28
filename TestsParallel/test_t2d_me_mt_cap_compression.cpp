@@ -85,12 +85,12 @@ void test_t2d_me_mt_cap_compression_result(int argc, char** argv)
 	rf.open("t2d_me_mt_cap_compression.h5");
 
 	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
+	app.set_win_size(900, 900);
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "loading", Hdf5Field::s22);
-	app.set_win_size(900, 900);
 	app.set_color_map_fld_range(-50.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
-	//app.set_png_name("t2d_chm_s_pipe_conference_restart1");
-	//app.set_gif_name("t2d_chm_s_pipe_conference_restart1");
+	//app.set_png_name("t2d_me_mt_cap_compression");
+	app.set_gif_name("t2d_me_mt_cap_compression");
 	app.start();
 }

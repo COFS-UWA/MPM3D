@@ -1,5 +1,5 @@
-#ifndef __Model_T2D_ME_mt_h__
-#define __Model_T2D_ME_mt_h__
+#ifndef __Model_T2D_CHM_mt_h__
+#define __Model_T2D_CHM_mt_h__
 
 #include <stdint.h>
 
@@ -9,36 +9,36 @@
 #include "MatModelContainer.h"
 #include "ParticleGenerator2D.hpp"
 #include "TriangleMesh.h"
-#include "RigidBody/RigidRect.h"
+#include "RigidBody/RigidCircle.h"
 
-class Model_T2D_ME_mt;
-class Step_T2D_ME_mt;
-int substep_func_omp_T2D_ME_mt(void* _self, size_t my_th_id,
+class Model_T2D_CHM_mt;
+class Step_T2D_CHM_mt;
+int substep_func_omp_T2D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 
 class ResultFile_hdf5;
-class Step_T2D_ME_mt;
-namespace Model_T2D_ME_mt_hdf5_utilities
-{
-	struct ParticleData;
-	int output_background_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_background_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_boundary_condition_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_boundary_condition_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_pcl_data_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_material_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_material_model_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-}
+class Step_T2D_CHM_mt;
+//namespace Model_T2D_CHM_mt_hdf5_utilities
+//{
+//	struct ParticleData;
+//	int output_background_mesh_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int load_background_mesh_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int output_boundary_condition_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int load_boundary_condition_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int output_pcl_data_to_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
+//	int load_pcl_data_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int output_material_model_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int load_material_model_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int output_rigid_rect_to_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
+//	int output_rigid_rect_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//	int load_rigid_rect_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+//}
 
-struct Model_T2D_ME_mt : public Model,
+struct Model_T2D_CHM_mt : public Model,
 	public MatModel::MatModelContainer
 {
-	friend class Step_T2D_ME_mt;
-	friend int substep_func_omp_T2D_ME_mt(void* _self,
+	friend class Step_T2D_CHM_mt;
+	friend int substep_func_omp_T2D_CHM_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 
 public:
@@ -85,11 +85,15 @@ public:
 	struct PclSortedVarArray
 	{
 		size_t* pcl_index; // ori_pcl_num
-		double* pcl_density; // ori_pcl_num
-		PclDisp* pcl_disp; // ori_pcl_num
-		PclV* pcl_v; // ori_pcl_num
+		double* pcl_density_s; // ori_pcl_num
+		double* pcl_density_f; // ori_pcl_num
+		PclDisp* pcl_disp_s; // ori_pcl_num
+		PclDisp* pcl_disp_f; // ori_pcl_num
+		PclV* pcl_v_s; // ori_pcl_num
+		PclV* pcl_v_f; // ori_pcl_num
 		PclShapeFunc* pcl_N; // ori_pcl_num
 		PclStress* pcl_stress; // ori_pcl_num
+		double* pcl_p; // ori_pcl_num
 	};
 	
 protected:
@@ -97,11 +101,13 @@ protected:
 	size_t elem_num;
 	size_t node_num;
 	
-	double *pcl_m; // ori_pcl_num
+	double *pcl_m_s; // ori_pcl_num
+	double *pcl_n;
 	PclBodyForce* pcl_bf; // ori_pcl_num
 	PclTraction* pcl_t; // ori_pcl_num
-	PclPos* pcl_pos; // ori_pcl_num
-	double* pcl_vol; // ori_pcl_num
+	PclPos *pcl_pos; // ori_pcl_num
+	double *pcl_vol_s;
+	double *pcl_vol; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
 
 	PclSortedVarArray pcl_sorted_var_array[2];
@@ -113,26 +119,33 @@ protected:
 	ElemShapeFuncC* elem_sf_c; // elem_num
 
 	// element calculation data
-	double *elem_density; // elem_num
-	double *elem_pcl_m; // elem_num
+	double *elem_density_f; // elem_num
+	double* elem_pcl_n; // elem_num
+	double *elem_pcl_m_s; // elem_num
+	double* elem_pcl_m_f; // elem_num
+	double* elem_pcl_vol_f;
 	double *elem_pcl_vol; // elem_num
 	ElemStrainInc *elem_de; // elem_num
 	ElemStress *elem_stress; // elem_num
-	double *elem_m_de_vol; // elem_num
+	double *elem_p;
+	double *elem_m_de_vol_s; // elem_num
+	double* elem_m_de_vol_f; // elem_num
 
 	// element-node data
-	ElemNodeVM* elem_node_vm; // elem_num * 3
-	ElemNodeForce* elem_node_force; // elem_num * 3
+	ElemNodeVM* elem_node_vm_s; // elem_num * 3
+	ElemNodeVM* elem_node_vm_f; // elem_num * 3
+	ElemNodeForce* elem_node_force_s; // elem_num * 3
+	ElemNodeForce* elem_node_force_f; // elem_num * 3
 	
 	size_t *elem_id_array; // elem_num * 3 
 	size_t *node_elem_id_array; // elem_num * 3
 	size_t *node_elem_list;  // node_num
 
-	NodeA *node_a;
-	NodeV *node_v;
-	NodeHasVBC *node_has_vbc;
-	double *node_am; // node_num
-	double *node_de_vol; // node_num
+	NodeA *node_a_s, *node_a_f;
+	NodeV *node_v_s, *node_v_f;
+	NodeHasVBC *node_has_vbc_s, *node_has_vbc_f;
+	double *node_am_s, *node_am_f; // node_num
+	double *node_de_vol_s, *node_de_vol_f; // node_num
 
 // ======== Non calculation data ========
 	size_t ori_pcl_num;
@@ -149,14 +162,14 @@ protected:
 	TractionBCAtPcl* txs, * tys;
 
 public:
-	Model_T2D_ME_mt();
-	~Model_T2D_ME_mt();
+	Model_T2D_CHM_mt();
+	~Model_T2D_CHM_mt();
 
 	inline size_t get_ori_pcl_num() const noexcept { return ori_pcl_num; }
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
 	inline const PclPos* get_pcl_pos() const noexcept { return pcl_pos; }
-	inline const double *get_pcl_m() const noexcept { return pcl_m; }
-	inline const double* get_pcl_density0() const noexcept { return pcl_sorted_var_array[0].pcl_density; }
+	inline const double *get_pcl_m_s() const noexcept { return pcl_m_s; }
+	inline const double* get_pcl_density_s0() const noexcept { return pcl_sorted_var_array[0].pcl_density_s; }
 	inline size_t get_node_num() const noexcept { return node_num; }
 	inline const NodePos* get_node_pos() const noexcept { return node_pos; }
 	inline size_t get_elem_num() const noexcept { return elem_num; }
@@ -164,7 +177,8 @@ public:
 	inline MatModel::MaterialModel **get_mat_models() noexcept { return pcl_mat_model; }
 	Rect get_mesh_bbox();
 
-	inline const NodeHasVBC *get_has_vbcs() const noexcept { return node_has_vbc; }
+	inline const NodeHasVBC *get_has_vbc_s() const noexcept { return node_has_vbc_s; }
+	inline const NodeHasVBC* get_has_vbc_f() const noexcept { return node_has_vbc_f; }
 
 	inline double get_bg_grid_xl() const noexcept { return grid_xl; }
 	inline double get_bg_grid_yl() const noexcept { return grid_yl; }
@@ -197,8 +211,10 @@ public:
 	void init_txs(size_t t_num, const size_t *t_pcls, const double *ts);
 	void init_tys(size_t t_num, const size_t *t_pcls, const double *ts);
 
-	void init_fixed_vx_bc(size_t vx_bc_num, const size_t *vx_bcs);
-	void init_fixed_vy_bc(size_t vy_bc_num, const size_t* vy_bcs);
+	void init_fixed_vx_s_bc(size_t vx_bc_num, const size_t *vx_bcs);
+	void init_fixed_vy_s_bc(size_t vy_bc_num, const size_t* vy_bcs);
+	void init_fixed_vx_f_bc(size_t vx_bc_num, const size_t* vx_bcs);
+	void init_fixed_vy_f_bc(size_t vy_bc_num, const size_t* vy_bcs);
 
 protected:
 	inline bool is_in_element(
@@ -250,39 +266,37 @@ public:
 		return elem_num;
 	}
 
-	friend class Model_T2D_ME_mt_hdf5_utilities::ParticleData;
-	friend int Model_T2D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::output_boundary_condition_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_boundary_condition_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::output_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend class Model_T2D_CHM_mt_hdf5_utilities::ParticleData;
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::output_boundary_condition_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::load_boundary_condition_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::output_pcl_data_to_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	//friend int Model_T2D_CHM_mt_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 protected: // rigid object contact
 	double K_cont;
 	// rigid rect
-	bool rigid_rect_is_valid;
-	RigidRect rigid_rect;
+	bool rigid_circle_is_valid;
+	RigidCircle rigid_circle;
 
 public:
-	inline bool has_rigid_rect() const noexcept { return rigid_rect_is_valid; }
-	inline RigidRect& get_rigid_rect() { return rigid_rect; }
-	inline void init_rigid_rect(double _K_cont,
-		double x, double y, double hx, double hy, double density = 1.0)
+	inline bool has_rigid_circle() const noexcept { return rigid_circle_is_valid; }
+	inline RigidCircle &get_rigid_circle() { return rigid_circle; }
+	inline void init_rigid_circle(double _K_cont,
+		double x, double y, double r, double density = 1.0)
 	{
-		rigid_rect_is_valid = true;
+		rigid_circle_is_valid = true;
 		K_cont = _K_cont;
-		rigid_rect.init(x, y, hx, hy, density);
+		rigid_circle.init(x, y, r, density);
 	}
-	inline void set_rigid_rect_velocity(double vx, double vy, double v_ang)
-	{
-		rigid_rect.set_v_bc(vx, vy, v_ang);
-	}
+	inline void set_rigid_circle_velocity(double vx, double vy, double v_ang)
+	{ rigid_circle.set_v_bc(vx, vy, v_ang); }
 };
 
 #endif

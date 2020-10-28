@@ -16,9 +16,9 @@ add_library(
     TriangleUtils.h
     TriangleUtils_f.h
     TriangleMeshTemplate.hpp
-    TriangleMesh.h
     SearchingGrid2D.hpp
     PDSBgGrid2D.hpp
+    TriangleMesh.h TriangleMesh.cpp
     #RandomPointQueue.h RandomPointQueue.cpp
     ParticleGenerator2D.hpp
     # 3D geometry

@@ -19,6 +19,7 @@ add_executable(
     test_t2d_me_s_test2.cpp
     test_t2d_me_mt_cap_compression.cpp
     test_t2d_me_mt_strip_footing_smaller.cpp
+    test_t2d_me_mt_strip_footing.cpp
     )
 
 target_include_directories(

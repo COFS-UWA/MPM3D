@@ -295,7 +295,7 @@ int ParticleGenerator2D<TriangleMesh>::
 	ElemInfo *elem_infos = new ElemInfo[elem_num];
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
-		ElemInfo& ei = elem_infos[e_id];
+		ElemInfo &ei = elem_infos[e_id];
 		ei.id = e_id;
 		ei.init();
 	}
@@ -322,8 +322,8 @@ int ParticleGenerator2D<TriangleMesh>::
 	Element* elems = mesh.get_elems();
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
-		Element& e = elems[e_id];
-		ElemInfo& ei = elem_infos[e_id];
+		Element &e = elems[e_id];
+		ElemInfo &ei = elem_infos[e_id];
 
 		if (ei.pcl_num == 0)
 			continue;

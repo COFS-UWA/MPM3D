@@ -1,7 +1,8 @@
-#ifndef __Triangle_Mesh_H__
-#define __Triangle_Mesh_H__
+#ifndef __Triangle_Mesh_h__
+#define __Triangle_Mesh_h__
 
 #include "TriangleMeshTemplate.hpp"
+#include "SearchingGrid2D.hpp"
 
 namespace TriangleMesh_Internal
 {
@@ -29,6 +30,27 @@ public:
 	typedef TriangleMesh_Internal::Node Node;
 	typedef TriangleMesh_Internal::Element Element;
 	typedef TriangleMesh_Internal::Edge Edge;
+
+protected:
+	SearchingGrid2D<TriangleMesh> search_bg_grid;
+
+public:
+	inline SearchingGrid2D<TriangleMesh>& get_bg_grid() { return search_bg_grid; }
+	inline double get_bg_grid_xl() { return search_bg_grid.get_x_min(); }
+	inline double get_bg_grid_xu() { return search_bg_grid.get_x_max(); }
+	inline double get_bg_grid_yl() { return search_bg_grid.get_y_min(); }
+	inline double get_bg_grid_yu() { return search_bg_grid.get_y_max(); }
+	inline double get_bg_grid_hx() { return search_bg_grid.get_hx(); }
+	inline double get_bg_grid_hy() { return search_bg_grid.get_hy(); }
+
+	int init_search_grid(double _hx, double _hy);
+
+	// search using background grid
+	template <typename Point2D>
+	inline Element* find_in_which_element(Point2D& pt)
+	{
+		return search_bg_grid.find_in_which_element<Point2D>(pt);
+	}
 };
 
 #endif
