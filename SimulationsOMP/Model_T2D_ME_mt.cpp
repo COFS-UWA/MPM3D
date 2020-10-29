@@ -323,7 +323,8 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 			 + sizeof(PclTraction) + sizeof(PclPos) + sizeof(double)
 			+ (sizeof(size_t) + sizeof(double)
 			 + sizeof(PclDisp) + sizeof(PclV)
-			 + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2
+			 + sizeof(PclShapeFunc) + sizeof(PclStress)
+			 + sizeof(PclStrain) * 3) * 2
 			) * num;
 	pcl_mem_raw = new char[mem_len];
 
@@ -352,6 +353,12 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(PclShapeFunc) * num;
 	psva0.pcl_stress = (PclStress*)cur_mem;
 	cur_mem += sizeof(PclStress) * num;
+	psva0.pcl_strain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva0.pcl_estrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva0.pcl_pstrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
 
 	PclSortedVarArray& psva1 = pcl_sorted_var_array[1];
 	psva1.pcl_index = (size_t *)cur_mem;
@@ -366,6 +373,12 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(PclShapeFunc) * num;
 	psva1.pcl_stress = (PclStress*)cur_mem;
 	cur_mem += sizeof(PclStress) * num;
+	psva1.pcl_strain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva1.pcl_estrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva1.pcl_pstrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
 
 	pcl_mat_model = new MatModel::MaterialModel*[num];
 }
@@ -389,7 +402,8 @@ void Model_T2D_ME_mt::alloc_pcls(
 			 + sizeof(PclTraction) + sizeof(PclPos)) * ori_num
 			 + (sizeof(size_t) + sizeof(double)
 			  + sizeof(PclDisp) + sizeof(PclV)
-			  + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2 * num;
+			  + sizeof(PclShapeFunc) + sizeof(PclStress)
+			  + sizeof(PclStrain) * 3) * 2 * num;
 	pcl_mem_raw = new char[mem_len];
 
 	cur_mem = pcl_mem_raw;
@@ -415,6 +429,12 @@ void Model_T2D_ME_mt::alloc_pcls(
 	cur_mem += sizeof(PclShapeFunc) * num;
 	psva0.pcl_stress = (PclStress*)cur_mem;
 	cur_mem += sizeof(PclStress) * num;
+	psva0.pcl_strain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva0.pcl_estrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva0.pcl_pstrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
 
 	PclSortedVarArray& psva1 = pcl_sorted_var_array[1];
 	psva1.pcl_index = (size_t*)cur_mem;
@@ -429,11 +449,14 @@ void Model_T2D_ME_mt::alloc_pcls(
 	cur_mem += sizeof(PclShapeFunc) * num;
 	psva1.pcl_stress = (PclStress*)cur_mem;
 	cur_mem += sizeof(PclStress) * num;
+	psva1.pcl_strain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva1.pcl_estrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
+	psva1.pcl_pstrain = (PclStrain*)cur_mem;
+	cur_mem += sizeof(PclStrain) * num;
 
 	pcl_mat_model = new MatModel::MaterialModel * [ori_num];
-
-	// contact
-
 }
 
 int Model_T2D_ME_mt::init_pcls(size_t num, double m, double density)
@@ -460,6 +483,18 @@ int Model_T2D_ME_mt::init_pcls(size_t num, double m, double density)
 		p_s.s11 = 0.0;
 		p_s.s22 = 0.0;
 		p_s.s12 = 0.0;
+		PclStrain& p_e = psva0.pcl_strain[p_id];
+		p_e.e11 = 0.0;
+		p_e.e22 = 0.0;
+		p_e.e12 = 0.0;
+		PclStrain& p_ee = psva0.pcl_estrain[p_id];
+		p_ee.e11 = 0.0;
+		p_ee.e22 = 0.0;
+		p_ee.e12 = 0.0;
+		PclStrain& p_pe = psva0.pcl_pstrain[p_id];
+		p_pe.e11 = 0.0;
+		p_pe.e22 = 0.0;
+		p_pe.e12 = 0.0;
 		pcl_mat_model[p_id] = nullptr;
 	}
 	

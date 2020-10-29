@@ -24,6 +24,19 @@
 #include "Hdf5FieldExtraction_e23.h"
 #include "Hdf5FieldExtraction_e31.h"
 #include "Hdf5FieldExtraction_mises_strain_2d.h"
+#include "Hdf5FieldExtraction_ee11.h"
+#include "Hdf5FieldExtraction_ee22.h"
+#include "Hdf5FieldExtraction_ee33.h"
+#include "Hdf5FieldExtraction_ee12.h"
+#include "Hdf5FieldExtraction_ee23.h"
+#include "Hdf5FieldExtraction_ee31.h"
+#include "Hdf5FieldExtraction_pe11.h"
+#include "Hdf5FieldExtraction_pe22.h"
+#include "Hdf5FieldExtraction_pe33.h"
+#include "Hdf5FieldExtraction_pe12.h"
+#include "Hdf5FieldExtraction_pe23.h"
+#include "Hdf5FieldExtraction_pe31.h"
+#include "Hdf5FieldExtraction_plastic_mises_strain_2d.h"
 // chm
 #include "Hdf5FieldExtraction_m_s.h"
 #include "Hdf5FieldExtraction_m_f.h"
@@ -75,7 +88,20 @@ namespace Hdf5Field
 		vy_f = 30,
 		vz_f = 31,
 		p = 32,
-		mises_strain_2d = 33
+		mises_strain_2d = 33,
+		ee11 = 34,
+		ee22 = 35,
+		ee33 = 36,
+		ee12 = 37,
+		ee23 = 38,
+		ee31 = 39,
+		pe11 = 40,
+		pe22 = 41,
+		pe33 = 42,
+		pe12 = 43,
+		pe23 = 44,
+		pe31 = 45,
+		plastic_mises_strain_2d = 46
 	};
 
 	namespace Hdf5Field_internal
@@ -121,7 +147,20 @@ namespace Hdf5Field
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_vy_f>, // 30
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_vz_f>, // 31
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_p>, // 32
-			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_mises_strain_2d> // 33
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_mises_strain_2d>, // 33
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_ee11>, // 34
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_ee22>, // 35
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_ee33>, // 36
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_ee12>, // 37
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_ee23>, // 38
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_ee31>, // 39
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe11>, // 40
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe22>, // 41
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe33>, // 42
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe12>, // 43
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe23>, // 44
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe31>, // 45
+			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_plastic_mises_strain_2d> // 46
 		};
 		const size_t make_func_num = sizeof(make_funcs) / sizeof(make_funcs[0]);
 	}

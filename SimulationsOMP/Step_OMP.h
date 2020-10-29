@@ -1,6 +1,7 @@
 #ifndef __Step_OMP_h__
 #define __Step_OMP_h__
 
+#include <ctime>
 #include "Step.h"
 
 typedef int (*CalSubstepFuncOMP)(void* _self, size_t my_th_id,
@@ -20,6 +21,8 @@ protected:
 	bool continue_cal;
 
 	CalSubstepFuncOMP cal_substep_func_omp;
+	
+	std::clock_t cpu_time;
 
 public:
 	Step_OMP(const char *_name,	const char *_type = "Step_OMP",
@@ -34,6 +37,8 @@ public:
 	// #pragma omp master
 	void continue_calculation();
 	void exit_calculation();
+
+	double cpu_time_in_ms() const noexcept { return 1000.0 * double(cpu_time) / CLOCKS_PER_SEC; }
 };
 
 #endif

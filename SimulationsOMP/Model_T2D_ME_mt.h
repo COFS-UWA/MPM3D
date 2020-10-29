@@ -50,6 +50,7 @@ public:
 	struct PclV { double vx, vy; };
 	struct PclShapeFunc { double N1, N2, N3; };
 	struct PclStress { double s11, s22, s12; };
+	struct PclStrain { double e11, e22, e12; };
 
 	struct ElemNodeIndex { size_t n1, n2, n3; };
 	struct ElemShapeFuncAB
@@ -90,6 +91,9 @@ public:
 		PclV* pcl_v; // ori_pcl_num
 		PclShapeFunc* pcl_N; // ori_pcl_num
 		PclStress* pcl_stress; // ori_pcl_num
+		PclStrain* pcl_strain; // ori_pcl_num
+		PclStrain* pcl_estrain; // ori_pcl_num
+		PclStrain* pcl_pstrain; // ori_pcl_num
 	};
 	
 protected:

@@ -53,6 +53,19 @@ add_library(
     Hdf5FieldExtraction_e23.h Hdf5FieldExtraction_e23.cpp
     Hdf5FieldExtraction_e31.h Hdf5FieldExtraction_e31.cpp
     Hdf5FieldExtraction_mises_strain_2d.h Hdf5FieldExtraction_mises_strain_2d.cpp
+    Hdf5FieldExtraction_ee11.h Hdf5FieldExtraction_ee11.cpp
+    Hdf5FieldExtraction_ee22.h Hdf5FieldExtraction_ee22.cpp
+    Hdf5FieldExtraction_ee33.h Hdf5FieldExtraction_ee33.cpp
+    Hdf5FieldExtraction_ee12.h Hdf5FieldExtraction_ee12.cpp
+    Hdf5FieldExtraction_ee23.h Hdf5FieldExtraction_ee23.cpp
+    Hdf5FieldExtraction_ee31.h Hdf5FieldExtraction_ee31.cpp
+    Hdf5FieldExtraction_pe11.h Hdf5FieldExtraction_pe11.cpp
+    Hdf5FieldExtraction_pe22.h Hdf5FieldExtraction_pe22.cpp
+    Hdf5FieldExtraction_pe33.h Hdf5FieldExtraction_pe33.cpp
+    Hdf5FieldExtraction_pe12.h Hdf5FieldExtraction_pe12.cpp
+    Hdf5FieldExtraction_pe23.h Hdf5FieldExtraction_pe23.cpp
+    Hdf5FieldExtraction_pe31.h Hdf5FieldExtraction_pe31.cpp
+    Hdf5FieldExtraction_plastic_mises_strain_2d.h Hdf5FieldExtraction_plastic_mises_strain_2d.cpp
     #Hdf5FieldExtraction_mat_mean_stress.h Hdf5FieldExtraction_mat_mean_stress.cpp
     #Hdf5FieldExtraction_mat_mises_stress.h Hdf5FieldExtraction_mat_mises_stress.cpp
     # CHM MPM

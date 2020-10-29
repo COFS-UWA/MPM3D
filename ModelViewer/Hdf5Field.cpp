@@ -40,7 +40,20 @@ namespace Hdf5Field
 			"vy_f", // 30
 			"vz_f", // 31
 			"p", // 32
-			"Mises Strain" // 33
+			"Mises Strain", // 33
+			"ee11", // 34
+			"ee22", // 35
+			"ee33", // 36
+			"ee12", // 37
+			"ee23", // 38
+			"ee31", // 39
+			"pe11",  // 40
+			"pe22",  // 41
+			"pe33",  // 42
+			"pe12",  // 43
+			"pe23",  // 44
+			"pe31",  // 45
+			"plastic_mises_strain_2d" // 46
 		};
 	}
 }

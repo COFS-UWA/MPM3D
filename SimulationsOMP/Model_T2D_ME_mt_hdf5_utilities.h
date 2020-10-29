@@ -11,20 +11,15 @@ namespace Model_T2D_ME_mt_hdf5_utilities
 struct ParticleData
 {
 	size_t id;
-	double x;
-	double y;
-	double bfx;
-	double bfy;
-	double tx;
-	double ty;
-	double m;
-	double density;
-	double vol;
-	double vx;
-	double vy;
-	double s11;
-	double s22;
-	double s12;
+	double x, y;
+	double bfx, bfy;
+	double tx, ty;
+	double m, density, vol;
+	double vx, vy;
+	double s11, s22, s12;
+	double e11, e22, e12;
+	double ee11, ee22, ee12;
+	double pe11, pe22, pe12;
 	size_t mat_id; // material model id
 
 	void from_pcl(
@@ -56,6 +51,18 @@ struct ParticleData
 		s11 = pcl_stress.s11;
 		s22 = pcl_stress.s22;
 		s12 = pcl_stress.s12;
+		Model_T2D_ME_mt::PclStrain& pcl_e = psva.pcl_strain[pcl_offset];
+		e11 = pcl_e.e11;
+		e22 = pcl_e.e22;
+		e12 = pcl_e.e12;
+		Model_T2D_ME_mt::PclStrain& pcl_ee = psva.pcl_estrain[pcl_offset];
+		ee11 = pcl_ee.e11;
+		ee22 = pcl_ee.e22;
+		ee12 = pcl_ee.e12;
+		Model_T2D_ME_mt::PclStrain& pcl_pe = psva.pcl_pstrain[pcl_offset];
+		pe11 = pcl_pe.e11;
+		pe22 = pcl_pe.e22;
+		pe12 = pcl_pe.e12;
 		mat_id = md.pcl_mat_model[id]->get_id();
 	}
 	
@@ -90,6 +97,18 @@ struct ParticleData
 		s11 = pcl_stress.s11;
 		s22 = pcl_stress.s22;
 		s12 = pcl_stress.s12;
+		Model_T2D_ME_mt::PclStrain& pcl_e = psva.pcl_strain[ori_pcl_id];
+		e11 = pcl_e.e11;
+		e22 = pcl_e.e22;
+		e12 = pcl_e.e12;
+		Model_T2D_ME_mt::PclStrain& pcl_ee = psva.pcl_estrain[ori_pcl_id];
+		ee11 = pcl_ee.e11;
+		ee22 = pcl_ee.e22;
+		ee12 = pcl_ee.e12;
+		Model_T2D_ME_mt::PclStrain& pcl_pe = psva.pcl_pstrain[ori_pcl_id];
+		pe11 = pcl_pe.e11;
+		pe22 = pcl_pe.e22;
+		pe12 = pcl_pe.e12;
 		mat_id = md.pcl_mat_model[id]->get_id();
 	}
 
@@ -122,6 +141,21 @@ struct ParticleData
 		pcl_stress.s11 = s11;
 		pcl_stress.s22 = s22;
 		pcl_stress.s12 = s12;
+		Model_T2D_ME_mt::PclStrain& pcl_strain
+			= psva.pcl_strain[pcl_offset];
+		pcl_strain.e11 = e11;
+		pcl_strain.e22 = e22;
+		pcl_strain.e12 = e12;
+		Model_T2D_ME_mt::PclStrain& pcl_estrain
+			= psva.pcl_estrain[pcl_offset];
+		pcl_estrain.e11 = ee11;
+		pcl_estrain.e22 = ee22;
+		pcl_estrain.e12 = ee12;
+		Model_T2D_ME_mt::PclStrain& pcl_pstrain
+			= psva.pcl_pstrain[pcl_offset];
+		pcl_pstrain.e11 = pe11;
+		pcl_pstrain.e22 = pe22;
+		pcl_pstrain.e12 = pe12;
 		md.pcl_mat_model[id] = &mm;
 	}
 };
@@ -144,6 +178,15 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "s11", HOFFSET(ParticleData, s11), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "s22", HOFFSET(ParticleData, s22), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "s12", HOFFSET(ParticleData, s12), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e11", HOFFSET(ParticleData, e11), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e22", HOFFSET(ParticleData, e22), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e12", HOFFSET(ParticleData, e12), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee11", HOFFSET(ParticleData, ee11), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee22", HOFFSET(ParticleData, ee22), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee12", HOFFSET(ParticleData, ee12), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe11", HOFFSET(ParticleData, pe11), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe22", HOFFSET(ParticleData, pe22), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe12", HOFFSET(ParticleData, pe12), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
 	return res;
 }
@@ -151,8 +194,7 @@ inline hid_t get_pcl_dt_id()
 struct NodeData
 {
 	size_t id;
-	double x;
-	double y;
+	double x, y;
 };
 
 inline hid_t get_node_dt_id()
@@ -194,11 +236,7 @@ inline hid_t get_element_dt_id()
 	return res;
 }
 
-struct NodeVBCData
-{
-	bool has_vx_bc;
-	bool has_vy_bc;
-};
+struct NodeVBCData { bool has_vx_bc, has_vy_bc; };
 
 inline hid_t get_node_vbc_dt_id()
 {

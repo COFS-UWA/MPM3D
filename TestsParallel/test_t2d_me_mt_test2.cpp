@@ -20,19 +20,22 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
 	model.init_search_grid(tri_mesh, 0.05, 0.05);
-
-	Model_T2D_ME_mt::PclShapeFunc p_N;
-	uint32_t e_id = model.find_pcl_in_which_elem(0.0700950846, 0.946040322, p_N);
 	
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
 	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	model.init_pcls(pcl_generator, 10.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	MatModel::LinearElasticity* les = model.add_LinearElasticity(model.get_pcl_num());
+	//MatModel::LinearElasticity *les = model.add_LinearElasticity(model.get_pcl_num());
+	//for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	//{
+	//	les[p_id].set_param(1000.0, 0.0);
+	//	mms[p_id] = &les[p_id];
+	//}
+	MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
 	for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		les[p_id].set_param(1000.0, 0.0);
-		mms[p_id] = &les[p_id];
+		vms[p_id].set_param(1000.0, 0.0, 1.0);
+		mms[p_id] = &vms[p_id];
 	}
 
 	IndexArray tbc_pt_array(50);
@@ -70,9 +73,9 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T2D_ME_mt_complete out("loading");
-	out.set_res_file(res_file_hdf5);
 	out.set_output_init_state();
 	out.set_interval_num(100);
+	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
 
 	Step_T2D_ME_mt step("step1");
@@ -81,7 +84,7 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
-	step.set_thread_num(3);
+	step.set_thread_num(4);
 	//step.init_calculation();
 	//step.finalize_calculation();
 	step.solve();

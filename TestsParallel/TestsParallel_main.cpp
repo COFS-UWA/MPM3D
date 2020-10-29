@@ -5,6 +5,8 @@
 
 int main(int argc, char *argv[])
 {
+	test_von_mises(argc, argv);
+
 	//test_Step_OMP(argc, argv);
 
 	//test_t2d_me_mt_test1(argc, argv);

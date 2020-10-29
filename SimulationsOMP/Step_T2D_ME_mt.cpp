@@ -88,6 +88,9 @@ int Step_T2D_ME_mt::init_calculation()
 	pscv0.pcl_v = md_pscv0.pcl_v;
 	pscv0.pcl_N = md_pscv0.pcl_N;
 	pscv0.pcl_stress = md_pscv0.pcl_stress;
+	pscv0.pcl_strain = md_pscv0.pcl_strain;
+	pscv0.pcl_estrain = md_pscv0.pcl_estrain;
+	pscv0.pcl_pstrain = md_pscv0.pcl_pstrain;
 
 	PclSortedVarArray& md_pscv1 = md.pcl_sorted_var_array[1];
 	PclSortedVarArray& pscv1 = pcl_sorted_var_array[1];
@@ -97,6 +100,9 @@ int Step_T2D_ME_mt::init_calculation()
 	pscv1.pcl_v = md_pscv1.pcl_v;
 	pscv1.pcl_N = md_pscv1.pcl_N;
 	pscv1.pcl_stress = md_pscv1.pcl_stress;
+	pscv1.pcl_strain = md_pscv1.pcl_strain;
+	pscv1.pcl_estrain = md_pscv1.pcl_estrain;
+	pscv1.pcl_pstrain = md_pscv1.pcl_pstrain;
 
 	elem_node_id = md.elem_node_id;
 	elem_area = md.elem_area;
@@ -297,6 +303,7 @@ int substep_func_omp_T2D_ME_mt(
 	typedef Model_T2D_ME_mt::PclV PclV;
 	typedef Model_T2D_ME_mt::PclShapeFunc PclShapeFunc;
 	typedef Model_T2D_ME_mt::PclStress PclStress;
+	typedef Model_T2D_ME_mt::PclStrain PclStrain;
 	typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T2D_ME_mt::ElemShapeFuncAB ElemShapeFuncAB;
 	typedef Model_T2D_ME_mt::ElemShapeFuncC ElemShapeFuncC;
@@ -319,6 +326,9 @@ int substep_func_omp_T2D_ME_mt(
 	PclV *pcl_v0 = pscv0.pcl_v;
 	PclShapeFunc* pcl_N0 = pscv0.pcl_N;
 	PclStress* pcl_stress0 = pscv0.pcl_stress;
+	PclStrain *pcl_strain0 = pscv0.pcl_strain;
+	PclStrain* pcl_estrain0 = pscv0.pcl_estrain;
+	PclStrain* pcl_pstrain0 = pscv0.pcl_pstrain;
 
 	PclSortedVarArray& pscv1 = self.pcl_sorted_var_array[self.pcl_sorted_var_id ^ 1];
 	size_t* pcl_index1 = pscv1.pcl_index;
@@ -327,6 +337,9 @@ int substep_func_omp_T2D_ME_mt(
 	PclV *pcl_v1 = pscv1.pcl_v;
 	PclShapeFunc *pcl_N1 = pscv1.pcl_N;
 	PclStress *pcl_stress1 = pscv1.pcl_stress;
+	PclStrain* pcl_strain1 = pscv1.pcl_strain;
+	PclStrain* pcl_estrain1 = pscv1.pcl_estrain;
+	PclStrain* pcl_pstrain1 = pscv1.pcl_pstrain;
 
 	size_t sort_var_id = self.radix_sort_var_id;
 	size_t* new_to_prev_pcl_map = self.new_to_prev_pcl_maps[sort_var_id];
@@ -524,11 +537,11 @@ int substep_func_omp_T2D_ME_mt(
 		if (self.elem_pcl_vol[e_id] != 0.0)
 		{
 			ElemNodeIndex& e_n_id = self.elem_node_id[e_id];
-			ElemShapeFuncAB& e_sf = self.elem_sf_ab[e_id];
-			ElemStrainInc& e_de = self.elem_de[e_id];
 			NodeV& n_v1 = self.node_v[e_n_id.n1];
 			NodeV& n_v2 = self.node_v[e_n_id.n2];
 			NodeV& n_v3 = self.node_v[e_n_id.n3];
+			ElemShapeFuncAB& e_sf = self.elem_sf_ab[e_id];
+			ElemStrainInc& e_de = self.elem_de[e_id];
 			e_de.de11 = (e_sf.dN1_dx * n_v1.vx + e_sf.dN2_dx * n_v2.vx + e_sf.dN3_dx * n_v3.vx) * dt;
 			e_de.de22 = (e_sf.dN1_dy * n_v1.vy + e_sf.dN2_dy * n_v2.vy + e_sf.dN3_dy * n_v3.vy) * dt;
 			e_de.de12 = (e_sf.dN1_dx * n_v1.vy + e_sf.dN2_dx * n_v2.vy + e_sf.dN3_dx * n_v3.vy
@@ -596,9 +609,16 @@ int substep_func_omp_T2D_ME_mt(
 		// update density
 		pcl_density0[p_id] = self.elem_density[e_id];
 
+		prev_pcl_id = new_to_prev_pcl_map[p_id];
+
 		// update stress
 		ori_pcl_id = pcl_index0[p_id];
 		ElemStrainInc& e_de = self.elem_de[e_id];
+		PclStrain& pcl_e0 = pcl_strain0[p_id];
+		PclStrain& pcl_e1 = pcl_strain1[prev_pcl_id];
+		pcl_e0.e11 = pcl_e1.e11 + e_de.de11;
+		pcl_e0.e22 = pcl_e1.e22 + e_de.de22;
+		pcl_e0.e12 = pcl_e1.e12 + e_de.de12;
 		dstrain[0] = e_de.de11;
 		dstrain[1] = e_de.de22;
 		dstrain[3] = e_de.de12;
@@ -609,6 +629,18 @@ int substep_func_omp_T2D_ME_mt(
 		p_s0.s11 += dstress[0];
 		p_s0.s22 += dstress[1];
 		p_s0.s12 += dstress[3];
+		const double* dee = pcl_mm.get_dstrain_e();
+		PclStrain &pcl_ee0 = pcl_estrain0[p_id];
+		PclStrain& pcl_ee1 = pcl_estrain1[prev_pcl_id];
+		pcl_ee0.e11 = pcl_ee1.e11 + dee[0];
+		pcl_ee0.e22 = pcl_ee1.e22 + dee[1];
+		pcl_ee0.e12 = pcl_ee1.e12 + dee[3];
+		const double* dpe = pcl_mm.get_dstrain_p();
+		PclStrain& pcl_pe0 = pcl_pstrain0[p_id];
+		PclStrain& pcl_pe1 = pcl_pstrain1[prev_pcl_id];
+		pcl_pe0.e11 = pcl_pe1.e11 + dpe[0];
+		pcl_pe0.e22 = pcl_pe1.e22 + dpe[1];
+		pcl_pe0.e12 = pcl_pe1.e12 + dpe[3];
 
 		ElemNodeIndex& e_n_id = self.elem_node_id[e_id];
 		PclShapeFunc& p_N = pcl_N0[p_id];

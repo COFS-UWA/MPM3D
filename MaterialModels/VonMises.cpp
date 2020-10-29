@@ -12,11 +12,11 @@ namespace MatModel
 	{
 		VonMises& self = static_cast<VonMises&>(*_self);
 
-		double* dstress = self.dstress;
-		double* stress = self.stress;
-		double* dstrain_e = self.dstrain_e;
-		double* dstrain_p = self.dstrain_p;
-		double(*De_mat)[6] = self.De_mat;
+		double *dstress = self.dstress;
+		double *stress = self.stress;
+		double *dstrain_e = self.dstrain_e;
+		double *dstrain_p = self.dstrain_p;
+		double (*De_mat)[6] = self.De_mat;
 		for (size_t i = 0; i < 6; ++i)
 		{
 			// stress

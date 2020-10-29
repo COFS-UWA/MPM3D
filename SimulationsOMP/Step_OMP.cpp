@@ -34,17 +34,31 @@ int Step_OMP::solve()
 	}
 
 	continue_cal = true;
+	cpu_time = 0;
+	std::clock_t t0, t1;
 #pragma omp parallel
 	{
 		size_t my_th_id = size_t(omp_get_thread_num());
 		do
 		{
+
 			do
 			{
+#pragma omp master
+				{
+					t0 = std::clock();
+				}
+
+				// a barrier is needed at the end of cal_substep_func_omp
 				(*cal_substep_func_omp)(this, my_th_id, dtime, current_time, substep_index);			
+			
+#pragma omp master
+				{
+					t1 = std::clock();
+					cpu_time += t1 - t0;
+				}
 			} while (output_not_needed);
 
-#pragma omp barrier
 #pragma omp master
 			{
 				current_time_plus_tol = current_time + time_tol;
