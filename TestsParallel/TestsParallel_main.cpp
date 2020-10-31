@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-	test_von_mises(argc, argv);
+	//test_von_mises(argc, argv);
 
 	//test_Step_OMP(argc, argv);
 
@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_strip_footing_smaller(argc, argv);
 	//test_t2d_me_mt_strip_footing_smaller_result(argc, argv);
 
-	test_t2d_me_mt_strip_footing(argc, argv);
-	//test_t2d_me_mt_strip_footing_result(argc, argv);
+	//test_t2d_me_mt_strip_footing(argc, argv);
+	test_t2d_me_mt_strip_footing_result(argc, argv);
 
 	//system("pause");
 	return 0;

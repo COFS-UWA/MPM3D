@@ -485,14 +485,15 @@ int substep_func_omp_T2D_ME_mt(
 	size_t n_id1 = self.node_range[my_th_id + 1];
 	size_t ne_id = self.node_elem_range[my_th_id];
 	size_t n_id, ne_id1, node_var_id, bc_mask;
+	double n_am, n_fx, n_fy, n_vm, n_vmx, n_vmy;
 	for (n_id = n_id0; n_id < n_id1; ++n_id)
 	{
-		double n_am = 0.0;
-		double n_fx = 0.0;
-		double n_fy = 0.0;
-		double n_vm = 0.0;
-		double n_vmx = 0.0;
-		double n_vmy = 0.0;
+		n_am = 0.0;
+		n_fx = 0.0;
+		n_fy = 0.0;
+		n_vm = 0.0;
+		n_vmx = 0.0;
+		n_vmy = 0.0;
 		ne_id1 = self.node_elem_list[n_id];
 		for (; ne_id < ne_id1; ++ne_id)
 		{

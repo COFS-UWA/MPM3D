@@ -8,8 +8,9 @@ out_time = []
 pcl_var = []
 
 # numerical solution
-hdf5_file = py.File("../Build/Tests/t2d_me_s_1d_compression.h5", "r")
-th_grp = hdf5_file['TimeHistory']['compression']
+hdf5_file = py.File("../Build/TestsParallel/t2d_me_mt_test2.h5", "r")
+th_grp = hdf5_file['TimeHistory']['loading']
+pcl_num = 500
 
 output_num = th_grp.attrs['output_num']
 is_init = False
@@ -21,13 +22,16 @@ for t_id in range(output_num):
     out_time.append(frame_time)
     # particle
     pcl_dset = frame_grp['ParticleData']['field']
-    pcl_fld = pcl_dset[499]
-    var = pcl_fld['y']
-    if not is_init:
-        init_y = var
-        is_init = True
-    var = init_y - var
-    pcl_var.append(var)
+    for i in range(pcl_num):
+        pcl_fld = pcl_dset[i]
+        if (pcl_fld['id'] == 499):
+            var = pcl_fld['y']
+            if not is_init:
+                init_y = var
+                is_init = True
+            var = init_y - var
+            pcl_var.append(var)
+            break
 
 hdf5_file.close()
 

@@ -31,11 +31,17 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	//	les[p_id].set_param(1000.0, 0.0);
 	//	mms[p_id] = &les[p_id];
 	//}
-	MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
+	//MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
+	//for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	//{
+	//	vms[p_id].set_param(1000.0, 0.0, 1.0);
+	//	mms[p_id] = &vms[p_id];
+	//}
+	MatModel::Tresca *tes = model.add_Tresca(model.get_pcl_num());
 	for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		vms[p_id].set_param(1000.0, 0.0, 1.0);
-		mms[p_id] = &vms[p_id];
+		tes[p_id].set_param(1000.0, 0.0, 2.5);
+		mms[p_id] = &tes[p_id];
 	}
 
 	IndexArray tbc_pt_array(50);
@@ -80,7 +86,7 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
+	step.set_step_time(1.0e-4);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);

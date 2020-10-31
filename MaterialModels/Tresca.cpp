@@ -21,15 +21,15 @@ namespace MatModel
 	//     < 0 - convergence failure
 	int tresca_integration_function(MaterialModel* _self, double dstrain[6])
 	{
-		Tresca& self = static_cast<Tresca&>(*_self);
+		Tresca& self = *static_cast<Tresca *>(_self);
 
 		double ori_stress[6];
-		double* dstress = self.dstress;
-		double* stress = self.stress;
-		double* dstrain_e = self.dstrain_e;
-		double* dstrain_p = self.dstrain_p;
-		double(*De_mat)[6] = self.De_mat;
-		double(*Dep_mat)[6] = self.Dep_mat;
+		double *dstress = self.dstress;
+		double *stress = self.stress;
+		double *dstrain_e = self.dstrain_e;
+		double *dstrain_p = self.dstrain_p;
+		double (*De_mat)[6] = self.De_mat;
+		double (*Dep_mat)[6] = self.Dep_mat;
 		vector6_copy(stress, ori_stress);
 		matrix6x6_prod_vector6(De_mat, dstrain, dstress);
 		vector6_add(dstress, stress);
@@ -40,22 +40,26 @@ namespace MatModel
 		// cal principle stress
 		Eigen::Matrix3d stress_mat;
 		stress_mat << stress[0], stress[3], stress[5],
-			stress[3], stress[1], stress[4],
-			stress[5], stress[4], stress[2];
+					  stress[3], stress[1], stress[4],
+					  stress[5], stress[4], stress[2];
 		Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen_solver(stress_mat);
 		//if (eigen_solver.info() != Eigen::Success)
 		//	assert(0);
-		const Eigen::Vector3d& prin_stress = eigen_solver.eigenvalues();
+		const Eigen::Vector3d &prin_stress = eigen_solver.eigenvalues();
 
 		// sorts principle stress
-		size_t s1_id, s2_id, s3_id;
-		double s1, s2, s3;
-		s1_id = 0;
-		s2_id = 1;
-		s3_id = 2;
+		union
+		{
+			struct { double s1, s2, s3; };
+			struct { size_t s1_ui, s2_ui, s3_ui; };
+		};
 		s1 = prin_stress[0];
 		s2 = prin_stress[1];
 		s3 = prin_stress[2];
+		size_t s1_id, s2_id, s3_id;
+		s1_id = 0;
+		s2_id = 1;
+		s3_id = 2;
 		if (s1 < s2)
 		{
 			swap(s1, s2);
