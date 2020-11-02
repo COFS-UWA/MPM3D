@@ -6,25 +6,22 @@
 #include "MatModelUtils.h"
 #include "MaterialModel.h"
 
-namespace Model_hdf5_utilities { struct TrescaStateData; }
-
 namespace MatModel
 {
 	int tresca_integration_function(MaterialModel* _self, double dstrain[6]);
 
-	// Note the cohesion in Tresca = 0.5 * cohesion in Von Mises
 	class Tresca : public MaterialModel
 	{
 		friend int tresca_integration_function(MaterialModel* _self, double dstrain[6]);
-		friend struct Model_hdf5_utilities::TrescaStateData;
 
 	protected:
-		double E, niu, cohesion;
+		double E, niu;
+		double cohesion;
 		double two_c;
 
 	public:
 		Tresca() : MaterialModel(tresca_integration_function, "Tresca"),
-			E(0.0), niu(0.0), cohesion(1.0), two_c(cohesion + cohesion)
+			E(0.0), niu(0.0), cohesion(1.0), two_c(cohesion+cohesion)
 		{
 			MatModel_Internal::vector6_zeros(stress);
 			MatModel_Internal::vector6_zeros(dstress);

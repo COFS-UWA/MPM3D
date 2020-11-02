@@ -26,13 +26,13 @@ void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv)
 	model.init_pcls(pcl_generator, 20.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
-	for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
 		vms[p_id].set_param(4000.0, 0.3, 10.0);
 		mms[p_id] = &vms[p_id];
 	}
 	//MatModel::LinearElasticity *les = model.add_LinearElasticity(model.get_pcl_num());
-	//for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	//for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	//{
 	//	les[p_id].set_param(4000.0, 0.0);
 	//	mms[p_id] = &les[p_id];

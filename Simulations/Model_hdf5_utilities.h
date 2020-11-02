@@ -453,9 +453,9 @@ namespace Model_hdf5_utilities
 		inline void from_mm(MatModel::Tresca& mm)
 		{
 			id = mm.get_id();
-			E = mm.E;
-			niu = mm.niu;
-			cohesion = mm.cohesion;
+			E = mm.get_E();
+			niu = mm.get_niu();
+			cohesion = mm.get_cohesion();
 			const double* mm_stress = mm.get_stress();
 			s11 = mm_stress[0];
 			s22 = mm_stress[1];

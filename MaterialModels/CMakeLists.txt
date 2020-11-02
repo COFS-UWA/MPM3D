@@ -9,6 +9,7 @@ add_library(
     MaterialModels_pcp.h MaterialModels_pcp.cpp
     # utilities
     MatModelUtils.h MatModelUtils.cpp
+    SymMatEigen.h SymMatEigen.cpp
     # Base class
     MaterialModel.h
     # Linear Elasticity

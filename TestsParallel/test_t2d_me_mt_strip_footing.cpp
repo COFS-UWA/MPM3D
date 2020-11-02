@@ -30,11 +30,17 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
 	model.init_pcls(pcl_generator, 20.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
-	for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	//MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
+	//for (szie_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	//{
+	//	vms[p_id].set_param(4000.0, 0.3, 10.0);
+	//	mms[p_id] = &vms[p_id];
+	//}
+	MatModel::Tresca* tes = model.add_Tresca(model.get_pcl_num());
+	for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		vms[p_id].set_param(4000.0, 0.3, 10.0);
-		mms[p_id] = &vms[p_id];
+		tes[p_id].set_param(4000.0, 0.3, 5.0);
+		mms[p_id] = &tes[p_id];
 	}
 
 	model.init_rigid_rect(200.0, 0.0, 0.1, 1.0, 0.2);
