@@ -15,14 +15,17 @@
 void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
-	tri_mesh.load_mesh_from_hdf5("../../Asset/smaller_rect_mesh.h5");
-
+	//tri_mesh.load_mesh_from_hdf5("../../Asset/smaller_rect_mesh.h5");
+	tri_mesh.load_mesh_from_hdf5("../../Asset/smaller_rect_mesh_denser.h5");
+	
 	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
-	model.init_search_grid(tri_mesh, 0.25, 0.25);
+	//model.init_search_grid(tri_mesh, 0.25, 0.25);
+	model.init_search_grid(tri_mesh, 0.08, 0.08);
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 20.0, 0.0, 15.0), 0.2, 0.2);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 20.0, 0.0, 15.0), 0.2, 0.2);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 20.0, 0.0, 15.0), 0.06, 0.06);
 	model.init_pcls(pcl_generator, 20.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
@@ -55,6 +58,7 @@ void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv)
 	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
+	//md_disp.set_display_range(8.0, 12.0, 13.0, 14.0);
 	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.1);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.1);
 	//md_disp.start();

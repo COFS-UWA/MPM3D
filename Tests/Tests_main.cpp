@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 	// pipe embedment simulation for conference
 	// coupled hydro-mechanics
 	// geostatic step
-	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
+	test_t2d_chm_s_pipe_conference_geo(argc, argv);
 	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
 	// penetration step 1
 	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_ud_t_bar_smaller_soil(argc, argv);
 	//test_t2d_chm_s_ud_t_bar_smaller_soil_result(argc, argv);
 	
-	test_t2d_me_s_shallow_foundation_smaller_soil(argc, argv);
+	//test_t2d_me_s_shallow_foundation_smaller_soil(argc, argv);
 	//test_t2d_me_s_shallow_foundation_smaller_soil_result(argc, argv);
 
 	//test_t2d_me_s_shallow_foundation(argc, argv);

@@ -2,7 +2,7 @@
 
 #include "Step_T2D_CHM_s.h"
 
-#define one_third (1.0f/3.0f)
+#define one_third (1.0/3.0)
 
 int solve_substep_T2D_CHM_s_avg(void *_self)
 {

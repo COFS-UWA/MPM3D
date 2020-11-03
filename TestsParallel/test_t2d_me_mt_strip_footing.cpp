@@ -17,18 +17,24 @@
 void test_t2d_me_mt_strip_footing(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
-	tri_mesh.load_mesh_from_hdf5("../../Asset/strip_footing_soil_mesh.h5");
-	tri_mesh.init_search_grid(0.1, 0.1);
+	//tri_mesh.load_mesh_from_hdf5("../../Asset/strip_footing_soil_mesh.h5");
+	//model.init_search_grid(tri_mesh, 0.1, 0.1);
+	tri_mesh.load_mesh_from_hdf5("../../Asset/strip_footing_soil_mesh_denser.h5");
+	tri_mesh.init_search_grid(0.0333333, 0.0333333);
 
 	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
-	model.init_search_grid(tri_mesh, 0.1, 0.1);
+	//model.init_search_grid(tri_mesh, 0.1, 0.1);
+	model.init_search_grid(tri_mesh, 0.0333333, 0.0333333);
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -3.5, 0.0), 0.025, 0.025);
-	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -5.0, -3.5), 0.07, 0.07);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -3.5, 0.0), 0.025, 0.025);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -5.0, -3.5), 0.07, 0.07);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -3.5, 0.0), 0.01, 0.01);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -5.0, -3.5), 0.03, 0.03);
 	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
 	model.init_pcls(pcl_generator, 20.0);
+	std::cout << model.get_pcl_num() << "\n";
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	//MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
 	//for (szie_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
@@ -60,9 +66,9 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1500, 950);
 	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.05);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.05);
-	////md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
+	//md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
 	//md_disp.start();
 	//return;
 
@@ -86,8 +92,6 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();
-	//std::cout << std::fixed << std::setprecision(3) << std::left
-	//		  << step.cpu_time_in_ms() << "\n";
 }
 
 #include "QtApp_Posp_T2D_ME_mt.h"

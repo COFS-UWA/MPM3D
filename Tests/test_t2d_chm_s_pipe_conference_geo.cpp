@@ -26,8 +26,8 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e6, 5.0e-12, 1.0e-3);
 
 	size_t pcl_num = model.get_pcl_num();
-	Model_T2D_CHM_s::Particle* pcls = model.get_pcls();
 	std::cout << "pcl_num: " << pcl_num << "\n";
+	Model_T2D_CHM_s::Particle* pcls = model.get_pcls();
 	// mcc
 	MatModel::ModifiedCamClay* mms = model.add_ModifiedCamClay(pcl_num);
 	double K = 1.0 - sin(23.5 / 180.0 * 3.14159165359);
@@ -126,13 +126,13 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(left_right_bc_pt_array.get_mem(), left_right_bc_pt_array.get_num(), 0.05);
-	//md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
-	////md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(bottom_bc_pt_array.get_mem(), bottom_bc_pt_array.get_num(), 0.05);
+	//md_disp.set_pts_from_pcl_id(mid_tbc_pt_array.get_mem(), mid_tbc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_pcl_id(left_right_tbc_pt_array.get_mem(), left_right_tbc_pt_array.get_num(), 0.015);
 	//// all
-	//md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//// left
-	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
+	//md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
 	//// middle
 	////md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
 	//// right
@@ -147,9 +147,9 @@ void test_t2d_chm_s_pipe_conference_geo(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T2D_CHM_s_Geo_complete out("geostatic");
-	out.set_res_file(res_file_hdf5);
 	out.set_output_init_state();
 	out.set_interval_num(100);
+	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
 
 	Step_T2D_CHM_s_Geo step_gs("geo_step");
