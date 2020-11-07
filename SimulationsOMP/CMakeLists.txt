@@ -15,6 +15,9 @@ add_library(
     ModelData_T2D_ME_mt.h ModelData_T2D_ME_mt.cpp
     Step_T2D_ME_mt.h Step_T2D_ME_mt.cpp
     TimeHistory_T2D_ME_mt_complete.h TimeHistory_T2D_ME_mt_complete.cpp
+    ## Rectangle elements
+    Model_R2D_ME_mt.h Model_R2D_ME_mt.cpp
+    Step_R2D_ME_mt.h Step_R2D_ME_mt.cpp
     # 3D ME MPM
     Model_T3D_ME_mt.h Model_T3D_ME_mt.cpp
     Model_T3D_ME_mt_hdf5_utilities.h Model_T3D_ME_mt_hdf5_utilities.cpp

@@ -80,7 +80,7 @@ void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv)
 	step.set_model(model);
 	step.set_step_time(20.0);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(5);
+	step.set_thread_num(6);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();
