@@ -4,12 +4,16 @@
 #include <stdint.h>
 #include <hdf5.h>
 
-#include "BCs.h"
+#include "CacheAlignedMem.h"
 #include "macro_utils.h"
+#include "BCs.h"
 #include "Model.h"
 #include "MatModelContainer.h"
 #include "ParticleGenerator2D.hpp"
 #include "RigidBody/RigidRect.h"
+
+// 2d MPM with rectangle mesh
+// need debuging
 
 class Model_R2D_ME_mt;
 class Step_R2D_ME_mt;
@@ -17,7 +21,6 @@ int substep_func_omp_R2D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 
 class ResultFile_hdf5;
-class Step_R2D_ME_mt;
 namespace Model_R2D_ME_mt_hdf5_utilities
 {
 	struct ParticleData;
@@ -38,8 +41,8 @@ struct Model_R2D_ME_mt : public Model,
 	public MatModel::MatModelContainer
 {
 	friend class Step_R2D_ME_mt;
-	friend int substep_func_omp_R2D_ME_mt(void* _self,
-		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+	friend int substep_func_omp_R2D_ME_mt(void* _self, size_t my_th_id,
+		double dt, double cur_time, size_t substp_id);
 
 public:
 	struct ShapeFunc { double N1, N2, N3, N4; };
@@ -90,11 +93,12 @@ public:
 
 protected:
 	size_t pcl_num;
-	double* pcl_m; // ori_pcl_num
-	PclBodyForce* pcl_bf; // ori_pcl_num
-	PclTraction* pcl_t; // ori_pcl_num
-	PclPos* pcl_pos; // ori_pcl_num
-	double* pcl_vol; // ori_pcl_num
+
+	double *pcl_m; // ori_pcl_num
+	PclBodyForce *pcl_bf; // ori_pcl_num
+	PclTraction *pcl_t; // ori_pcl_num
+	PclPos *pcl_pos; // ori_pcl_num
+	double *pcl_vol; // ori_pcl_num
 	ShapeFunc* pcl_N; // ori_pcl_num
 	DShapeFunc* pcl_dN; // ori_pcl_num
 	MatModel::MaterialModel** pcl_mat_model; // ori_pcl_num
@@ -103,7 +107,7 @@ protected:
 	// bg mesh data
 	size_t elem_x_num, elem_y_num, elem_num;
 	size_t node_x_num, node_y_num, node_num;
-	size_t acutal_elem_x_num;
+	size_t actual_elem_x_num, actual_elem_num;
 	double mh_xl, mh_yl, mh_xu, mh_yu;
 	double elem_hx, elem_hy;
 	double inv_elem_hx, inv_elem_hy, elem_area;
@@ -114,8 +118,8 @@ protected:
 	double* elem_pcl_m; // elem_num
 	size_t* elem_substp_id; // elem_num
 
-	ElemNodeVM* elem_node_vm; // elem_num * 3
-	ElemNodeForce* elem_node_force; // elem_num * 3
+	ElemNodeVM* elem_node_vm; // elem_num * 4
+	ElemNodeForce* elem_node_force; // elem_num * 4
 
 	NodeA* node_a; // node_num
 	NodeV* node_v; // node_num
@@ -158,8 +162,10 @@ public:
 	void alloc_pcls(size_t num, size_t ori_num);
 	void clear_pcls();
 	int init_pcls(size_t num, double m, double density);
-	void init_pcls(double _xl, double _yl, double _xn, double _yn,
-				   size_t _x_num, size_t _y_num, double density);
+	void init_pcls(double _xl, double _yl,
+				   double _xu, double _yu,
+				   size_t _x_num, size_t _y_num,
+				   double density);
 
 	INIT_BC_TEMPLATE(bfx, BodyForceAtPcl)
 	INIT_BC_TEMPLATE(bfy, BodyForceAtPcl)
@@ -183,9 +189,8 @@ protected: // rigid object contact
 	{
 		double x, y;
 	};
-	size_t* contact_substep_id;
-	ContPos* contact_pos;
-	CacheAlignedMem contact_mem;
+	size_t* contact_substep_id; // ori_pcl_num
+	ContPos* contact_pos; // ori_pcl_num
 
 public:
 	inline bool has_rigid_rect() const noexcept { return rigid_rect_is_valid; }

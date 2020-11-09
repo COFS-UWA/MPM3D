@@ -22,8 +22,8 @@ protected:
 	typedef Model_R2D_ME_mt::ShapeFunc ShapeFunc;
 	typedef Model_R2D_ME_mt::DShapeFunc DShapeFunc;
 	typedef Model_R2D_ME_mt::Stress Stress;
+	typedef Model_R2D_ME_mt::Strain Strain;
 	typedef Model_R2D_ME_mt::StrainInc StrainInc;
-	typedef Model_R2D_ME_mt::Stress Stress;
 	typedef Model_R2D_ME_mt::PclBodyForce PclBodyForce;
 	typedef Model_R2D_ME_mt::PclTraction PclTraction;
 	typedef Model_R2D_ME_mt::PclPos PclPos;
@@ -47,8 +47,6 @@ protected:
 	double K_cont;
 	double rr_fx_cont, rr_fy_cont, rr_m_cont;
 
-	size_t pcl_sorted_var_id;
-	size_t radix_sort_var_id;
 	size_t pcl_num;
 	
 	double* pcl_m;
@@ -59,7 +57,6 @@ protected:
 	ShapeFunc* pcl_N;
 	DShapeFunc* pcl_dN;
 	MatModel::MaterialModel** pcl_mat_model;
-	PclSortedVarArray pcl_sorted_var_array[2];
 
 	double* elem_density;
 	double* elem_pcl_m;
@@ -73,31 +70,49 @@ protected:
 	NodeHasVBC* node_has_vbc;
 
 	// contact
-	size_t* contact_substep_id;
-	ContPos* contact_pos;
+	size_t *contact_substep_id;
+	ContPos *contact_pos;
 
 	// task division
-	union PclRange
-	{
-		size_t id;
-		char padding[Cache_Alignment];
-	};
-	PclRange* pcl_range;
-	size_t *elem_range;
 	size_t *node_range;
 
 	// radix sort
-	size_t* elem_count_bin;
-	size_t* elem_sum_bin;
-	size_t* pcl_in_elem_arrays[2];
+	size_t *elem_count_bin;
+	size_t *elem_sum_bin;
+
+	// thread wise data
+	union ThreadData
+	{
+		struct
+		{
+			size_t pcl_sorted_var_id;
+		};
+		char data_padding[Cache_Alignment];
+	};
+	ThreadData *thread_datas;
+
+	struct SortedVarArray
+	{
+		size_t* pcl_index; // ori_pcl_num
+		double* pcl_density; // ori_pcl_num
+		PclDisp* pcl_disp; // ori_pcl_num
+		PclV* pcl_v; // ori_pcl_num
+		Stress* pcl_stress; // ori_pcl_num
+		Strain* pcl_strain; // ori_pcl_num
+		Strain* pcl_estrain; // ori_pcl_num
+		Strain* pcl_pstrain; // ori_pcl_num
+		size_t* pcl_in_elem; // ori_pcl_num
+	};
+	SortedVarArray sorted_var_arrays[2];
 
 	// memory
 	CacheAlignedMem task_range_mem;
-	CacheAlignedMem elem_bin_mem;
 	CacheAlignedMem radix_sort_var_mem;
+	CacheAlignedMem elem_bin_mem;
+	CacheAlignedMem thread_data_mem;
 
 	int apply_rigid_rect_avg(size_t p_id0, size_t p_id1,
-		size_t *pcl_in_elem, PclSortedVarArray& cur_pscv,
+		size_t *pcl_in_elem, SortedVarArray& cur_sva,
 		RigidRectForce& rr_force);
 
 	int init_calculation() override;
@@ -110,7 +125,7 @@ public:
 	~Step_R2D_ME_mt();
 
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
-	inline size_t get_pcl_sorted_var_id() const noexcept { return pcl_sorted_var_id; }
+	inline size_t get_pcl_sorted_var_id() const noexcept { return thread_datas[0].pcl_sorted_var_id; }
 	inline double get_rr_fx_contact() const noexcept { return rr_fx_cont; }
 	inline double get_rr_fy_contact() const noexcept { return rr_fy_cont; }
 	inline double get_rr_m_contact() const noexcept { return rr_m_cont; }

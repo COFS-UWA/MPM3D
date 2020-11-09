@@ -45,69 +45,78 @@ int Step_R2D_ME_mt::init_calculation()
 	omp_set_num_threads(thread_num);
 
 	size_t th_num_1 = thread_num + 1;
-	char *mem_range = (char *)task_range_mem.alloc((sizeof(PclRange) + sizeof(size_t) * 2) * th_num_1);
-	pcl_range = (PclRange *)mem_range;
-	mem_range += sizeof(PclRange) * th_num_1;
-	elem_range = (size_t *)mem_range;
-	mem_range += sizeof(size_t) * th_num_1;
+	char *mem_range = (char *)task_range_mem.alloc(sizeof(size_t) * th_num_1);
 	node_range = (size_t*)mem_range;
-
-	pcl_range[0].id = 0;
-	divide_task_to_thread(thread_num, md.elem_num, elem_range);
 	divide_task_to_thread(thread_num, md.node_num, node_range);
-
-	radix_sort_var_id = 0;
-	new_to_prev_pcl_maps[0] = (size_t *)radix_sort_var_mem.alloc(sizeof(size_t) * (md.pcl_num * 4 + 2) + Cache_Alignment * 3);
-	new_to_prev_pcl_maps[1] = cache_aligned(new_to_prev_pcl_maps[0] + md.pcl_num);
-	pcl_in_elem_arrays[0] = cache_aligned(new_to_prev_pcl_maps[1] + md.pcl_num);
-	pcl_in_elem_arrays[1] = cache_aligned(pcl_in_elem_arrays[0] + md.pcl_num + 1);
-	pcl_in_elem_arrays[0][md.pcl_num] = md.elem_num;
-	pcl_in_elem_arrays[1][md.pcl_num] = md.elem_num;
 
 	elem_count_bin = (size_t *)elem_bin_mem.alloc(sizeof(size_t) * thread_num * 0x100 * 2);
 	elem_sum_bin = elem_count_bin + thread_num * 0x100;
 
 	pcl_num = md.pcl_num;
-	elem_num = md.elem_num;
-	node_num = md.node_num;
 
 	pcl_m = md.pcl_m;
 	pcl_bf = md.pcl_bf;
 	pcl_t = md.pcl_t;
 	pcl_pos = md.pcl_pos;
 	pcl_vol = md.pcl_vol;
+	pcl_N = md.pcl_N;
+	pcl_dN = md.pcl_dN;
 	pcl_mat_model = md.pcl_mat_model;
 
-	pcl_sorted_var_id = 1;
-
 	PclSortedVarArray &md_pscv0 = md.pcl_sorted_var_array[0];
-	PclSortedVarArray &pscv0 = pcl_sorted_var_array[0];
-	pscv0.pcl_index = md_pscv0.pcl_index;
-	pscv0.pcl_density = md_pscv0.pcl_density;
-	pscv0.pcl_disp = md_pscv0.pcl_disp;
-	pscv0.pcl_v = md_pscv0.pcl_v;
-	pscv0.pcl_N = md_pscv0.pcl_N;
-	pscv0.pcl_stress = md_pscv0.pcl_stress;
-	pscv0.pcl_strain = md_pscv0.pcl_strain;
-	pscv0.pcl_estrain = md_pscv0.pcl_estrain;
-	pscv0.pcl_pstrain = md_pscv0.pcl_pstrain;
+	SortedVarArray &sva0 = sorted_var_arrays[0];
+	sva0.pcl_index = md_pscv0.pcl_index;
+	sva0.pcl_density = md_pscv0.pcl_density;
+	sva0.pcl_disp = md_pscv0.pcl_disp;
+	sva0.pcl_v = md_pscv0.pcl_v;
+	sva0.pcl_stress = md_pscv0.pcl_stress;
+	sva0.pcl_strain = md_pscv0.pcl_strain;
+	sva0.pcl_estrain = md_pscv0.pcl_estrain;
+	sva0.pcl_pstrain = md_pscv0.pcl_pstrain;
 
 	PclSortedVarArray& md_pscv1 = md.pcl_sorted_var_array[1];
-	PclSortedVarArray& pscv1 = pcl_sorted_var_array[1];
-	pscv1.pcl_index = md_pscv1.pcl_index;
-	pscv1.pcl_density = md_pscv1.pcl_density;
-	pscv1.pcl_disp = md_pscv1.pcl_disp;
-	pscv1.pcl_v = md_pscv1.pcl_v;
-	pscv1.pcl_stress = md_pscv1.pcl_stress;
-	pscv1.pcl_strain = md_pscv1.pcl_strain;
-	pscv1.pcl_estrain = md_pscv1.pcl_estrain;
-	pscv1.pcl_pstrain = md_pscv1.pcl_pstrain;
+	SortedVarArray& sva1 = sorted_var_arrays[1];
+	sva1.pcl_index = md_pscv1.pcl_index;
+	sva1.pcl_density = md_pscv1.pcl_density;
+	sva1.pcl_disp = md_pscv1.pcl_disp;
+	sva1.pcl_v = md_pscv1.pcl_v;
+	sva1.pcl_stress = md_pscv1.pcl_stress;
+	sva1.pcl_strain = md_pscv1.pcl_strain;
+	sva1.pcl_estrain = md_pscv1.pcl_estrain;
+	sva1.pcl_pstrain = md_pscv1.pcl_pstrain;
 
-	elem_sf = md.elem_sf;
+	sva0.pcl_in_elem = (size_t*)radix_sort_var_mem.alloc(sizeof(size_t) * (md.pcl_num + 1) * 2 + Cache_Alignment);
+	sva1.pcl_in_elem = cache_aligned(sva0.pcl_in_elem + md.pcl_num + 1);
+	sva0.pcl_in_elem[pcl_num] = actual_elem_num;
+	sva1.pcl_in_elem[pcl_num] = actual_elem_num;
+
+	actual_elem_x_num = md.actual_elem_x_num;
+	actual_elem_num = md.actual_elem_num;
+	node_x_num = md.node_x_num;
+	node_num = md.node_num;
+	mh_xl = md.mh_xl;
+	mh_xu = md.mh_xu;
+	mh_yl = md.mh_yl;
+	mh_yu = md.mh_yu;
+	inv_elem_hx = md.inv_elem_hx;
+	inv_elem_hy = md.inv_elem_hy;
+	elem_area = md.elem_area;
+	dxi_dx = md.dxi_dx;
+	deta_dy = md.deta_dy;
+	DShapeFunc& md_elem_dN = md.elem_dN;
+	elem_dN.dN1_dx = md_elem_dN.dN1_dx;
+	elem_dN.dN1_dy = md_elem_dN.dN1_dy;
+	elem_dN.dN2_dx = md_elem_dN.dN2_dx;
+	elem_dN.dN2_dy = md_elem_dN.dN2_dy;
+	elem_dN.dN3_dx = md_elem_dN.dN3_dx;
+	elem_dN.dN3_dy = md_elem_dN.dN3_dy;
+	elem_dN.dN4_dx = md_elem_dN.dN4_dx;
+	elem_dN.dN4_dy = md_elem_dN.dN4_dy;
 
 	elem_density = md.elem_density;
 	elem_pcl_m = md.elem_pcl_m;
-	
+	elem_substp_id = md.elem_substp_id;
+
 	elem_node_vm = md.elem_node_vm;
 	elem_node_force = md.elem_node_force;
 
@@ -115,6 +124,10 @@ int Step_R2D_ME_mt::init_calculation()
 	node_v = md.node_v;
 	node_has_vbc = md.node_has_vbc;
 	
+	contact_substep_id = md.contact_substep_id;
+	contact_pos = md.contact_pos;
+	
+	K_cont = md.K_cont;
 	if (md.has_rigid_rect())
 	{
 		RigidRect &rr = md.get_rigid_rect();
@@ -123,91 +136,154 @@ int Step_R2D_ME_mt::init_calculation()
 		rr_m_cont = 0.0;
 		rr.reset_f_contact();
 	}
+	
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		elem_substp_id[p_id] = SIZE_MAX;
+		contact_substep_id[p_id] = SIZE_MAX;
+	}
 
-	for (size_t th_id = 1; th_id < th_num_1; ++th_id)
-		pcl_range[th_id].id = Block_Low(th_id, thread_num, pcl_num);
-	PclSortedVarArray &psva = md.pcl_sorted_var_array[0];
-	PclSortedVarArray& psva1 = md.pcl_sorted_var_array[1];
-	size_t next_pcl_num = 0;
+	size_t cur_pcl_num = pcl_num;
+	pcl_num = 0;
 #pragma omp parallel
 	{
 		size_t my_th_id = size_t(omp_get_thread_num());
-		
-		// init elem vars
-		size_t e_id0 = elem_range[my_th_id];
-		size_t e_id1 = elem_range[my_th_id + 1];
-		memset(elem_pcl_m + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
-		memset(elem_pcl_vol + e_id0, 0, (e_id1 - e_id0) * sizeof(double));
-		memset(elem_stress + e_id0, 0, (e_id1 - e_id0) * sizeof(ElemStress));
-		memset(elem_node_vm + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeVM));
-		memset(elem_node_force + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(ElemNodeForce));
-		memset(elem_m_de_vol + e_id0 * 3, 0, (e_id1 - e_id0) * 3 * sizeof(double));
 
-		size_t sort_var_id = radix_sort_var_id;
-		size_t* new_to_prev_pcl_map = new_to_prev_pcl_maps[sort_var_id];
-		size_t* new_to_prev_pcl_map_tmp = new_to_prev_pcl_maps[sort_var_id ^ 1];
-		size_t* pcl_in_elem_array = pcl_in_elem_arrays[sort_var_id];
-		size_t* pcl_in_elem_array_tmp = pcl_in_elem_arrays[sort_var_id ^ 1];
+		ThreadData& thd = thread_datas[my_th_id];
+		thd.pcl_sorted_var_id = 0;
 
-		size_t p_id0 = pcl_range[my_th_id].id;
-		size_t p_id1 = pcl_range[my_th_id + 1].id;
-		size_t pcl_in_mesh_num = 0;
+		SortedVarArray& sva0 = sorted_var_arrays[thd.pcl_sorted_var_id];
+		size_t* pcl_index0 = sva0.pcl_index;
+		double* pcl_density0 = sva0.pcl_density;
+		PclDisp* pcl_disp0 = sva0.pcl_disp;
+		PclV* pcl_v0 = sva0.pcl_v;
+		Stress* pcl_stress0 = sva0.pcl_stress;
+		Strain* pcl_strain0 = sva0.pcl_strain;
+		Strain* pcl_estrain0 = sva0.pcl_estrain;
+		Strain* pcl_pstrain0 = sva0.pcl_pstrain;
+		size_t* pcl_in_elem0 = sva0.pcl_in_elem;
+
 		size_t e_id, p_id;
+		size_t p_ae_x_id, p_ae_y_id;
+		size_t p_id0 = Block_Low(my_th_id, thread_num, cur_pcl_num);
+		size_t p_id1 = Block_Low(my_th_id + 1, thread_num, cur_pcl_num);
+		size_t pcl_in_mesh_num = 0;
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
-			PclDisp& p_d = psva.pcl_disp[p_id];
-			p_d.ux = 0.0;
-			p_d.uy = 0.0;
-			PclDisp& p_d1 = psva1.pcl_disp[p_id];
+			PclDisp& p_d0 = sva0.pcl_disp[p_id];
+			p_d0.ux = 0.0;
+			p_d0.uy = 0.0;
+			PclDisp& p_d1 = sva1.pcl_disp[p_id];
 			p_d1.ux = 0.0;
 			p_d1.uy = 0.0;
 
+			// update location (in which element)
 			PclPos& p_p = md.pcl_pos[p_id];
-			PclShapeFunc& p_N = psva.pcl_N[p_id];
-			e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_N);
-			if (e_id != elem_num)
+			if (p_p.x < mh_xl || p_p.x > mh_xu ||
+				p_p.y < mh_yl || p_p.y > mh_yu)
 			{
-				if (p_N.N1 < N_min)
-					p_N.N1 = N_min;
-				if (p_N.N2 < N_min)
-					p_N.N2 = N_min;
-				if (p_N.N3 < N_min)
-					p_N.N3 = N_min;
-				++pcl_in_mesh_num;
-			}
-			new_to_prev_pcl_map[p_id] = p_id;
-			pcl_in_elem_array[p_id] = e_id;
-		}
-
-#pragma omp critical
-		next_pcl_num += pcl_in_mesh_num;
-
-		if (my_th_id == 0) // master thread
-		{
-			pcl_range[thread_num].id = next_pcl_num;
-			radix_sort_var_id = sort_var_id;
-			pcl_num = next_pcl_num;
-		}
-		else // non master thread
-		{
-			p_id = Block_Low(my_th_id, thread_num, next_pcl_num);
-			if (p_id < next_pcl_num)
-			{
-				e_id = pcl_in_elem_array[p_id];
-				while (e_id == pcl_in_elem_array[p_id + 1])
-					++p_id;
-				pcl_range[my_th_id].id = p_id + 1;
+				// not in bg mesh
+				pcl_in_elem0[p_id] = actual_elem_num;
 			}
 			else
 			{
-				pcl_range[my_th_id].id = next_pcl_num;
+				// in bg mesh
+				p_ae_x_id = (p_p.x - mh_xl) * inv_elem_hx;
+				p_ae_y_id = (p_p.y - mh_yl) * inv_elem_hy;
+				pcl_in_elem0[p_id] = actual_elem_x_num * p_ae_y_id + p_ae_x_id;
+				++pcl_in_mesh_num;
 			}
 		}
-	}
 
-	K_cont = md.K_cont;
-	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-		contact_substep_id[p_id] = SIZE_MAX;
+#pragma omp critical
+		pcl_num += pcl_in_mesh_num;
+
+#pragma omp barrier
+
+		size_t* pcl_index1;
+		double* pcl_density1;
+		PclDisp* pcl_disp1;
+		PclV* pcl_v1;
+		Stress* pcl_stress1;
+		Strain* pcl_strain1;
+		Strain* pcl_estrain1;
+		Strain* pcl_pstrain1;
+		size_t* pcl_in_elem1;
+		size_t data_digit, bin_id, th_id, tmp_id;
+		size_t* other_cbin;
+		size_t* my_cbin = elem_count_bin + my_th_id * 0x100;
+		size_t* my_sbin = elem_sum_bin + my_th_id * 0x100;
+		for (size_t digit_disp = 0, elem_num_tmp = actual_elem_num;
+			elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
+		{
+			SortedVarArray& sva1 = sorted_var_arrays[thd.pcl_sorted_var_id ^ 1];
+			pcl_index1 = sva1.pcl_index;
+			pcl_density1 = sva1.pcl_density;
+			pcl_disp1 = sva1.pcl_disp;
+			pcl_v1 = sva1.pcl_v;
+			pcl_stress1 = sva1.pcl_stress;
+			pcl_strain1 = sva1.pcl_strain;
+			pcl_estrain1 = sva1.pcl_estrain;
+			pcl_pstrain1 = sva1.pcl_pstrain;
+			pcl_in_elem1 = sva1.pcl_in_elem;
+			memset(my_cbin, 0, 0x100 * sizeof(size_t));
+
+			for (p_id = p_id0; p_id < p_id1; ++p_id)
+			{
+				data_digit = (pcl_in_elem0[p_id] >> digit_disp) & 0xFF;
+				++my_cbin[data_digit];
+			}
+
+			my_sbin[0] = my_cbin[0];
+			for (bin_id = 1; bin_id < 0x100; ++bin_id)
+			{
+				my_cbin[bin_id] += my_cbin[bin_id - 1];
+				my_sbin[bin_id] = my_cbin[bin_id];
+			}
+#pragma omp barrier
+
+			for (th_id = 0; th_id < my_th_id; ++th_id)
+			{
+				other_cbin = elem_count_bin + th_id * 0x100;
+				for (bin_id = 0; bin_id < 0x100; ++bin_id)
+					my_sbin[bin_id] += other_cbin[bin_id];
+			}
+			for (th_id = my_th_id + 1; th_id < thread_num; ++th_id)
+			{
+				other_cbin = elem_count_bin + th_id * 0x100;
+				for (bin_id = 1; bin_id < 0x100; ++bin_id)
+					my_sbin[bin_id] += other_cbin[bin_id - 1];
+			}
+
+			for (p_id = p_id1; p_id-- > p_id0;)
+			{
+				data_digit = (pcl_in_elem0[p_id] >> digit_disp) & 0xFF;
+				tmp_id = --my_sbin[data_digit];
+				pcl_index1[tmp_id] = pcl_index0[p_id];
+				pcl_density1[tmp_id] = pcl_density0[p_id];
+				pcl_disp1[tmp_id] = pcl_disp0[p_id];
+				pcl_v1[tmp_id] = pcl_v0[p_id];
+				pcl_stress1[tmp_id] = pcl_stress0[p_id];
+				pcl_strain1[tmp_id] = pcl_strain0[p_id];
+				pcl_estrain1[tmp_id] = pcl_estrain0[p_id];
+				pcl_pstrain1[tmp_id] = pcl_pstrain0[p_id];
+				pcl_in_elem1[tmp_id] = pcl_in_elem0[p_id];
+			}
+
+			thd.pcl_sorted_var_id ^= 1;
+			SortedVarArray& sva0 = sorted_var_arrays[thd.pcl_sorted_var_id];
+			pcl_index0 = sva0.pcl_index;
+			pcl_density0 = sva0.pcl_density;
+			pcl_disp0 = sva0.pcl_disp;
+			pcl_v0 = sva0.pcl_v;
+			pcl_stress0 = sva0.pcl_stress;
+			pcl_strain0 = sva0.pcl_strain;
+			pcl_estrain0 = sva0.pcl_estrain;
+			pcl_pstrain0 = sva0.pcl_pstrain;
+			pcl_in_elem0 = sva0.pcl_in_elem;
+#pragma omp barrier
+		}
+	}
 	
 	return 0;
 }
@@ -235,7 +311,6 @@ int substep_func_omp_R2D_ME_mt(
 	typedef Model_R2D_ME_mt::PclBodyForce PclBodyForce;
 	typedef Model_R2D_ME_mt::PclTraction PclTraction;
 	typedef Model_R2D_ME_mt::PclPos PclPos;
-	typedef Model_R2D_ME_mt::PclSortedVarArray PclSortedVarArray;
 	typedef Model_R2D_ME_mt::PclDisp PclDisp;
 	typedef Model_R2D_ME_mt::PclV PclV;
 	typedef Model_R2D_ME_mt::ElemNodeVM ElemNodeVM;
@@ -244,39 +319,45 @@ int substep_func_omp_R2D_ME_mt(
 	typedef Model_R2D_ME_mt::NodeV NodeV;
 	typedef Model_R2D_ME_mt::NodeHasVBC NodeHasVBC;
 	typedef Model_R2D_ME_mt::ContPos ContPos;
+	typedef Step_R2D_ME_mt::ThreadData ThreadData;
+	typedef Step_R2D_ME_mt::SortedVarArray SortedVarArray;
 
 	Step_R2D_ME_mt &self = *(Step_R2D_ME_mt*)(_self);
 	Model_R2D_ME_mt &md = *(Model_R2D_ME_mt*)(self.model);
+	ThreadData& thd = (ThreadData &)(self.thread_datas[my_th_id]);
 
-	PclSortedVarArray& pscv0 = self.pcl_sorted_var_array[self.pcl_sorted_var_id];
-	size_t* pcl_index0 = pscv0.pcl_index;
-	double *pcl_density0 = pscv0.pcl_density;
-	PclDisp *pcl_disp0 = pscv0.pcl_disp;
-	PclV *pcl_v0 = pscv0.pcl_v;
-	Stress* pcl_stress0 = pscv0.pcl_stress;
-	Strain *pcl_strain0 = pscv0.pcl_strain;
-	Strain* pcl_estrain0 = pscv0.pcl_estrain;
-	Strain* pcl_pstrain0 = pscv0.pcl_pstrain;
+	SortedVarArray& sva0 = self.sorted_var_arrays[thd.pcl_sorted_var_id];
+	size_t* pcl_index0 = sva0.pcl_index;
+	double *pcl_density0 = sva0.pcl_density;
+	PclDisp *pcl_disp0 = sva0.pcl_disp;
+	PclV *pcl_v0 = sva0.pcl_v;
+	Stress* pcl_stress0 = sva0.pcl_stress;
+	Strain *pcl_strain0 = sva0.pcl_strain;
+	Strain* pcl_estrain0 = sva0.pcl_estrain;
+	Strain* pcl_pstrain0 = sva0.pcl_pstrain;
+	size_t* pcl_in_elem0 = sva0.pcl_in_elem;
 
-	PclSortedVarArray& pscv1 = self.pcl_sorted_var_array[self.pcl_sorted_var_id ^ 1];
-	size_t* pcl_index1 = pscv1.pcl_index;
-	double* pcl_density1 = pscv1.pcl_density;
-	PclDisp* pcl_disp1 = pscv1.pcl_disp;
-	PclV *pcl_v1 = pscv1.pcl_v;
-	Stress *pcl_stress1 = pscv1.pcl_stress;
-	Strain* pcl_strain1 = pscv1.pcl_strain;
-	Strain* pcl_estrain1 = pscv1.pcl_estrain;
-	Strain* pcl_pstrain1 = pscv1.pcl_pstrain;
+	// cal p_id0, p_id1
+	size_t p_id0, p_id1, ae_id;
+	p_id0 = Block_Low(my_th_id, self.thread_num, self.pcl_num);
+	if (p_id0 != 0)
+	{
+		ae_id = pcl_in_elem0[p_id0];
+		while (ae_id == pcl_in_elem0[p_id0 + 1])
+			++p_id0;
+		++p_id0;
+	}
+	p_id1 = Block_Low(my_th_id+1, self.thread_num, self.pcl_num);
+	if (p_id1 < self.pcl_num)
+	{
+		ae_id = pcl_in_elem0[p_id1];
+		while (ae_id == pcl_in_elem0[p_id1 + 1])
+			++p_id1;
+		++p_id1;
+	}
 
-	size_t sort_var_id = self.radix_sort_var_id;
-	size_t* pcl_in_elem_array = self.pcl_in_elem_arrays[sort_var_id];
-	size_t* pcl_in_elem_array_tmp = self.pcl_in_elem_arrays[sort_var_id ^ 1];
-
-	// get p_id0, p_id1...
-	size_t p_id0, p_id1, p_id;
-
+	size_t p_id, ori_p_id;
 	size_t ae_x_id, ae_y_id;
-	size_t ori_pcl_id;
 	double p_m, p_vol, p_N_m;
 	double one_fourth_bfx, one_fourth_bfy;
 	double xi, eta;
@@ -306,15 +387,15 @@ int substep_func_omp_R2D_ME_mt(
 	double en4_fx = 0.0;
 	double en4_fy = 0.0;
 	DShapeFunc& e_dN = self.elem_dN;
-	size_t ae_id = pcl_in_elem_array[p_id0];
+	ae_id = pcl_in_elem0[p_id0];
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		// elem has pcl
 		self.elem_substp_id[ae_id] = substp_id;
 
 		// map pcl mass
-		ori_pcl_id = pcl_index0[p_id];
-		p_m = self.pcl_m[ori_pcl_id];
+		ori_p_id = pcl_index0[p_id];
+		p_m = self.pcl_m[ori_p_id];
 		e_pcl_m += p_m;
 
 		// map pcl volume
@@ -331,7 +412,7 @@ int substep_func_omp_R2D_ME_mt(
 		// cal shape function
 		ae_x_id = ae_id % self.actual_elem_x_num;
 		ae_y_id = ae_id / self.actual_elem_x_num;
-		PclPos &p_p = self.pcl_pos[ori_pcl_id];
+		PclPos &p_p = self.pcl_pos[ori_p_id];
 		PclDisp &p_d = pcl_disp0[p_id];
 		xi = (p_p.x + p_d.ux - self.mh_xl) * self.inv_elem_hx - double(ae_x_id);
 		eta = (p_p.y + p_d.uy - self.mh_yl) * self.inv_elem_hy - double(ae_y_id);
@@ -378,10 +459,10 @@ int substep_func_omp_R2D_ME_mt(
 		en4_vmy += p_N_m * p_v.vy;
 
 		// external load
-		PclBodyForce& p_bf = self.pcl_bf[ori_pcl_id];
+		PclBodyForce &p_bf = self.pcl_bf[ori_p_id];
 		one_fourth_bfx = one_fourth * p_bf.bfx;
 		one_fourth_bfy = one_fourth * p_bf.bfy;
-		PclTraction& p_t = self.pcl_t[ori_pcl_id];
+		PclTraction &p_t = self.pcl_t[ori_p_id];
 		en1_fx += one_fourth_bfx + p_N.N1 * p_t.tx;
 		en1_fy += one_fourth_bfy + p_N.N1 * p_t.ty;
 		en2_fx += one_fourth_bfx + p_N.N2 * p_t.tx;
@@ -391,10 +472,8 @@ int substep_func_omp_R2D_ME_mt(
 		en4_fx += one_fourth_bfx + p_N.N4 * p_t.tx;
 		en4_fy += one_fourth_bfy + p_N.N4 * p_t.ty;
 	
-		if (ae_id != pcl_in_elem_array[p_id + 1])
+		if (ae_id != pcl_in_elem0[p_id + 1])
 		{
-			ae_id = pcl_in_elem_array[p_id + 1];
-
 			self.elem_pcl_m[ae_id] = e_pcl_m;
 			self.elem_density[ae_id] = e_pcl_m / e_pcl_vol;
 
@@ -471,6 +550,8 @@ int substep_func_omp_R2D_ME_mt(
 			en3_fy = 0.0;
 			en4_fx = 0.0;
 			en4_fy = 0.0;
+
+			ae_id = pcl_in_elem0[p_id + 1];
 		}
 	}
 
@@ -480,7 +561,7 @@ int substep_func_omp_R2D_ME_mt(
 		rr_force.reset_f_contact();
 		self.apply_rigid_rect_avg(
 			my_th_id, dt,
-			pcl_in_elem_array, pscv0,
+			pcl_in_elem0, sva0,
 			rr_force
 			);
 		RigidRect& rr = md.get_rigid_rect();
@@ -595,8 +676,6 @@ int substep_func_omp_R2D_ME_mt(
 #pragma omp barrier
 
 	// update particle variables
-	p_id0 = self.pcl_range[my_th_id].id;
-	p_id1 = self.pcl_range[my_th_id + 1].id;
 	size_t n1_id, n2_id, n3_id, n4_id;
 	NodeV *pn1_v, *pn2_v, *pn3_v, *pn4_v;
 	size_t p_ae_x_id, p_ae_y_id;
@@ -614,7 +693,7 @@ int substep_func_omp_R2D_ME_mt(
 	size_t pcl_in_mesh_num = 0;
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		ae_id = pcl_in_elem_array[p_id];
+		ae_id = pcl_in_elem0[p_id];
 		if (last_ae_id != ae_id)
 		{
 			ae_x_id = ae_id % self.actual_elem_x_num;
@@ -655,8 +734,8 @@ int substep_func_omp_R2D_ME_mt(
 		p_e.e12 += p_de12;
 
 		// update stress
-		ori_pcl_id = pcl_index0[p_id];
-		MatModel::MaterialModel& pcl_mm = *self.pcl_mat_model[ori_pcl_id];
+		ori_p_id = pcl_index0[p_id];
+		MatModel::MaterialModel& pcl_mm = *self.pcl_mat_model[ori_p_id];
 		int mm_res = pcl_mm.integrate(pcl_dstrain);
 		const double* dstress = pcl_mm.get_dstress();
 		Stress &p_s = pcl_stress0[p_id];
@@ -701,21 +780,21 @@ int substep_func_omp_R2D_ME_mt(
 				 + p_N.N3 * n3_v.vy + p_N.N4 * n4_v.vy) * dt;
 		
 		// update location (in which element)
-		PclPos& p_p = self.pcl_pos[ori_pcl_id];
+		PclPos& p_p = self.pcl_pos[ori_p_id];
 		pcl_x = p_p.x + p_d.ux;
 		pcl_y = p_p.y + p_d.uy;
 		if (pcl_x < self.mh_xl || pcl_x > self.mh_xu ||
 			pcl_y < self.mh_yl || pcl_y > self.mh_yu)
 		{
 			// not in bg mesh
-			pcl_in_elem_array[p_id] = self.actual_elem_num;
+			pcl_in_elem0[p_id] = self.actual_elem_num;
 		}
 		else
 		{
 			// in bg mesh
 			p_ae_x_id = (pcl_x - self.mh_xl) * self.inv_elem_hx;
 			p_ae_y_id = (pcl_y - self.mh_yl) * self.inv_elem_hy;
-			pcl_in_elem_array[p_id] = self.actual_elem_x_num * p_ae_y_id + p_ae_x_id;
+			pcl_in_elem0[p_id] = self.actual_elem_x_num * p_ae_y_id + p_ae_x_id;
 			++pcl_in_mesh_num;
 		}
 	}
@@ -735,18 +814,37 @@ int substep_func_omp_R2D_ME_mt(
 	}
 
 	// sort particle variables
+	size_t* pcl_index1;
+	double* pcl_density1;
+	PclDisp* pcl_disp1;
+	PclV* pcl_v1;
+	Stress* pcl_stress1;
+	Strain* pcl_strain1;
+	Strain* pcl_estrain1;
+	Strain* pcl_pstrain1;
+	size_t* pcl_in_elem1;
+	size_t data_digit, bin_id, th_id, tmp_id;
+	size_t* other_cbin;
 	size_t* my_cbin = self.elem_count_bin + my_th_id * 0x100;
 	size_t* my_sbin = self.elem_sum_bin + my_th_id * 0x100;
-	size_t data_digit, bin_id, th_id;
-	size_t* other_cbin;
 	for (size_t digit_disp = 0, elem_num_tmp = self.actual_elem_num;
 		elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
 	{
+		SortedVarArray& sva1 = self.sorted_var_arrays[thd.pcl_sorted_var_id ^ 1];
+		pcl_index1 = sva1.pcl_index;
+		pcl_density1 = sva1.pcl_density;
+		pcl_disp1 = sva1.pcl_disp;
+		pcl_v1 = sva1.pcl_v;
+		pcl_stress1 = sva1.pcl_stress;
+		pcl_strain1 = sva1.pcl_strain;
+		pcl_estrain1 = sva1.pcl_estrain;
+		pcl_pstrain1 = sva1.pcl_pstrain;
+		pcl_in_elem1 = sva1.pcl_in_elem;
 		memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
-			data_digit = (pcl_in_elem_array[p_id] >> digit_disp) & 0xFF;
+			data_digit = (pcl_in_elem0[p_id] >> digit_disp) & 0xFF;
 			++my_cbin[data_digit];
 		}
 
@@ -773,62 +871,40 @@ int substep_func_omp_R2D_ME_mt(
 
 		for (p_id = p_id1; p_id-- > p_id0;)
 		{
-			data_digit = (pcl_in_elem_array[p_id] >> digit_disp) & 0xFF;
-			pcl_in_elem_array_tmp[--my_sbin[data_digit]] = pcl_in_elem_array[p_id];
+			data_digit = (pcl_in_elem0[p_id] >> digit_disp) & 0xFF;
+			tmp_id = --my_sbin[data_digit];
+			pcl_index1[tmp_id] = pcl_index0[p_id];
+			pcl_density1[tmp_id] = pcl_density0[p_id];
+			pcl_disp1[tmp_id] = pcl_disp0[p_id];
+			pcl_v1[tmp_id] = pcl_v0[p_id];
+			pcl_stress1[tmp_id] = pcl_stress0[p_id];
+			pcl_strain1[tmp_id] = pcl_strain0[p_id];
+			pcl_estrain1[tmp_id] = pcl_estrain0[p_id];
+			pcl_pstrain1[tmp_id] = pcl_pstrain0[p_id];
+			pcl_in_elem1[tmp_id] = pcl_in_elem0[p_id];
 		}
 
-		pcl_in_elem_array_tmp = pcl_in_elem_array;
-		sort_var_id ^= 1;
-		pcl_in_elem_array = self.pcl_in_elem_arrays[sort_var_id];
+		thd.pcl_sorted_var_id ^= 1;
+		SortedVarArray& sva0 = self.sorted_var_arrays[thd.pcl_sorted_var_id];
+		pcl_index0 = sva0.pcl_index;
+		pcl_density0 = sva0.pcl_density;
+		pcl_disp0 = sva0.pcl_disp;
+		pcl_v0 = sva0.pcl_v;
+		pcl_stress0 = sva0.pcl_stress;
+		pcl_strain0 = sva0.pcl_strain;
+		pcl_estrain0 = sva0.pcl_estrain;
+		pcl_pstrain0 = sva0.pcl_pstrain;
+		pcl_in_elem0 = sva0.pcl_in_elem;
 #pragma omp barrier
 	}
 
-//	if (my_th_id == 0)
-//	{
-//		self.pcl_range[self.thread_num].id = self.new_pcl_num;
-//		self.radix_sort_var_id = sort_var_id;
-//		self.pcl_sorted_var_id ^= 1;
-//		self.pcl_num = self.new_pcl_num;
-//		
-//		if (md.has_rigid_rect())
-//		{
-//			RigidRect &rr = md.get_rigid_rect();
-//			self.rr_fx_cont = rr.get_fx_contact();
-//			self.rr_fy_cont = rr.get_fy_contact();
-//			self.rr_m_cont = rr.get_m_contact();
-//			rr.reset_f_contact();
-//		}
-//
-//		if (self.new_pcl_num)
-//			self.continue_calculation();
-//		else
-//			self.exit_calculation();
-//	}
-//	else
-//	{
-//		p_id = Block_Low(my_th_id, self.thread_num, self.new_pcl_num);
-//		if (p_id < self.new_pcl_num)
-//		{
-//			e_id = pcl_in_elem_array[p_id];
-//			while (e_id == pcl_in_elem_array[p_id + 1])
-//				++p_id;
-//			self.pcl_range[my_th_id].id = p_id + 1;
-//		}
-//		else
-//		{
-//			self.pcl_range[my_th_id].id = self.new_pcl_num;
-//		}
-//	}
-//
-//#pragma omp barrier
 	return 0;
 }
 
 int Step_R2D_ME_mt::apply_rigid_rect_avg(
-	size_t p_id0,
-	size_t p_id1,
+	size_t p_id0, size_t p_id1,
 	size_t* pcl_in_elem,
-	PclSortedVarArray& cur_pscv,
+	SortedVarArray& cur_sva,
 	RigidRectForce& rr_force
 	)
 {
@@ -841,9 +917,9 @@ int Step_R2D_ME_mt::apply_rigid_rect_avg(
 	const Point2D &rr_centre = rr.get_centre();
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		pcl_ori_id = cur_pscv.pcl_index[p_id];
+		pcl_ori_id = cur_sva.pcl_index[p_id];
 		PclPos& p_p = pcl_pos[pcl_ori_id];
-		PclDisp& p_d = cur_pscv.pcl_disp[p_id];
+		PclDisp& p_d = cur_sva.pcl_disp[p_id];
 		p_x = p_p.x + p_d.ux;
 		p_y = p_p.y + p_d.uy;
 		if (rr.detect_collision_with_point(

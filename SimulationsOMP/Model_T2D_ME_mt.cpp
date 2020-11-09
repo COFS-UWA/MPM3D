@@ -291,7 +291,6 @@ int Model_T2D_ME_mt::init_search_grid(
 	return 0;
 }
 
-
 void Model_T2D_ME_mt::clear_pcls()
 {
 	if (pcl_mem_raw)

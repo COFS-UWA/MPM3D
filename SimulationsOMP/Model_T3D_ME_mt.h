@@ -16,7 +16,6 @@ int substep_func_omp_T3D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 
 class ResultFile_hdf5;
-class Step_T3D_ME_mt;
 namespace Model_T3D_ME_mt_hdf5_utilities
 {
 	struct ParticleData;
@@ -41,17 +40,8 @@ struct Model_T3D_ME_mt : public Model,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 
 public:
-	struct PclBodyForce { double bfx, bfy, bfz; };
-	struct PclTraction { double tx, ty, tz; };
-	struct PclPos { double x, y, z; };
-
-	struct PclDisp { double ux, uy, uz; };
-	struct PclV { double vx, vy, vz; };
-	struct PclShapeFunc { double N1, N2, N3, N4; };
-	struct PclStress { double s11, s22, s33, s12, s23, s31; };
-
-	struct ElemNodeIndex { size_t n1, n2, n3, n4; };
-	struct ElemShapeFuncABC
+	struct ShapeFunc { double N1, N2, N3, N4; };
+	struct DShapeFuncABC
 	{
 		union { double a1; double dN1_dx; };
 		union { double b1; double dN1_dy; };
@@ -66,79 +56,107 @@ public:
 		union { double b4; double dN4_dy; };
 		union { double c4; double dN4_dz; };
 	};
-	struct ElemShapeFuncD { double d1, d2, d3, d4; };
+	struct DShapeFuncD { double d1, d2, d3, d4; };
 
-	union ElemStrainInc
+	struct BodyForce { double bfx, bfy, bfz; };
+	struct Traction { double tx, ty, tz; };
+
+	union Acceleration
+	{
+		struct { double ax, ay, az; };
+		struct { size_t iax, iay, iaz; };
+	};
+	struct Velocity
+	{
+		struct { double vx, vy, vz; };
+		struct { size_t ivx, ivy, ivz; };
+	};
+	struct Position { double x, y, z; };
+	struct Displacement { double ux, uy, uz; };
+
+	union Stress
+	{
+		struct { double s11, s22, s33, s12, s23, s31; };
+		double s[6];
+	};
+	union Strain
+	{
+		struct { double e11, e22, e33, e12, e23, e31; };
+		double e[6];
+	};
+	union StrainInc
 	{
 		struct { double de11, de22, de33, de12, de23, de31; };
 		double de[6];
 	};
-	struct ElemStress { double s11, s22, s33, s12, s23, s31; };
-
+	
+	struct ElemNodeIndex { size_t n1, n2, n3, n4; };
 	struct ElemNodeVM { double vm, vmx, vmy, vmz; };
 	struct ElemNodeForce { double fx, fy, fz; };
 
-	union NodeA
-	{
-		struct { double ax, ay, az; };
-		struct { size_t ax_ui, ay_ui, az_ui; };
-	};
-	union NodeV
-	{
-		struct { double vx, vy, vz; };
-		struct { size_t vx_ui, vy_ui, vz_ui; };
-	};
-	struct NodePos { double x, y, z; };
 	struct NodeHasVBC { bool has_vx_bc, has_vy_bc, has_vz_bc; };
 
-	struct PclSortedVarArray
+	struct SortedPclVarArrays
 	{
 		size_t* pcl_index; // ori_pcl_num
 		double* pcl_density; // ori_pcl_num
-		PclDisp* pcl_disp; // ori_pcl_num
-		PclV* pcl_v; // ori_pcl_num
-		PclShapeFunc* pcl_N; // ori_pcl_num
-		PclStress* pcl_stress; // ori_pcl_num
+		Displacement *pcl_disp; // ori_pcl_num
+		Velocity *pcl_v; // ori_pcl_num
+		Stress* pcl_stress; // ori_pcl_num
+		Strain* pcl_strain; // ori_pcl_num
+		Strain* pcl_estrain; // ori_pcl_num
+		Strain* pcl_pstrain; // ori_pcl_num
 	};
 	
 protected:
+	// pcl data
 	size_t pcl_num;
-	size_t elem_num;
-	size_t node_num;
 	
 	double *pcl_m; // ori_pcl_num
-	PclBodyForce* pcl_bf; // ori_pcl_num
-	PclTraction* pcl_t; // ori_pcl_num
-	PclPos* pcl_pos; // ori_pcl_num
+	BodyForce* pcl_bf; // ori_pcl_num
+	Traction* pcl_t; // ori_pcl_num
+	Position* pcl_pos; // ori_pcl_num
 	double* pcl_vol; // ori_pcl_num
+	ShapeFunc* pcl_N; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
 
-	PclSortedVarArray pcl_sorted_var_array[2];
+	SortedPclVarArrays sorted_pcl_var_arrays[2];
 
-	// element data
-	ElemNodeIndex *elem_node_id; // elem_num
-	double *elem_vol; // elem_num
-	ElemShapeFuncABC* elem_sf_abc; // elem_num
-	ElemShapeFuncD* elem_sf_d; // elem_num
-
-	// element calculation data
-	double *elem_density; // elem_num
-	double *elem_pcl_m; // elem_num
-	double *elem_pcl_vol; // elem_num
-	ElemStrainInc *elem_de; // elem_num
-	ElemStress *elem_stress; // elem_num
-	double *elem_m_de_vol; // elem_num
-
-	// element-node data
-	ElemNodeVM* elem_node_vm; // elem_num * 4
-	ElemNodeForce* elem_node_force; // elem_num * 4
+	size_t *contact_state;
+	Position *contact_pos;
 	
+	// mesh data
+	size_t elem_num;
+	size_t node_num;
+
+	// mesh topology
+	ElemNodeIndex *elem_node_id; // elem_num
 	size_t *elem_id_array; // elem_num * 4 
 	size_t *node_elem_id_array; // elem_num * 4
 	size_t *node_elem_list;  // node_num
+	
+	// element data
+	DShapeFuncABC* elem_dN_abc; // elem_num
+	DShapeFuncD* elem_dN_d; // elem_num
+	double* elem_vol; // elem_num
+	// node data
+	Position* node_pos;
 
-	NodeA *node_a; // node_num
-	NodeV *node_v; // node_num
+	// element calculation data
+	size_t *elem_substep_id; // elem_num
+	double *elem_density; // elem_num
+	double *elem_pcl_m; // elem_num
+	double *elem_pcl_vol; // elem_num
+	StrainInc *elem_de; // elem_num
+	double *elem_m_de_vol; // elem_num
+
+	// element-node calculation data
+	ElemNodeVM* elem_node_vm; // elem_num * 4
+	ElemNodeForce* elem_node_force; // elem_num * 4
+	
+	// node calculation data
+	Acceleration *node_a; // node_num
+	Velocity *node_v; // node_num
 	NodeHasVBC *node_has_vbc; // node_num
 	double *node_am; // node_num
 	double *node_de_vol; // node_num
@@ -148,8 +166,6 @@ protected:
 	char *pcl_mem_raw;
 
 	char *mesh_mem_raw;
-
-	NodePos *node_pos;
 
 	// boundary conditions
 	size_t bfx_num, bfy_num, bfz_num;
@@ -163,11 +179,10 @@ public:
 
 	inline size_t get_ori_pcl_num() const noexcept { return ori_pcl_num; }
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
-	inline const PclPos* get_pcl_pos() const noexcept { return pcl_pos; }
+	inline const Position* get_pcl_pos() const noexcept { return pcl_pos; }
 	inline const double *get_pcl_m() const noexcept { return pcl_m; }
-	inline const double* get_pcl_density0() const noexcept { return pcl_sorted_var_array[0].pcl_density; }
 	inline size_t get_node_num() const noexcept { return node_num; }
-	inline const NodePos* get_node_pos() const noexcept { return node_pos; }
+	inline const Position* get_node_pos() const noexcept { return node_pos; }
 	inline size_t get_elem_num() const noexcept { return elem_num; }
 	inline const ElemNodeIndex* get_elem_node_index() const noexcept { return elem_node_id; }
 	inline MatModel::MaterialModel **get_mat_models() noexcept { return pcl_mat_model; }
@@ -218,25 +233,48 @@ public:
 	void init_fixed_vz_bc(size_t vz_bc_num, const size_t *vz_bcs);
 
 protected:
+	inline void cal_N(
+		double p_x,
+		double p_y,
+		double p_z,
+		size_t e_id,
+		ShapeFunc& p_N
+		)
+	{
+#define N_min (1.0e-8)
+		DShapeFuncABC& e_dN_abc = elem_dN_abc[e_id];
+		DShapeFuncD& e_dN_d = elem_dN_d[e_id];
+		p_N.N1 = e_dN_abc.a1 * p_x + e_dN_abc.b1 * p_y + e_dN_abc.c1 * p_z + e_dN_d.d1;
+		if (p_N.N1 < N_min)
+			p_N.N1 = N_min;
+		p_N.N2 = e_dN_abc.a2 * p_x + e_dN_abc.b2 * p_y + e_dN_abc.c2 * p_z + e_dN_d.d2;
+		if (p_N.N2 < N_min)
+			p_N.N2 = N_min;
+		p_N.N3 = e_dN_abc.a3 * p_x + e_dN_abc.b3 * p_y + e_dN_abc.c3 * p_z + e_dN_d.d3;
+		if (p_N.N3 < N_min)
+			p_N.N3 = N_min;
+		p_N.N4 = e_dN_abc.a4 * p_x + e_dN_abc.b4 * p_y + e_dN_abc.c4 * p_z + e_dN_d.d4;
+		if (p_N.N4 < N_min)
+			p_N.N4 = N_min;
+#undef N_min
+	}
+
 	inline bool is_in_element(
 		double pcl_x,
 		double pcl_y,
 		double pcl_z,
-		size_t elem_id,
-		PclShapeFunc &pcl_sf
+		size_t elem_id
 		) noexcept
 	{
-		ElemShapeFuncABC& e_sfabc = elem_sf_abc[elem_id];
-		ElemShapeFuncD& e_sfd = elem_sf_d[elem_id];
-		pcl_sf.N1 = e_sfabc.a1 * pcl_x + e_sfabc.b1 * pcl_y + e_sfabc.c1 * pcl_z + e_sfd.d1;
-		pcl_sf.N2 = e_sfabc.a2 * pcl_x + e_sfabc.b2 * pcl_y + e_sfabc.c2 * pcl_z + e_sfd.d2;
-		pcl_sf.N3 = e_sfabc.a3 * pcl_x + e_sfabc.b3 * pcl_y + e_sfabc.c3 * pcl_z + e_sfd.d3;
-		pcl_sf.N4 = e_sfabc.a4 * pcl_x + e_sfabc.b4 * pcl_y + e_sfabc.c4 * pcl_z + e_sfd.d4;
+		DShapeFuncABC& e_dN_abc = elem_dN_abc[elem_id];
+		DShapeFuncD& e_dN_d = elem_dN_d[elem_id];
+		double N1 = e_dN_abc.a1 * pcl_x + e_dN_abc.b1 * pcl_y + e_dN_abc.c1 * pcl_z + e_dN_d.d1;
+		double N2 = e_dN_abc.a2 * pcl_x + e_dN_abc.b2 * pcl_y + e_dN_abc.c2 * pcl_z + e_dN_d.d2;
+		double N3 = e_dN_abc.a3 * pcl_x + e_dN_abc.b3 * pcl_y + e_dN_abc.c3 * pcl_z + e_dN_d.d3;
+		double N4 = e_dN_abc.a4 * pcl_x + e_dN_abc.b4 * pcl_y + e_dN_abc.c4 * pcl_z + e_dN_d.d4;
 		// for numerical accuracy
-		return pcl_sf.N1 >= 0.0 && pcl_sf.N1 <= 1.0
-			&& pcl_sf.N2 >= 0.0 && pcl_sf.N2 <= 1.0
-			&& pcl_sf.N3 >= 0.0 && pcl_sf.N3 <= 1.0
-			&& pcl_sf.N4 >= 0.0 && pcl_sf.N4 <= 1.0;
+		return N1 >= 0.0 && N1 <= 1.0 && N2 >= 0.0 && N2 <= 1.0
+			&& N3 >= 0.0 && N3 <= 1.0 && N4 >= 0.0 && N4 <= 1.0;
 	}
 	
 	// background grid for mesh
@@ -248,12 +286,10 @@ protected:
 	size_t *grid_elem_list_id_array;
 	size_t *grid_elem_list;
 
-public:
 	inline size_t find_pcl_in_which_elem(
 		double pcl_x,
 		double pcl_y,
-		double pcl_z,
-		PclShapeFunc& pcl_sf
+		double pcl_z
 		) noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
@@ -270,7 +306,7 @@ public:
 			 el_id < elem_end_id; ++el_id)
 		{
 			elem_id = grid_elem_list_id_array[el_id];
-			if (is_in_element(pcl_x, pcl_y, pcl_z, elem_id, pcl_sf))
+			if (is_in_element(pcl_x, pcl_y, pcl_z, elem_id))
 				return elem_id;
 		}
 		return elem_num;

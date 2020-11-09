@@ -17,7 +17,6 @@ int substep_func_omp_T2D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 
 class ResultFile_hdf5;
-class Step_T2D_ME_mt;
 namespace Model_T2D_ME_mt_hdf5_utilities
 {
 	struct ParticleData;

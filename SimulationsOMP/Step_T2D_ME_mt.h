@@ -120,26 +120,6 @@ public:
 	int finalize_calculation() override;
 
 public:
-	typedef Model_T2D_ME_mt::PclBodyForce PclBodyForce;
-	typedef Model_T2D_ME_mt::PclTraction PclTraction;
-	typedef Model_T2D_ME_mt::PclPos PclPos;
-
-	typedef Model_T2D_ME_mt::PclSortedVarArray PclSortedVarArray;
-	typedef Model_T2D_ME_mt::PclDisp PclDisp;
-	typedef Model_T2D_ME_mt::PclV PclV;
-	typedef Model_T2D_ME_mt::PclShapeFunc PclShapeFunc;
-	typedef Model_T2D_ME_mt::PclStress PclStress;
-
-	typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
-	typedef Model_T2D_ME_mt::ElemShapeFuncAB ElemShapeFuncAB;
-	typedef Model_T2D_ME_mt::ElemShapeFuncC ElemShapeFuncC;
-
-	typedef Model_T2D_ME_mt::ElemStrainInc ElemStrainInc;
-	typedef Model_T2D_ME_mt::ElemStress ElemStress;
-
-	typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
-	typedef Model_T2D_ME_mt::ElemNodeForce ElemNodeForce;
-
 	Step_T2D_ME_mt(const char* _name);
 	~Step_T2D_ME_mt();
 

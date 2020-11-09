@@ -39,11 +39,11 @@ Cube Model_T3D_ME_mt::get_mesh_bbox()
 	if (!node_num)
 		return Cube(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	
-	NodePos& np0 = node_pos[0];
+	Position& np0 = node_pos[0];
 	Cube res(np0.x, np0.x, np0.y, np0.y, np0.z, np0.z);
 	for (size_t n_id = 1; n_id < node_num; ++n_id)
 	{
-		NodePos& np = node_pos[n_id];
+		Position& np = node_pos[n_id];
 		if (res.xl > np.x)
 			res.xl = np.x;
 		if (res.xu < np.x)
@@ -78,13 +78,13 @@ void Model_T3D_ME_mt::alloc_mesh(
 	elem_num = e_num;
 
 	size_t mem_len = (sizeof(ElemNodeIndex) + sizeof(double)
-		+ sizeof(ElemShapeFuncABC) + sizeof(ElemShapeFuncD)
+		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
 		+ sizeof(double) * 4
-		+ sizeof(ElemStrainInc) + sizeof(ElemStress)
+		+ sizeof(StrainInc) + sizeof(Stress)
 		+ sizeof(ElemNodeVM) * 4 + sizeof(ElemNodeForce) * 4
 		+ sizeof(size_t) * 4 + sizeof(size_t) * 4) * e_num
-		+ (sizeof(size_t) + sizeof(NodePos)
-		+ sizeof(NodeA) + sizeof(NodeV) + sizeof(NodeHasVBC)
+		+ (sizeof(size_t) + sizeof(Position)
+		+ sizeof(Acceleration) + sizeof(Velocity) + sizeof(NodeHasVBC)
 		+ sizeof(double) * 2) * n_num;
 	mesh_mem_raw = new char[mem_len];
 
@@ -93,10 +93,10 @@ void Model_T3D_ME_mt::alloc_mesh(
 	cur_mem += sizeof(ElemNodeIndex) * elem_num;
 	elem_vol = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
-	elem_sf_abc = (ElemShapeFuncABC*)cur_mem;
-	cur_mem += sizeof(ElemShapeFuncABC) * elem_num;
-	elem_sf_d = (ElemShapeFuncD*)cur_mem;
-	cur_mem += sizeof(ElemShapeFuncD) * elem_num;
+	elem_dN_abc = (DShapeFuncABC*)cur_mem;
+	cur_mem += sizeof(DShapeFuncABC) * elem_num;
+	elem_dN_d = (DShapeFuncD*)cur_mem;
+	cur_mem += sizeof(DShapeFuncD) * elem_num;
 
 	elem_density = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
@@ -104,10 +104,10 @@ void Model_T3D_ME_mt::alloc_mesh(
 	cur_mem += sizeof(double) * elem_num;
 	elem_pcl_vol = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
-	elem_de = (ElemStrainInc *)cur_mem;
-	cur_mem += sizeof(ElemStrainInc) * elem_num;
-	elem_stress = (ElemStress *)cur_mem;
-	cur_mem += sizeof(ElemStress) * elem_num;
+	elem_de = (StrainInc *)cur_mem;
+	cur_mem += sizeof(StrainInc) * elem_num;
+	elem_stress = (Stress *)cur_mem;
+	cur_mem += sizeof(Stress) * elem_num;
 	elem_m_de_vol = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
 
@@ -124,12 +124,12 @@ void Model_T3D_ME_mt::alloc_mesh(
 	node_elem_list = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * node_num;
 
-	node_pos = (NodePos*)cur_mem;
-	cur_mem += sizeof(NodePos) * node_num;
-	node_a = (NodeA *)cur_mem;
-	cur_mem += sizeof(NodeA) * node_num;
-	node_v = (NodeV *)cur_mem;
-	cur_mem += sizeof(NodeV) * node_num;
+	node_pos = (Position*)cur_mem;
+	cur_mem += sizeof(Position) * node_num;
+	node_a = (Acceleration *)cur_mem;
+	cur_mem += sizeof(Acceleration) * node_num;
+	node_v = (Velocity *)cur_mem;
+	cur_mem += sizeof(Velocity) * node_num;
 	node_has_vbc = (NodeHasVBC *)cur_mem;
 	cur_mem += sizeof(NodeHasVBC) * node_num;
 	node_am = (double*)cur_mem;
@@ -153,7 +153,7 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
 		const TetrahedronMesh::Node& n = nodes[n_id];
-		NodePos& np = node_pos[n_id];
+		Position& np = node_pos[n_id];
 		np.x = n.x;
 		np.y = n.y;
 		np.z = n.z;
@@ -183,31 +183,31 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 		eni.n2 = e.n2;
 		eni.n3 = e.n3;
 		eni.n4 = e.n4;
-		NodePos &n1_pos = node_pos[e.n1];
-		NodePos &n2_pos = node_pos[e.n2];
-		NodePos &n3_pos = node_pos[e.n3];
-		NodePos &n4_pos = node_pos[e.n4];
+		Position &n1_pos = node_pos[e.n1];
+		Position &n2_pos = node_pos[e.n2];
+		Position &n3_pos = node_pos[e.n3];
+		Position &n4_pos = node_pos[e.n4];
 		elem_vol[e_id] = cal_tetrahedron_vol(n1_pos, n2_pos, n3_pos, n4_pos);
 		// shape functions
 		pit.init_tetrahedron(n1_pos, n2_pos, n3_pos, n4_pos, elem_vol[e_id]);
-		ElemShapeFuncABC &esfabc = elem_sf_abc[e_id];
-		esfabc.dN1_dx = pit.dN1_dx();
-		esfabc.dN1_dy = pit.dN1_dy();
-		esfabc.dN1_dz = pit.dN1_dz();
-		esfabc.dN2_dx = pit.dN2_dx();
-		esfabc.dN2_dy = pit.dN2_dy();
-		esfabc.dN2_dz = pit.dN2_dz();
-		esfabc.dN3_dx = pit.dN3_dx();
-		esfabc.dN3_dy = pit.dN3_dy();
-		esfabc.dN3_dz = pit.dN3_dz();
-		esfabc.dN4_dx = pit.dN4_dx();
-		esfabc.dN4_dy = pit.dN4_dy();
-		esfabc.dN4_dz = pit.dN4_dz();
-		ElemShapeFuncD& esfd = elem_sf_d[e_id];
-		esfd.d1 = pit.get_coef1();
-		esfd.d2 = pit.get_coef2();
-		esfd.d3 = pit.get_coef3();
-		esfd.d4 = pit.get_coef4();
+		DShapeFuncABC &edNabc = elem_dN_abc[e_id];
+		edNabc.dN1_dx = pit.dN1_dx();
+		edNabc.dN1_dy = pit.dN1_dy();
+		edNabc.dN1_dz = pit.dN1_dz();
+		edNabc.dN2_dx = pit.dN2_dx();
+		edNabc.dN2_dy = pit.dN2_dy();
+		edNabc.dN2_dz = pit.dN2_dz();
+		edNabc.dN3_dx = pit.dN3_dx();
+		edNabc.dN3_dy = pit.dN3_dy();
+		edNabc.dN3_dz = pit.dN3_dz();
+		edNabc.dN4_dx = pit.dN4_dx();
+		edNabc.dN4_dy = pit.dN4_dy();
+		edNabc.dN4_dz = pit.dN4_dz();
+		DShapeFuncD& edNd = elem_dN_d[e_id];
+		edNd.d1 = pit.get_coef1();
+		edNd.d2 = pit.get_coef2();
+		edNd.d3 = pit.get_coef3();
+		edNd.d4 = pit.get_coef4();
 		// node-element relation
 		elem_id_array_tmp[e_id4] = e_id;
 		elem_id_array_tmp[e_id4 + 1] = e_id;
@@ -351,27 +351,27 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 
 	ori_pcl_num = num;
 	pcl_num = ori_pcl_num;
-	mem_len = (sizeof(double) + sizeof(PclBodyForce)
-			 + sizeof(PclTraction) + sizeof(PclPos) + sizeof(double)
+	mem_len = (sizeof(double) + sizeof(BodyForce)
+			+ sizeof(Traction) + sizeof(Position) + sizeof(double)
 			+ (sizeof(size_t) + sizeof(double)
-			 + sizeof(PclDisp) + sizeof(PclV)
-			 + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2
+			 + sizeof(Displacement) + sizeof(Velocity)
+			 + sizeof(Stress) + sizeof(Strain) * 3) * 2
 			) * num;
 	pcl_mem_raw = new char[mem_len];
 
 	cur_mem = pcl_mem_raw;
 	pcl_m = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
-	pcl_bf = (PclBodyForce *)(cur_mem);
-	cur_mem += sizeof(PclBodyForce) * num;
-	pcl_t = (PclTraction *)cur_mem;
-	cur_mem += sizeof(PclTraction) * num;
-	pcl_pos = (PclPos *)cur_mem;
-	cur_mem += sizeof(PclPos) * num;
+	pcl_bf = (BodyForce *)(cur_mem);
+	cur_mem += sizeof(BodyForce) * num;
+	pcl_t = (Traction *)cur_mem;
+	cur_mem += sizeof(Traction) * num;
+	pcl_pos = (Position *)cur_mem;
+	cur_mem += sizeof(Position) * num;
 	pcl_vol = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
 
-	PclSortedVarArray &psva0 = pcl_sorted_var_array[0];
+	SortedPclVarArray &psva0 = pcl_sorted_var_array[0];
 	psva0.pcl_index = (size_t *)cur_mem;
 	cur_mem += sizeof(size_t) * num;
 	psva0.pcl_density = (double *)cur_mem;
@@ -380,8 +380,6 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(PclDisp) * num;
 	psva0.pcl_v = (PclV *)cur_mem;
 	cur_mem += sizeof(PclV) * num;
-	psva0.pcl_N = (PclShapeFunc *)cur_mem;
-	cur_mem += sizeof(PclShapeFunc) * num;
 	psva0.pcl_stress = (PclStress*)cur_mem;
 	cur_mem += sizeof(PclStress) * num;
 

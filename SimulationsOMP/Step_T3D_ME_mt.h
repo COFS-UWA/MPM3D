@@ -18,96 +18,100 @@ int substep_func_omp_T3D_ME_mt(void* _self, size_t my_th_id,
 class Step_T3D_ME_mt : public Step_OMP
 {
 protected:
-	typedef Model_T3D_ME_mt::PclBodyForce PclBodyForce;
-	typedef Model_T3D_ME_mt::PclTraction PclTraction;
-	typedef Model_T3D_ME_mt::PclPos PclPos;
-	typedef Model_T3D_ME_mt::PclSortedVarArray PclSortedVarArray;
-	typedef Model_T3D_ME_mt::PclDisp PclDisp;
-	typedef Model_T3D_ME_mt::PclV PclV;
-	typedef Model_T3D_ME_mt::PclShapeFunc PclShapeFunc;
-	typedef Model_T3D_ME_mt::PclStress PclStress;
+	typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
+	typedef Model_T3D_ME_mt::DShapeFuncABC DShapeFuncABC;
+	typedef Model_T3D_ME_mt::DShapeFuncD DShapeFuncD;
+	typedef Model_T3D_ME_mt::BodyForce PclBodyForce;
+	typedef Model_T3D_ME_mt::Traction PclTraction;
+	typedef Model_T3D_ME_mt::Position PclPos;
+	typedef Model_T3D_ME_mt::Displacement Displacement;
+	typedef Model_T3D_ME_mt::Velocity Velocity;
+	typedef Model_T3D_ME_mt::Acceleration Acceleration;
+	typedef Model_T3D_ME_mt::Stress Stress;
+	typedef Model_T3D_ME_mt::Strain Strain;
+	typedef Model_T3D_ME_mt::StrainInc StrainInc;
 	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
-	typedef Model_T3D_ME_mt::ElemShapeFuncABC ElemShapeFuncABC;
-	typedef Model_T3D_ME_mt::ElemShapeFuncD ElemShapeFuncD;
-	typedef Model_T3D_ME_mt::ElemStrainInc ElemStrainInc;
-	typedef Model_T3D_ME_mt::ElemStress ElemStress;
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_ME_mt::ElemNodeForce ElemNodeForce;
-	typedef Model_T3D_ME_mt::NodeA NodeA;
-	typedef Model_T3D_ME_mt::NodeV NodeV;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
-	typedef Model_T3D_ME_mt::NodePos NodePos;
 
-	size_t elem_num;
-	size_t node_num;
+	struct SortedPclVarArrays
+	{
+		size_t* pcl_index; // ori_pcl_num
+		double* pcl_density; // ori_pcl_num
+		Displacement* pcl_disp; // ori_pcl_num
+		Velocity* pcl_v; // ori_pcl_num
+		Stress* pcl_stress; // ori_pcl_num
+		Strain* pcl_strain; // ori_pcl_num
+		Strain* pcl_estrain; // ori_pcl_num
+		Strain* pcl_pstrain; // ori_pcl_num
+		size_t* pcl_in_elem; // ori_pcl_num
+	};
 
+	size_t pcl_num;
+	
 	double* pcl_m;
 	PclBodyForce* pcl_bf;
 	PclTraction* pcl_t;
 	PclPos* pcl_pos;
 	double* pcl_vol;
+	ShapeFunc* pcl_N;
 	MatModel::MaterialModel** pcl_mat_model;
 
-	PclSortedVarArray pcl_sorted_var_array[2];
+	SortedPclVarArrays sorted_pcl_var_arrays[2];
+	
+	size_t elem_num;
 
 	ElemNodeIndex* elem_node_id;
-	double* elem_vol;
-	ElemShapeFuncABC* elem_sf_abc;
-	ElemShapeFuncD* elem_sf_d;
-
-	double* elem_density;
-	double* elem_pcl_m;
-	double* elem_pcl_vol;
-	ElemStrainInc* elem_de;
-	ElemStress* elem_stress;
-	double* elem_m_de_vol;
-
-	ElemNodeVM* elem_node_vm;
-	ElemNodeForce* elem_node_force;
-
 	size_t* elem_id_array;
 	size_t* node_elem_id_array;
 	size_t* node_elem_list;
-	NodeA *node_a;
-	NodeV *node_v;
-	NodeHasVBC* node_has_vbc;
-	double *node_am; // node_num
-	double *node_de_vol; // node_num
+	DShapeFuncABC* elem_dN_abc;
+	DShapeFuncD* elem_dN_d;
+	double* elem_vol;
 
-protected:
+	size_t* elem_substep_id;
+	double* elem_density;
+	double* elem_pcl_m;
+	double* elem_pcl_vol;
+	StrainInc* elem_de;
+	double* elem_m_de_vol;
+
+	ElemNodeVM *elem_node_vm;
+	ElemNodeForce *elem_node_force;
+
+	Acceleration *node_a;
+	Velocity *node_v;
+	NodeHasVBC* node_has_vbc;
+	double *node_am;
+	double *node_de_vol;
+
 	// task division
-	CacheAlignedMem task_range_mem;
-	union PclRange
-	{
-		size_t id;
-		char padding[Cache_Alignment];
-	};
-	PclRange* pcl_range;
-	size_t *elem_range;
 	size_t *node_range;
-	size_t* node_elem_range;
+	size_t *node_elem_range;
 
 	// radix sort
-	CacheAlignedMem elem_bin_mem;
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
 	
-	CacheAlignedMem radix_sort_var_mem;
-	size_t *new_to_prev_pcl_maps[2];
-	size_t *pcl_in_elem_arrays[2];
+	union ThreadData
+	{
+		struct
+		{
+			size_t pcl_sorted_var_id;
+		};
+		char padding[Cache_Alignment];
+	};
+	ThreadData* thread_datas;
 
-	size_t pcl_sorted_var_id;
-	size_t radix_sort_var_id;
-	size_t pcl_num;
-	size_t new_pcl_num;
-	
 	double K_cont;
+
 	double rr_fx_cont, rr_fy_cont, rr_fz_cont;
 	double rr_mx_cont, rr_my_cont, rr_mz_cont;
-	struct ContPos { double x, y, z; };
-	CacheAlignedMem contact_mem;
-	size_t* contact_state;
-	ContPos *contact_pos;
+	
+	CacheAlignedMem task_range_mem;
+	CacheAlignedMem elem_bin_mem;
+	CacheAlignedMem radix_sort_var_mem;
 
 public:
 	int init_calculation() override;
@@ -116,32 +120,10 @@ public:
 	int finalize_calculation() override;
 
 public:
-	typedef Model_T3D_ME_mt::PclBodyForce PclBodyForce;
-	typedef Model_T3D_ME_mt::PclTraction PclTraction;
-	typedef Model_T3D_ME_mt::PclPos PclPos;
-
-	typedef Model_T3D_ME_mt::PclSortedVarArray PclSortedVarArray;
-	typedef Model_T3D_ME_mt::PclDisp PclDisp;
-	typedef Model_T3D_ME_mt::PclV PclV;
-	typedef Model_T3D_ME_mt::PclShapeFunc PclShapeFunc;
-	typedef Model_T3D_ME_mt::PclStress PclStress;
-
-	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
-	typedef Model_T3D_ME_mt::ElemShapeFuncABC ElemShapeFuncAB;
-	typedef Model_T3D_ME_mt::ElemShapeFuncD ElemShapeFuncC;
-
-	typedef Model_T3D_ME_mt::ElemStrainInc ElemStrainInc;
-	typedef Model_T3D_ME_mt::ElemStress ElemStress;
-
-	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
-	typedef Model_T3D_ME_mt::ElemNodeForce ElemNodeForce;
-
 	Step_T3D_ME_mt(const char* _name);
 	~Step_T3D_ME_mt();
 
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
-	inline size_t get_pcl_sorted_var_id() const noexcept { return pcl_sorted_var_id; }
-	inline const size_t *get_new_to_prev_pcl_map() const noexcept { return new_to_prev_pcl_maps[radix_sort_var_id]; }
 	inline double get_rr_fx_contact() const noexcept { return rr_fx_cont; }
 	inline double get_rr_fy_contact() const noexcept { return rr_fy_cont; }
 	inline double get_rr_fz_contact() const noexcept { return rr_fz_cont; }
