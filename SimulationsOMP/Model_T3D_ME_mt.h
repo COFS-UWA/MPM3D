@@ -27,9 +27,6 @@ namespace Model_T3D_ME_mt_hdf5_utilities
 	int load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_rigid_rect_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_rigid_rect_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_rigid_rect_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
 
 struct Model_T3D_ME_mt : public Model,
@@ -140,7 +137,7 @@ protected:
 	DShapeFuncD* elem_dN_d; // elem_num
 	double* elem_vol; // elem_num
 	// node data
-	Position* node_pos;
+	Position* node_pos; // node_num
 
 	// element calculation data
 	size_t *elem_substep_id; // elem_num
@@ -324,9 +321,6 @@ protected:
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 };
 
 #endif

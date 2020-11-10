@@ -7,8 +7,19 @@
 
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
+
+class ResultFile_hdf5;
 namespace Model_T3D_ME_mt_hdf5_utilities
 {
+	struct ParticleData;
+	int output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_background_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_boundary_condition_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_boundary_condition_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_pcl_data_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 }
 
@@ -17,13 +28,13 @@ int substep_func_omp_T3D_ME_mt(void* _self, size_t my_th_id,
 
 class Step_T3D_ME_mt : public Step_OMP
 {
-protected:
+public:
 	typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
 	typedef Model_T3D_ME_mt::DShapeFuncABC DShapeFuncABC;
 	typedef Model_T3D_ME_mt::DShapeFuncD DShapeFuncD;
-	typedef Model_T3D_ME_mt::BodyForce PclBodyForce;
-	typedef Model_T3D_ME_mt::Traction PclTraction;
-	typedef Model_T3D_ME_mt::Position PclPos;
+	typedef Model_T3D_ME_mt::BodyForce BodyForce;
+	typedef Model_T3D_ME_mt::Traction Traction;
+	typedef Model_T3D_ME_mt::Position Position;
 	typedef Model_T3D_ME_mt::Displacement Displacement;
 	typedef Model_T3D_ME_mt::Velocity Velocity;
 	typedef Model_T3D_ME_mt::Acceleration Acceleration;
@@ -48,12 +59,13 @@ protected:
 		size_t* pcl_in_elem; // ori_pcl_num
 	};
 
+protected:
 	size_t pcl_num;
 	
 	double* pcl_m;
-	PclBodyForce* pcl_bf;
-	PclTraction* pcl_t;
-	PclPos* pcl_pos;
+	BodyForce* pcl_bf;
+	Traction* pcl_t;
+	Position* pcl_pos;
 	double* pcl_vol;
 	ShapeFunc* pcl_N;
 	MatModel::MaterialModel** pcl_mat_model;
@@ -98,7 +110,7 @@ protected:
 	{
 		struct
 		{
-			size_t pcl_sorted_var_id;
+			size_t sorted_pcl_var_id;
 		};
 		char padding[Cache_Alignment];
 	};
@@ -110,8 +122,8 @@ protected:
 	double rr_mx_cont, rr_my_cont, rr_mz_cont;
 	
 	CacheAlignedMem task_range_mem;
-	CacheAlignedMem elem_bin_mem;
 	CacheAlignedMem radix_sort_var_mem;
+	CacheAlignedMem elem_bin_mem;
 
 public:
 	int init_calculation() override;
@@ -124,6 +136,7 @@ public:
 	~Step_T3D_ME_mt();
 
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
+	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
 	inline double get_rr_fx_contact() const noexcept { return rr_fx_cont; }
 	inline double get_rr_fy_contact() const noexcept { return rr_fy_cont; }
 	inline double get_rr_fz_contact() const noexcept { return rr_fz_cont; }
@@ -131,6 +144,15 @@ public:
 	inline double get_rr_my_contact() const noexcept { return rr_my_cont; }
 	inline double get_rr_mz_contact() const noexcept { return rr_mz_cont; }
 
+	friend struct Model_T3D_ME_mt_hdf5_utilities::ParticleData;
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_boundary_condition_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_boundary_condition_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_pcl_data_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 };
 

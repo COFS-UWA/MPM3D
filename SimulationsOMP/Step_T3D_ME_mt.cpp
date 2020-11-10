@@ -29,6 +29,24 @@ namespace
 		for (register size_t i = 1; i < thread_num; ++i)
 			data_range[i] = Block_Low(i, thread_num, data_num);
 	}
+
+	size_t find_cloest_num_in_sorted_list(
+		size_t num,
+		size_t *num_list,
+		size_t list_len
+		)
+	{
+		size_t lid = 0, uid = list_len;
+		while ((uid - lid) > 1)
+		{
+			if ((num - num_list[lid]) > (num_list[uid] - num))
+				lid = (lid + uid) / 2;
+			else
+				uid = (lid + uid) / 2;
+		}
+		return (num - num_list[lid]) < (num_list[uid] - num) ?
+				num_list[lid] : num_list[uid];
+	}
 }
 
 int Step_T3D_ME_mt::init_calculation()
@@ -106,19 +124,23 @@ int Step_T3D_ME_mt::init_calculation()
 	memset(elem_substep_id, 0xFF, sizeof(size_t) * elem_num);
 
 	size_t th_num_1 = thread_num + 1;
-	char* mem_range = (char*)task_range_mem.alloc(sizeof(size_t) * 2 * th_num_1);
-	node_elem_range = (size_t*)mem_range;
-	mem_range += sizeof(size_t) * th_num_1;
+	char* mem_range = (char*)task_range_mem.alloc(sizeof(size_t) * th_num_1 * 2);
 	node_range = (size_t*)mem_range;
-	// need better division of this
-	eef;
-	divide_task_to_thread(thread_num, md.node_num, node_range);
-	node_elem_range[0] = 0;
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		node_elem_range[th_id + 1] = md.node_elem_list[node_range[th_id + 1] - 1];
-
-	elem_count_bin = (size_t*)elem_bin_mem.alloc(sizeof(size_t) * thread_num * 0x100 * 2);
-	elem_sum_bin = elem_count_bin + thread_num * 0x100;
+	mem_range += sizeof(size_t) * th_num_1;
+	node_elem_range = (size_t*)mem_range;
+	divide_task_to_thread(thread_num, md.elem_num * 4, node_elem_range);
+	node_range[0] = 0;
+	node_range[thread_num] = md.node_num;
+	for (size_t th_id = 1; th_id < thread_num; ++th_id)
+	{
+		node_range[th_id] = find_cloest_num_in_sorted_list(
+			node_elem_range[th_id],
+			md.node_elem_list,
+			md.node_num
+			);
+		//node_elem_range[th_id] = md.node_elem_list[node_range[th_id + 1] - 1];
+		node_elem_range[th_id] = md.node_elem_list[node_range[th_id]];
+	}
 
 	//if (md.has_rigid_rect())
 	//{
@@ -138,13 +160,16 @@ int Step_T3D_ME_mt::init_calculation()
 	//contact_pos = (ContPos *)cache_aligned(mem_range);
 	//for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	//	contact_state[p_id] = SIZE_MAX;
+	
+	elem_count_bin = (size_t *)elem_bin_mem.alloc(sizeof(size_t) * thread_num * 0x100 * 2);
+	elem_sum_bin = elem_count_bin + thread_num * 0x100;
 
 	pcl_num = 0;
 #pragma omp parallel
 	{
 		size_t my_th_id = size_t(omp_get_thread_num());
 		ThreadData& thd = thread_datas[my_th_id];
-		thd.pcl_sorted_var_id = 0;
+		thd.sorted_pcl_var_id = 0;
 
 		size_t p_id0 = Block_Low(my_th_id, thread_num, md.pcl_num);
 		size_t p_id1 = Block_Low(my_th_id + 1, thread_num, md.pcl_num);
@@ -161,11 +186,11 @@ int Step_T3D_ME_mt::init_calculation()
 			p_d1.uy = 0.0;
 			p_d1.uz = 0.0;
 
-			PclPos &p_p = md.pcl_pos[p_id];
+			Position &p_p = md.pcl_pos[p_id];
 			e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_p.z);
+			spva0.pcl_in_elem[p_id] = e_id;
 			if (e_id != elem_num)
 				++pcl_in_mesh_num;
-			spva0.pcl_in_elem[p_id] = e_id;
 		}
 
 #pragma omp critical
@@ -201,8 +226,8 @@ int Step_T3D_ME_mt::init_calculation()
 		for (size_t digit_disp = 0, elem_num_tmp = elem_num;
 			elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
 		{
-			thd.pcl_sorted_var_id ^= 1;
-			SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[thd.pcl_sorted_var_id];
+			thd.sorted_pcl_var_id ^= 1;
+			SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
 			pcl_index1 = spva1.pcl_index;
 			pcl_density1 = spva1.pcl_density;
 			pcl_disp1 = spva1.pcl_disp;
@@ -343,7 +368,7 @@ int substep_func_omp_T3D_ME_mt(
 	MatModel::MaterialModel** pcl_mat_model = self.pcl_mat_model;
 
 	SortedPclVarArrays *sorted_pcl_var_arrays = self.sorted_pcl_var_arrays;
-	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[thd.pcl_sorted_var_id];
+	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
 	size_t* pcl_index0 = spva0.pcl_index;
 	double* pcl_density0 = spva0.pcl_density;
 	Displacement* pcl_disp0 = spva0.pcl_disp;
@@ -881,8 +906,8 @@ int substep_func_omp_T3D_ME_mt(
 	for (size_t digit_disp = 0, elem_num_tmp = elem_num;
 		 elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
 	{
-		thd.pcl_sorted_var_id ^= 1;
-		SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[thd.pcl_sorted_var_id];
+		thd.sorted_pcl_var_id ^= 1;
+		SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
 		pcl_index1 = spva1.pcl_index;
 		pcl_density1 = spva1.pcl_density;
 		pcl_disp1 = spva1.pcl_disp;

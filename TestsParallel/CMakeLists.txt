@@ -7,8 +7,8 @@ add_executable(
     TestsParallel
     # precompiled header
     TestsParallel_pcp.h TestsParallel_pcp.cpp
-    test_parallel_utils.h
-    test_parallel_utils2.h
+    test_parallel_utils.h test_parallel_utils2.h
+    #test_parallel_utils2.h
     test_simulations_omp.h
     test_model_view_omp.h
     # entry
@@ -21,6 +21,7 @@ add_executable(
     test_t2d_me_mt_cap_compression.cpp
     test_t2d_me_mt_strip_footing_smaller.cpp
     test_t2d_me_mt_strip_footing.cpp
+    test_t3d_me_mt_1d_compression.cpp
     )
 
 target_include_directories(

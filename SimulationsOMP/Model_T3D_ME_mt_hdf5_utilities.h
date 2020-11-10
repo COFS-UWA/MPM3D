@@ -17,124 +17,187 @@ struct ParticleData
 	double m, density, vol;
 	double vx, vy, vz;
 	double s11, s22, s33, s12, s23, s31;
+	double e11, e22, e33, e12, e23, e31;
+	double ee11, ee22, ee33, ee12, ee23, ee31;
+	double pe11, pe22, pe33, pe12, pe23, pe31;
 	size_t mat_id; // material model id
 
 	void from_pcl(
 		Model_T3D_ME_mt& md,
-		size_t pcl_offset,
-		size_t pcl_sorted_var_id
+		size_t sorted_var_id,
+		size_t pcl_offset
 		)
 	{
-		Model_T3D_ME_mt::PclSortedVarArray& psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id];
-		id = psva.pcl_index[pcl_offset];
-		Model_T3D_ME_mt::PclPos& pcl_pos = md.pcl_pos[id];
-		Model_T3D_ME_mt::PclDisp& pcl_disp = psva.pcl_disp[pcl_offset];
-		x = pcl_pos.x + pcl_disp.ux;
-		y = pcl_pos.y + pcl_disp.uy;
-		z = pcl_pos.z + pcl_disp.uz;
-		Model_T3D_ME_mt::PclBodyForce& pcl_bf = md.pcl_bf[id];
-		bfx = pcl_bf.bfx;
-		bfy = pcl_bf.bfy;
-		bfz = pcl_bf.bfz;
-		Model_T3D_ME_mt::PclTraction& pcl_t = md.pcl_t[id];
-		tx = pcl_t.tx;
-		ty = pcl_t.ty;
-		tz = pcl_t.tz;
+		typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+		SortedPclVarArrays& spva = md.sorted_pcl_var_arrays[sorted_var_id];
+		id = spva.pcl_index[pcl_offset];
+		Model_T3D_ME_mt::Position &p_p = md.pcl_pos[id];
+		Model_T3D_ME_mt::Displacement &p_d = spva.pcl_disp[pcl_offset];
+		x = p_p.x + p_d.ux;
+		y = p_p.y + p_d.uy;
+		z = p_p.z + p_d.uz;
+		Model_T3D_ME_mt::BodyForce &p_bf = md.pcl_bf[id];
+		bfx = p_bf.bfx;
+		bfy = p_bf.bfy;
+		bfz = p_bf.bfz;
+		Model_T3D_ME_mt::Traction& p_t = md.pcl_t[id];
+		tx = p_t.tx;
+		ty = p_t.ty;
+		tz = p_t.tz;
 		m = md.pcl_m[id];
-		density = psva.pcl_density[pcl_offset];
+		density = spva.pcl_density[pcl_offset];
 		vol = m / density;
-		Model_T3D_ME_mt::PclV& pcl_v = psva.pcl_v[pcl_offset];
-		vx = pcl_v.vx;
-		vy = pcl_v.vy;
-		vz = pcl_v.vz;
-		Model_T3D_ME_mt::PclStress& pcl_stress = psva.pcl_stress[pcl_offset];
-		s11 = pcl_stress.s11;
-		s22 = pcl_stress.s22;
-		s33 = pcl_stress.s33;
-		s12 = pcl_stress.s12;
-		s23 = pcl_stress.s23;
-		s31 = pcl_stress.s31;
+		Model_T3D_ME_mt::Velocity &p_v = spva.pcl_v[pcl_offset];
+		vx = p_v.vx;
+		vy = p_v.vy;
+		vz = p_v.vz;
+		Model_T3D_ME_mt::Stress &p_s = spva.pcl_stress[pcl_offset];
+		s11 = p_s.s11;
+		s22 = p_s.s22;
+		s33 = p_s.s33;
+		s12 = p_s.s12;
+		s23 = p_s.s23;
+		s31 = p_s.s31;
+		Model_T3D_ME_mt::Strain &p_e = spva.pcl_strain[pcl_offset];
+		e11 = p_e.e11;
+		e22 = p_e.e22;
+		e33 = p_e.e33;
+		e12 = p_e.e12;
+		e23 = p_e.e23;
+		e31 = p_e.e31;
+		Model_T3D_ME_mt::Strain& p_ee = spva.pcl_estrain[pcl_offset];
+		ee11 = p_ee.e11;
+		ee22 = p_ee.e22;
+		ee33 = p_ee.e33;
+		ee12 = p_ee.e12;
+		ee23 = p_ee.e23;
+		ee31 = p_ee.e31;
+		Model_T3D_ME_mt::Strain& p_pe = spva.pcl_pstrain[pcl_offset];
+		pe11 = p_pe.e11;
+		pe22 = p_pe.e22;
+		pe33 = p_pe.e33;
+		pe12 = p_pe.e12;
+		pe23 = p_pe.e23;
+		pe31 = p_pe.e31;
 		mat_id = md.pcl_mat_model[id]->get_id();
 	}
 	
 	void from_pcl(
-		Model_T3D_ME_mt &md,
-		size_t pcl_offset,
-		size_t pcl_sorted_var_id,
-		const size_t *new_to_ori_pcl_map
+		Step_T3D_ME_mt &stp,
+		size_t sorted_var_id,
+		size_t pcl_offset
 		)
 	{
-		Model_T3D_ME_mt::PclSortedVarArray &psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id ^ 1];
-		size_t ori_pcl_id = new_to_ori_pcl_map[pcl_offset];
-		id = psva.pcl_index[ori_pcl_id];
-		Model_T3D_ME_mt::PclPos& pcl_pos = md.pcl_pos[id];
-		Model_T3D_ME_mt::PclDisp& pcl_disp = psva.pcl_disp[ori_pcl_id];
-		x = pcl_pos.x + pcl_disp.ux;
-		y = pcl_pos.y + pcl_disp.uy;
-		z = pcl_pos.z + pcl_disp.uz;
-		Model_T3D_ME_mt::PclBodyForce& pcl_bf = md.pcl_bf[id];
-		bfx = pcl_bf.bfx;
-		bfy = pcl_bf.bfy;
-		bfz = pcl_bf.bfz;
-		Model_T3D_ME_mt::PclTraction& pcl_t = md.pcl_t[id];
-		tx = pcl_t.tx;
-		ty = pcl_t.ty;
-		tz = pcl_t.tz;
-		m = md.pcl_m[id];
-		density = psva.pcl_density[ori_pcl_id];
+		typedef Step_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+		SortedPclVarArrays &spva = stp.sorted_pcl_var_arrays[sorted_var_id];
+		id = spva.pcl_index[pcl_offset];
+		Step_T3D_ME_mt::Position &p_p = stp.pcl_pos[id];
+		Step_T3D_ME_mt::Displacement& p_d = spva.pcl_disp[pcl_offset];
+		x = p_p.x + p_d.ux;
+		y = p_p.y + p_d.uy;
+		z = p_p.z + p_d.uz;
+		Step_T3D_ME_mt::BodyForce& p_bf = stp.pcl_bf[id];
+		bfx = p_bf.bfx;
+		bfy = p_bf.bfy;
+		bfz = p_bf.bfz;
+		Step_T3D_ME_mt::Traction& p_t = stp.pcl_t[id];
+		tx = p_t.tx;
+		ty = p_t.ty;
+		tz = p_t.tz;
+		m = stp.pcl_m[id];
+		density = spva.pcl_density[pcl_offset];
 		vol = m / density;
-		Model_T3D_ME_mt::PclV& pcl_v = psva.pcl_v[ori_pcl_id];
-		vx = pcl_v.vx;
-		vy = pcl_v.vy;
-		vz = pcl_v.vz;
-		Model_T3D_ME_mt::PclStress& pcl_stress = psva.pcl_stress[ori_pcl_id];
-		s11 = pcl_stress.s11;
-		s22 = pcl_stress.s22;
-		s33 = pcl_stress.s33;
-		s12 = pcl_stress.s12;
-		s23 = pcl_stress.s23;
-		s31 = pcl_stress.s31;
-		mat_id = md.pcl_mat_model[id]->get_id();
+		Step_T3D_ME_mt::Velocity &p_v = spva.pcl_v[pcl_offset];
+		vx = p_v.vx;
+		vy = p_v.vy;
+		vz = p_v.vz;
+		Step_T3D_ME_mt::Stress &p_s = spva.pcl_stress[pcl_offset];
+		s11 = p_s.s11;
+		s22 = p_s.s22;
+		s33 = p_s.s33;
+		s12 = p_s.s12;
+		s23 = p_s.s23;
+		s31 = p_s.s31;
+		Step_T3D_ME_mt::Strain& p_e = spva.pcl_strain[pcl_offset];
+		e11 = p_e.e11;
+		e22 = p_e.e22;
+		e33 = p_e.e33;
+		e12 = p_e.e12;
+		e23 = p_e.e23;
+		e31 = p_e.e31;
+		Step_T3D_ME_mt::Strain& p_ee = spva.pcl_estrain[pcl_offset];
+		ee11 = p_ee.e11;
+		ee22 = p_ee.e22;
+		ee33 = p_ee.e33;
+		ee12 = p_ee.e12;
+		ee23 = p_ee.e23;
+		ee31 = p_ee.e31;
+		Step_T3D_ME_mt::Strain& p_pe = spva.pcl_pstrain[pcl_offset];
+		pe11 = p_pe.e11;
+		pe22 = p_pe.e22;
+		pe33 = p_pe.e33;
+		pe12 = p_pe.e12;
+		pe23 = p_pe.e23;
+		pe31 = p_pe.e31;
+		mat_id = stp.pcl_mat_model[id]->get_id();
 	}
 
 	void to_pcl(
 		Model_T3D_ME_mt &md,
+		size_t sorted_pcl_var_id,
 		size_t pcl_offset,
-		size_t pcl_sorted_var_id,
 		MatModel::MaterialModel &mm
 		)
 	{
-		Model_T3D_ME_mt::PclSortedVarArray& psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id];
-		psva.pcl_index[pcl_offset] = id;
-		Model_T3D_ME_mt::PclPos &pcl_pos = md.pcl_pos[id];
-		pcl_pos.x = x;
-		pcl_pos.y = y;
-		pcl_pos.z = z;
-		Model_T3D_ME_mt::PclBodyForce& pcl_bf = md.pcl_bf[id];
-		pcl_bf.bfx = bfx;
-		pcl_bf.bfy = bfy;
-		pcl_bf.bfz = bfz;
-		Model_T3D_ME_mt::PclTraction& pcl_t = md.pcl_t[id];
-		pcl_t.tx = tx;
-		pcl_t.ty = ty;
-		pcl_t.tz = tz;
+		typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+		SortedPclVarArrays& spva = md.sorted_pcl_var_arrays[sorted_pcl_var_id];
+		spva.pcl_index[pcl_offset] = id;
+		Model_T3D_ME_mt::Position &p_p = md.pcl_pos[id];
+		p_p.x = x;
+		p_p.y = y;
+		p_p.z = z;
+		Model_T3D_ME_mt::BodyForce& p_bf = md.pcl_bf[id];
+		p_bf.bfx = bfx;
+		p_bf.bfy = bfy;
+		p_bf.bfz = bfz;
+		Model_T3D_ME_mt::Traction& p_t = md.pcl_t[id];
+		p_t.tx = tx;
+		p_t.ty = ty;
+		p_t.tz = tz;
 		md.pcl_m[id] = m;
-		psva.pcl_density[pcl_offset] = density;
-		Model_T3D_ME_mt::PclV &pcl_v = psva.pcl_v[pcl_offset];
-		pcl_v.vx = vx;
-		pcl_v.vy = vy;
-		pcl_v.vz = vz;
-		Model_T3D_ME_mt::PclStress& pcl_stress
-			= psva.pcl_stress[pcl_offset];
-		pcl_stress.s11 = s11;
-		pcl_stress.s22 = s22;
-		pcl_stress.s33 = s33;
-		pcl_stress.s12 = s12;
-		pcl_stress.s23 = s23;
-		pcl_stress.s31 = s31;
+		spva.pcl_density[pcl_offset] = density;
+		Model_T3D_ME_mt::Velocity &p_v = spva.pcl_v[pcl_offset];
+		p_v.vx = vx;
+		p_v.vy = vy;
+		p_v.vz = vz;
+		Model_T3D_ME_mt::Stress& p_s = spva.pcl_stress[pcl_offset];
+		p_s.s11 = s11;
+		p_s.s22 = s22;
+		p_s.s33 = s33;
+		p_s.s12 = s12;
+		p_s.s23 = s23;
+		p_s.s31 = s31;
+		Model_T3D_ME_mt::Strain& p_e = spva.pcl_strain[pcl_offset];
+		p_e.e11 = e11;
+		p_e.e22 = e22;
+		p_e.e33 = e33;
+		p_e.e12 = e12;
+		p_e.e23 = e23;
+		p_e.e31 = e31;
+		Model_T3D_ME_mt::Strain& p_ee = spva.pcl_estrain[pcl_offset];
+		p_ee.e11 = ee11;
+		p_ee.e22 = ee22;
+		p_ee.e33 = ee33;
+		p_ee.e12 = ee12;
+		p_ee.e23 = ee23;
+		p_ee.e31 = ee31;
+		Model_T3D_ME_mt::Strain& p_pe = spva.pcl_pstrain[pcl_offset];
+		p_pe.e11 = pe11;
+		p_pe.e22 = pe22;
+		p_pe.e33 = pe33;
+		p_pe.e12 = pe12;
+		p_pe.e23 = pe23;
+		p_pe.e31 = pe31;
 		md.pcl_mat_model[id] = &mm;
 	}
 };
@@ -164,6 +227,24 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "s12", HOFFSET(ParticleData, s12), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "s23", HOFFSET(ParticleData, s23), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "s31", HOFFSET(ParticleData, s31), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e11", HOFFSET(ParticleData, e11), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e22", HOFFSET(ParticleData, e22), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e33", HOFFSET(ParticleData, e33), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e12", HOFFSET(ParticleData, e12), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e23", HOFFSET(ParticleData, e23), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "e31", HOFFSET(ParticleData, e31), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee11", HOFFSET(ParticleData, ee11), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee22", HOFFSET(ParticleData, ee22), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee33", HOFFSET(ParticleData, ee33), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee12", HOFFSET(ParticleData, ee12), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee23", HOFFSET(ParticleData, ee23), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "ee31", HOFFSET(ParticleData, ee31), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe11", HOFFSET(ParticleData, pe11), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe22", HOFFSET(ParticleData, pe22), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe33", HOFFSET(ParticleData, pe33), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe12", HOFFSET(ParticleData, pe12), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe23", HOFFSET(ParticleData, pe23), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "pe31", HOFFSET(ParticleData, pe31), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
 	return res;
 }
@@ -249,10 +330,6 @@ int load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf,
 
 //int output_rigid_circle_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 //int load_rigid_circle_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-
-int output_rigid_rect_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
-int output_rigid_rect_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-int load_rigid_rect_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 // output the whole model to ModelData
 int output_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf);

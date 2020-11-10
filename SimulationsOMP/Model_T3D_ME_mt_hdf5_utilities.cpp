@@ -36,12 +36,12 @@ int output_background_mesh_to_hdf5_file(
 
 	// node coordinates
 	NodeData *nodes_data = new NodeData[node_num];
-	Model_T3D_ME_mt::NodePos *node_pos = md.node_pos;
+	Model_T3D_ME_mt::Position *node_pos = md.node_pos;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
 		NodeData &node_data = nodes_data[n_id];
 		node_data.id = n_id;
-		Model_T3D_ME_mt::NodePos &np = node_pos[n_id];
+		Model_T3D_ME_mt::Position &np = node_pos[n_id];
 		node_data.x = np.x;
 		node_data.y = np.y;
 		node_data.z = np.z;
@@ -61,8 +61,8 @@ int output_background_mesh_to_hdf5_file(
 	ElementData *elems_data = new ElementData[elem_num];
 	Model_T3D_ME_mt::ElemNodeIndex *e_node_index = md.elem_node_id;
 	double* e_vol = md.elem_vol;
-	Model_T3D_ME_mt::ElemShapeFuncABC* e_sf_abc = md.elem_sf_abc;
-	Model_T3D_ME_mt::ElemShapeFuncD* e_sf_d = md.elem_sf_d;
+	Model_T3D_ME_mt::DShapeFuncABC* e_dN_abc = md.elem_dN_abc;
+	Model_T3D_ME_mt::DShapeFuncD* e_dN_d = md.elem_dN_d;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		ElementData &elem_data = elems_data[e_id];
@@ -73,24 +73,24 @@ int output_background_mesh_to_hdf5_file(
 		elem_data.n3 = eni.n3;
 		elem_data.n4 = eni.n4;
 		elem_data.vol = e_vol[e_id];
-		Model_T3D_ME_mt::ElemShapeFuncABC& esfabc = e_sf_abc[e_id];
-		elem_data.a1 = esfabc.a1;
-		elem_data.b1 = esfabc.b1;
-		elem_data.c1 = esfabc.c1;
-		elem_data.a2 = esfabc.a2;
-		elem_data.b2 = esfabc.b2;
-		elem_data.c2 = esfabc.b2;
-		elem_data.a3 = esfabc.a3;
-		elem_data.b3 = esfabc.b3;
-		elem_data.c3 = esfabc.c3;
-		elem_data.a4 = esfabc.a4;
-		elem_data.b4 = esfabc.b4;
-		elem_data.c4 = esfabc.c4;
-		Model_T3D_ME_mt::ElemShapeFuncD& esfd = e_sf_d[e_id];
-		elem_data.d1 = esfd.d1;
-		elem_data.d2 = esfd.d2;
-		elem_data.d3 = esfd.d3;
-		elem_data.d4 = esfd.d4;
+		Model_T3D_ME_mt::DShapeFuncABC& edNabc = e_dN_abc[e_id];
+		elem_data.a1 = edNabc.a1;
+		elem_data.b1 = edNabc.b1;
+		elem_data.c1 = edNabc.c1;
+		elem_data.a2 = edNabc.a2;
+		elem_data.b2 = edNabc.b2;
+		elem_data.c2 = edNabc.b2;
+		elem_data.a3 = edNabc.a3;
+		elem_data.b3 = edNabc.b3;
+		elem_data.c3 = edNabc.c3;
+		elem_data.a4 = edNabc.a4;
+		elem_data.b4 = edNabc.b4;
+		elem_data.c4 = edNabc.c4;
+		Model_T3D_ME_mt::DShapeFuncD &edNd = e_dN_d[e_id];
+		elem_data.d1 = edNd.d1;
+		elem_data.d2 = edNd.d2;
+		elem_data.d3 = edNd.d3;
+		elem_data.d4 = edNd.d4;
 	}
 	hid_t ed_dt_id = get_element_dt_id();
 	rf.write_dataset(
@@ -136,10 +136,10 @@ int load_background_mesh_from_hdf5_file(
 		nd_dt_id
 		);
 	H5Tclose(nd_dt_id);
-	Model_T3D_ME_mt::NodePos *node_pos = md.node_pos;
+	Model_T3D_ME_mt::Position *node_pos = md.node_pos;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
-		Model_T3D_ME_mt::NodePos& np = node_pos[n_id];
+		Model_T3D_ME_mt::Position& np = node_pos[n_id];
 		NodeData &node_data = nodes_data[n_id];
 		np.x = node_data.x;
 		np.y = node_data.y;
@@ -159,8 +159,8 @@ int load_background_mesh_from_hdf5_file(
 		);
 	H5Tclose(ed_dt_id);
 	Model_T3D_ME_mt::ElemNodeIndex* e_node_id = md.elem_node_id;
-	Model_T3D_ME_mt::ElemShapeFuncABC* e_sf_abc = md.elem_sf_abc;
-	Model_T3D_ME_mt::ElemShapeFuncD* e_sf_d = md.elem_sf_d;
+	Model_T3D_ME_mt::DShapeFuncABC* e_dN_abc = md.elem_dN_abc;
+	Model_T3D_ME_mt::DShapeFuncD* e_dN_d = md.elem_dN_d;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		ElementData &elem_data = elems_data[e_id];
@@ -169,24 +169,24 @@ int load_background_mesh_from_hdf5_file(
 		eni.n2 = elem_data.n2;
 		eni.n3 = elem_data.n3;
 		eni.n4 = elem_data.n4;
-		Model_T3D_ME_mt::ElemShapeFuncABC &esfabc = e_sf_abc[e_id];
-		esfabc.a1 = elem_data.a1;
-		esfabc.a2 = elem_data.a2;
-		esfabc.a3 = elem_data.a3;
-		esfabc.a4 = elem_data.a4;
-		esfabc.b1 = elem_data.b1;
-		esfabc.b2 = elem_data.b2;
-		esfabc.b3 = elem_data.b3;
-		esfabc.b4 = elem_data.b4;
-		esfabc.c1 = elem_data.c1;
-		esfabc.c2 = elem_data.c2;
-		esfabc.c3 = elem_data.c3;
-		esfabc.c4 = elem_data.c4;
-		Model_T3D_ME_mt::ElemShapeFuncD& esfd = e_sf_d[e_id];
-		esfd.d1 = elem_data.d1;
-		esfd.d2 = elem_data.d2;
-		esfd.d3 = elem_data.d3;
-		esfd.d4 = elem_data.d4;
+		Model_T3D_ME_mt::DShapeFuncABC &edNabc = e_dN_abc[e_id];
+		edNabc.a1 = elem_data.a1;
+		edNabc.a2 = elem_data.a2;
+		edNabc.a3 = elem_data.a3;
+		edNabc.a4 = elem_data.a4;
+		edNabc.b1 = elem_data.b1;
+		edNabc.b2 = elem_data.b2;
+		edNabc.b3 = elem_data.b3;
+		edNabc.b4 = elem_data.b4;
+		edNabc.c1 = elem_data.c1;
+		edNabc.c2 = elem_data.c2;
+		edNabc.c3 = elem_data.c3;
+		edNabc.c4 = elem_data.c4;
+		Model_T3D_ME_mt::DShapeFuncD& edNd = e_dN_d[e_id];
+		edNd.d1 = elem_data.d1;
+		edNd.d2 = elem_data.d2;
+		edNd.d3 = elem_data.d3;
+		edNd.d4 = elem_data.d4;
 	}
 	delete[] elems_data;
 
@@ -267,8 +267,8 @@ int load_boundary_condition_from_hdf5_file(
 }
 
 int output_ori_pcl_data_to_hdf5_file(
-	Model_T3D_ME_mt& md,
-	ResultFile_hdf5& rf,
+	Model_T3D_ME_mt &md,
+	ResultFile_hdf5 &rf,
 	hid_t grp_id
 	)
 {
@@ -283,8 +283,7 @@ int output_ori_pcl_data_to_hdf5_file(
 	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 
 	ParticleData* pcl_data = new ParticleData[pcl_num];
-	size_t p_id;
-	for (p_id = 0; p_id < pcl_num; ++p_id)
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		ParticleData& pd = pcl_data[p_id];
 		pd.from_pcl(md, p_id, 0);
@@ -296,7 +295,7 @@ int output_ori_pcl_data_to_hdf5_file(
 		pcl_num,
 		pcl_data,
 		pcl_dt_id
-	);
+		);
 	H5Tclose(pcl_dt_id);
 	delete[] pcl_data;
 
@@ -305,9 +304,9 @@ int output_ori_pcl_data_to_hdf5_file(
 }
 
 int output_pcl_data_to_hdf5_file(
-	Model_T3D_ME_mt& md,
-	Step_T3D_ME_mt& stp,
-	ResultFile_hdf5& rf,
+	Model_T3D_ME_mt &md,
+	Step_T3D_ME_mt &stp,
+	ResultFile_hdf5 &rf,
 	hid_t grp_id
 )
 {
@@ -324,14 +323,12 @@ int output_pcl_data_to_hdf5_file(
 	int res = 0;
 	if (pcl_num)
 	{
-		size_t sorted_var_id = stp.get_pcl_sorted_var_id();
-		const size_t* new_to_prev_pcl_map = stp.get_new_to_prev_pcl_map();
+		size_t sorted_pcl_var_id = stp.get_sorted_pcl_var_id();
 		ParticleData* pcl_data = new ParticleData[pcl_num];
-		size_t p_id;
-		for (p_id = 0; p_id < pcl_num; ++p_id)
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 		{
 			ParticleData& pd = pcl_data[p_id];
-			pd.from_pcl(md, p_id, sorted_var_id, new_to_prev_pcl_map);
+			pd.from_pcl(stp, sorted_pcl_var_id, p_id);
 		}
 		hid_t pcl_dt_id = get_pcl_dt_id();
 		res = rf.write_dataset(

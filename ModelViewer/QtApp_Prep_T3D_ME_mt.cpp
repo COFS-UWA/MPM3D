@@ -2,9 +2,9 @@
 
 #include <QDesktopWidget>
 
-#include "QtApp_Prep_T2D_ME_p.h"
+#include "QtApp_Prep_T3D_ME_mt.h"
 
-namespace QtApp_Prep_T2D_ME_p_Internal
+namespace QtApp_Prep_T3D_ME_mt_Internal
 {
 
 MainWindow::MainWindow()
@@ -21,18 +21,17 @@ MainWindow::MainWindow()
 }
 
 MainWindow::~MainWindow() {}
-
 };
 
 
-QtApp_Prep_T2D_ME_p::QtApp_Prep_T2D_ME_p(int &argc, char **argv) :
+QtApp_Prep_T3D_ME_mt::QtApp_Prep_T3D_ME_mt(int &argc, char **argv) :
 	app(argc, argv),
 	scene(window.get_view()),
 	controller(window.get_view(), scene) {}
 
-QtApp_Prep_T2D_ME_p::~QtApp_Prep_T2D_ME_p() {}
+QtApp_Prep_T3D_ME_mt::~QtApp_Prep_T3D_ME_mt() {}
 
-int QtApp_Prep_T2D_ME_p::start()
+int QtApp_Prep_T3D_ME_mt::start()
 {
 	window.show();
 	return app.exec();

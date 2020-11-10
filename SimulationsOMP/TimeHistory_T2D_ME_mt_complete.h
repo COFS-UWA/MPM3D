@@ -1,5 +1,5 @@
-#ifndef __Time_History_T2D_ME_s_complete_h__
-#define __Time_History_T2D_ME_s_complete_h__
+#ifndef __Time_History_T2D_ME_mt_complete_h__
+#define __Time_History_T2D_ME_mt_complete_h__
 
 #include "ResultFile_XML.h"
 #include "ResultFile_hdf5.h"

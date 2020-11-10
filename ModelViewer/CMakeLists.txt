@@ -103,13 +103,6 @@ add_library(
     # post process module
     QtSceneFromHdf5_T2D_ME_mt.h QtSceneFromHdf5_T2D_ME_mt.cpp
     QtApp_Posp_T2D_ME_mt.h QtApp_Posp_T2D_ME_mt.cpp
-    # Model_T2D_ME_p
-    # prep process module
-    #QtSceneFromModel_T2D_ME_p.h QtSceneFromModel_T2D_ME_p.cpp
-    #QtApp_Prep_T2D_ME_p.h QtApp_Prep_T2D_ME_p.cpp
-    # post process module
-    #QtSceneFromHdf5_T2D_ME_p.h QtSceneFromHdf5_T2D_ME_p.cpp
-    #QtApp_Posp_T2D_ME_p.h QtApp_Posp_T2D_ME_p.cpp
     # Model_T2D_CHM_s
     # prep process module
     QtSceneFromModel_T2D_CHM_s.h QtSceneFromModel_T2D_CHM_s.cpp
@@ -137,6 +130,9 @@ add_library(
     # post process module
     QtSceneFromHdf5_T3D_CHM_s.h QtSceneFromHdf5_T3D_CHM_s.cpp
     QtApp_Posp_T3D_CHM_s.h QtApp_Posp_T3D_CHM_s.cpp
+    # Model_T3D_ME_mt
+    QtSceneFromModel_T3D_ME_mt.h QtSceneFromModel_T3D_ME_mt.cpp
+    QtApp_Prep_T3D_ME_mt.h QtApp_Prep_T3D_ME_mt.cpp
     )
 
 set(MODELVIEWER_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

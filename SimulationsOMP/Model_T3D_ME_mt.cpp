@@ -8,7 +8,7 @@
 
 Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	ori_pcl_num(0), pcl_num(0),
-	pcl_mem_raw(nullptr), pcl_mat_model(nullptr),
+	pcl_mem_raw(nullptr),
 	node_num(0), elem_num(0),
 	mesh_mem_raw(nullptr),
 	bfx_num(0), bfxs(nullptr),
@@ -74,68 +74,64 @@ void Model_T3D_ME_mt::alloc_mesh(
 	size_t e_num
 	)
 {
-	node_num = n_num;
 	elem_num = e_num;
+	node_num = n_num;
 
-	size_t mem_len = (sizeof(ElemNodeIndex) + sizeof(double)
+	size_t mem_len = (sizeof(ElemNodeIndex)
+		+ sizeof(size_t) * 8
 		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
-		+ sizeof(double) * 4
-		+ sizeof(StrainInc) + sizeof(Stress)
-		+ sizeof(ElemNodeVM) * 4 + sizeof(ElemNodeForce) * 4
-		+ sizeof(size_t) * 4 + sizeof(size_t) * 4) * e_num
+		+ sizeof(double)
+		+ sizeof(size_t) + sizeof(double) * 4
+		+ sizeof(StrainInc)
+		+ sizeof(ElemNodeVM) * 4
+		+ sizeof(ElemNodeForce) * 4) * e_num
 		+ (sizeof(size_t) + sizeof(Position)
-		+ sizeof(Acceleration) + sizeof(Velocity) + sizeof(NodeHasVBC)
-		+ sizeof(double) * 2) * n_num;
+		+ sizeof(Acceleration) + sizeof(Velocity)
+		+ sizeof(NodeHasVBC) + sizeof(double) * 2) * n_num;
 	mesh_mem_raw = new char[mem_len];
 
 	char* cur_mem = mesh_mem_raw;
-	elem_node_id = (ElemNodeIndex*)cur_mem;
+	elem_node_id = (ElemNodeIndex *)cur_mem; // elem_num
 	cur_mem += sizeof(ElemNodeIndex) * elem_num;
-	elem_vol = (double*)cur_mem;
-	cur_mem += sizeof(double) * elem_num;
-	elem_dN_abc = (DShapeFuncABC*)cur_mem;
-	cur_mem += sizeof(DShapeFuncABC) * elem_num;
-	elem_dN_d = (DShapeFuncD*)cur_mem;
-	cur_mem += sizeof(DShapeFuncD) * elem_num;
-
-	elem_density = (double*)cur_mem;
-	cur_mem += sizeof(double) * elem_num;
-	elem_pcl_m = (double*)cur_mem;
-	cur_mem += sizeof(double) * elem_num;
-	elem_pcl_vol = (double*)cur_mem;
-	cur_mem += sizeof(double) * elem_num;
-	elem_de = (StrainInc *)cur_mem;
-	cur_mem += sizeof(StrainInc) * elem_num;
-	elem_stress = (Stress *)cur_mem;
-	cur_mem += sizeof(Stress) * elem_num;
-	elem_m_de_vol = (double*)cur_mem;
-	cur_mem += sizeof(double) * elem_num;
-
-	size_t elem_num4 = elem_num * 4;
-	elem_node_vm = (ElemNodeVM*)cur_mem;
-	cur_mem += sizeof(ElemNodeVM) * elem_num4;
-	elem_node_force = (ElemNodeForce*)cur_mem;
-	cur_mem += sizeof(ElemNodeForce) * elem_num4;
-
-	elem_id_array = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * elem_num4;
-	node_elem_id_array = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * elem_num4;
-	node_elem_list = (size_t*)cur_mem;
+	elem_id_array = (size_t *)cur_mem; // elem_num * 4
+	cur_mem += sizeof(size_t) * elem_num * 4;
+	node_elem_id_array = (size_t *)cur_mem; // elem_num * 4
+	cur_mem += sizeof(size_t) * elem_num * 4;
+	node_elem_list = (size_t *)cur_mem;  // node_num
 	cur_mem += sizeof(size_t) * node_num;
-
-	node_pos = (Position*)cur_mem;
+	elem_dN_abc = (DShapeFuncABC *)cur_mem; // elem_num
+	cur_mem += sizeof(DShapeFuncABC) * elem_num;
+	elem_dN_d = (DShapeFuncD *)cur_mem; // elem_num
+	cur_mem += sizeof(DShapeFuncD) * elem_num;
+	elem_vol = (double *)cur_mem; // elem_num
+	cur_mem += sizeof(double) * elem_num;
+	node_pos = (Position *)cur_mem; // node_num
 	cur_mem += sizeof(Position) * node_num;
-	node_a = (Acceleration *)cur_mem;
+	elem_substep_id = (size_t *)cur_mem; // elem_num
+	cur_mem += sizeof(size_t) * elem_num;
+	elem_density = (double *)cur_mem; // elem_num
+	cur_mem += sizeof(double) * elem_num;
+	elem_pcl_m = (double *)cur_mem; // elem_num
+	cur_mem += sizeof(double) * elem_num;
+	elem_pcl_vol = (double *)cur_mem; // elem_num
+	cur_mem += sizeof(double) * elem_num;
+	elem_de = (StrainInc *)cur_mem; // elem_num
+	cur_mem += sizeof(StrainInc) * elem_num;
+	elem_m_de_vol = (double *)cur_mem; // elem_num
+	cur_mem += sizeof(double) * elem_num;
+	elem_node_vm = (ElemNodeVM *)cur_mem; // elem_num * 4
+	cur_mem += sizeof(ElemNodeVM) * elem_num * 4;
+	elem_node_force = (ElemNodeForce *)cur_mem; // elem_num * 4
+	cur_mem += sizeof(ElemNodeForce) * elem_num * 4;
+	Acceleration* node_a = (Acceleration *)cur_mem; // node_num
 	cur_mem += sizeof(Acceleration) * node_num;
-	node_v = (Velocity *)cur_mem;
+	Velocity* node_v = (Velocity *)cur_mem; // node_num
 	cur_mem += sizeof(Velocity) * node_num;
-	node_has_vbc = (NodeHasVBC *)cur_mem;
+	node_has_vbc = (NodeHasVBC *)cur_mem; // node_num
 	cur_mem += sizeof(NodeHasVBC) * node_num;
-	node_am = (double*)cur_mem;
+	node_am = (double *)cur_mem; // node_num
 	cur_mem += sizeof(double) * node_num;
-	node_de_vol = (double*)cur_mem;
-	cur_mem += sizeof(double) * node_num;
+	node_de_vol = (double *)cur_mem; // node_num
 }
 
 void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
@@ -331,11 +327,6 @@ void Model_T3D_ME_mt::clear_pcls()
 		delete[] pcl_mem_raw;
 		pcl_mem_raw = nullptr;
 	}
-	if (pcl_mat_model)
-	{
-		delete[] pcl_mat_model;
-		pcl_mat_model = nullptr;
-	}
 	ori_pcl_num = 0;
 	pcl_num = 0;
 }
@@ -344,7 +335,8 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 {
 	clear_pcls();
 
-	if (num == 0) return;
+	if (num == 0)
+		return;
 
 	size_t mem_len;
 	char* cur_mem;
@@ -352,7 +344,9 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	ori_pcl_num = num;
 	pcl_num = ori_pcl_num;
 	mem_len = (sizeof(double) + sizeof(BodyForce)
-			+ sizeof(Traction) + sizeof(Position) + sizeof(double)
+			+ sizeof(Traction) + sizeof(Position)
+			+ sizeof(double) + sizeof(ShapeFunc)
+			+ sizeof(MatModel::MaterialModel*)
 			+ (sizeof(size_t) + sizeof(double)
 			 + sizeof(Displacement) + sizeof(Velocity)
 			 + sizeof(Stress) + sizeof(Strain) * 3) * 2
@@ -370,34 +364,46 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Position) * num;
 	pcl_vol = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
+	pcl_N = (ShapeFunc*)cur_mem;
+	cur_mem += sizeof(ShapeFunc) * num;
+	pcl_mat_model = (MatModel::MaterialModel**)cur_mem;
+	cur_mem += sizeof(MatModel::MaterialModel*) * num;
 
-	SortedPclVarArray &psva0 = pcl_sorted_var_array[0];
-	psva0.pcl_index = (size_t *)cur_mem;
+	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[0];
+	spva0.pcl_index = (size_t *)cur_mem;
 	cur_mem += sizeof(size_t) * num;
-	psva0.pcl_density = (double *)cur_mem;
+	spva0.pcl_density = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
-	psva0.pcl_disp = (PclDisp *)cur_mem;
-	cur_mem += sizeof(PclDisp) * num;
-	psva0.pcl_v = (PclV *)cur_mem;
-	cur_mem += sizeof(PclV) * num;
-	psva0.pcl_stress = (PclStress*)cur_mem;
-	cur_mem += sizeof(PclStress) * num;
+	spva0.pcl_disp = (Displacement *)cur_mem;
+	cur_mem += sizeof(Displacement) * num;
+	spva0.pcl_v = (Velocity *)cur_mem;
+	cur_mem += sizeof(Velocity) * num;
+	spva0.pcl_stress = (Stress*)cur_mem;
+	cur_mem += sizeof(Stress) * num;
+	spva0.pcl_strain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva0.pcl_estrain = (Strain *)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva0.pcl_pstrain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
 
-	PclSortedVarArray& psva1 = pcl_sorted_var_array[1];
-	psva1.pcl_index = (size_t *)cur_mem;
+	SortedPclVarArrays &spva1 = sorted_pcl_var_arrays[1];
+	spva1.pcl_index = (size_t *)cur_mem;
 	cur_mem += sizeof(size_t) * num;
-	psva1.pcl_density = (double *)cur_mem;
+	spva1.pcl_density = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
-	psva1.pcl_disp = (PclDisp*)cur_mem;
-	cur_mem += sizeof(PclDisp) * num;
-	psva1.pcl_v = (PclV*)cur_mem;
-	cur_mem += sizeof(PclV) * num;
-	psva1.pcl_N = (PclShapeFunc*)cur_mem;
-	cur_mem += sizeof(PclShapeFunc) * num;
-	psva1.pcl_stress = (PclStress*)cur_mem;
-	cur_mem += sizeof(PclStress) * num;
-
-	pcl_mat_model = new MatModel::MaterialModel*[num];
+	spva1.pcl_disp = (Displacement*)cur_mem;
+	cur_mem += sizeof(Displacement) * num;
+	spva1.pcl_v = (Velocity*)cur_mem;
+	cur_mem += sizeof(Velocity) * num;
+	spva1.pcl_stress = (Stress*)cur_mem;
+	cur_mem += sizeof(Stress) * num;
+	spva1.pcl_strain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva1.pcl_estrain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva1.pcl_pstrain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
 }
 
 void Model_T3D_ME_mt::alloc_pcls(
@@ -415,87 +421,121 @@ void Model_T3D_ME_mt::alloc_pcls(
 
 	ori_pcl_num = ori_num;
 	pcl_num = num;
-	mem_len = (sizeof(double) + sizeof(PclBodyForce)
-			 + sizeof(PclTraction) + sizeof(PclPos)) * ori_num
-			 + (sizeof(size_t) + sizeof(double)
-			  + sizeof(PclDisp) + sizeof(PclV)
-			  + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2 * num;
+	mem_len = (sizeof(double) + sizeof(BodyForce)
+		+ sizeof(Traction) + sizeof(Position)
+		+ sizeof(double) + sizeof(ShapeFunc)
+		+ sizeof(MatModel::MaterialModel*)
+		+ (sizeof(size_t) + sizeof(double)
+			+ sizeof(Displacement) + sizeof(Velocity)
+			+ sizeof(Stress) + sizeof(Strain) * 3) * 2
+		) * num;
 	pcl_mem_raw = new char[mem_len];
 
 	cur_mem = pcl_mem_raw;
 	pcl_m = (double*)cur_mem;
-	cur_mem += sizeof(double) * ori_num;
-	pcl_bf = (PclBodyForce *)(cur_mem);
-	cur_mem += sizeof(PclBodyForce) * ori_num;
-	pcl_t = (PclTraction *)cur_mem;
-	cur_mem += sizeof(PclTraction) * ori_num;
-	pcl_pos = (PclPos *)cur_mem;
-	cur_mem += sizeof(PclPos) * ori_num;
-
-	PclSortedVarArray& psva0 = pcl_sorted_var_array[0];
-	psva0.pcl_index = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * num;
-	psva0.pcl_density = (double*)cur_mem;
 	cur_mem += sizeof(double) * num;
-	psva0.pcl_disp = (PclDisp*)cur_mem;
-	cur_mem += sizeof(PclDisp) * num;
-	psva0.pcl_v = (PclV*)cur_mem;
-	cur_mem += sizeof(PclV) * num;
-	psva0.pcl_N = (PclShapeFunc*)cur_mem;
-	cur_mem += sizeof(PclShapeFunc) * num;
-	psva0.pcl_stress = (PclStress*)cur_mem;
-	cur_mem += sizeof(PclStress) * num;
-
-	PclSortedVarArray& psva1 = pcl_sorted_var_array[1];
-	psva1.pcl_index = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * num;
-	psva1.pcl_density = (double*)cur_mem;
+	pcl_bf = (BodyForce*)(cur_mem);
+	cur_mem += sizeof(BodyForce) * num;
+	pcl_t = (Traction*)cur_mem;
+	cur_mem += sizeof(Traction) * num;
+	pcl_pos = (Position*)cur_mem;
+	cur_mem += sizeof(Position) * num;
+	pcl_vol = (double*)cur_mem;
 	cur_mem += sizeof(double) * num;
-	psva1.pcl_disp = (PclDisp*)cur_mem;
-	cur_mem += sizeof(PclDisp) * num;
-	psva1.pcl_v = (PclV*)cur_mem;
-	cur_mem += sizeof(PclV) * num;
-	psva1.pcl_N = (PclShapeFunc*)cur_mem;
-	cur_mem += sizeof(PclShapeFunc) * num;
-	psva1.pcl_stress = (PclStress*)cur_mem;
-	cur_mem += sizeof(PclStress) * num;
+	pcl_N = (ShapeFunc*)cur_mem;
+	cur_mem += sizeof(ShapeFunc) * num;
+	pcl_mat_model = (MatModel::MaterialModel**)cur_mem;
+	cur_mem += sizeof(MatModel::MaterialModel*) * num;
 
-	pcl_mat_model = new MatModel::MaterialModel * [ori_num];
+	SortedPclVarArrays& spva0 = sorted_pcl_var_arrays[0];
+	spva0.pcl_index = (size_t*)cur_mem;
+	cur_mem += sizeof(size_t) * num;
+	spva0.pcl_density = (double*)cur_mem;
+	cur_mem += sizeof(double) * num;
+	spva0.pcl_disp = (Displacement*)cur_mem;
+	cur_mem += sizeof(Displacement) * num;
+	spva0.pcl_v = (Velocity*)cur_mem;
+	cur_mem += sizeof(Velocity) * num;
+	spva0.pcl_stress = (Stress*)cur_mem;
+	cur_mem += sizeof(Stress) * num;
+	spva0.pcl_strain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva0.pcl_estrain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva0.pcl_pstrain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
 
-	// contact
+	SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[1];
+	spva1.pcl_index = (size_t*)cur_mem;
+	cur_mem += sizeof(size_t) * num;
+	spva1.pcl_density = (double*)cur_mem;
+	cur_mem += sizeof(double) * num;
+	spva1.pcl_disp = (Displacement*)cur_mem;
+	cur_mem += sizeof(Displacement) * num;
+	spva1.pcl_v = (Velocity*)cur_mem;
+	cur_mem += sizeof(Velocity) * num;
+	spva1.pcl_stress = (Stress*)cur_mem;
+	cur_mem += sizeof(Stress) * num;
+	spva1.pcl_strain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva1.pcl_estrain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
+	spva1.pcl_pstrain = (Strain*)cur_mem;
+	cur_mem += sizeof(Strain) * num;
 }
 
 int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 {
 	alloc_pcls(num);
 
-	PclSortedVarArray& psva0 = pcl_sorted_var_array[0];
+	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[0];
 	size_t p_id;
 	for (p_id = 0; p_id < num; ++p_id)
 	{
 		pcl_m[p_id] = m;
-		PclBodyForce &p_bf = pcl_bf[p_id];
+		BodyForce &p_bf = pcl_bf[p_id];
 		p_bf.bfx = 0.0;
 		p_bf.bfy = 0.0;
 		p_bf.bfz = 0.0;
-		PclTraction& p_t = pcl_t[p_id];
+		Traction& p_t = pcl_t[p_id];
 		p_t.tx = 0.0;
 		p_t.ty = 0.0;
 		p_t.tz = 0.0;
-		psva0.pcl_index[p_id] = p_id;
-		psva0.pcl_density[p_id] = density;
-		PclV& p_v = psva0.pcl_v[p_id];
+		pcl_mat_model[p_id] = nullptr;
+		spva0.pcl_index[p_id] = p_id;
+		spva0.pcl_density[p_id] = density;
+		Velocity &p_v = spva0.pcl_v[p_id];
 		p_v.vx = 0.0;
 		p_v.vy = 0.0;
 		p_v.vz = 0.0;
-		PclStress& p_s = psva0.pcl_stress[p_id];
+		Stress& p_s = spva0.pcl_stress[p_id];
 		p_s.s11 = 0.0;
 		p_s.s22 = 0.0;
 		p_s.s33 = 0.0;
 		p_s.s12 = 0.0;
 		p_s.s23 = 0.0;
 		p_s.s31 = 0.0;
-		pcl_mat_model[p_id] = nullptr;
+		Strain &p_e = spva0.pcl_strain[p_id];
+		p_e.e11 = 0.0;
+		p_e.e22 = 0.0;
+		p_e.e33 = 0.0;
+		p_e.e12 = 0.0;
+		p_e.e23 = 0.0;
+		p_e.e31 = 0.0;
+		Strain& p_ee = spva0.pcl_estrain[p_id];
+		p_ee.e11 = 0.0;
+		p_ee.e22 = 0.0;
+		p_ee.e33 = 0.0;
+		p_ee.e12 = 0.0;
+		p_ee.e23 = 0.0;
+		p_ee.e31 = 0.0;
+		Strain& p_pe = spva0.pcl_pstrain[p_id];
+		p_pe.e11 = 0.0;
+		p_pe.e22 = 0.0;
+		p_pe.e33 = 0.0;
+		p_pe.e12 = 0.0;
+		p_pe.e23 = 0.0;
+		p_pe.e31 = 0.0;
 	}
 	
 	if (bfxs && bfx_num)
@@ -580,7 +620,7 @@ int Model_T3D_ME_mt::init_pcls(
 	PgPcl* pg_pcl = pg.first();
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		PclPos &p_p = pcl_pos[p_id];
+		Position &p_p = pcl_pos[p_id];
 		p_p.x = pg_pcl->x;
 		p_p.y = pg_pcl->y;
 		p_p.z = pg_pcl->z;
@@ -603,7 +643,7 @@ void Model_T3D_ME_mt::init_bfxs(
 		for (size_t bf_id = 0; bf_id < bf_num; ++bf_id)
 		{
 			p_id = bf_pcls[bf_id];
-			PclBodyForce &bf = pcl_bf[p_id];
+			BodyForce &bf = pcl_bf[p_id];
 			bf.bfx += bfs[p_id] * pcl_m[p_id];
 		}
 	}
@@ -631,7 +671,7 @@ void Model_T3D_ME_mt::init_bfys(
 		for (size_t bf_id = 0; bf_id < bf_num; ++bf_id)
 		{
 			p_id = bf_pcls[bf_id];
-			PclBodyForce& bf = pcl_bf[p_id];
+			BodyForce& bf = pcl_bf[p_id];
 			bf.bfy += bfs[p_id] * pcl_m[p_id];
 		}
 	}
@@ -659,7 +699,7 @@ void Model_T3D_ME_mt::init_bfzs(
 		for (size_t bf_id = 0; bf_id < bf_num; ++bf_id)
 		{
 			p_id = bf_pcls[bf_id];
-			PclBodyForce& bf = pcl_bf[p_id];
+			BodyForce& bf = pcl_bf[p_id];
 			bf.bfz += bfs[p_id] * pcl_m[p_id];
 		}
 	}
@@ -687,7 +727,7 @@ void Model_T3D_ME_mt::init_txs(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			p_id = t_pcls[t_id];
-			PclTraction &t = pcl_t[p_id];
+			Traction &t = pcl_t[p_id];
 			t.tx += ts[t_id];
 		}
 	}
@@ -714,7 +754,7 @@ void Model_T3D_ME_mt::init_tys(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			size_t p_id = t_pcls[t_id];
-			PclTraction &t = pcl_t[p_id];
+			Traction &t = pcl_t[p_id];
 			t.ty += ts[t_id];
 		}
 	}
@@ -741,7 +781,7 @@ void Model_T3D_ME_mt::init_tzs(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			size_t p_id = t_pcls[t_id];
-			PclTraction& t = pcl_t[p_id];
+			Traction& t = pcl_t[p_id];
 			t.tz += ts[t_id];
 		}
 	}

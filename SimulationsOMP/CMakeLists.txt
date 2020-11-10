@@ -22,6 +22,8 @@ add_library(
     Model_T3D_ME_mt.h Model_T3D_ME_mt.cpp
     Model_T3D_ME_mt_hdf5_utilities.h Model_T3D_ME_mt_hdf5_utilities.cpp
     Step_T3D_ME_mt.h Step_T3D_ME_mt.cpp
+    ModelData_T3D_ME_mt.h ModelData_T3D_ME_mt.cpp
+    TimeHistory_T3D_ME_mt_complete.h TimeHistory_T3D_ME_mt_complete.cpp
     # 2D CHM MPM
     Model_T2D_CHM_mt.h Model_T2D_CHM_mt.cpp
     Step_T2D_CHM_mt.h Step_T2D_CHM_mt.cpp
