@@ -1,6 +1,9 @@
 #ifndef __Model_T3D_ME_s_h__
 #define __Model_T3D_ME_s_h__
 
+#include <iomanip>
+#include <fstream>
+
 #include "macro_utils.h"
 #include "BCs.h"
 #include "Model.h"
@@ -120,6 +123,8 @@ class Model_T3D_ME_s : public Model,
 	public Model_T3D_ME_s_Internal::BgMesh,
 	public MatModel::MatModelContainer
 {
+	std::fstream db_file; // debug file
+
 	friend Step_T3D_ME_s;
 	friend int solve_substep_T3D_ME_s(void *_self);
 public:

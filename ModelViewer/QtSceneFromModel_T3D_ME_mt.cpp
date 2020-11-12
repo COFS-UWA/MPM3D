@@ -209,6 +209,8 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
 	pcls_obj.init(
 		model->get_pcl_pos(),
+		model->get_pcl_m(),
+		model->get_pcl_density0(),
 		model->get_pcl_num(),
 		moccasin,
 		0.5f

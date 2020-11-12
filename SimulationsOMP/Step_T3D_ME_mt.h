@@ -1,6 +1,9 @@
 #ifndef __Step_T3D_ME_mt_h__
 #define __Step_T3D_ME_mt_h__
 
+#include <fstream>
+#include <iomanip>
+
 #include "CacheAlignedMem.h"
 #include "Step_OMP.h"
 #include "Model_T3D_ME_mt.h"
@@ -71,7 +74,8 @@ protected:
 	MatModel::MaterialModel** pcl_mat_model;
 
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
-	
+	size_t *pcl_in_elem_tmp;
+
 	size_t elem_num;
 
 	ElemNodeIndex* elem_node_id;
@@ -92,6 +96,7 @@ protected:
 	ElemNodeVM *elem_node_vm;
 	ElemNodeForce *elem_node_force;
 
+	size_t *node_substep_id;
 	Acceleration *node_a;
 	Velocity *node_v;
 	NodeHasVBC* node_has_vbc;
@@ -99,13 +104,6 @@ protected:
 	double *node_de_vol;
 
 	// task division
-	size_t *node_range;
-	size_t *node_elem_range;
-
-	// radix sort
-	size_t* elem_count_bin;
-	size_t* elem_sum_bin;
-	
 	union ThreadData
 	{
 		struct
@@ -115,6 +113,12 @@ protected:
 		char padding[Cache_Alignment];
 	};
 	ThreadData* thread_datas;
+	size_t *node_range;
+	size_t *node_elem_range;
+
+	// radix sort
+	size_t* elem_count_bin;
+	size_t* elem_sum_bin;
 
 	double K_cont;
 

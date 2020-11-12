@@ -140,22 +140,22 @@ public:
 		a1 = ((n4.y - n2.y) * (n3.z - n2.z) - (n3.y - n2.y) * (n4.z - n2.z)) * inv_vol_6;
 		b1 = ((n4.z - n2.z) * (n3.x - n2.x) - (n3.z - n2.z) * (n4.x - n2.x)) * inv_vol_6;
 		c1 = ((n4.x - n2.x) * (n3.y - n2.y) - (n3.x - n2.x) * (n4.y - n2.y)) * inv_vol_6;
-		coef1 = a1 * n2.x + b1 * n2.y + c1 * n2.z;
+		coef1 = -(a1 * n2.x + b1 * n2.y + c1 * n2.z);
 		// N2
 		a2 = ((n4.y - n3.y) * (n1.z - n3.z) - (n1.y - n3.y) * (n4.z - n3.z)) * inv_vol_6;
 		b2 = ((n4.z - n3.z) * (n1.x - n3.x) - (n1.z - n3.z) * (n4.x - n3.x)) * inv_vol_6;
 		c2 = ((n4.x - n3.x) * (n1.y - n3.y) - (n1.x - n3.x) * (n4.y - n3.y)) * inv_vol_6;
-		coef2 = a2 * n3.x + b2 * n3.y + c2 * n3.z;
+		coef2 = -(a2 * n3.x + b2 * n3.y + c2 * n3.z);
 		// N3
 		a3 = ((n2.y - n4.y) * (n1.z - n4.z) - (n1.y - n4.y) * (n2.z - n4.z)) * inv_vol_6;
 		b3 = ((n2.z - n4.z) * (n1.x - n4.x) - (n1.z - n4.z) * (n2.x - n4.x)) * inv_vol_6;
 		c3 = ((n2.x - n4.x) * (n1.y - n4.y) - (n1.x - n4.x) * (n2.y - n4.y)) * inv_vol_6;
-		coef3 = a3 * n4.x + b3 * n4.y + c3 * n4.z;
+		coef3 = -(a3 * n4.x + b3 * n4.y + c3 * n4.z);
 		// N4
 		a4 = ((n2.y - n1.y) * (n3.z - n1.z) - (n3.y - n1.y) * (n2.z - n1.z)) * inv_vol_6;
 		b4 = ((n2.z - n1.z) * (n3.x - n1.x) - (n3.z - n1.z) * (n2.x - n1.x)) * inv_vol_6;
 		c4 = ((n2.x - n1.x) * (n3.y - n1.y) - (n3.x - n1.x) * (n2.y - n1.y)) * inv_vol_6;
-		coef4 = a4 * n1.x + b4 * n1.y + c4 * n1.z;
+		coef4 = -(a4 * n1.x + b4 * n1.y + c4 * n1.z);
 	}
 	template <typename Node3D>
 	inline void init_tetrahedron(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4)
@@ -166,7 +166,7 @@ public:
 		double N1v = N1(x, y, z);
 		double N2v = N2(x, y, z);
 		double N3v = N3(x, y, z);
-		double N4v = 1.0 - N1v - N2v - N3v;
+		double N4v = N4(x, y, z);
 		return !(N1v < 0.0 || N1v > 1.0 || N2v < 0.0 || N2v > 1.0 ||
 				 N3v < 0.0 || N3v > 1.0 || N4v < 0.0 || N4v > 1.0);
 	}
@@ -176,18 +176,18 @@ public:
 
 	// shape functions
 	inline double N1(double x, double y, double z) const noexcept
-	{ return a1 * x + b1 * y + c1 * z - coef1; }
+	{ return a1 * x + b1 * y + c1 * z + coef1; }
 	inline double N2(double x, double y, double z) const noexcept
-	{ return a2 * x + b2 * y + c2 * z - coef2; }
+	{ return a2 * x + b2 * y + c2 * z + coef2; }
 	inline double N3(double x, double y, double z) const noexcept
-	{ return a3 * x + b3 * y + c3 * z - coef3; }
+	{ return a3 * x + b3 * y + c3 * z + coef3; }
 	inline double N4(double x, double y, double z) const noexcept
-	{ return a4 * x + b4 * y + c4 * z - coef4; }
+	{ return a4 * x + b4 * y + c4 * z + coef4; }
 	inline void cal_N(double x, double y, double z,
 		double &N1v, double &N2v, double &N3v, double &N4v) const noexcept
 	{
-		N1v = N1(x, y, z); N2v = N2(x, y, z); N3v = N3(x, y, z);
-		N4v = 1.0 - N1v - N2v - N3v;
+		N1v = N1(x, y, z); N2v = N2(x, y, z);
+		N3v = N3(x, y, z); N4v = N4(x, y, z);
 	}
 
 	// shape function derivatives

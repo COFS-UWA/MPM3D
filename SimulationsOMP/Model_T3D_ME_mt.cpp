@@ -1,7 +1,5 @@
 #include "SimulationsOMP_pcp.h"
 
-#include <iostream>
-
 #include "TetrahedronUtils.h"
 #include "SearchingGrid3D.hpp"
 #include "Model_T3D_ME_mt.h"
@@ -19,7 +17,10 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	tz_num(0), tzs(nullptr),
 	grid_x_num(0), grid_y_num(0), grid_z_num(0),
 	grid_elem_list(nullptr),
-	grid_elem_list_id_array(nullptr) {}
+	grid_elem_list_id_array(nullptr)
+{
+	res_file.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
+}
 
 Model_T3D_ME_mt::~Model_T3D_ME_mt()
 {
@@ -57,6 +58,7 @@ Cube Model_T3D_ME_mt::get_mesh_bbox()
 		if (res.zu < np.z)
 			res.zu = np.z;
 	}
+
 	return res;
 }
 
@@ -67,6 +69,8 @@ void Model_T3D_ME_mt::clear_mesh()
 		delete[] mesh_mem_raw;
 		mesh_mem_raw = nullptr;
 	}
+	elem_num = 0;
+	node_num = 0;
 }
 
 void Model_T3D_ME_mt::alloc_mesh(
@@ -74,6 +78,8 @@ void Model_T3D_ME_mt::alloc_mesh(
 	size_t e_num
 	)
 {
+	clear_mesh();
+
 	elem_num = e_num;
 	node_num = n_num;
 
@@ -85,9 +91,10 @@ void Model_T3D_ME_mt::alloc_mesh(
 		+ sizeof(StrainInc)
 		+ sizeof(ElemNodeVM) * 4
 		+ sizeof(ElemNodeForce) * 4) * e_num
-		+ (sizeof(size_t) + sizeof(Position)
+		+ (sizeof(size_t) * 2 + sizeof(Position)
 		+ sizeof(Acceleration) + sizeof(Velocity)
-		+ sizeof(NodeHasVBC) + sizeof(double) * 2) * n_num;
+		+ sizeof(NodeHasVBC) + sizeof(double) * 2) * n_num
+		+ sizeof(size_t);
 	mesh_mem_raw = new char[mem_len];
 
 	char* cur_mem = mesh_mem_raw;
@@ -97,8 +104,8 @@ void Model_T3D_ME_mt::alloc_mesh(
 	cur_mem += sizeof(size_t) * elem_num * 4;
 	node_elem_id_array = (size_t *)cur_mem; // elem_num * 4
 	cur_mem += sizeof(size_t) * elem_num * 4;
-	node_elem_list = (size_t *)cur_mem;  // node_num
-	cur_mem += sizeof(size_t) * node_num;
+	node_elem_list = ((size_t *)cur_mem) + 1; // node_num + 1
+	cur_mem += sizeof(size_t) * (node_num + 1);
 	elem_dN_abc = (DShapeFuncABC *)cur_mem; // elem_num
 	cur_mem += sizeof(DShapeFuncABC) * elem_num;
 	elem_dN_d = (DShapeFuncD *)cur_mem; // elem_num
@@ -123,9 +130,11 @@ void Model_T3D_ME_mt::alloc_mesh(
 	cur_mem += sizeof(ElemNodeVM) * elem_num * 4;
 	elem_node_force = (ElemNodeForce *)cur_mem; // elem_num * 4
 	cur_mem += sizeof(ElemNodeForce) * elem_num * 4;
-	Acceleration* node_a = (Acceleration *)cur_mem; // node_num
+	node_substep_id = (size_t *)cur_mem; // node_num
+	cur_mem += sizeof(size_t) * node_num;
+	node_a = (Acceleration *)cur_mem; // node_num
 	cur_mem += sizeof(Acceleration) * node_num;
-	Velocity* node_v = (Velocity *)cur_mem; // node_num
+	node_v = (Velocity *)cur_mem; // node_num
 	cur_mem += sizeof(Velocity) * node_num;
 	node_has_vbc = (NodeHasVBC *)cur_mem; // node_num
 	cur_mem += sizeof(NodeHasVBC) * node_num;
@@ -136,8 +145,6 @@ void Model_T3D_ME_mt::alloc_mesh(
 
 void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 {
-	clear_mesh();
-
 	if (mesh.get_elem_num() == 0 ||
 		mesh.get_node_num() == 0)
 		return;
@@ -148,7 +155,7 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 	const TetrahedronMesh::Node* nodes = mesh.get_nodes();
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
-		const TetrahedronMesh::Node& n = nodes[n_id];
+		const TetrahedronMesh::Node &n = nodes[n_id];
 		Position& np = node_pos[n_id];
 		np.x = n.x;
 		np.y = n.y;
@@ -169,12 +176,11 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 	// init elem connectivity, area and shape functions
 	PointInTetrahedron pit;
 	const TetrahedronMesh::Element *elems = mesh.get_elems();
-	size_t e_id4 = 0;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		const TetrahedronMesh::Element &e = elems[e_id];
-		ElemNodeIndex& eni = elem_node_id[e_id];
 		// geometry
+		ElemNodeIndex& eni = elem_node_id[e_id];
 		eni.n1 = e.n1;
 		eni.n2 = e.n2;
 		eni.n3 = e.n3;
@@ -205,21 +211,21 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 		edNd.d3 = pit.get_coef3();
 		edNd.d4 = pit.get_coef4();
 		// node-element relation
-		elem_id_array_tmp[e_id4] = e_id;
-		elem_id_array_tmp[e_id4 + 1] = e_id;
-		elem_id_array_tmp[e_id4 + 2] = e_id;
-		elem_id_array_tmp[e_id4 + 3] = e_id;
-		node_elem_id_array_tmp[e_id4] = e_id4;
-		node_elem_id_array_tmp[e_id4 + 1] = e_id4 + 1;
-		node_elem_id_array_tmp[e_id4 + 2] = e_id4 + 2;
-		node_elem_id_array_tmp[e_id4 + 3] = e_id4 + 3;
-		e_id4 += 4;
+		elem_id_array_tmp[e_id * 4] = e_id;
+		elem_id_array_tmp[e_id * 4 + 1] = e_id;
+		elem_id_array_tmp[e_id * 4 + 2] = e_id;
+		elem_id_array_tmp[e_id * 4 + 3] = e_id;
+		node_elem_id_array_tmp[e_id * 4] = e_id * 4;
+		node_elem_id_array_tmp[e_id * 4 + 1] = e_id * 4 + 1;
+		node_elem_id_array_tmp[e_id * 4 + 2] = e_id * 4 + 2;
+		node_elem_id_array_tmp[e_id * 4 + 3] = e_id * 4 + 3;
 		++node_bin_tmp[e.n1];
 		++node_bin_tmp[e.n2];
 		++node_bin_tmp[e.n3];
 		++node_bin_tmp[e.n4];
 	}
 
+	node_elem_list[-1] = 0;
 	node_elem_list[0] = node_bin_tmp[0];
 	for (size_t n_id = 1; n_id < node_num; ++n_id)
 	{
@@ -227,24 +233,65 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 		node_elem_list[n_id] = node_bin_tmp[n_id];
 	}
 	
+	size_t pos_id;
 	for (size_t e_id = elem_num, e_id4 = elem_num4 - 1; e_id--; e_id4 -= 4)
 	{
-		const TetrahedronMesh::Element& e = elems[e_id];
-		--node_bin_tmp[e.n4];
-		elem_id_array[node_bin_tmp[e.n4]] = elem_id_array_tmp[e_id4];
-		node_elem_id_array[node_bin_tmp[e.n4]] = node_elem_id_array_tmp[e_id4];
-		--node_bin_tmp[e.n3];
-		elem_id_array[node_bin_tmp[e.n3]] = elem_id_array_tmp[e_id4 - 1];
-		node_elem_id_array[node_bin_tmp[e.n3]] = node_elem_id_array_tmp[e_id4 - 1];
-		--node_bin_tmp[e.n2];
-		elem_id_array[node_bin_tmp[e.n2]] = elem_id_array_tmp[e_id4 - 2];
-		node_elem_id_array[node_bin_tmp[e.n2]] = node_elem_id_array_tmp[e_id4 - 2];
-		--node_bin_tmp[e.n1];
-		elem_id_array[node_bin_tmp[e.n1]] = elem_id_array_tmp[e_id4 - 3];
-		node_elem_id_array[node_bin_tmp[e.n1]] = node_elem_id_array_tmp[e_id4 - 3];
+		const TetrahedronMesh::Element &e = elems[e_id];
+		pos_id = --node_bin_tmp[e.n4];
+		elem_id_array[pos_id] = elem_id_array_tmp[e_id4];
+		node_elem_id_array[pos_id] = node_elem_id_array_tmp[e_id4];
+		pos_id = --node_bin_tmp[e.n3];
+		elem_id_array[pos_id] = elem_id_array_tmp[e_id4 - 1];
+		node_elem_id_array[pos_id] = node_elem_id_array_tmp[e_id4 - 1];
+		pos_id = --node_bin_tmp[e.n2];
+		elem_id_array[pos_id] = elem_id_array_tmp[e_id4 - 2];
+		node_elem_id_array[pos_id] = node_elem_id_array_tmp[e_id4 - 2];
+		pos_id = --node_bin_tmp[e.n1];
+		elem_id_array[pos_id] = elem_id_array_tmp[e_id4 - 3];
+		node_elem_id_array[pos_id] = node_elem_id_array_tmp[e_id4 - 3];
 	}
 
 	delete[] elem_id_array_tmp;
+
+	//res_file << std::fixed << std::setprecision(6) << std::left;
+	//for (size_t n_id = 0; n_id < node_num; ++n_id)
+	//{
+	//	Position& np = node_pos[n_id];
+	//	res_file << n_id << ", " << np.x << ", "
+	//		<< np.y << ", " << np.z << ",\n";
+	//}
+
+	//for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	//{
+	//	ElemNodeIndex& eni = elem_node_id[e_id];
+	//	res_file << e_id << ", " << eni.n1 << ", "
+	//		<< eni.n2 << ", " << eni.n3 << ", " << eni.n4 << ",\n";
+	//}
+
+	//for (size_t n_id = 0; n_id < node_num; ++n_id)
+	//{
+	//	size_t n_id0 = node_elem_list[n_id - 1];
+	//	size_t n_id1 = node_elem_list[n_id];
+	//	res_file << n_id << ", " << n_id0 << ", " << n_id1 << ":\n";
+	//	for (size_t ne_id = n_id0; ne_id < n_id1; ++ne_id)
+	//		res_file << elem_id_array[ne_id] << ", ";
+	//	res_file << "\n";
+	//	for (size_t ne_id = n_id0; ne_id < n_id1; ++ne_id)
+	//		res_file << node_elem_id_array[ne_id] << ", ";
+	//	res_file << "\n";
+	//}
+
+	//res_file << std::fixed << std::left << std::setprecision(8);
+	//for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	//{
+	//	res_file << e_id << ", " << elem_vol[e_id] << ":\n";
+	//	DShapeFuncABC& edNabc = elem_dN_abc[e_id];
+	//	DShapeFuncD& edNd = elem_dN_d[e_id];
+	//	res_file << edNabc.a1 << ", " << edNabc.b1 << ", " << edNabc.c1 << ", " << edNd.d1 << ",\n"
+	//			 << edNabc.a2 << ", " << edNabc.b2 << ", " << edNabc.c2 << ", " << edNd.d2 << ",\n"
+	//			 << edNabc.a3 << ", " << edNabc.b3 << ", " << edNabc.c3 << ", " << edNd.d3 << ",\n"
+	//			 << edNabc.a4 << ", " << edNabc.b4 << ", " << edNabc.c4 << ", " << edNd.d4 << ",\n";
+	//}
 }
 
 void Model_T3D_ME_mt::clear_search_grid()
@@ -315,6 +362,21 @@ int Model_T3D_ME_mt::init_search_grid(
 			++cur_id;
 		}
 	}
+
+	//res_file << grid_xl << ", " << grid_xu << ", "
+	//	<< grid_yl << ", " << grid_yu << ", "
+	//	<< grid_zl << ", " << grid_zu << ", "
+	//	<< grid_x_num << ", " << grid_y_num << ", "
+	//	<< grid_z_num << ",\n";
+	
+	//cur_id = 0;
+	//for (size_t g_id = 0; g_id < num; ++g_id)
+	//{
+	//	res_file << g_id << ": ";
+	//	for (;cur_id < grid_elem_list[g_id+1]; ++cur_id)
+	//		res_file << grid_elem_list_id_array[cur_id] << ", ";
+	//	res_file << "\n";
+	//}
 
 	return 0;
 }
@@ -508,6 +570,10 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 		p_v.vx = 0.0;
 		p_v.vy = 0.0;
 		p_v.vz = 0.0;
+		Displacement& p_d = spva0.pcl_disp[p_id];
+		p_d.ux = 0.0;
+		p_d.uy = 0.0;
+		p_d.uz = 0.0;
 		Stress& p_s = spva0.pcl_stress[p_id];
 		p_s.s11 = 0.0;
 		p_s.s22 = 0.0;

@@ -1,4 +1,4 @@
-#include "Tests_pcp.h"
+#include "TestsParallel_pcp.h"
 
 #include "ItemArray.hpp"
 #include "ParticleGenerator3D.hpp"
@@ -9,9 +9,8 @@
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "TimeHistory_T3D_ME_s_complete.h"
 #include "QtApp_Prep_T3D_ME_s.h"
-
-#include "utils.h"
-#include "test_simulations.h"
+#include "test_parallel_utils2.h"
+#include "test_simulations_omp.h"
 
 void test_t3d_me_s_1d_compression(int argc, char **argv)
 {
@@ -23,9 +22,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	model.init_search_grid(0.05, 0.05, 0.05);
 
 	ParticleGenerator3D<Model_T3D_ME_s> pg;
-	//Cube bar_box = { 0.0, 0.1, 0.0, 0.1, 0.0, 0.5 };
-	//pg.generate_pcls_grid(bar_box, 0.02, 0.02, 0.02);
-	pg.generate_pcls_second_order_gauss(model);
+	pg.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
 	model.init_pcls(pg, 10.0);
 	std::cout << "pcl num: " << model.get_pcl_num() << "\n";
 
@@ -36,19 +33,19 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 	{
 		Model_T3D_ME_s::Particle &pcl = pcls[pcl_id];
 		MatModel::LinearElasticity &mm = mms[pcl_id];
-		mm.set_param(100.0, 0.0);
+		mm.set_param(1000.0, 0.0);
 		pcl.set_mat_model(mm);
 	}
 
 	IndexArray tbc_pcl_array(100);
-	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.02, 1.0));
+	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
 	size_t* tbc_pcl_id = tbc_pcl_array.get_mem();
 	model.init_tzs(tbc_pcl_array.get_num());
 	for (size_t t_id = 0; t_id < model.tz_num; ++t_id)
 	{
 		TractionBCAtPcl& tbc = model.tzs[t_id];
 		tbc.pcl_id = tbc_pcl_id[t_id];
-		tbc.t = 1.666667e-3 * -0.01;
+		tbc.t = 0.025 * 0.025 * -10.0;
 	}
 
 	IndexArray vx_bc_pt_array(100);
@@ -86,17 +83,17 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 		vbc.v = 0.0;
 	}
 
-	QtApp_Prep_T3D_ME_s md_disp(argc, argv);
-	md_disp.set_win_size(900, 900);
-	md_disp.set_view_dir(30.0, 30.0);
-	md_disp.set_light_dir(90.0, 30.0);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_ME_s md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_view_dir(30.0, 30.0);
+	//md_disp.set_light_dir(90.0, 30.0);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_s_1d_compression.h5");
@@ -112,7 +109,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 
 	Step_T3D_ME_s step("step1");
 	step.set_model(model);
-	step.set_step_time(10.0);
+	step.set_step_time(2.0);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -120,7 +117,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 }
 
 #include "QtApp_Posp_T3D_ME_s.h"
-#include "test_model_view.h"
+#include "test_model_view_omp.h"
 
 void test_t3d_me_s_1d_compression_result(int argc, char **argv)
 {
@@ -135,7 +132,7 @@ void test_t3d_me_s_1d_compression_result(int argc, char **argv)
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(90.0f, 30.0f);
-	app.set_color_map_fld_range(-0.01, 0.0);
+	app.set_color_map_fld_range(-10.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_me_s_1d_compression");
 	//app.set_gif_name("t3d_me_s_1d_compression");

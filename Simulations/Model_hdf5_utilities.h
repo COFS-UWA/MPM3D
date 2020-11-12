@@ -1,5 +1,5 @@
-#ifndef __Model_hdf5_utilities_H__
-#define __Model_hdf5_utilities_H__
+#ifndef __Model_hdf5_utilities_h__
+#define __Model_hdf5_utilities_h__
 
 #include "hdf5.h"
 #include "BCs.h"
@@ -15,8 +15,7 @@ namespace Model_hdf5_utilities
 	struct Node2DData
 	{
 		unsigned long long id;
-		double x;
-		double y;
+		double x, y;
 	};
 
 	inline hid_t get_nd_2d_dt_id()
@@ -31,9 +30,7 @@ namespace Model_hdf5_utilities
 	struct Elem2DData
 	{
 		unsigned long long id;
-		unsigned long long n1;
-		unsigned long long n2;
-		unsigned long long n3;
+		unsigned long long n1, n2, n3;
 	};
 
 	inline hid_t get_ed_2d_dt_id()
@@ -50,9 +47,7 @@ namespace Model_hdf5_utilities
 	struct Node3DData
 	{
 		unsigned long long id;
-		double x;
-		double y;
-		double z;
+		double x, y, z;
 	};
 
 	inline hid_t get_nd_3d_dt_id()
@@ -68,10 +63,7 @@ namespace Model_hdf5_utilities
 	struct Elem3DData
 	{
 		unsigned long long id;
-		unsigned long long n1;
-		unsigned long long n2;
-		unsigned long long n3;
-		unsigned long long n4;
+		unsigned long long n1, n2, n3, n4;
 	};
 
 	inline hid_t get_ed_3d_dt_id()
@@ -219,16 +211,26 @@ namespace Model_hdf5_utilities
 		unsigned long long id;
 		double E; // Young's modulus
 		double niu; // possion ratio
+		double s11, s22, s33, s12, s23, s31;
 		inline void from_mm(MatModel::LinearElasticity &mm)
 		{
 			id = mm.get_id();
 			E = mm.E;
 			niu = mm.niu;
+			const double* stress = mm.get_stress();
+			s11 = stress[0];
+			s22 = stress[1];
+			s33 = stress[2];
+			s12 = stress[3];
+			s23 = stress[4];
+			s31 = stress[5];
 		}
 		inline void to_mm(MatModel::LinearElasticity &mm)
 		{
 			mm.set_id(id);
 			mm.set_param(E, niu);
+			double stress[6] = { s11, s22, s33, s12, s23, s31 };
+			mm.set_stress(stress);
 		}
 	};
 
@@ -238,6 +240,12 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "id", HOFFSET(LinearElasticityStateData, id), H5T_NATIVE_ULLONG);
 		H5Tinsert(res, "E", HOFFSET(LinearElasticityStateData, E), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "niu", HOFFSET(LinearElasticityStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(LinearElasticityStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(LinearElasticityStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(LinearElasticityStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(LinearElasticityStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(LinearElasticityStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(LinearElasticityStateData, s31), H5T_NATIVE_DOUBLE);
 		return res;
 	}
 
@@ -508,9 +516,7 @@ namespace Model_hdf5_utilities
 	struct RigidTehMeshNodeData
 	{
 		unsigned long long id;
-		double x;
-		double y;
-		double z;
+		double x, y, z;
 		inline void from_node(const RigidTetrahedronMesh::Node& n)
 		{ id = n.id; x = n.x; y = n.y; z = n.z;	}
 		inline void to_node(RigidTetrahedronMesh::Node& n)
@@ -530,10 +536,7 @@ namespace Model_hdf5_utilities
 	struct RigidTehMeshElemData
 	{
 		unsigned long long id;
-		unsigned long long n1;
-		unsigned long long n2;
-		unsigned long long n3;
-		unsigned long long n4;
+		unsigned long long n1, n2, n3, n4;
 		inline void from_elem(const RigidTetrahedronMesh::Element& e)
 		{ id = e.id; n1 = e.n1; n2 = e.n2; n3 = e.n3; n4 = e.n4; }
 		inline void to_elem(RigidTetrahedronMesh::Element& e)
@@ -554,9 +557,7 @@ namespace Model_hdf5_utilities
 	struct RigidTehMeshFaceData
 	{
 		unsigned long long id;
-		unsigned long long n1;
-		unsigned long long n2;
-		unsigned long long n3;
+		unsigned long long n1, n2, n3;
 		inline void from_face(const RigidTetrahedronMesh::Face& f)
 		{ id = f.id; n1 = f.n1; n2 = f.n2; n3 = f.n3; }
 		inline void to_face(RigidTetrahedronMesh::Face& f)

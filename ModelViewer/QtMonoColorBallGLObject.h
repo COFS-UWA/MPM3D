@@ -30,9 +30,13 @@ public:
 	QtMonoColorBallGLObject(QOpenGLFunctions_3_3_Core& _gl);
 	~QtMonoColorBallGLObject();
 
-	// Particle3D has member x, y, z and area
+	// Particle3D has member x, y, z and vol
 	template <typename Particle3D>
-	int init(Particle3D* pcls, size_t pcl_num, QVector3D& c, float radius_scale = 0.5f);
+	int init(const Particle3D* pcls, size_t pcl_num, QVector3D& c, float radius_scale = 0.5f);
+
+	template <typename Particle3D>
+	int init(const Particle3D* pcls, const double* pcl_m, const double* pcl_density,
+		size_t pcl_num, QVector3D& c, float radius_scale);
 
 	// Point3D has member x, y and z
 	template <typename Point3D>
@@ -43,7 +47,7 @@ public:
 
 template <typename Particle3D>
 int QtMonoColorBallGLObject::init(
-	Particle3D *pcls,
+	const Particle3D *pcls,
 	size_t pcl_num,
 	QVector3D& c,
 	float radius_scale
@@ -54,13 +58,41 @@ int QtMonoColorBallGLObject::init(
 	PointData* pt_data = new PointData[pcl_num];
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		Particle3D &pcl = pcls[p_id];
+		const Particle3D &pcl = pcls[p_id];
 		PointData& pd = pt_data[p_id];
 		pd.type = 0; // mono color
 		pd.x = GLfloat(pcl.x);
 		pd.y = GLfloat(pcl.y);
 		pd.z = GLfloat(pcl.z);
 		pd.radius = GLfloat(pow(3.0 * pcl.get_vol()/ (4.0 * 3.14159265359), 0.3333333))	* radius_scale;
+	}
+	int res = init_gl_buffer(pt_data, pcl_num);
+	delete[] pt_data;
+	return 0;
+}
+
+template <typename Particle3D>
+int QtMonoColorBallGLObject::init(
+	const Particle3D* pcls,
+	const double *pcl_m,
+	const double *pcl_density,
+	size_t pcl_num,
+	QVector3D& c,
+	float radius_scale
+	)
+{
+	clear();
+	color = c;
+	PointData* pt_data = new PointData[pcl_num];
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		const Particle3D& pcl = pcls[p_id];
+		PointData& pd = pt_data[p_id];
+		pd.type = 0; // mono color
+		pd.x = GLfloat(pcl.x);
+		pd.y = GLfloat(pcl.y);
+		pd.z = GLfloat(pcl.z);
+		pd.radius = GLfloat(pow(3.0 * pcl_m[p_id] / pcl_density[p_id] / (4.0 * 3.14159265359), 0.3333333)) * radius_scale;
 	}
 	int res = init_gl_buffer(pt_data, pcl_num);
 	delete[] pt_data;

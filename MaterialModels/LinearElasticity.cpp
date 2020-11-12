@@ -9,10 +9,6 @@ namespace MatModel
 		LinearElasticity &self = static_cast<LinearElasticity &>(*_self);
 
 		double *dstrain_e = self.dstrain_e;
-		double *dstrain_p = self.dstrain_p;
-		double *dstress = self.dstress;
-		double(*De_mat)[6] = self.De_mat;
-
 		dstrain_e[0] = dstrain[0];
 		dstrain_e[1] = dstrain[1];
 		dstrain_e[2] = dstrain[2];
@@ -20,19 +16,22 @@ namespace MatModel
 		dstrain_e[4] = dstrain[4];
 		dstrain_e[5] = dstrain[5];
 
-		dstrain_p[0] = 0.0;
-		dstrain_p[1] = 0.0;
-		dstrain_p[2] = 0.0;
-		dstrain_p[3] = 0.0;
-		dstrain_p[4] = 0.0;
-		dstrain_p[5] = 0.0;
-
+		double* dstress = self.dstress;
+		double(*De_mat)[6] = self.De_mat;
 		dstress[0] = De_mat[0][0] * dstrain[0] + De_mat[0][1] * dstrain[1] + De_mat[0][2] * dstrain[2];
 		dstress[1] = De_mat[1][0] * dstrain[0] + De_mat[1][1] * dstrain[1] + De_mat[1][2] * dstrain[2];
 		dstress[2] = De_mat[2][0] * dstrain[0] + De_mat[2][1] * dstrain[1] + De_mat[2][2] * dstrain[2];
 		dstress[3] = De_mat[3][3] * dstrain[3];
 		dstress[4] = De_mat[4][4] * dstrain[4];
 		dstress[5] = De_mat[5][5] * dstrain[5];
+
+		double* stress = self.stress;
+		stress[0] += dstress[0];
+		stress[1] += dstress[1];
+		stress[2] += dstress[2];
+		stress[3] += dstress[3];
+		stress[4] += dstress[4];
+		stress[5] += dstress[5];
 
 		return 0;
 	}
@@ -89,5 +88,15 @@ namespace MatModel
 		De_mat[5][4] = 0.0;
 
 		memcpy(Dep_mat, De_mat, sizeof(double) * 36);
+	}
+
+	void LinearElasticity::set_stress(double s[6])
+	{
+		stress[0] = s[0];
+		stress[1] = s[1];
+		stress[2] = s[2];
+		stress[3] = s[3];
+		stress[4] = s[4];
+		stress[5] = s[5];
 	}
 };

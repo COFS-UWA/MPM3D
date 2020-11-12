@@ -163,9 +163,7 @@ protected: // helper for load_mesh_from_hdf5()
 	struct NodeData
 	{
 		long long id;
-		double x;
-		double y;
-		double z;
+		double x, y, z;
 	};
 	inline static hid_t get_node_dt_id()
 	{
@@ -180,10 +178,7 @@ protected: // helper for load_mesh_from_hdf5()
 	struct ElemData
 	{
 		long long id;
-		long long n1;
-		long long n2;
-		long long n3;
-		long long n4;
+		long long n1, n2, n3, n4;
 	};
 	inline static hid_t get_elem_dt_id()
 	{

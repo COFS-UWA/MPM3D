@@ -131,8 +131,12 @@ add_library(
     QtSceneFromHdf5_T3D_CHM_s.h QtSceneFromHdf5_T3D_CHM_s.cpp
     QtApp_Posp_T3D_CHM_s.h QtApp_Posp_T3D_CHM_s.cpp
     # Model_T3D_ME_mt
+    # prep process
     QtSceneFromModel_T3D_ME_mt.h QtSceneFromModel_T3D_ME_mt.cpp
     QtApp_Prep_T3D_ME_mt.h QtApp_Prep_T3D_ME_mt.cpp
+    # post process
+    QtSceneFromHdf5_T3D_ME_mt.h QtSceneFromHdf5_T3D_ME_mt.cpp
+    QtApp_Posp_T3D_ME_mt.h QtApp_Posp_T3D_ME_mt.cpp
     )
 
 set(MODELVIEWER_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

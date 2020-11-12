@@ -1,7 +1,9 @@
 import os
 
-file1_name = "node_elem_pairs.txt"
-file2_name = "me_mt_res.txt"
+#file1_name = "t3d_mt_model.txt"
+#file2_name = "t3d_s_model.txt"
+file1_name = "t3d_stp_mt.txt"
+file2_name = "t3d_stp_s.txt"
 
 file1 = open("../Build/TestsParallel/" + file1_name, "r")
 file2 = open("../Build/TestsParallel/" + file2_name, "r")

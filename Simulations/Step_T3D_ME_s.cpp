@@ -8,6 +8,8 @@
 
 #include "Step_T3D_ME_s.h"
 
+static std::fstream res_file_t3d_me_s;
+
 Step_T3D_ME_s::Step_T3D_ME_s(const char *_name) :
 	Step(_name, "Step_T3D_ME_s", &solve_substep_T3D_ME_s),
 	model(nullptr), damping_ratio(0.0) {}
@@ -16,10 +18,12 @@ Step_T3D_ME_s::~Step_T3D_ME_s() {}
 
 int Step_T3D_ME_s::init_calculation()
 {
+	//res_file_t3d_me_s.open("t3d_stp_s.txt", std::ios::binary | std::ios::out);
+
 	Model_T3D_ME_s &md = *model;
 
 	if (is_first_step) {}
-
+	
 	for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
 	{
 		Particle &pcl = md.pcls[pcl_id];
@@ -32,6 +36,12 @@ int Step_T3D_ME_s::init_calculation()
 		pcl.uy = 0.0;
 		pcl.uz = 0.0;
 	}
+
+	//for (size_t pcl_id = 0; pcl_id < md.pcl_num; ++pcl_id)
+	//{
+	//	Model_T3D_ME_s::Element* pe = model->find_in_which_element(model->pcls[pcl_id]);
+	//	res_file_t3d_me_s << pcl_id << ", " << pe->id << ",\n";
+	//}
 
 	if (md.has_rb())
 	{

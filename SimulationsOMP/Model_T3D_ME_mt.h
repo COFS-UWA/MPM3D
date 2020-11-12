@@ -2,6 +2,8 @@
 #define __Model_T3D_ME_mt_h__
 
 #include <stdint.h>
+#include <iomanip>
+#include <fstream>
 
 #include "BCs.h"
 #include "macro_utils.h"
@@ -106,6 +108,8 @@ public:
 	};
 	
 protected:
+	std::fstream res_file;
+
 	// pcl data
 	size_t pcl_num;
 	
@@ -130,7 +134,7 @@ protected:
 	ElemNodeIndex *elem_node_id; // elem_num
 	size_t *elem_id_array; // elem_num * 4 
 	size_t *node_elem_id_array; // elem_num * 4
-	size_t *node_elem_list;  // node_num
+	size_t *node_elem_list;  // node_num + 1
 	
 	// element data
 	DShapeFuncABC* elem_dN_abc; // elem_num
@@ -152,6 +156,7 @@ protected:
 	ElemNodeForce* elem_node_force; // elem_num * 4
 	
 	// node calculation data
+	size_t *node_substep_id; // node_num
 	Acceleration *node_a; // node_num
 	Velocity *node_v; // node_num
 	NodeHasVBC *node_has_vbc; // node_num
@@ -178,6 +183,7 @@ public:
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
 	inline const Position* get_pcl_pos() const noexcept { return pcl_pos; }
 	inline const double *get_pcl_m() const noexcept { return pcl_m; }
+	inline const double* get_pcl_density0() const noexcept { return sorted_pcl_var_arrays[0].pcl_density; }
 	inline size_t get_node_num() const noexcept { return node_num; }
 	inline const Position* get_node_pos() const noexcept { return node_pos; }
 	inline size_t get_elem_num() const noexcept { return elem_num; }
@@ -269,7 +275,6 @@ protected:
 		double N2 = e_dN_abc.a2 * pcl_x + e_dN_abc.b2 * pcl_y + e_dN_abc.c2 * pcl_z + e_dN_d.d2;
 		double N3 = e_dN_abc.a3 * pcl_x + e_dN_abc.b3 * pcl_y + e_dN_abc.c3 * pcl_z + e_dN_d.d3;
 		double N4 = e_dN_abc.a4 * pcl_x + e_dN_abc.b4 * pcl_y + e_dN_abc.c4 * pcl_z + e_dN_d.d4;
-		// for numerical accuracy
 		return N1 >= 0.0 && N1 <= 1.0 && N2 >= 0.0 && N2 <= 1.0
 			&& N3 >= 0.0 && N3 <= 1.0 && N4 >= 0.0 && N4 <= 1.0;
 	}

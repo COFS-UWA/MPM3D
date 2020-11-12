@@ -1,6 +1,6 @@
 #include "SimulationsOMP_pcp.h"
 
-#include <fstream>
+#include <iostream>
 #include <omp.h>
 
 #include "Step_T3D_ME_mt.h"
@@ -11,18 +11,13 @@
 
 static std::fstream res_file_t3d_me_mt;
 
-Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) : 
-	Step_OMP(_name, "Step_T3D_ME_mt", &substep_func_omp_T3D_ME_mt) {}
-
-Step_T3D_ME_mt::~Step_T3D_ME_mt() {}
-
 namespace
 {
 	inline void divide_task_to_thread(
 		size_t thread_num,
 		size_t data_num,
 		size_t data_range[] // len = thread_num+1
-		)
+	)
 	{
 		data_range[0] = 0;
 		data_range[thread_num] = data_num;
@@ -32,26 +27,33 @@ namespace
 
 	size_t find_cloest_num_in_sorted_list(
 		size_t num,
-		size_t *num_list,
+		size_t* num_list,
 		size_t list_len
 		)
 	{
-		size_t lid = 0, uid = list_len;
+		size_t lid = 0;
+		size_t uid = list_len - 1;
+		size_t mid;
 		while ((uid - lid) > 1)
 		{
-			if ((num - num_list[lid]) > (num_list[uid] - num))
-				lid = (lid + uid) / 2;
+			mid = (lid + uid) / 2;
+			if (num > num_list[mid])
+				lid = mid;
 			else
-				uid = (lid + uid) / 2;
+				uid = mid;
 		}
-		return (num - num_list[lid]) < (num_list[uid] - num) ?
-				num_list[lid] : num_list[uid];
+		return (num - num_list[lid]) > (num_list[uid] - num) ? uid : lid;
 	}
 }
 
+Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) : 
+	Step_OMP(_name, "Step_T3D_ME_mt", &substep_func_omp_T3D_ME_mt) {}
+
+Step_T3D_ME_mt::~Step_T3D_ME_mt() {}
+
 int Step_T3D_ME_mt::init_calculation()
 {
-	res_file_t3d_me_mt.open("t3d_me_mt_res.txt", std::ios::out | std::ios::binary);
+	res_file_t3d_me_mt.open("t3d_stp_mt.txt", std::ios::out | std::ios::binary);
 	
 	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt *)model;
 
@@ -65,7 +67,7 @@ int Step_T3D_ME_mt::init_calculation()
 	pcl_N = md.pcl_N;
 	pcl_mat_model = md.pcl_mat_model;
 
-	size_t* radix_mem = (size_t *)radix_sort_var_mem.alloc(sizeof(size_t) * (md.pcl_num + 2) * 2 + Cache_Alignment);
+	size_t* radix_mem = (size_t *)radix_sort_var_mem.alloc(sizeof(size_t) * ((md.pcl_num + 2) * 2 + md.pcl_num) + Cache_Alignment);
 
 	Model_T3D_ME_mt::SortedPclVarArrays &md_spva0 = md.sorted_pcl_var_arrays[0];
 	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[0];
@@ -95,6 +97,8 @@ int Step_T3D_ME_mt::init_calculation()
 	spva1.pcl_in_elem[-1] = md.elem_num;
 	spva1.pcl_in_elem[md.pcl_num] = md.elem_num;
 
+	pcl_in_elem_tmp = spva1.pcl_in_elem + md.pcl_num + 1;
+
 	elem_num = md.elem_num;
 	
 	elem_node_id = md.elem_node_id;
@@ -115,32 +119,61 @@ int Step_T3D_ME_mt::init_calculation()
 	elem_node_vm = md.elem_node_vm;
 	elem_node_force = md.elem_node_force;
 
+	node_substep_id = md.node_substep_id;
 	node_a = md.node_a;
 	node_v = md.node_v;
 	node_has_vbc = md.node_has_vbc;
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 	
-	memset(elem_substep_id, 0xFF, sizeof(size_t) * elem_num);
+	memset(elem_substep_id, 0xFF, sizeof(size_t) * md.elem_num);
+	memset(node_substep_id, 0xFF, sizeof(size_t) * md.node_num);
+	//std::cout << (elem_substep_id[0] == SIZE_MAX) << ", "
+	//	<< (elem_substep_id[1] == SIZE_MAX) << ", "
+	//	<< (elem_substep_id[md.elem_num - 1] == SIZE_MAX) << ",\n"
+	//	<< (node_substep_id[0] == SIZE_MAX) << ", "
+	//	<< (node_substep_id[1] == SIZE_MAX) << ", "
+	//	<< (node_substep_id[md.node_num - 1] == SIZE_MAX) << ",\n";
 
 	size_t th_num_1 = thread_num + 1;
-	char* mem_range = (char*)task_range_mem.alloc(sizeof(size_t) * th_num_1 * 2);
+	char* mem_range = (char*)task_range_mem.alloc((sizeof(ThreadData) + sizeof(size_t) * 2) * th_num_1);
+	thread_datas = (ThreadData *)mem_range;
+	mem_range += sizeof(ThreadData) * th_num_1;
 	node_range = (size_t*)mem_range;
 	mem_range += sizeof(size_t) * th_num_1;
 	node_elem_range = (size_t*)mem_range;
 	divide_task_to_thread(thread_num, md.elem_num * 4, node_elem_range);
+	//for (size_t th_id = 0; th_id < thread_num; ++th_id)
+	//	std::cout << th_id << ":\n"
+	//		<< node_elem_range[th_id] << ", " << node_elem_range[th_id+1] << ",\n";
+
 	node_range[0] = 0;
 	node_range[thread_num] = md.node_num;
+	size_t* node_elem_list_1 = md.node_elem_list - 1;
 	for (size_t th_id = 1; th_id < thread_num; ++th_id)
 	{
 		node_range[th_id] = find_cloest_num_in_sorted_list(
 			node_elem_range[th_id],
-			md.node_elem_list,
-			md.node_num
+			node_elem_list_1,
+			md.node_num + 1
 			);
-		//node_elem_range[th_id] = md.node_elem_list[node_range[th_id + 1] - 1];
-		node_elem_range[th_id] = md.node_elem_list[node_range[th_id]];
+		node_elem_range[th_id] = node_elem_list_1[node_range[th_id]];
 	}
+
+	//std::cout << "\n" << node_elem_list_1[33] << ", "
+	//	<< node_elem_list_1[34] << ", "
+	//	<< node_elem_list_1[35] << ",\n";
+	//std::cout << "\n" << node_elem_list_1[64] << ", "
+	//	<< node_elem_list_1[65] << ", "
+	//	<< node_elem_list_1[66] << ",\n\n";
+	//for (size_t th_id = 0; th_id < thread_num; ++th_id)
+	//{
+	//	std::cout << th_id << ":\n"
+	//		<< node_range[th_id] << ", "
+	//		<< node_range[th_id + 1] << ",\n"
+	//		<< node_elem_range[th_id] << ", "
+	//		<< node_elem_range[th_id + 1] << ",\n";
+	//}
 
 	//if (md.has_rigid_rect())
 	//{
@@ -164,29 +197,37 @@ int Step_T3D_ME_mt::init_calculation()
 	elem_count_bin = (size_t *)elem_bin_mem.alloc(sizeof(size_t) * thread_num * 0x100 * 2);
 	elem_sum_bin = elem_count_bin + thread_num * 0x100;
 
+	//for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+	//{
+	//	Position& p_p = pcl_pos[p_id];
+	//	size_t e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_p.z);
+	//	res_file_t3d_me_mt << p_id << ", " << e_id << ",\n";
+	//}
+
 	pcl_num = 0;
 #pragma omp parallel
 	{
 		size_t my_th_id = size_t(omp_get_thread_num());
-		ThreadData& thd = thread_datas[my_th_id];
+		
+		ThreadData &thd = thread_datas[my_th_id];
 		thd.sorted_pcl_var_id = 0;
 
 		size_t p_id0 = Block_Low(my_th_id, thread_num, md.pcl_num);
 		size_t p_id1 = Block_Low(my_th_id + 1, thread_num, md.pcl_num);
 		size_t pcl_in_mesh_num = 0;
-		size_t p_id, e_id;
+		size_t p_id, ori_p_id, e_id;
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
-			Displacement& p_d0 = spva0.pcl_disp[p_id];
-			p_d0.ux = 0.0;
-			p_d0.uy = 0.0;
-			p_d0.uz = 0.0;
-			Displacement& p_d1 = spva1.pcl_disp[p_id];
-			p_d1.ux = 0.0;
-			p_d1.uy = 0.0;
-			p_d1.uz = 0.0;
+			ori_p_id = spva0.pcl_index[p_id];
+			Position& p_p = pcl_pos[ori_p_id];
+			Displacement& p_d = spva0.pcl_disp[p_id];
+			p_p.x += p_d.ux;
+			p_p.y += p_d.uy;
+			p_p.z += p_d.uz;
+			p_d.ux = 0.0;
+			p_d.uy = 0.0;
+			p_d.uz = 0.0;
 
-			Position &p_p = md.pcl_pos[p_id];
 			e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_p.z);
 			spva0.pcl_in_elem[p_id] = e_id;
 			if (e_id != elem_num)
@@ -199,6 +240,14 @@ int Step_T3D_ME_mt::init_calculation()
 		}
 
 #pragma omp barrier
+
+		//for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+		//{
+		//	Position& p_p = pcl_pos[p_id];
+		//	res_file_t3d_me_mt << spva0.pcl_index[p_id] << ", "
+		//		<< spva0.pcl_in_elem[p_id] << ", "
+		//		<< md.pcl_pos[spva0.pcl_index[p_id]].x << ",\n";
+		//}
 
 		// sort particle variables
 		size_t* pcl_index0 = spva0.pcl_index;
@@ -317,6 +366,16 @@ int Step_T3D_ME_mt::init_calculation()
 #pragma omp barrier
 		}
 	}
+	
+	//ThreadData& thd = thread_datas[0];
+	//SortedPclVarArrays& spva2 = sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
+	//for (size_t p_id = 0; p_id < md.pcl_num; ++p_id)
+	//{
+	//	Position& p_p = pcl_pos[p_id];
+	//	res_file_t3d_me_mt << spva2.pcl_index[p_id] << ", "
+	//		<< spva2.pcl_in_elem[p_id] << ", "
+	//		<< md.pcl_pos[spva2.pcl_index[p_id]].x << ",\n";
+	//}
 
 	return 0;
 }
@@ -357,7 +416,6 @@ int substep_func_omp_T3D_ME_mt(
 
 	Step_T3D_ME_mt& self = *(Step_T3D_ME_mt*)(_self);
 	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt*)(self.model);
-	ThreadData &thd = self.thread_datas[my_th_id];
 	
 	double* pcl_m = self.pcl_m;
 	BodyForce* pcl_bf = self.pcl_bf;
@@ -367,6 +425,7 @@ int substep_func_omp_T3D_ME_mt(
 	ShapeFunc* pcl_N = self.pcl_N;
 	MatModel::MaterialModel** pcl_mat_model = self.pcl_mat_model;
 
+	ThreadData& thd = self.thread_datas[my_th_id];
 	SortedPclVarArrays *sorted_pcl_var_arrays = self.sorted_pcl_var_arrays;
 	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
 	size_t* pcl_index0 = spva0.pcl_index;
@@ -379,6 +438,8 @@ int substep_func_omp_T3D_ME_mt(
 	Strain* pcl_pstrain0 = spva0.pcl_pstrain;
 	size_t* pcl_in_elem0 = spva0.pcl_in_elem;
 	
+	size_t* pcl_in_elem_tmp = self.pcl_in_elem_tmp;
+
 	ElemNodeIndex* elem_node_id = self.elem_node_id;
 	size_t* elem_id_array = self.elem_id_array;
 	size_t* node_elem_id_array = self.node_elem_id_array;
@@ -397,6 +458,7 @@ int substep_func_omp_T3D_ME_mt(
 	ElemNodeVM* elem_node_vm = self.elem_node_vm;
 	ElemNodeForce* elem_node_force = self.elem_node_force;
 	
+	size_t* node_substep_id = self.node_substep_id;
 	Acceleration* node_a = self.node_a;
 	Velocity* node_v = self.node_v;
 	NodeHasVBC* node_has_vbc = self.node_has_vbc;
@@ -459,10 +521,10 @@ int substep_func_omp_T3D_ME_mt(
 	double en4_fx = 0.0;
 	double en4_fy = 0.0;
 	double en4_fz = 0.0;
-	e_id = pcl_in_elem0[p_id0];
 	size_t p_id, ori_p_id;
 	double p_m, p_vol, p_N_m;
 	double one_fourth_bfx, one_fourth_bfy, one_fourth_bfz;
+	e_id = pcl_in_elem0[p_id0];
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		// map pcl mass
@@ -561,7 +623,10 @@ int substep_func_omp_T3D_ME_mt(
 
 			e_s11 /= e_p_vol;
 			e_s22 /= e_p_vol;
+			e_s33 /= e_p_vol;
 			e_s12 /= e_p_vol;
+			e_s23 /= e_p_vol;
+			e_s31 /= e_p_vol;
 			if (e_p_vol > elem_vol[e_id])
 				e_p_vol = elem_vol[e_id];
 			DShapeFuncABC &e_dN = elem_dN_abc[e_id];
@@ -667,6 +732,7 @@ int substep_func_omp_T3D_ME_mt(
 	size_t n_id, ne_id1, n_var_id, bc_mask;
 	double n_am, n_fx, n_fy, n_fz;
 	double n_vm, n_vmx, n_vmy, n_vmz;
+	size_t* pn_substp_id;
 	for (n_id = n_id0; n_id < n_id1; ++n_id)
 	{
 		n_am = 0.0;
@@ -677,37 +743,36 @@ int substep_func_omp_T3D_ME_mt(
 		n_vmx = 0.0;
 		n_vmy = 0.0;
 		n_vmz = 0.0;
+		pn_substp_id = &node_substep_id[n_id];
 		ne_id1 = node_elem_list[n_id];
 		for (; ne_id < ne_id1; ++ne_id)
 		{
 			e_id = elem_id_array[ne_id];
 			if (elem_substep_id[e_id] == substp_id)
 			{
+				*pn_substp_id = substp_id;
 				n_am += elem_pcl_m[e_id];
 				n_var_id = node_elem_id_array[ne_id];
+				ElemNodeForce& nf = elem_node_force[n_var_id];
+				n_fx += nf.fx;
+				n_fy += nf.fy;
+				n_fz += nf.fz;
 				ElemNodeVM &nvm = elem_node_vm[n_var_id];
 				n_vm += nvm.vm;
 				n_vmx += nvm.vmx;
 				n_vmy += nvm.vmy;
 				n_vmz += nvm.vmz;
-				ElemNodeForce& nf = elem_node_force[n_var_id];
-				n_fx += nf.fx;
-				n_fy += nf.fy;
-				n_fz += nf.fz;
 			}
 		}
-		Acceleration &n_a = node_a[n_id];
-		if (n_am != 0.0)
+		if (*pn_substp_id == substp_id)
 		{
+			Acceleration& n_a = node_a[n_id];
 			n_am *= one_fourth;
 			node_am[n_id] = n_am;
 			n_a.ax = n_fx / n_am;
 			n_a.ay = n_fy / n_am;
 			n_a.az = n_fz / n_am;
-		}
-		if (n_vm != 0.0)
-		{
-			Velocity &n_v = node_v[n_id];
+			Velocity& n_v = node_v[n_id];
 			n_v.vx = n_vmx / n_vm + n_a.ax * dt;
 			n_v.vy = n_vmy / n_vm + n_a.ay * dt;
 			n_v.vz = n_vmz / n_vm + n_a.az * dt;
@@ -751,9 +816,9 @@ int substep_func_omp_T3D_ME_mt(
 	size_t pcl_in_mesh_num = 0;
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		if (e_id != pcl_in_elem0[p_id0])
+		if (e_id != pcl_in_elem0[p_id])
 		{
-			e_id = pcl_in_elem0[p_id0];
+			e_id = pcl_in_elem0[p_id];
 
 			ElemNodeIndex& e_n_id = elem_node_id[e_id];
 			pn_a1 = node_a + e_n_id.n1;
@@ -808,7 +873,7 @@ int substep_func_omp_T3D_ME_mt(
 			p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_z);
 		if (p_e_id != elem_num)
 			++pcl_in_mesh_num;
-		pcl_in_elem0[p_id] = p_e_id;
+		pcl_in_elem_tmp[p_id] = p_e_id;
 	}
 
 #pragma omp critical
@@ -822,7 +887,7 @@ int substep_func_omp_T3D_ME_mt(
 	ne_id = node_elem_range[my_th_id];
 	for (n_id = n_id0; n_id < n_id1; ++n_id)
 	{
-		if (node_am[n_id] != 0.0)
+		if (node_substep_id[n_id] == substp_id)
 		{
 			n_am_de_vol = 0.0;
 			ne_id1 = node_elem_list[n_id];
@@ -844,9 +909,9 @@ int substep_func_omp_T3D_ME_mt(
 	e_id = elem_num;
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		if (e_id != pcl_in_elem0[p_id0])
+		if (e_id != pcl_in_elem0[p_id])
 		{
-			e_id = pcl_in_elem0[p_id0];
+			e_id = pcl_in_elem0[p_id];
 
 			ElemNodeIndex &e_n_id = elem_node_id[e_id];
 			e_de_vol = one_fourth *
@@ -887,9 +952,11 @@ int substep_func_omp_T3D_ME_mt(
 			self.exit_calculation();
 	}
 
+	pcl_in_elem0 = pcl_in_elem_tmp;
+	
 	// sort particle variables
-	size_t* pcl_index1;
-	double* pcl_density1;
+	size_t *pcl_index1;
+	double *pcl_density1;
 	Displacement* pcl_disp1;
 	Velocity* pcl_v1;
 	Stress* pcl_stress1;

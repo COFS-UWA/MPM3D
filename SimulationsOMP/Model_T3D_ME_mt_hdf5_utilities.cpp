@@ -286,7 +286,7 @@ int output_ori_pcl_data_to_hdf5_file(
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		ParticleData& pd = pcl_data[p_id];
-		pd.from_pcl(md, p_id, 0);
+		pd.from_pcl(md, 0, p_id);
 	}
 	hid_t pcl_dt_id = get_pcl_dt_id();
 	int res = rf.write_dataset(

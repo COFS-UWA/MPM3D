@@ -19,7 +19,10 @@ Model_T3D_ME_s::Model_T3D_ME_s() :
 	vz_num(0), vzs(nullptr),
 	rb_is_init(false),
 	bg_grid_num(0), bg_grids(nullptr),
-	Kn_cont(0.0), Kt_cont(0.0), miu_cont(0.0) {}
+	Kn_cont(0.0), Kt_cont(0.0), miu_cont(0.0)
+{
+	db_file.open("t3d_s_model.txt", std::ios::binary | std::ios::out);
+}
 
 Model_T3D_ME_s::~Model_T3D_ME_s()
 {
@@ -84,6 +87,17 @@ void Model_T3D_ME_s::init_mesh_shape_funcs()
 		e.dN4_dy = e.b4;
 		e.dN4_dz = e.c4;
 	}
+
+	//db_file << std::fixed << std::left << std::setprecision(8);
+	//for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	//{
+	//	Element& e = elems[e_id];
+	//	db_file << e_id << ", " << e.vol << ":\n"
+	//		<< e.a1 << ", " << e.b1 << ", " << e.c1 << ", " << e.coef1 << ",\n"
+	//		<< e.a2 << ", " << e.b2 << ", " << e.c2 << ", " << e.coef2 << ",\n"
+	//		<< e.a3 << ", " << e.b3 << ", " << e.c3 << ", " << e.coef3 << ",\n"
+	//		<< e.a4 << ", " << e.b4 << ", " << e.c4 << ", " << e.coef4 << ",\n";
+	//}
 }
 
 int Model_T3D_ME_s::init_mesh(
@@ -118,6 +132,26 @@ int Model_T3D_ME_s::init_search_grid(double _hx, double _hy, double _hz)
 	bg_grid_id_box.zu_id = search_bg_grid.get_z_num();
 	bg_grids = search_bg_grid.get_grids();
 	bg_grid_num = search_bg_grid.get_num();
+
+	//db_file << search_bg_grid.get_xl() << ", "
+	//	<< search_bg_grid.get_xu() << ", "
+	//	<< search_bg_grid.get_yl() << ", "
+	//	<< search_bg_grid.get_yu() << ", "
+	//	<< search_bg_grid.get_zl() << ", "
+	//	<< search_bg_grid.get_zu() << ", "
+	//	<< search_bg_grid.get_x_num() << ", "
+	//	<< search_bg_grid.get_y_num() << ", "
+	//	<< search_bg_grid.get_z_num() << ",\n";
+
+	//for (size_t g_id = 0; g_id < bg_grid_num; g_id++)
+	//{
+	//	db_file << g_id << ": ";
+	//	Grid& g = bg_grids[g_id];
+	//	for (auto pe = g.pelems; pe; pe = pe->next)
+	//		db_file << pe->e->id << ", ";
+	//	db_file << "\n";
+	//}
+
 	return res;
 }
 
