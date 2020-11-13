@@ -118,6 +118,7 @@ void test_t2d_me_s_test2(int argc, char **argv)
 	out1.set_interval_num(100);
 	out1.set_res_file(res_file_hdf5);
 	out1.set_output_init_state();
+	out1.set_output_final_state();
 
 	TimeHistory_ConsoleProgressBar out_pb;
 

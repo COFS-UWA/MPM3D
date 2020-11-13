@@ -125,10 +125,14 @@ int Step::output_time_history()
 
 int Step::finalize_time_history()
 {
-	for (TimeHistory *pth = time_history_list.first();
+	for (TimeHistory* pth = time_history_list.first();
 		time_history_list.is_not_end(pth);
-		pth = pth = time_history_list.next(pth))
+		pth = time_history_list.next(pth))
+	{
+		if (pth->need_output_final_state)
+			pth->output();
 		pth->finalize_per_step();
+	}
 	return 0;
 }
 

@@ -82,6 +82,10 @@ int Step_T3D_ME_mt::init_calculation()
 	spva0.pcl_in_elem = radix_mem + 1;
 	spva0.pcl_in_elem[-1] = md.elem_num;
 	spva0.pcl_in_elem[md.pcl_num] = md.elem_num;
+	spva0.contact_substep_id = md_spva0.contact_substep_id;
+	spva0.prev_contact_pos = md_spva0.prev_contact_pos;
+	spva0.prev_contact_force = md_spva0.prev_contact_force;
+	memset(spva0.contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
 
 	Model_T3D_ME_mt::SortedPclVarArrays &md_spva1 = md.sorted_pcl_var_arrays[1];
 	SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[1];
@@ -96,6 +100,9 @@ int Step_T3D_ME_mt::init_calculation()
 	spva1.pcl_in_elem = cache_aligned(radix_mem + md.pcl_num + 2);
 	spva1.pcl_in_elem[-1] = md.elem_num;
 	spva1.pcl_in_elem[md.pcl_num] = md.elem_num;
+	spva1.contact_substep_id = md_spva1.contact_substep_id;
+	spva1.prev_contact_pos = md_spva1.prev_contact_pos;
+	spva1.prev_contact_force = md_spva1.prev_contact_force;
 
 	pcl_in_elem_tmp = spva1.pcl_in_elem + md.pcl_num + 1;
 
@@ -175,24 +182,19 @@ int Step_T3D_ME_mt::init_calculation()
 	//		<< node_elem_range[th_id + 1] << ",\n";
 	//}
 
-	//if (md.has_rigid_rect())
-	//{
-	//	K_cont = md.K_cont;
-	//	RigidRect &rr = md.get_rigid_rect();
-	//	rr_fx_cont = 0.0;
-	//	rr_fy_cont = 0.0;
-	//	rr_fz_cont = 0.0;
-	//	rr_mx_cont = 0.0;
-	//	rr_my_cont = 0.0;
-	//	rr_mz_cont = 0.0;
-	//	rr.reset_f_contact();
-	//}
-	//mem_range = (char*)contact_mem.alloc((sizeof(size_t) + sizeof(ContPos)) * md.pcl_num + Cache_Alignment);
-	//contact_state = (size_t *)mem_range;
-	//mem_range += sizeof(size_t) * md.pcl_num;
-	//contact_pos = (ContPos *)cache_aligned(mem_range);
-	//for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-	//	contact_state[p_id] = SIZE_MAX;
+	if (md.has_rigid_cylinder())
+	{
+		prc = &md.get_rigid_cylinder();
+		prc.reset_f_contact();
+		Kn_cont = md.Kn_cont;
+		Kt_cont = md.Kt_cont;
+		rr_fx_cont = 0.0;
+		rr_fy_cont = 0.0;
+		rr_fz_cont = 0.0;
+		rr_mx_cont = 0.0;
+		rr_my_cont = 0.0;
+		rr_mz_cont = 0.0;
+	}
 	
 	elem_count_bin = (size_t *)elem_bin_mem.alloc(sizeof(size_t) * thread_num * 0x100 * 2);
 	elem_sum_bin = elem_count_bin + thread_num * 0x100;
@@ -259,6 +261,9 @@ int Step_T3D_ME_mt::init_calculation()
 		Strain* pcl_estrain0 = spva0.pcl_estrain;
 		Strain* pcl_pstrain0 = spva0.pcl_pstrain;
 		size_t* pcl_in_elem0 = spva0.pcl_in_elem;
+		size_t* contact_substep_id0 = spva0.contact_substep_id;
+		Position* prev_contact_pos0 = spva0.prev_contact_pos;
+		Force* prev_contact_force0 = spva0.prev_contact_force;
 		size_t* pcl_index1;
 		double* pcl_density1;
 		Displacement* pcl_disp1;
@@ -268,6 +273,9 @@ int Step_T3D_ME_mt::init_calculation()
 		Strain* pcl_estrain1;
 		Strain* pcl_pstrain1;
 		size_t* pcl_in_elem1;
+		size_t* contact_substep_id1;
+		Position* prev_contact_pos1;
+		Force* prev_contact_force1;
 		size_t data_digit, bin_id, th_id, pos_id;
 		size_t* other_cbin;
 		size_t* my_cbin = elem_count_bin + my_th_id * 0x100;
@@ -286,6 +294,9 @@ int Step_T3D_ME_mt::init_calculation()
 			pcl_estrain1 = spva1.pcl_estrain;
 			pcl_pstrain1 = spva1.pcl_pstrain;
 			pcl_in_elem1 = spva1.pcl_in_elem;
+			contact_substep_id1 = spva1.contact_substep_id;
+			prev_contact_pos1 = spva1.prev_contact_pos;
+			prev_contact_force1 = spva1.prev_contact_force;
 			memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 			for (p_id = p_id0; p_id < p_id1; ++p_id)
@@ -321,37 +332,60 @@ int Step_T3D_ME_mt::init_calculation()
 				pos_id = --my_sbin[data_digit];
 				pcl_index1[pos_id] = pcl_index0[p_id];
 				pcl_density1[pos_id] = pcl_density0[p_id];
-				pcl_disp1[pos_id].ux = pcl_disp0[p_id].ux;
-				pcl_disp1[pos_id].uy = pcl_disp0[p_id].uy;
-				pcl_disp1[pos_id].uz = pcl_disp0[p_id].uz;
-				pcl_v1[pos_id].vx = pcl_v0[p_id].vx;
-				pcl_v1[pos_id].vy = pcl_v0[p_id].vy;
-				pcl_v1[pos_id].vz = pcl_v0[p_id].vz;
-				pcl_stress1[pos_id].s11 = pcl_stress0[p_id].s11;
-				pcl_stress1[pos_id].s22 = pcl_stress0[p_id].s22;
-				pcl_stress1[pos_id].s33 = pcl_stress0[p_id].s33;
-				pcl_stress1[pos_id].s12 = pcl_stress0[p_id].s12;
-				pcl_stress1[pos_id].s23 = pcl_stress0[p_id].s23;
-				pcl_stress1[pos_id].s31 = pcl_stress0[p_id].s31;
-				pcl_strain1[pos_id].e11 = pcl_strain0[p_id].e11;
-				pcl_strain1[pos_id].e22 = pcl_strain0[p_id].e22;
-				pcl_strain1[pos_id].e33 = pcl_strain0[p_id].e33;
-				pcl_strain1[pos_id].e12 = pcl_strain0[p_id].e12;
-				pcl_strain1[pos_id].e23 = pcl_strain0[p_id].e23;
-				pcl_strain1[pos_id].e31 = pcl_strain0[p_id].e31;
-				pcl_estrain1[pos_id].e11 = pcl_estrain0[p_id].e11;
-				pcl_estrain1[pos_id].e22 = pcl_estrain0[p_id].e22;
-				pcl_estrain1[pos_id].e33 = pcl_estrain0[p_id].e33;
-				pcl_estrain1[pos_id].e12 = pcl_estrain0[p_id].e12;
-				pcl_estrain1[pos_id].e23 = pcl_estrain0[p_id].e23;
-				pcl_estrain1[pos_id].e31 = pcl_estrain0[p_id].e31;
-				pcl_pstrain1[pos_id].e11 = pcl_pstrain0[p_id].e11;
-				pcl_pstrain1[pos_id].e22 = pcl_pstrain0[p_id].e22;
-				pcl_pstrain1[pos_id].e33 = pcl_pstrain0[p_id].e33;
-				pcl_pstrain1[pos_id].e12 = pcl_pstrain0[p_id].e12;
-				pcl_pstrain1[pos_id].e23 = pcl_pstrain0[p_id].e23;
-				pcl_pstrain1[pos_id].e31 = pcl_pstrain0[p_id].e31;
+				Displacement &p_d1 = pcl_disp1[pos_id];
+				Displacement &p_d0 = pcl_disp0[p_id];
+				p_d1.ux = p_d0.ux;
+				p_d1.uy = p_d0.uy;
+				p_d1.uz = p_d0.uz;
+				Velocity& p_v1 = pcl_v1[pos_id];
+				Velocity& p_v0 = pcl_v0[p_id];
+				p_v1.vx = p_v0.vx;
+				p_v1.vy = p_v0.vy;
+				p_v1.vz = p_v0.vz;
+				Stress& p_s1 = pcl_stress1[pos_id];
+				Stress& p_s0 = pcl_stress0[p_id];
+				p_s1.s11 = p_s0.s11;
+				p_s1.s22 = p_s0.s22;
+				p_s1.s33 = p_s0.s33;
+				p_s1.s12 = p_s0.s12;
+				p_s1.s23 = p_s0.s23;
+				p_s1.s31 = p_s0.s31;
+				Strain& p_e1 = pcl_strain1[pos_id];
+				Strain &p_e0 = pcl_strain0[p_id];
+				p_e1.e11 = p_e0.e11;
+				p_e1.e22 = p_e0.e22;
+				p_e1.e33 = p_e0.e33;
+				p_e1.e12 = p_e0.e12;
+				p_e1.e23 = p_e0.e23;
+				p_e1.e31 = p_e0.e31;
+				Strain& p_ee1 = pcl_estrain1[pos_id];
+				Strain& p_ee0 = pcl_estrain0[p_id];
+				p_ee1.e11 = p_ee0.e11;
+				p_ee1.e22 = p_ee0.e22;
+				p_ee1.e33 = p_ee0.e33;
+				p_ee1.e12 = p_ee0.e12;
+				p_ee1.e23 = p_ee0.e23;
+				p_ee1.e31 = p_ee0.e31;
+				Strain& p_pe1 = pcl_pstrain1[pos_id];
+				Strain& p_pe0 = pcl_pstrain0[p_id];
+				p_pe1.e11 = p_pe0.e11;
+				p_pe1.e22 = p_pe0.e22;
+				p_pe1.e33 = p_pe0.e33;
+				p_pe1.e12 = p_pe0.e12;
+				p_pe1.e23 = p_pe0.e23;
+				p_pe1.e31 = p_pe0.e31;
 				pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
+				contact_substep_id1[pos_id] = contact_substep_id0[p_id];
+				Position &p_cont_pos1 = prev_contact_pos1[pos_id];
+				Position& p_cont_pos0 = prev_contact_pos0[p_id];
+				p_cont_pos1.x = p_cont_pos0.x;
+				p_cont_pos1.y = p_cont_pos0.y;
+				p_cont_pos1.z = p_cont_pos0.z;
+				Force& p_cont_f1 = prev_contact_force1[pos_id];
+				Force& p_cont_f0 = prev_contact_force0[p_id];
+				p_cont_f1.fx = p_cont_f0.fx;
+				p_cont_f1.fy = p_cont_f0.fy;
+				p_cont_f1.fz = p_cont_f0.fz;
 			}
 
 			pcl_index0 = pcl_index1;
@@ -363,6 +397,9 @@ int Step_T3D_ME_mt::init_calculation()
 			pcl_estrain0 = pcl_estrain1;
 			pcl_pstrain0 = pcl_pstrain1;
 			pcl_in_elem0 = pcl_in_elem1;
+			contact_substep_id0 = contact_substep_id1;
+			prev_contact_pos0 = prev_contact_pos1;
+			prev_contact_force0 = prev_contact_force1;
 #pragma omp barrier
 		}
 	}
@@ -395,8 +432,7 @@ int substep_func_omp_T3D_ME_mt(
 	size_t substp_id
 	)
 {
-	typedef Model_T3D_ME_mt::BodyForce BodyForce;
-	typedef Model_T3D_ME_mt::Traction Traction;
+	typedef Model_T3D_ME_mt::Force Force;
 	typedef Model_T3D_ME_mt::Position Position;
 	typedef Model_T3D_ME_mt::Displacement Displacement;
 	typedef Model_T3D_ME_mt::Velocity Velocity;
@@ -418,8 +454,8 @@ int substep_func_omp_T3D_ME_mt(
 	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt*)(self.model);
 	
 	double* pcl_m = self.pcl_m;
-	BodyForce* pcl_bf = self.pcl_bf;
-	Traction* pcl_t = self.pcl_t;
+	Force *pcl_bf = self.pcl_bf;
+	Force *pcl_t = self.pcl_t;
 	Position* pcl_pos = self.pcl_pos;
 	double* pcl_vol = self.pcl_vol;
 	ShapeFunc* pcl_N = self.pcl_N;
@@ -437,7 +473,10 @@ int substep_func_omp_T3D_ME_mt(
 	Strain* pcl_estrain0 = spva0.pcl_estrain;
 	Strain* pcl_pstrain0 = spva0.pcl_pstrain;
 	size_t* pcl_in_elem0 = spva0.pcl_in_elem;
-	
+	size_t *contact_substep_id0 = spva0.contact_substep_id;
+	Position* prev_contact_pos0 = spva0.prev_contact_pos;
+	Force* prev_contact_force0 = spva0.prev_contact_force;
+
 	size_t* pcl_in_elem_tmp = self.pcl_in_elem_tmp;
 
 	ElemNodeIndex* elem_node_id = self.elem_node_id;
@@ -575,23 +614,23 @@ int substep_func_omp_T3D_ME_mt(
 		en4_vmz += p_N_m * p_v.vz;
 
 		// cal external load
-		BodyForce& p_bf = pcl_bf[ori_p_id];
-		one_fourth_bfx = one_fourth * p_bf.bfx;
-		one_fourth_bfy = one_fourth * p_bf.bfy;
-		one_fourth_bfz = one_fourth * p_bf.bfz;
-		Traction& p_t = pcl_t[ori_p_id];
-		en1_fx += one_fourth_bfx + p_N.N1 * p_t.tx;
-		en1_fy += one_fourth_bfy + p_N.N1 * p_t.ty;
-		en1_fz += one_fourth_bfz + p_N.N1 * p_t.tz;
-		en2_fx += one_fourth_bfx + p_N.N2 * p_t.tx;
-		en2_fy += one_fourth_bfy + p_N.N2 * p_t.ty;
-		en2_fz += one_fourth_bfz + p_N.N2 * p_t.tz;
-		en3_fx += one_fourth_bfx + p_N.N3 * p_t.tx;
-		en3_fy += one_fourth_bfy + p_N.N3 * p_t.ty;
-		en3_fz += one_fourth_bfz + p_N.N3 * p_t.tz;
-		en4_fx += one_fourth_bfx + p_N.N4 * p_t.tx;
-		en4_fy += one_fourth_bfy + p_N.N4 * p_t.ty;
-		en4_fz += one_fourth_bfz + p_N.N4 * p_t.tz;
+		Force& p_bf = pcl_bf[ori_p_id];
+		one_fourth_bfx = one_fourth * p_bf.fx;
+		one_fourth_bfy = one_fourth * p_bf.fy;
+		one_fourth_bfz = one_fourth * p_bf.fz;
+		Force& p_t = pcl_t[ori_p_id];
+		en1_fx += one_fourth_bfx + p_N.N1 * p_t.fx;
+		en1_fy += one_fourth_bfy + p_N.N1 * p_t.fy;
+		en1_fz += one_fourth_bfz + p_N.N1 * p_t.fz;
+		en2_fx += one_fourth_bfx + p_N.N2 * p_t.fx;
+		en2_fy += one_fourth_bfy + p_N.N2 * p_t.fy;
+		en2_fz += one_fourth_bfz + p_N.N2 * p_t.fz;
+		en3_fx += one_fourth_bfx + p_N.N3 * p_t.fx;
+		en3_fy += one_fourth_bfy + p_N.N3 * p_t.fy;
+		en3_fz += one_fourth_bfz + p_N.N3 * p_t.fz;
+		en4_fx += one_fourth_bfx + p_N.N4 * p_t.fx;
+		en4_fy += one_fourth_bfy + p_N.N4 * p_t.fy;
+		en4_fz += one_fourth_bfz + p_N.N4 * p_t.fz;
 	
 		if (e_id != pcl_in_elem0[p_id + 1])
 		{
@@ -964,6 +1003,9 @@ int substep_func_omp_T3D_ME_mt(
 	Strain* pcl_estrain1;
 	Strain* pcl_pstrain1;
 	size_t* pcl_in_elem1;
+	size_t* contact_substep_id1;
+	Position* prev_contact_pos1;
+	Force* prev_contact_force1;
 	size_t data_digit, bin_id, th_id, pos_id;
 	size_t *other_cbin;
 	size_t *elem_count_bin = self.elem_count_bin;
@@ -984,6 +1026,9 @@ int substep_func_omp_T3D_ME_mt(
 		pcl_estrain1 = spva1.pcl_estrain;
 		pcl_pstrain1 = spva1.pcl_pstrain;
 		pcl_in_elem1 = spva1.pcl_in_elem;
+		contact_substep_id1 = spva1.contact_substep_id;
+		prev_contact_pos1 = spva1.prev_contact_pos;
+		prev_contact_force1 = spva1.prev_contact_force;
 		memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
@@ -1019,37 +1064,60 @@ int substep_func_omp_T3D_ME_mt(
 			pos_id = --my_sbin[data_digit];
 			pcl_index1[pos_id] = pcl_index0[p_id];
 			pcl_density1[pos_id] = pcl_density0[p_id];
-			pcl_disp1[pos_id].ux = pcl_disp0[p_id].ux;
-			pcl_disp1[pos_id].uy = pcl_disp0[p_id].uy;
-			pcl_disp1[pos_id].uz = pcl_disp0[p_id].uz;
-			pcl_v1[pos_id].vx = pcl_v0[p_id].vx;
-			pcl_v1[pos_id].vy = pcl_v0[p_id].vy;
-			pcl_v1[pos_id].vz = pcl_v0[p_id].vz;
-			pcl_stress1[pos_id].s11 = pcl_stress0[p_id].s11;
-			pcl_stress1[pos_id].s22 = pcl_stress0[p_id].s22;
-			pcl_stress1[pos_id].s33 = pcl_stress0[p_id].s33;
-			pcl_stress1[pos_id].s12 = pcl_stress0[p_id].s12;
-			pcl_stress1[pos_id].s23 = pcl_stress0[p_id].s23;
-			pcl_stress1[pos_id].s31 = pcl_stress0[p_id].s31;
-			pcl_strain1[pos_id].e11 = pcl_strain0[p_id].e11;
-			pcl_strain1[pos_id].e22 = pcl_strain0[p_id].e22;
-			pcl_strain1[pos_id].e33 = pcl_strain0[p_id].e33;
-			pcl_strain1[pos_id].e12 = pcl_strain0[p_id].e12;
-			pcl_strain1[pos_id].e23 = pcl_strain0[p_id].e23;
-			pcl_strain1[pos_id].e31 = pcl_strain0[p_id].e31;
-			pcl_estrain1[pos_id].e11 = pcl_estrain0[p_id].e11;
-			pcl_estrain1[pos_id].e22 = pcl_estrain0[p_id].e22;
-			pcl_estrain1[pos_id].e33 = pcl_estrain0[p_id].e33;
-			pcl_estrain1[pos_id].e12 = pcl_estrain0[p_id].e12;
-			pcl_estrain1[pos_id].e23 = pcl_estrain0[p_id].e23;
-			pcl_estrain1[pos_id].e31 = pcl_estrain0[p_id].e31;
-			pcl_pstrain1[pos_id].e11 = pcl_pstrain0[p_id].e11;
-			pcl_pstrain1[pos_id].e22 = pcl_pstrain0[p_id].e22;
-			pcl_pstrain1[pos_id].e33 = pcl_pstrain0[p_id].e33;
-			pcl_pstrain1[pos_id].e12 = pcl_pstrain0[p_id].e12;
-			pcl_pstrain1[pos_id].e23 = pcl_pstrain0[p_id].e23;
-			pcl_pstrain1[pos_id].e31 = pcl_pstrain0[p_id].e31;
+			Displacement& p_d1 = pcl_disp1[pos_id];
+			Displacement& p_d0 = pcl_disp0[p_id];
+			p_d1.ux = p_d0.ux;
+			p_d1.uy = p_d0.uy;
+			p_d1.uz = p_d0.uz;
+			Velocity& p_v1 = pcl_v1[pos_id];
+			Velocity& p_v0 = pcl_v0[p_id];
+			p_v1.vx = p_v0.vx;
+			p_v1.vy = p_v0.vy;
+			p_v1.vz = p_v0.vz;
+			Stress& p_s1 = pcl_stress1[pos_id];
+			Stress& p_s0 = pcl_stress0[p_id];
+			p_s1.s11 = p_s0.s11;
+			p_s1.s22 = p_s0.s22;
+			p_s1.s33 = p_s0.s33;
+			p_s1.s12 = p_s0.s12;
+			p_s1.s23 = p_s0.s23;
+			p_s1.s31 = p_s0.s31;
+			Strain& p_e1 = pcl_strain1[pos_id];
+			Strain& p_e0 = pcl_strain0[p_id];
+			p_e1.e11 = p_e0.e11;
+			p_e1.e22 = p_e0.e22;
+			p_e1.e33 = p_e0.e33;
+			p_e1.e12 = p_e0.e12;
+			p_e1.e23 = p_e0.e23;
+			p_e1.e31 = p_e0.e31;
+			Strain& p_ee1 = pcl_estrain1[pos_id];
+			Strain& p_ee0 = pcl_estrain0[p_id];
+			p_ee1.e11 = p_ee0.e11;
+			p_ee1.e22 = p_ee0.e22;
+			p_ee1.e33 = p_ee0.e33;
+			p_ee1.e12 = p_ee0.e12;
+			p_ee1.e23 = p_ee0.e23;
+			p_ee1.e31 = p_ee0.e31;
+			Strain& p_pe1 = pcl_pstrain1[pos_id];
+			Strain& p_pe0 = pcl_pstrain0[p_id];
+			p_pe1.e11 = p_pe0.e11;
+			p_pe1.e22 = p_pe0.e22;
+			p_pe1.e33 = p_pe0.e33;
+			p_pe1.e12 = p_pe0.e12;
+			p_pe1.e23 = p_pe0.e23;
+			p_pe1.e31 = p_pe0.e31;
 			pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
+			contact_substep_id1[pos_id] = contact_substep_id0[p_id];
+			Position& p_cont_pos1 = prev_contact_pos1[pos_id];
+			Position& p_cont_pos0 = prev_contact_pos0[p_id];
+			p_cont_pos1.x = p_cont_pos0.x;
+			p_cont_pos1.y = p_cont_pos0.y;
+			p_cont_pos1.z = p_cont_pos0.z;
+			Force& p_cont_f1 = prev_contact_force1[pos_id];
+			Force& p_cont_f0 = prev_contact_force0[p_id];
+			p_cont_f1.fx = p_cont_f0.fx;
+			p_cont_f1.fy = p_cont_f0.fy;
+			p_cont_f1.fz = p_cont_f0.fz;
 		}
 
 		pcl_index0 = pcl_index1;
@@ -1061,63 +1129,79 @@ int substep_func_omp_T3D_ME_mt(
 		pcl_estrain0 = pcl_estrain1;
 		pcl_pstrain0 = pcl_pstrain1;
 		pcl_in_elem0 = pcl_in_elem1;
+		contact_substep_id0 = contact_substep_id1;
+		prev_contact_pos0 = prev_contact_pos1;
+		prev_contact_force0 = prev_contact_force1;
 #pragma omp barrier
 	}
 
 	return 0;
 }
 
-//int Step_T3D_ME_mt::apply_rigid_rect_avg(
-//	size_t my_th_id,
-//	double dt,
-//	size_t *pcl_in_elem_array,
-//	PclSortedVarArray &cur_pscv,
-//	RigidRectForce &rr_force
-//	)
-//{
-//	double p_x, p_y;
-//	double dist, norm_x, norm_y;
-//	double f_cont, fx_cont, fy_cont;
-//	size_t e_id, pcl_ori_id;
-//	size_t p_id0 = pcl_range[my_th_id].id;
-//	size_t p_id1 = pcl_range[my_th_id + 1].id;
-//	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt*)model;
-//	RigidRect& rr = md.get_rigid_rect();
-//	const Point2D &rr_centre = rr.get_centre();
-//	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
-//	{
-//		pcl_ori_id = cur_pscv.pcl_index[p_id];
-//		PclPos& p_p = pcl_pos[pcl_ori_id];
-//		PclDisp& p_d = cur_pscv.pcl_disp[p_id];
-//		p_x = p_p.x + p_d.ux;
-//		p_y = p_p.y + p_d.uy;
-//		if (rr.detect_collision_with_point(
-//			p_x, p_y, pcl_vol[p_id],
-//			dist, norm_x, norm_y))
-//		{
-//			f_cont = K_cont * dist;
-//			fx_cont = f_cont * norm_x;
-//			fy_cont = f_cont * norm_y;
-//			// apply contact force to rigid body
-//			rr_force.add_f_contact(
-//				p_x, p_y,
-//				-fx_cont, -fy_cont,
-//				rr_centre.x, rr_centre.y
-//				);
-//			// apply contact force to mesh
-//			PclShapeFunc &p_N = cur_pscv.pcl_N[p_id];
-//			e_id = pcl_in_elem_array[p_id];
-//			ElemNodeForce& en_f1 = elem_node_force[e_id * 3];
-//			en_f1.fx += p_N.N1 * fx_cont;
-//			en_f1.fy += p_N.N1 * fy_cont;
-//			ElemNodeForce& en_f2 = elem_node_force[e_id * 3 + 1];
-//			en_f2.fx += p_N.N2 * fx_cont;
-//			en_f2.fy += p_N.N2 * fy_cont;
-//			ElemNodeForce& en_f3 = elem_node_force[e_id * 3 + 2];
-//			en_f3.fx += p_N.N3 * fx_cont;
-//			en_f3.fy += p_N.N3 * fy_cont;
-//		}
-//	}
-//
-//	return 0;
-//}
+int Step_T3D_ME_mt::apply_rigid_cylinder(
+	size_t p_id0,
+	size_t p_id1,
+	size_t* pcl_in_elem,
+	SortedPclVarArrays &cur_spva,
+	ContactForce3D& rc_cf
+	)
+{
+	double p_x, p_y, p_z;
+	double dist, norm_x, norm_y, norm_z;
+	double f_cont, fx_cont, fy_cont, fz_cont;
+	double ftx_cont, fty_cont, ftz_cont;
+	size_t e_id, p_ori_id;
+	double rc_cenx, rc_ceny, rc_cenz;
+	prc->get_centre(rc_cenx, rc_ceny, rc_cenz);
+	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+	{
+		p_ori_id = cur_spva.pcl_index[p_id];
+		Position &p_p = pcl_pos[p_ori_id];
+		Displacement &p_d = cur_spva.pcl_disp[p_id];
+		p_x = p_p.x + p_d.ux;
+		p_y = p_p.y + p_d.uy;
+		p_z = p_p.z + p_d.uz;
+		if (prc->detect_collision_with_point(
+			p_x, p_y, p_z, pcl_vol[p_id],
+			dist, norm_x, norm_y, norm_z))
+		{
+			// normal force
+			f_cont = Kn_cont * dist;
+			fx_cont = f_cont * norm_x;
+			fy_cont = f_cont * norm_y;
+			fz_cont = f_cont * norm_z;
+			// tangential force
+			...;
+			fx_cont += ftx_cont;
+			fy_cont += fty_cont;
+			fz_cont += ftz_cont;
+			// apply contact force to rigid body
+			rc_cf.add_force(
+				p_x, p_y, p_z,
+				-fx_cont, -fy_cont, -fz_cont,
+				rc_cenx, rc_ceny, rc_cenz 
+				);
+			// apply contact force to mesh
+			ShapeFunc& p_N = pcl_N[p_id];
+			e_id = pcl_in_elem[p_id];
+			ElemNodeForce& en_f1 = elem_node_force[e_id * 4];
+			en_f1.fx += p_N.N1 * fx_cont;
+			en_f1.fy += p_N.N1 * fy_cont;
+			en_f1.fz += p_N.N1 * fz_cont;
+			ElemNodeForce& en_f2 = elem_node_force[e_id * 4 + 1];
+			en_f2.fx += p_N.N2 * fx_cont;
+			en_f2.fy += p_N.N2 * fy_cont;
+			en_f2.fz += p_N.N2 * fz_cont;
+			ElemNodeForce& en_f3 = elem_node_force[e_id * 4 + 2];
+			en_f3.fx += p_N.N3 * fx_cont;
+			en_f3.fy += p_N.N3 * fy_cont;
+			en_f3.fz += p_N.N3 * fz_cont;
+			ElemNodeForce& en_f4 = elem_node_force[e_id * 4 + 3];
+			en_f4.fx += p_N.N4 * fx_cont;
+			en_f4.fy += p_N.N4 * fy_cont;
+			en_f4.fz += p_N.N4 * fz_cont;
+		}
+	}
+
+	return 0;
+}

@@ -35,8 +35,7 @@ public:
 	typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
 	typedef Model_T3D_ME_mt::DShapeFuncABC DShapeFuncABC;
 	typedef Model_T3D_ME_mt::DShapeFuncD DShapeFuncD;
-	typedef Model_T3D_ME_mt::BodyForce BodyForce;
-	typedef Model_T3D_ME_mt::Traction Traction;
+	typedef Model_T3D_ME_mt::Force Force;
 	typedef Model_T3D_ME_mt::Position Position;
 	typedef Model_T3D_ME_mt::Displacement Displacement;
 	typedef Model_T3D_ME_mt::Velocity Velocity;
@@ -60,14 +59,15 @@ public:
 		Strain* pcl_estrain; // ori_pcl_num
 		Strain* pcl_pstrain; // ori_pcl_num
 		size_t* pcl_in_elem; // ori_pcl_num
+		size_t *contact_substep_id; // ori_pcl_num
+		Position *prev_contact_pos; // ori_pcl_num
+		Force *prev_contact_force; // ori_pcl_num
 	};
 
 protected:
-	size_t pcl_num;
-	
 	double* pcl_m;
-	BodyForce* pcl_bf;
-	Traction* pcl_t;
+	Force *pcl_bf;
+	Force *pcl_t;
 	Position* pcl_pos;
 	double* pcl_vol;
 	ShapeFunc* pcl_N;
@@ -120,14 +120,24 @@ protected:
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
 
-	double K_cont;
+	RigidCylinder *prc;
+	double Kn_cont, Kt_cont;
 
+	size_t pcl_num;
 	double rr_fx_cont, rr_fy_cont, rr_fz_cont;
 	double rr_mx_cont, rr_my_cont, rr_mz_cont;
-	
+
 	CacheAlignedMem task_range_mem;
 	CacheAlignedMem radix_sort_var_mem;
 	CacheAlignedMem elem_bin_mem;
+
+	RigidCylinder rigid_cylinder;
+
+	int apply_rigid_cylinder(
+		size_t p_id0, size_t p_id1,
+		size_t *pcl_in_elem,
+		SortedPclVarArrays &cur_spva,
+		ContactForce3D &rc_cf);
 
 public:
 	int init_calculation() override;

@@ -29,6 +29,8 @@ add_library(
     Step_T2D_CHM_mt.h Step_T2D_CHM_mt.cpp
     )
 
+add_subdirectory(RigidObject/)
+
 set(SIMULATIONS_OMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
 
 target_include_directories(

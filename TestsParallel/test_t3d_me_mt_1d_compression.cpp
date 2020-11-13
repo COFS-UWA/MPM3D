@@ -76,6 +76,7 @@ void test_t3d_me_mt_1d_compression(int argc, char **argv)
 	TimeHistory_T3D_ME_mt_complete out1("compression");
 	out1.set_res_file(res_file_hdf5);
 	out1.set_output_init_state();
+	out1.set_output_final_state();
 	out1.set_interval_num(50);
 	TimeHistory_ConsoleProgressBar out_cpb;
 

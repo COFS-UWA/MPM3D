@@ -11,6 +11,7 @@
 #include "MatModelContainer.h"
 #include "ParticleGenerator3D.hpp"
 #include "TetrahedronMesh.h"
+#include "RigidObject/RigidCylinder.h"
 
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
@@ -35,7 +36,7 @@ struct Model_T3D_ME_mt : public Model,
 	public MatModel::MatModelContainer
 {
 	friend class Step_T3D_ME_mt;
-	friend int substep_func_omp_T3D_ME_mt(void* _self,
+	friend int substep_func_omp_T3D_ME_mt(void* _self, 
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 
 public:
@@ -57,8 +58,7 @@ public:
 	};
 	struct DShapeFuncD { double d1, d2, d3, d4; };
 
-	struct BodyForce { double bfx, bfy, bfz; };
-	struct Traction { double tx, ty, tz; };
+	struct Force { double fx, fy, fz; };
 
 	union Acceleration
 	{
@@ -105,6 +105,9 @@ public:
 		Strain* pcl_strain; // ori_pcl_num
 		Strain* pcl_estrain; // ori_pcl_num
 		Strain* pcl_pstrain; // ori_pcl_num
+		size_t *contact_substep_id; // ori_pcl_num
+		Position *prev_contact_pos; // ori_pcl_num
+		Force *prev_contact_force; // ori_pcl_num
 	};
 	
 protected:
@@ -114,17 +117,14 @@ protected:
 	size_t pcl_num;
 	
 	double *pcl_m; // ori_pcl_num
-	BodyForce* pcl_bf; // ori_pcl_num
-	Traction* pcl_t; // ori_pcl_num
+	Force *pcl_bf; // ori_pcl_num
+	Force *pcl_t; // ori_pcl_num
 	Position* pcl_pos; // ori_pcl_num
 	double* pcl_vol; // ori_pcl_num
 	ShapeFunc* pcl_N; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
 
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
-
-	size_t *contact_state;
-	Position *contact_pos;
 	
 	// mesh data
 	size_t elem_num;
@@ -315,7 +315,7 @@ protected:
 	}
 
 protected:
-	double K_cont;
+	double Kn_cont, Kt_cont;
 
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

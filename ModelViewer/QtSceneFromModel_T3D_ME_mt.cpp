@@ -214,7 +214,7 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 		model->get_pcl_num(),
 		moccasin,
 		0.5f
-	);
+		);
 
 	// init pts
 	QVector3D red(1.0f, 0.0f, 0.0f);

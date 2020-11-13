@@ -176,14 +176,14 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	rf.read_attribute(bg_mesh_id, "node_num", node_num);
 	hid_t node_dt_id = get_nd_3d_dt_id();
 	Node3DData* nodes_data = new Node3DData[node_num];
-	rf.read_dataset(bg_mesh_id, "NodeCoordinate", node_num, nodes_data, node_dt_id);
+	rf.read_dataset(bg_mesh_id, "NodeData", node_num, nodes_data, node_dt_id);
 	H5Tclose(node_dt_id);
 	// read elements
 	size_t elem_num;
 	rf.read_attribute(bg_mesh_id, "element_num", elem_num);
 	hid_t elem_dt_id = get_ed_3d_dt_id();
 	Elem3DData* elems_data = new Elem3DData[elem_num];
-	rf.read_dataset(bg_mesh_id, "ElementTopology", elem_num, elems_data, elem_dt_id);
+	rf.read_dataset(bg_mesh_id, "ElementData", elem_num, elems_data, elem_dt_id);
 	H5Tclose(elem_dt_id);
 	// get bounding box
 	Cube mh_bbox;
@@ -317,11 +317,11 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_plain2D.vert"
-	);
+		);
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_plain2D.frag"
-	);
+		);
 	shader_plain2D.link();
 
 	// shader_char
