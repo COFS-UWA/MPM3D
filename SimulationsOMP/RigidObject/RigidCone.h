@@ -7,16 +7,42 @@
 class RigidCone
 {
 protected:
-	double x, y, z;
+	double r, h_tip, h_shaft;
 
-	double r, tip_h, shaft_h;
+	union
+	{
+		Point3D centre;
+		struct { double x, y, z; };
+	};
 
-	double fx_cont, fy_cont, fz_cont;
-	double mx_cont, my_cont, mz_cont;
-	
+	double vx, vy, vz;
+
+	union
+	{
+		ContactForce3D cont_force;
+		struct
+		{
+			double fx_cont, fy_cont, fz_cont;
+			double mx_cont, my_cont, mz_cont;
+		};
+	};
+
+	Cube lbbox;
+	double ht_div_r, r_div_ht, r2_div_ht;
+	double sqrt_one_ht2_div_r2;
+	Vector3D res_norms[3];
+
 public:
-	explicit RigidCone() {}
-	~RigidCone() {}
+	explicit RigidCone();
+	~RigidCone();
+
+	const Point3D& get_centre() const noexcept { return centre; }
+	const ContactForce3D& get_cont_force() const noexcept { return cont_force; }
+
+	void init(double _x, double _y, double _z, double _r,
+		double _tip_h, double _shaft_h) noexcept;
+	
+	void set_vbc(double _vx, double _vy, double _vz) noexcept;
 
 	inline void reset_f_cont() noexcept
 	{
@@ -38,26 +64,16 @@ public:
 		mz_cont += other.mz;
 	}
 
-	void init(double _x, double _y, double _z,
-		double _r, double _tip_h, double _shaft_h);
-
-	inline bool detect_collision_with_point(
-		double p_x,
-		double p_y,
-		double p_z,
-		double p_vol,
-		double& dist,
-		double& norm_x,
-		double& norm_y,
-		double& norm_z
-		)
-	{
-
-	}
+	bool detect_collision_with_point(
+		double p_x,	double p_y, double p_z, double p_vol,
+		double& dist, Vector3D& lnorm, Point3D& lcontpos
+		) noexcept;
 
 	inline void update_motion(double dt) noexcept
 	{
-
+		x += vx * dt;
+		y += vy * dt;
+		z += vz * dt;
 	}
 };
 

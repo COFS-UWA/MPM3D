@@ -7,13 +7,16 @@ RigidCylinder::RigidCylinder() :
 	fx_cont(0.0), fy_cont(0.0), fz_cont(0.0),
 	mx_cont(0.0), my_cont(0.0), mz_cont(0.0)
 {
-	norm[0][0] = 1.0;
-	norm[0][1] = 0.0;
-	norm[0][2] = 0.0;
-	norm[1][0] = 0.0;
-	norm[1][1] = 1.0;
-	norm[1][0] = 0.0;
-	norm[2][2] = 0.0;
+	Vector3D &v0 = res_norms[0];
+	v0.x = 1.0;
+	v0.y = 0.0;
+	v0.z = 0.0;
+	Vector3D& v1 = res_norms[1];
+	v1.x = 0.0;
+	v1.y = 1.0;
+	v1.z = 0.0;
+	Vector3D& v2 = res_norms[2];
+	v2.z = 0.0;
 }
 
 RigidCylinder::~RigidCylinder()
@@ -36,10 +39,150 @@ void RigidCylinder::init(
 	r = _r;
 	r2 = r * r;
 	h_div_2 = 0.5 * h;
-	bbox.xl = x - r;
-	bbox.xu = x + r;
-	bbox.yl = y - r;
-	bbox.yu = y + r;
-	bbox.zl = z - h_div_2;
-	bbox.zu = z + h_div_2;
+	lbbox.xl = x - r;
+	lbbox.xu = x + r;
+	lbbox.yl = y - r;
+	lbbox.yu = y + r;
+	lbbox.zl = z - h_div_2;
+	lbbox.zu = z + h_div_2;
+}
+
+void RigidCylinder::set_vbc(
+	double _vx,
+	double _vy,
+	double _vz
+	) noexcept
+{
+	vx = _vx;
+	vy = _vy;
+	vz = _vz;
+}
+
+bool RigidCylinder::detect_collision_with_point(
+	double p_x,
+	double p_y,
+	double p_z,
+	double p_vol,
+	double& dist,
+	Vector3D& lnorm,
+	Point3D& lcontpos
+	) noexcept
+{
+	double lp_x = p_x - x;
+	double lp_y = p_y - y;
+	double lp_z = p_z - z;
+	double p_r = 0.5 * pow(p_vol, 0.33333333);
+	if (lp_x < lbbox.xl - p_r || lp_x > lbbox.xu + p_r ||
+		lp_y < lbbox.yl - p_r || lp_y > lbbox.yu + p_r ||
+		lp_z < lbbox.zl - p_r || lp_z > lbbox.zu + p_r)
+		return false;
+
+	double rxy2 = lp_x * lp_x + lp_y * lp_y;
+	double rxy, tmp, z_diff;
+	if (lp_z > lbbox.zu)
+	{
+		if (rxy2 > r2)
+		{
+			rxy = sqrt(rxy2);
+			tmp = rxy - r;
+			z_diff = lp_z - lbbox.zu;
+			dist = -sqrt(tmp * tmp + z_diff * z_diff) + p_r;
+			tmp /= rxy;
+			lnorm.x = tmp * lp_x;
+			lnorm.y = tmp * lp_y;
+			lnorm.z = z_diff;
+			tmp = sqrt(lnorm.x * lnorm.x
+				+ lnorm.y * lnorm.y
+				+ lnorm.z * lnorm.z);
+			lnorm.x /= tmp;
+			lnorm.y /= tmp;
+			lnorm.z /= tmp;
+		}
+		else
+		{
+			dist = lbbox.zu - lp_z + p_r;
+			lnorm.x = 0.0;
+			lnorm.y = 0.0;
+			lnorm.z = 1.0;
+		}
+	}
+	else if (lp_z < lbbox.zl)
+	{
+		if (rxy2 > r2)
+		{
+			rxy = sqrt(rxy2);
+			tmp = rxy - r;
+			z_diff = lp_z - lbbox.zl;
+			dist = -sqrt(tmp * tmp + z_diff * z_diff) + p_r;
+			tmp /= rxy;
+			lnorm.x = tmp * lp_x;
+			lnorm.y = tmp * lp_y;
+			lnorm.z = z_diff;
+			tmp = sqrt(lnorm.x * lnorm.x
+				+ lnorm.y * lnorm.y
+				+ lnorm.z * lnorm.z);
+			lnorm.x /= tmp;
+			lnorm.y /= tmp;
+			lnorm.z /= tmp;
+		}
+		else
+		{
+			dist = lp_z + p_r - lbbox.zl;
+			lnorm.x = 0.0;
+			lnorm.y = 0.0;
+			lnorm.z = -1.0;
+		}
+	}
+	else
+	{
+		if (rxy2 > r2)
+		{
+			rxy = sqrt(rxy2);
+			dist = r - rxy + p_r;
+			lnorm.x = lp_x / rxy;
+			lnorm.y = lp_y / rxy;
+			lnorm.z = 0.0;
+		}
+		else // inside cylinder
+		{
+			unsigned char type = 0;
+			dist = lbbox.zu - p_z + p_r;
+			tmp = p_z + p_r - lbbox.zl;
+			if (tmp < dist)
+			{
+				type = 1;
+				dist = tmp;
+			}
+			rxy = sqrt(rxy2);
+			tmp = r - rxy + p_r;
+			if (tmp < dist)
+			{
+				type = 2;
+				dist = tmp;
+				Vector3D &v2 = res_norms[2];
+				if (rxy2 != 0.0)
+				{
+					v2.x = lp_x / rxy;
+					v2.y = lp_y / rxy;
+				}
+				else
+				{
+					v2.x = 0.0;
+					v2.y = 0.0;
+				}
+			}
+			const Vector3D& cur_norm = res_norms[type];
+			lnorm.x = res_norms[type].x;
+			lnorm.y = res_norms[type].y;
+			lnorm.z = res_norms[type].z;
+		}
+	}
+
+	if (dist < 0.0)
+		return false;
+
+	lcontpos.x = lp_x - p_r * lnorm.x;
+	lcontpos.y = lp_y - p_r * lnorm.y;
+	lcontpos.z = lp_z - p_r * lnorm.z;
+	return true;
 }

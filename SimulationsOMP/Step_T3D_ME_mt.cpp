@@ -82,10 +82,6 @@ int Step_T3D_ME_mt::init_calculation()
 	spva0.pcl_in_elem = radix_mem + 1;
 	spva0.pcl_in_elem[-1] = md.elem_num;
 	spva0.pcl_in_elem[md.pcl_num] = md.elem_num;
-	spva0.contact_substep_id = md_spva0.contact_substep_id;
-	spva0.prev_contact_pos = md_spva0.prev_contact_pos;
-	spva0.prev_contact_force = md_spva0.prev_contact_force;
-	memset(spva0.contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
 
 	Model_T3D_ME_mt::SortedPclVarArrays &md_spva1 = md.sorted_pcl_var_arrays[1];
 	SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[1];
@@ -100,12 +96,9 @@ int Step_T3D_ME_mt::init_calculation()
 	spva1.pcl_in_elem = cache_aligned(radix_mem + md.pcl_num + 2);
 	spva1.pcl_in_elem[-1] = md.elem_num;
 	spva1.pcl_in_elem[md.pcl_num] = md.elem_num;
-	spva1.contact_substep_id = md_spva1.contact_substep_id;
-	spva1.prev_contact_pos = md_spva1.prev_contact_pos;
-	spva1.prev_contact_force = md_spva1.prev_contact_force;
 
 	pcl_in_elem_tmp = spva1.pcl_in_elem + md.pcl_num + 1;
-
+	
 	elem_num = md.elem_num;
 	
 	elem_node_id = md.elem_node_id;
@@ -185,15 +178,19 @@ int Step_T3D_ME_mt::init_calculation()
 	if (md.has_rigid_cylinder())
 	{
 		prc = &md.get_rigid_cylinder();
-		prc.reset_f_contact();
+		prc->reset_f_cont();
 		Kn_cont = md.Kn_cont;
 		Kt_cont = md.Kt_cont;
-		rr_fx_cont = 0.0;
-		rr_fy_cont = 0.0;
-		rr_fz_cont = 0.0;
-		rr_mx_cont = 0.0;
-		rr_my_cont = 0.0;
-		rr_mz_cont = 0.0;
+		rc_fx_cont = 0.0;
+		rc_fy_cont = 0.0;
+		rc_fz_cont = 0.0;
+		rc_mx_cont = 0.0;
+		rc_my_cont = 0.0;
+		rc_mz_cont = 0.0;
+		contact_substep_id = md.contact_substep_id;
+		prev_contact_pos = md.prev_contact_pos;
+		prev_contact_force = md.prev_contact_force;
+		memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
 	}
 	
 	elem_count_bin = (size_t *)elem_bin_mem.alloc(sizeof(size_t) * thread_num * 0x100 * 2);
@@ -261,9 +258,6 @@ int Step_T3D_ME_mt::init_calculation()
 		Strain* pcl_estrain0 = spva0.pcl_estrain;
 		Strain* pcl_pstrain0 = spva0.pcl_pstrain;
 		size_t* pcl_in_elem0 = spva0.pcl_in_elem;
-		size_t* contact_substep_id0 = spva0.contact_substep_id;
-		Position* prev_contact_pos0 = spva0.prev_contact_pos;
-		Force* prev_contact_force0 = spva0.prev_contact_force;
 		size_t* pcl_index1;
 		double* pcl_density1;
 		Displacement* pcl_disp1;
@@ -273,9 +267,6 @@ int Step_T3D_ME_mt::init_calculation()
 		Strain* pcl_estrain1;
 		Strain* pcl_pstrain1;
 		size_t* pcl_in_elem1;
-		size_t* contact_substep_id1;
-		Position* prev_contact_pos1;
-		Force* prev_contact_force1;
 		size_t data_digit, bin_id, th_id, pos_id;
 		size_t* other_cbin;
 		size_t* my_cbin = elem_count_bin + my_th_id * 0x100;
@@ -294,9 +285,6 @@ int Step_T3D_ME_mt::init_calculation()
 			pcl_estrain1 = spva1.pcl_estrain;
 			pcl_pstrain1 = spva1.pcl_pstrain;
 			pcl_in_elem1 = spva1.pcl_in_elem;
-			contact_substep_id1 = spva1.contact_substep_id;
-			prev_contact_pos1 = spva1.prev_contact_pos;
-			prev_contact_force1 = spva1.prev_contact_force;
 			memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 			for (p_id = p_id0; p_id < p_id1; ++p_id)
@@ -375,17 +363,6 @@ int Step_T3D_ME_mt::init_calculation()
 				p_pe1.e23 = p_pe0.e23;
 				p_pe1.e31 = p_pe0.e31;
 				pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
-				contact_substep_id1[pos_id] = contact_substep_id0[p_id];
-				Position &p_cont_pos1 = prev_contact_pos1[pos_id];
-				Position& p_cont_pos0 = prev_contact_pos0[p_id];
-				p_cont_pos1.x = p_cont_pos0.x;
-				p_cont_pos1.y = p_cont_pos0.y;
-				p_cont_pos1.z = p_cont_pos0.z;
-				Force& p_cont_f1 = prev_contact_force1[pos_id];
-				Force& p_cont_f0 = prev_contact_force0[p_id];
-				p_cont_f1.fx = p_cont_f0.fx;
-				p_cont_f1.fy = p_cont_f0.fy;
-				p_cont_f1.fz = p_cont_f0.fz;
 			}
 
 			pcl_index0 = pcl_index1;
@@ -397,9 +374,6 @@ int Step_T3D_ME_mt::init_calculation()
 			pcl_estrain0 = pcl_estrain1;
 			pcl_pstrain0 = pcl_pstrain1;
 			pcl_in_elem0 = pcl_in_elem1;
-			contact_substep_id0 = contact_substep_id1;
-			prev_contact_pos0 = prev_contact_pos1;
-			prev_contact_force0 = prev_contact_force1;
 #pragma omp barrier
 		}
 	}
@@ -473,10 +447,7 @@ int substep_func_omp_T3D_ME_mt(
 	Strain* pcl_estrain0 = spva0.pcl_estrain;
 	Strain* pcl_pstrain0 = spva0.pcl_pstrain;
 	size_t* pcl_in_elem0 = spva0.pcl_in_elem;
-	size_t *contact_substep_id0 = spva0.contact_substep_id;
-	Position* prev_contact_pos0 = spva0.prev_contact_pos;
-	Force* prev_contact_force0 = spva0.prev_contact_force;
-
+	
 	size_t* pcl_in_elem_tmp = self.pcl_in_elem_tmp;
 
 	ElemNodeIndex* elem_node_id = self.elem_node_id;
@@ -744,23 +715,39 @@ int substep_func_omp_T3D_ME_mt(
 		}
 	}
 
-//	if (md.has_rigid_rect())
-//	{
-//		RigidRect& rr = md.get_rigid_rect();
-//		RigidRectForce rr_force;
-//		rr_force.reset_f_contact();
-//		self.apply_rigid_rect_avg(
-//			my_th_id, dt,
-//			pcl_in_elem_array, pscv0,
-//			rr_force
-//			);
-//#pragma omp critical
-//		{
-//			rr.combine(rr_force);
-//		}
-//	}
+	if (md.has_rigid_cylinder())
+	{
+		ContactForce3D cf;
+		cf.reset();
+		self.apply_rigid_cylinder(
+			p_id0, p_id1,
+			pcl_in_elem0,
+			spva0, cf,
+			substp_id
+			);
+#pragma omp critical
+		{
+			self.prc->combine_f_cont(cf);
+		}
+	}
 
 #pragma omp barrier
+
+#pragma omp master
+	{
+		if (md.has_rigid_cylinder())
+		{
+			RigidCylinder& rc = *(self.prc);
+			rc.update_motion(dt);
+			const ContactForce3D& cf = rc.get_cont_force();
+			self.rc_fx_cont = cf.fx;
+			self.rc_fy_cont = cf.fy;
+			self.rc_fz_cont = cf.fz;
+			self.rc_mx_cont = cf.mx;
+			self.rc_my_cont = cf.my;
+			self.rc_mz_cont = cf.mz;
+		}
+	}
 
 	// update node variables
 	size_t* node_range = self.node_range;
@@ -1003,9 +990,6 @@ int substep_func_omp_T3D_ME_mt(
 	Strain* pcl_estrain1;
 	Strain* pcl_pstrain1;
 	size_t* pcl_in_elem1;
-	size_t* contact_substep_id1;
-	Position* prev_contact_pos1;
-	Force* prev_contact_force1;
 	size_t data_digit, bin_id, th_id, pos_id;
 	size_t *other_cbin;
 	size_t *elem_count_bin = self.elem_count_bin;
@@ -1026,9 +1010,6 @@ int substep_func_omp_T3D_ME_mt(
 		pcl_estrain1 = spva1.pcl_estrain;
 		pcl_pstrain1 = spva1.pcl_pstrain;
 		pcl_in_elem1 = spva1.pcl_in_elem;
-		contact_substep_id1 = spva1.contact_substep_id;
-		prev_contact_pos1 = spva1.prev_contact_pos;
-		prev_contact_force1 = spva1.prev_contact_force;
 		memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
@@ -1107,17 +1088,6 @@ int substep_func_omp_T3D_ME_mt(
 			p_pe1.e23 = p_pe0.e23;
 			p_pe1.e31 = p_pe0.e31;
 			pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
-			contact_substep_id1[pos_id] = contact_substep_id0[p_id];
-			Position& p_cont_pos1 = prev_contact_pos1[pos_id];
-			Position& p_cont_pos0 = prev_contact_pos0[p_id];
-			p_cont_pos1.x = p_cont_pos0.x;
-			p_cont_pos1.y = p_cont_pos0.y;
-			p_cont_pos1.z = p_cont_pos0.z;
-			Force& p_cont_f1 = prev_contact_force1[pos_id];
-			Force& p_cont_f0 = prev_contact_force0[p_id];
-			p_cont_f1.fx = p_cont_f0.fx;
-			p_cont_f1.fy = p_cont_f0.fy;
-			p_cont_f1.fz = p_cont_f0.fz;
 		}
 
 		pcl_index0 = pcl_index1;
@@ -1129,9 +1099,6 @@ int substep_func_omp_T3D_ME_mt(
 		pcl_estrain0 = pcl_estrain1;
 		pcl_pstrain0 = pcl_pstrain1;
 		pcl_in_elem0 = pcl_in_elem1;
-		contact_substep_id0 = contact_substep_id1;
-		prev_contact_pos0 = prev_contact_pos1;
-		prev_contact_force0 = prev_contact_force1;
 #pragma omp barrier
 	}
 
@@ -1143,43 +1110,75 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 	size_t p_id1,
 	size_t* pcl_in_elem,
 	SortedPclVarArrays &cur_spva,
-	ContactForce3D& rc_cf
-	)
+	ContactForce3D& rc_cf,
+	size_t substp_id
+	) noexcept
 {
 	double p_x, p_y, p_z;
-	double dist, norm_x, norm_y, norm_z;
 	double f_cont, fx_cont, fy_cont, fz_cont;
-	double ftx_cont, fty_cont, ftz_cont;
-	size_t e_id, p_ori_id;
-	double rc_cenx, rc_ceny, rc_cenz;
-	prc->get_centre(rc_cenx, rc_ceny, rc_cenz);
+	size_t e_id, ori_p_id;
+	double dist;
+	Vector3D lnorm, gnorm, ft_cont;
+	Point3D lcontpos;
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		p_ori_id = cur_spva.pcl_index[p_id];
-		Position &p_p = pcl_pos[p_ori_id];
+		ori_p_id = cur_spva.pcl_index[p_id];
+		Position &p_p = pcl_pos[ori_p_id];
 		Displacement &p_d = cur_spva.pcl_disp[p_id];
 		p_x = p_p.x + p_d.ux;
 		p_y = p_p.y + p_d.uy;
 		p_z = p_p.z + p_d.uz;
 		if (prc->detect_collision_with_point(
 			p_x, p_y, p_z, pcl_vol[p_id],
-			dist, norm_x, norm_y, norm_z))
+			dist, lnorm, lcontpos))
 		{
 			// normal force
+			prc->get_global_vector(lnorm, gnorm);
 			f_cont = Kn_cont * dist;
-			fx_cont = f_cont * norm_x;
-			fy_cont = f_cont * norm_y;
-			fz_cont = f_cont * norm_z;
+			fx_cont = f_cont * gnorm.x;
+			fy_cont = f_cont * gnorm.y;
+			fz_cont = f_cont * gnorm.z;
 			// tangential force
-			...;
-			fx_cont += ftx_cont;
-			fy_cont += fty_cont;
-			fz_cont += ftz_cont;
+			if (contact_substep_id[ori_p_id] == substp_id)
+			{
+				Position& cp = prev_contact_pos[ori_p_id];
+				cp.x = lcontpos.x;
+				cp.y = lcontpos.y;
+				cp.z = lcontpos.z;
+				Force& cf = prev_contact_force[ori_p_id];
+				cf.fx = 0.0;
+				cf.fy = 0.0;
+				cf.fz = 0.0;
+			}
+			else
+			{
+				Position& cp = prev_contact_pos[ori_p_id];
+				double rx = lcontpos.x - cp.x;
+				double ry = lcontpos.y - cp.y;
+				double rz = lcontpos.z - cp.z;
+				cp.x = lcontpos.x;
+				cp.y = lcontpos.y;
+				cp.z = lcontpos.z;
+				double norm_len = rx * gnorm.x + ry * gnorm.y + rz * gnorm.z;
+				rx -= norm_len * gnorm.x;
+				ry -= norm_len * gnorm.y;
+				rz -= norm_len * gnorm.z;
+				Force& cf = prev_contact_force[ori_p_id];
+				cf.fx += rx * Kt_cont;
+				cf.fy += ry * Kt_cont;
+				cf.fz += rz * Kt_cont;
+				// apply contact consitutive model here
+				fx_cont += cf.fx;
+				fy_cont += cf.fy;
+				fz_cont += cf.fz;
+			}
+			contact_substep_id[ori_p_id] = substp_id + 1;
 			// apply contact force to rigid body
+			const Point3D& rc_cen = prc->get_centre();
 			rc_cf.add_force(
 				p_x, p_y, p_z,
 				-fx_cont, -fy_cont, -fz_cont,
-				rc_cenx, rc_ceny, rc_cenz 
+				rc_cen.x, rc_cen.y, rc_cen.z 
 				);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];

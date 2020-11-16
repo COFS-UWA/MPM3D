@@ -59,9 +59,6 @@ public:
 		Strain* pcl_estrain; // ori_pcl_num
 		Strain* pcl_pstrain; // ori_pcl_num
 		size_t* pcl_in_elem; // ori_pcl_num
-		size_t *contact_substep_id; // ori_pcl_num
-		Position *prev_contact_pos; // ori_pcl_num
-		Force *prev_contact_force; // ori_pcl_num
 	};
 
 protected:
@@ -76,7 +73,9 @@ protected:
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
 	size_t *pcl_in_elem_tmp;
 
-	size_t elem_num;
+	size_t* contact_substep_id; // ori_pcl_num
+	Position* prev_contact_pos; // ori_pcl_num
+	Force* prev_contact_force; // ori_pcl_num
 
 	ElemNodeIndex* elem_node_id;
 	size_t* elem_id_array;
@@ -120,24 +119,23 @@ protected:
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
 
-	RigidCylinder *prc;
 	double Kn_cont, Kt_cont;
-
-	size_t pcl_num;
-	double rr_fx_cont, rr_fy_cont, rr_fz_cont;
-	double rr_mx_cont, rr_my_cont, rr_mz_cont;
+	RigidCylinder* prc;
+	
+	size_t elem_num, pcl_num;
+	double rc_fx_cont, rc_fy_cont, rc_fz_cont;
+	double rc_mx_cont, rc_my_cont, rc_mz_cont;
 
 	CacheAlignedMem task_range_mem;
 	CacheAlignedMem radix_sort_var_mem;
 	CacheAlignedMem elem_bin_mem;
 
-	RigidCylinder rigid_cylinder;
-
 	int apply_rigid_cylinder(
 		size_t p_id0, size_t p_id1,
 		size_t *pcl_in_elem,
 		SortedPclVarArrays &cur_spva,
-		ContactForce3D &rc_cf);
+		ContactForce3D &rc_cf,
+		size_t substp_id) noexcept;
 
 public:
 	int init_calculation() override;
@@ -151,12 +149,12 @@ public:
 
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
-	inline double get_rr_fx_contact() const noexcept { return rr_fx_cont; }
-	inline double get_rr_fy_contact() const noexcept { return rr_fy_cont; }
-	inline double get_rr_fz_contact() const noexcept { return rr_fz_cont; }
-	inline double get_rr_mx_contact() const noexcept { return rr_mx_cont; }
-	inline double get_rr_my_contact() const noexcept { return rr_my_cont; }
-	inline double get_rr_mz_contact() const noexcept { return rr_mz_cont; }
+	inline double get_rc_fx_contact() const noexcept { return rc_fx_cont; }
+	inline double get_rc_fy_contact() const noexcept { return rc_fy_cont; }
+	inline double get_rc_fz_contact() const noexcept { return rc_fz_cont; }
+	inline double get_rc_mx_contact() const noexcept { return rc_mx_cont; }
+	inline double get_rc_my_contact() const noexcept { return rc_my_cont; }
+	inline double get_rc_mz_contact() const noexcept { return rc_mz_cont; }
 
 	friend struct Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

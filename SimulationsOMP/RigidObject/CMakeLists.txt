@@ -1,5 +1,5 @@
 target_sources(
-    SimulationsOMP PUBLIC
+    SimulationsOMP PRIVATE
     ContactForce3D.h
     RigidCylinder.h RigidCylinder.cpp
     RigidCone.h RigidCone.cpp

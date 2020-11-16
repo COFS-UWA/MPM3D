@@ -1,8 +1,13 @@
 #include "SimulationsOMP_pcp.h"
 
+#include <fstream>
+#include <iomanip>
+
 #include "TetrahedronUtils.h"
 #include "SearchingGrid3D.hpp"
 #include "Model_T3D_ME_mt.h"
+
+static std::fstream res_file;
 
 Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	ori_pcl_num(0), pcl_num(0),
@@ -17,7 +22,8 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	tz_num(0), tzs(nullptr),
 	grid_x_num(0), grid_y_num(0), grid_z_num(0),
 	grid_elem_list(nullptr),
-	grid_elem_list_id_array(nullptr)
+	grid_elem_list_id_array(nullptr),
+	rigid_cylinder_is_valid(false), contact_mem(nullptr)
 {
 	res_file.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }
@@ -33,6 +39,7 @@ Model_T3D_ME_mt::~Model_T3D_ME_mt()
 	clear_txs();
 	clear_tys();
 	clear_tzs();
+	clear_contact_mem();
 }
 
 Cube Model_T3D_ME_mt::get_mesh_bbox()
@@ -405,8 +412,8 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 
 	ori_pcl_num = num;
 	pcl_num = ori_pcl_num;
-	mem_len = (sizeof(double) + sizeof(BodyForce)
-			+ sizeof(Traction) + sizeof(Position)
+	mem_len = (sizeof(double) + sizeof(Force) * 2
+			+ sizeof(Position)
 			+ sizeof(double) + sizeof(ShapeFunc)
 			+ sizeof(MatModel::MaterialModel*)
 			+ (sizeof(size_t) + sizeof(double)
@@ -418,10 +425,10 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	cur_mem = pcl_mem_raw;
 	pcl_m = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
-	pcl_bf = (BodyForce *)(cur_mem);
-	cur_mem += sizeof(BodyForce) * num;
-	pcl_t = (Traction *)cur_mem;
-	cur_mem += sizeof(Traction) * num;
+	pcl_bf = (Force *)(cur_mem);
+	cur_mem += sizeof(Force) * num;
+	pcl_t = (Force *)cur_mem;
+	cur_mem += sizeof(Force) * num;
 	pcl_pos = (Position *)cur_mem;
 	cur_mem += sizeof(Position) * num;
 	pcl_vol = (double *)cur_mem;
@@ -466,6 +473,8 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Strain) * num;
 	spva1.pcl_pstrain = (Strain*)cur_mem;
 	cur_mem += sizeof(Strain) * num;
+
+	alloc_contact_mem(num);
 }
 
 void Model_T3D_ME_mt::alloc_pcls(
@@ -478,72 +487,8 @@ void Model_T3D_ME_mt::alloc_pcls(
 	if (num == 0 || ori_num == 0)
 		return;
 
-	size_t mem_len;
-	char* cur_mem;
-
-	ori_pcl_num = ori_num;
+	alloc_pcls(ori_num);
 	pcl_num = num;
-	mem_len = (sizeof(double) + sizeof(BodyForce)
-		+ sizeof(Traction) + sizeof(Position)
-		+ sizeof(double) + sizeof(ShapeFunc)
-		+ sizeof(MatModel::MaterialModel*)
-		+ (sizeof(size_t) + sizeof(double)
-			+ sizeof(Displacement) + sizeof(Velocity)
-			+ sizeof(Stress) + sizeof(Strain) * 3) * 2
-		) * num;
-	pcl_mem_raw = new char[mem_len];
-
-	cur_mem = pcl_mem_raw;
-	pcl_m = (double*)cur_mem;
-	cur_mem += sizeof(double) * num;
-	pcl_bf = (BodyForce*)(cur_mem);
-	cur_mem += sizeof(BodyForce) * num;
-	pcl_t = (Traction*)cur_mem;
-	cur_mem += sizeof(Traction) * num;
-	pcl_pos = (Position*)cur_mem;
-	cur_mem += sizeof(Position) * num;
-	pcl_vol = (double*)cur_mem;
-	cur_mem += sizeof(double) * num;
-	pcl_N = (ShapeFunc*)cur_mem;
-	cur_mem += sizeof(ShapeFunc) * num;
-	pcl_mat_model = (MatModel::MaterialModel**)cur_mem;
-	cur_mem += sizeof(MatModel::MaterialModel*) * num;
-
-	SortedPclVarArrays& spva0 = sorted_pcl_var_arrays[0];
-	spva0.pcl_index = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * num;
-	spva0.pcl_density = (double*)cur_mem;
-	cur_mem += sizeof(double) * num;
-	spva0.pcl_disp = (Displacement*)cur_mem;
-	cur_mem += sizeof(Displacement) * num;
-	spva0.pcl_v = (Velocity*)cur_mem;
-	cur_mem += sizeof(Velocity) * num;
-	spva0.pcl_stress = (Stress*)cur_mem;
-	cur_mem += sizeof(Stress) * num;
-	spva0.pcl_strain = (Strain*)cur_mem;
-	cur_mem += sizeof(Strain) * num;
-	spva0.pcl_estrain = (Strain*)cur_mem;
-	cur_mem += sizeof(Strain) * num;
-	spva0.pcl_pstrain = (Strain*)cur_mem;
-	cur_mem += sizeof(Strain) * num;
-
-	SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[1];
-	spva1.pcl_index = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * num;
-	spva1.pcl_density = (double*)cur_mem;
-	cur_mem += sizeof(double) * num;
-	spva1.pcl_disp = (Displacement*)cur_mem;
-	cur_mem += sizeof(Displacement) * num;
-	spva1.pcl_v = (Velocity*)cur_mem;
-	cur_mem += sizeof(Velocity) * num;
-	spva1.pcl_stress = (Stress*)cur_mem;
-	cur_mem += sizeof(Stress) * num;
-	spva1.pcl_strain = (Strain*)cur_mem;
-	cur_mem += sizeof(Strain) * num;
-	spva1.pcl_estrain = (Strain*)cur_mem;
-	cur_mem += sizeof(Strain) * num;
-	spva1.pcl_pstrain = (Strain*)cur_mem;
-	cur_mem += sizeof(Strain) * num;
 }
 
 int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
@@ -555,14 +500,14 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 	for (p_id = 0; p_id < num; ++p_id)
 	{
 		pcl_m[p_id] = m;
-		BodyForce &p_bf = pcl_bf[p_id];
-		p_bf.bfx = 0.0;
-		p_bf.bfy = 0.0;
-		p_bf.bfz = 0.0;
-		Traction& p_t = pcl_t[p_id];
-		p_t.tx = 0.0;
-		p_t.ty = 0.0;
-		p_t.tz = 0.0;
+		Force &p_bf = pcl_bf[p_id];
+		p_bf.fx = 0.0;
+		p_bf.fy = 0.0;
+		p_bf.fz = 0.0;
+		Force& p_t = pcl_t[p_id];
+		p_t.fx = 0.0;
+		p_t.fy = 0.0;
+		p_t.fz = 0.0;
 		pcl_mat_model[p_id] = nullptr;
 		spva0.pcl_index[p_id] = p_id;
 		spva0.pcl_density[p_id] = density;
@@ -610,7 +555,7 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 		{
 			BodyForceAtPcl& bf = bfxs[bf_id];
 			p_id = bf.pcl_id;
-			pcl_bf[p_id].bfx += pcl_m[p_id] * bf.bf;
+			pcl_bf[p_id].fx += pcl_m[p_id] * bf.bf;
 		}
 		clear_bfxs();
 	}
@@ -621,7 +566,7 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 		{
 			BodyForceAtPcl& bf = bfys[bf_id];
 			p_id = bf.pcl_id;
-			pcl_bf[p_id].bfy += pcl_m[p_id] * bf.bf;
+			pcl_bf[p_id].fy += pcl_m[p_id] * bf.bf;
 		}
 		clear_bfys();
 	}
@@ -632,7 +577,7 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 		{
 			BodyForceAtPcl& bf = bfzs[bf_id];
 			p_id = bf.pcl_id;
-			pcl_bf[p_id].bfz += pcl_m[p_id] * bf.bf;
+			pcl_bf[p_id].fz += pcl_m[p_id] * bf.bf;
 		}
 		clear_bfzs();
 	}
@@ -643,7 +588,7 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 		{
 			TractionBCAtPcl& t = txs[t_id];
 			p_id = t.pcl_id;
-			pcl_t[p_id].tx += t.t;
+			pcl_t[p_id].fx += t.t;
 		}
 		clear_txs();
 	}
@@ -654,7 +599,7 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 		{
 			TractionBCAtPcl& t = tys[t_id];
 			p_id = t.pcl_id;
-			pcl_t[p_id].ty += t.t;
+			pcl_t[p_id].fy += t.t;
 		}
 		clear_tys();
 	}
@@ -665,7 +610,7 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 		{
 			TractionBCAtPcl& t = tzs[t_id];
 			p_id = t.pcl_id;
-			pcl_t[p_id].tz += t.t;
+			pcl_t[p_id].fz += t.t;
 		}
 		clear_tzs();
 	}
@@ -709,8 +654,8 @@ void Model_T3D_ME_mt::init_bfxs(
 		for (size_t bf_id = 0; bf_id < bf_num; ++bf_id)
 		{
 			p_id = bf_pcls[bf_id];
-			BodyForce &bf = pcl_bf[p_id];
-			bf.bfx += bfs[p_id] * pcl_m[p_id];
+			Force &bf = pcl_bf[p_id];
+			bf.fx += bfs[p_id] * pcl_m[p_id];
 		}
 	}
 	else
@@ -737,8 +682,8 @@ void Model_T3D_ME_mt::init_bfys(
 		for (size_t bf_id = 0; bf_id < bf_num; ++bf_id)
 		{
 			p_id = bf_pcls[bf_id];
-			BodyForce& bf = pcl_bf[p_id];
-			bf.bfy += bfs[p_id] * pcl_m[p_id];
+			Force& bf = pcl_bf[p_id];
+			bf.fy += bfs[p_id] * pcl_m[p_id];
 		}
 	}
 	else
@@ -765,8 +710,8 @@ void Model_T3D_ME_mt::init_bfzs(
 		for (size_t bf_id = 0; bf_id < bf_num; ++bf_id)
 		{
 			p_id = bf_pcls[bf_id];
-			BodyForce& bf = pcl_bf[p_id];
-			bf.bfz += bfs[p_id] * pcl_m[p_id];
+			Force& bf = pcl_bf[p_id];
+			bf.fz += bfs[p_id] * pcl_m[p_id];
 		}
 	}
 	else
@@ -793,8 +738,8 @@ void Model_T3D_ME_mt::init_txs(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			p_id = t_pcls[t_id];
-			Traction &t = pcl_t[p_id];
-			t.tx += ts[t_id];
+			Force &t = pcl_t[p_id];
+			t.fx += ts[t_id];
 		}
 	}
 	else
@@ -820,8 +765,8 @@ void Model_T3D_ME_mt::init_tys(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			size_t p_id = t_pcls[t_id];
-			Traction &t = pcl_t[p_id];
-			t.ty += ts[t_id];
+			Force &t = pcl_t[p_id];
+			t.fy += ts[t_id];
 		}
 	}
 	else
@@ -847,8 +792,8 @@ void Model_T3D_ME_mt::init_tzs(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			size_t p_id = t_pcls[t_id];
-			Traction& t = pcl_t[p_id];
-			t.tz += ts[t_id];
+			Force &t = pcl_t[p_id];
+			t.fz += ts[t_id];
 		}
 	}
 	else
@@ -897,4 +842,28 @@ void Model_T3D_ME_mt::init_fixed_vz_bc(
 		if (bcs[bc_id] < node_num)
 			node_has_vbc[bcs[bc_id]].has_vz_bc = true;
 	}
+}
+
+void Model_T3D_ME_mt::clear_contact_mem()
+{
+	if (contact_mem)
+	{
+		delete[] contact_mem;
+		contact_mem = nullptr;
+	}
+}
+
+void Model_T3D_ME_mt::alloc_contact_mem(size_t num)
+{
+	clear_contact_mem();
+
+	contact_mem = new char[(sizeof(size_t)
+		+ sizeof(Position) + sizeof(Force)) * num];
+	
+	char* cur_mem = contact_mem;
+	contact_substep_id = (size_t *)cur_mem;
+	cur_mem += sizeof(size_t) * num;
+	prev_contact_pos = (Position *)cur_mem;
+	cur_mem += sizeof(Position) * num;
+	prev_contact_force = (Force *)cur_mem;
 }

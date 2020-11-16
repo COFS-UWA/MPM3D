@@ -1,10 +1,6 @@
 #ifndef __Model_T3D_ME_mt_h__
 #define __Model_T3D_ME_mt_h__
 
-#include <stdint.h>
-#include <iomanip>
-#include <fstream>
-
 #include "BCs.h"
 #include "macro_utils.h"
 #include "Model.h"
@@ -105,14 +101,9 @@ public:
 		Strain* pcl_strain; // ori_pcl_num
 		Strain* pcl_estrain; // ori_pcl_num
 		Strain* pcl_pstrain; // ori_pcl_num
-		size_t *contact_substep_id; // ori_pcl_num
-		Position *prev_contact_pos; // ori_pcl_num
-		Force *prev_contact_force; // ori_pcl_num
 	};
 	
 protected:
-	std::fstream res_file;
-
 	// pcl data
 	size_t pcl_num;
 	
@@ -315,7 +306,36 @@ protected:
 	}
 
 protected:
+	size_t* contact_substep_id; // ori_pcl_num
+	Position* prev_contact_pos; // ori_pcl_num
+	Force* prev_contact_force; // ori_pcl_num
+
+	bool rigid_cylinder_is_valid;
 	double Kn_cont, Kt_cont;
+	RigidCylinder rigid_cylinder;
+
+	char* contact_mem;
+	void clear_contact_mem();
+	void alloc_contact_mem(size_t num);
+
+public:
+	bool has_rigid_cylinder() { return rigid_cylinder_is_valid; }
+	RigidCylinder &get_rigid_cylinder() { return rigid_cylinder; }
+	inline void init_rigid_cylinder(
+		double _Kn_cont, double _Kt_cont,
+		double x, double y, double z,
+		double h, double r)
+	{
+		rigid_cylinder_is_valid = true;
+		Kn_cont = _Kn_cont;
+		Kt_cont = _Kt_cont;
+		rigid_cylinder.init(x, y, z, h, r);
+	}
+	inline void set_rigid_cylinder_velocity(
+		double vx, double vy, double vz)
+	{
+		rigid_cylinder.set_vbc(vx, vy, vz);
+	}
 
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
