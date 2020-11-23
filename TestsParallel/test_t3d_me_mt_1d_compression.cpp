@@ -58,12 +58,12 @@ void test_t3d_me_mt_1d_compression(int argc, char **argv)
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1200, 950);
 	//md_disp.set_view_dir(30.0f, 30.0f);
-	//md_disp.set_light_dir(90.0, 30.0);
+	//md_disp.set_light_dir(90.0f, 30.0f);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
 	//md_disp.start();
 	//return;
 
@@ -77,18 +77,18 @@ void test_t3d_me_mt_1d_compression(int argc, char **argv)
 	out1.set_res_file(res_file_hdf5);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
-	out1.set_interval_num(50);
+	out1.set_interval_num(100);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(2.5); // 10.0
+	//step.set_step_time(2.0); // 10.0
+	step.set_step_time(2.0e-5);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(3);
 	step.add_time_history(out1);
-	step.add_time_history(out_cpb);
+	//step.add_time_history(out_cpb);
 	step.solve();
-	//step.init_calculation();
 }
 
 #include "QtApp_Posp_T3D_ME_mt.h"
@@ -105,9 +105,9 @@ void test_t3d_me_mt_1d_compression_result(int argc, char **argv)
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(90.0f, 30.0f);
-	app.set_color_map_fld_range(-0.01, 0.0);
+	app.set_color_map_fld_range(-10.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
-	//app.set_png_name("t3d_me_s_1d_compression");
-	//app.set_gif_name("t3d_me_s_1d_compression");
+	//app.set_png_name("t3d_me_mt_1d_compression");
+	app.set_gif_name("t3d_me_mt_1d_compression");
 	app.start();
 }

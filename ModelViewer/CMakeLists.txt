@@ -82,6 +82,8 @@ add_library(
     Hdf5FieldExtraction_vy_f.h Hdf5FieldExtraction_vy_f.cpp
     Hdf5FieldExtraction_vz_f.h Hdf5FieldExtraction_vz_f.cpp
     Hdf5FieldExtraction_p.h Hdf5FieldExtraction_p.cpp
+    # Constitutive model
+    Hdf5MatExtraction_max_shear_stress.h Hdf5MatExtraction_max_shear_stress.cpp
     ################## 2D MPM model display ######################
     # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp

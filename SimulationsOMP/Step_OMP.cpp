@@ -68,7 +68,7 @@ int Step_OMP::solve()
 			}
 #pragma omp barrier
 		
-		} while (step_not_end & continue_cal);
+		} while (step_not_end && continue_cal);
 	}
 
 	finalize_calculation();
@@ -98,6 +98,12 @@ void Step_OMP::exit_calculation()
 	continue_cal = false;
 }
 
+void Step_OMP::abort_calculation()
+{
+	output_not_needed = false;
+	continue_cal = false;
+}
+
 int substep_func_omp_default(
 	void* _self,
 	size_t my_th_id,
@@ -112,7 +118,7 @@ int substep_func_omp_default(
 	{
 		self.continue_calculation();
 	}
-#pragma omp barrier
 
+#pragma omp barrier
 	return 0;
 }

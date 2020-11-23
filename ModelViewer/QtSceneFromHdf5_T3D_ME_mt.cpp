@@ -221,11 +221,16 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	delete[] nodes_data;
 	delete[] elems_data;
 	rf.close_group(bg_mesh_id);
-	if (res) return res;
+	if (res)
+		return res;
 
 	// init particle data
-	res = data_loader.load_frame_data(frame_id);
-	if (res) return res;
+	res = data_loader.load_frame_data(
+		frame_id,
+		pfld->need_mat_model_data()
+		);
+	if (res)
+		return res;
 
 	size_t pcl_num = data_loader.get_pcl_num();
 	if (pcl_num)

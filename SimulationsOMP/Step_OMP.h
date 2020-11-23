@@ -37,6 +37,7 @@ public:
 	// #pragma omp master
 	void continue_calculation();
 	void exit_calculation();
+	void abort_calculation();
 
 	double cpu_time_in_ms() const noexcept { return 1000.0 * double(cpu_time) / CLOCKS_PER_SEC; }
 };

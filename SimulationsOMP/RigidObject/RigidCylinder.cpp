@@ -58,11 +58,28 @@ void RigidCylinder::set_vbc(
 	vz = _vz;
 }
 
+void RigidCylinder::set_cont_force(
+	double fx,
+	double fy,
+	double fz,
+	double mx,
+	double my,
+	double mz
+	) noexcept
+{
+	fx_cont = fx;
+	fy_cont = fy;
+	fz_cont = fz;
+	mx_cont = mx;
+	my_cont = my;
+	mz_cont = mz;
+}
+
 bool RigidCylinder::detect_collision_with_point(
 	double p_x,
 	double p_y,
 	double p_z,
-	double p_vol,
+	double p_r,
 	double& dist,
 	Vector3D& lnorm,
 	Point3D& lcontpos
@@ -71,7 +88,6 @@ bool RigidCylinder::detect_collision_with_point(
 	double lp_x = p_x - x;
 	double lp_y = p_y - y;
 	double lp_z = p_z - z;
-	double p_r = 0.5 * pow(p_vol, 0.33333333);
 	if (lp_x < lbbox.xl - p_r || lp_x > lbbox.xu + p_r ||
 		lp_y < lbbox.yl - p_r || lp_y > lbbox.yu + p_r ||
 		lp_z < lbbox.zl - p_r || lp_z > lbbox.zu + p_r)

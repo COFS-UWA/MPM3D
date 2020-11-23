@@ -7,6 +7,7 @@ add_library(
     SimulationsOMP STATIC
     # precomplied header
     SimulationsOMP_pcp.h SimulationsOMP_pcp.cpp
+    ParticleVariablesGetter.h ParticleVariablesGetter.cpp
     # 2D ME MPM multi-thread version
     Step_OMP.h Step_OMP.cpp
     ## deformation calculation

@@ -8,6 +8,7 @@
 #include "ParticleGenerator3D.hpp"
 #include "TetrahedronMesh.h"
 #include "RigidObject/RigidCylinder.h"
+#include "RigidObject/RoughContact3D.h"
 
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
@@ -26,7 +27,11 @@ namespace Model_T3D_ME_mt_hdf5_utilities
 	int load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_rigid_cylinder_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
+
+class PclVar_T3D_ME_mt;
 
 struct Model_T3D_ME_mt : public Model,
 	public MatModel::MatModelContainer
@@ -54,7 +59,12 @@ public:
 	};
 	struct DShapeFuncD { double d1, d2, d3, d4; };
 
-	struct Force { double fx, fy, fz; };
+	union Force
+	{
+		struct { double fx, fy, fz; };
+		Vector3D vec;
+		inline Force() {}
+	};
 
 	union Acceleration
 	{
@@ -66,8 +76,16 @@ public:
 		struct { double vx, vy, vz; };
 		struct { size_t ivx, ivy, ivz; };
 	};
-	struct Position { double x, y, z; };
-	struct Displacement { double ux, uy, uz; };
+	union Position
+	{
+		struct { double x, y, z; };
+		Point3D pt;
+	};
+	union Displacement
+	{
+		struct { double ux, uy, uz; };
+		Vector3D vec;
+	};
 
 	union Stress
 	{
@@ -95,12 +113,13 @@ public:
 	{
 		size_t* pcl_index; // ori_pcl_num
 		double* pcl_density; // ori_pcl_num
-		Displacement *pcl_disp; // ori_pcl_num
 		Velocity *pcl_v; // ori_pcl_num
+		Displacement* pcl_disp; // ori_pcl_num
 		Stress* pcl_stress; // ori_pcl_num
 		Strain* pcl_strain; // ori_pcl_num
 		Strain* pcl_estrain; // ori_pcl_num
 		Strain* pcl_pstrain; // ori_pcl_num
+		ShapeFunc* pcl_N; // ori_pcl_num
 	};
 	
 protected:
@@ -112,7 +131,6 @@ protected:
 	Force *pcl_t; // ori_pcl_num
 	Position* pcl_pos; // ori_pcl_num
 	double* pcl_vol; // ori_pcl_num
-	ShapeFunc* pcl_N; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
 
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
@@ -135,19 +153,16 @@ protected:
 	Position* node_pos; // node_num
 
 	// element calculation data
-	size_t *elem_substep_id; // elem_num
+	double* elem_pcl_m; // elem_num
 	double *elem_density; // elem_num
-	double *elem_pcl_m; // elem_num
-	double *elem_pcl_vol; // elem_num
 	StrainInc *elem_de; // elem_num
 	double *elem_m_de_vol; // elem_num
 
 	// element-node calculation data
 	ElemNodeVM* elem_node_vm; // elem_num * 4
-	ElemNodeForce* elem_node_force; // elem_num * 4
+	ElemNodeForce *elem_node_force; // elem_num * 4
 	
 	// node calculation data
-	size_t *node_substep_id; // node_num
 	Acceleration *node_a; // node_num
 	Velocity *node_v; // node_num
 	NodeHasVBC *node_has_vbc; // node_num
@@ -227,47 +242,23 @@ public:
 	void init_fixed_vz_bc(size_t vz_bc_num, const size_t *vz_bcs);
 
 protected:
-	inline void cal_N(
-		double p_x,
-		double p_y,
-		double p_z,
-		size_t e_id,
-		ShapeFunc& p_N
-		)
-	{
-#define N_min (1.0e-8)
-		DShapeFuncABC& e_dN_abc = elem_dN_abc[e_id];
-		DShapeFuncD& e_dN_d = elem_dN_d[e_id];
-		p_N.N1 = e_dN_abc.a1 * p_x + e_dN_abc.b1 * p_y + e_dN_abc.c1 * p_z + e_dN_d.d1;
-		if (p_N.N1 < N_min)
-			p_N.N1 = N_min;
-		p_N.N2 = e_dN_abc.a2 * p_x + e_dN_abc.b2 * p_y + e_dN_abc.c2 * p_z + e_dN_d.d2;
-		if (p_N.N2 < N_min)
-			p_N.N2 = N_min;
-		p_N.N3 = e_dN_abc.a3 * p_x + e_dN_abc.b3 * p_y + e_dN_abc.c3 * p_z + e_dN_d.d3;
-		if (p_N.N3 < N_min)
-			p_N.N3 = N_min;
-		p_N.N4 = e_dN_abc.a4 * p_x + e_dN_abc.b4 * p_y + e_dN_abc.c4 * p_z + e_dN_d.d4;
-		if (p_N.N4 < N_min)
-			p_N.N4 = N_min;
-#undef N_min
-	}
-
+public:
 	inline bool is_in_element(
 		double pcl_x,
 		double pcl_y,
 		double pcl_z,
-		size_t elem_id
+		size_t elem_id,
+		ShapeFunc& p_N
 		) noexcept
 	{
 		DShapeFuncABC& e_dN_abc = elem_dN_abc[elem_id];
 		DShapeFuncD& e_dN_d = elem_dN_d[elem_id];
-		double N1 = e_dN_abc.a1 * pcl_x + e_dN_abc.b1 * pcl_y + e_dN_abc.c1 * pcl_z + e_dN_d.d1;
-		double N2 = e_dN_abc.a2 * pcl_x + e_dN_abc.b2 * pcl_y + e_dN_abc.c2 * pcl_z + e_dN_d.d2;
-		double N3 = e_dN_abc.a3 * pcl_x + e_dN_abc.b3 * pcl_y + e_dN_abc.c3 * pcl_z + e_dN_d.d3;
-		double N4 = e_dN_abc.a4 * pcl_x + e_dN_abc.b4 * pcl_y + e_dN_abc.c4 * pcl_z + e_dN_d.d4;
-		return N1 >= 0.0 && N1 <= 1.0 && N2 >= 0.0 && N2 <= 1.0
-			&& N3 >= 0.0 && N3 <= 1.0 && N4 >= 0.0 && N4 <= 1.0;
+		p_N.N1 = e_dN_abc.a1 * pcl_x + e_dN_abc.b1 * pcl_y + e_dN_abc.c1 * pcl_z + e_dN_d.d1;
+		p_N.N2 = e_dN_abc.a2 * pcl_x + e_dN_abc.b2 * pcl_y + e_dN_abc.c2 * pcl_z + e_dN_d.d2;
+		p_N.N3 = e_dN_abc.a3 * pcl_x + e_dN_abc.b3 * pcl_y + e_dN_abc.c3 * pcl_z + e_dN_d.d3;
+		p_N.N4 = e_dN_abc.a4 * pcl_x + e_dN_abc.b4 * pcl_y + e_dN_abc.c4 * pcl_z + e_dN_d.d4;
+		return p_N.N1 >= 0.0 && p_N.N1 <= 1.0 && p_N.N2 >= 0.0 && p_N.N2 <= 1.0
+			&& p_N.N3 >= 0.0 && p_N.N3 <= 1.0 && p_N.N4 >= 0.0 && p_N.N4 <= 1.0;
 	}
 	
 	// background grid for mesh
@@ -282,13 +273,14 @@ protected:
 	inline size_t find_pcl_in_which_elem(
 		double pcl_x,
 		double pcl_y,
-		double pcl_z
+		double pcl_z,
+		ShapeFunc& p_N
 		) noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu ||
 			pcl_z < grid_zl || pcl_z > grid_zu)
-			return elem_num;
+			return SIZE_MAX;
 		size_t x_id, y_id, z_id, elem_id;
 		x_id = (pcl_x - grid_xl) / grid_hx;
 		y_id = (pcl_y - grid_yl) / grid_hy;
@@ -299,21 +291,21 @@ protected:
 			 el_id < elem_end_id; ++el_id)
 		{
 			elem_id = grid_elem_list_id_array[el_id];
-			if (is_in_element(pcl_x, pcl_y, pcl_z, elem_id))
+			if (is_in_element(pcl_x, pcl_y, pcl_z, elem_id, p_N))
 				return elem_id;
 		}
-		return elem_num;
+		return SIZE_MAX;
 	}
 
 protected:
 	size_t* contact_substep_id; // ori_pcl_num
 	Position* prev_contact_pos; // ori_pcl_num
-	Force* prev_contact_force; // ori_pcl_num
+	Force* prev_contact_tan_force; // ori_pcl_num
 
 	bool rigid_cylinder_is_valid;
-	double Kn_cont, Kt_cont;
 	RigidCylinder rigid_cylinder;
-
+	RoughContact3D rough_contact;
+	
 	char* contact_mem;
 	void clear_contact_mem();
 	void alloc_contact_mem(size_t num);
@@ -321,21 +313,19 @@ protected:
 public:
 	bool has_rigid_cylinder() { return rigid_cylinder_is_valid; }
 	RigidCylinder &get_rigid_cylinder() { return rigid_cylinder; }
+	RoughContact3D& get_contact_model() { return rough_contact; }
 	inline void init_rigid_cylinder(
 		double _Kn_cont, double _Kt_cont,
 		double x, double y, double z,
 		double h, double r)
 	{
 		rigid_cylinder_is_valid = true;
-		Kn_cont = _Kn_cont;
-		Kt_cont = _Kt_cont;
 		rigid_cylinder.init(x, y, z, h, r);
+		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 	}
 	inline void set_rigid_cylinder_velocity(
 		double vx, double vy, double vz)
-	{
-		rigid_cylinder.set_vbc(vx, vy, vz);
-	}
+	{ rigid_cylinder.set_vbc(vx, vy, vz); }
 
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -346,6 +336,126 @@ public:
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend class PclVar_T3D_ME_mt;
+};
+
+#include "ParticleVariablesGetter.h"
+
+class PclVar_T3D_ME_mt : public ParticleVariablesGetter
+{
+public:
+	Model_T3D_ME_mt *pmodel;
+	Model_T3D_ME_mt::SortedPclVarArrays *cur_sorted_pcl_vars;
+	size_t pcl_id;
+
+	size_t get_index() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_index[pcl_id]; }
+	double get_m() const noexcept override
+	{ return pmodel->pcl_m[cur_sorted_pcl_vars->pcl_index[pcl_id]]; }
+	double get_bfx() const noexcept override
+	{ return pmodel->pcl_bf[cur_sorted_pcl_vars->pcl_index[pcl_id]].fx; }
+	double get_bfy() const noexcept override
+	{ return pmodel->pcl_bf[cur_sorted_pcl_vars->pcl_index[pcl_id]].fy; }
+	double get_bfz() const noexcept override
+	{ return pmodel->pcl_bf[cur_sorted_pcl_vars->pcl_index[pcl_id]].fz; }
+	double get_tx() const noexcept override
+	{ return pmodel->pcl_t[cur_sorted_pcl_vars->pcl_index[pcl_id]].fx; }
+	double get_ty() const noexcept override
+	{ return pmodel->pcl_t[cur_sorted_pcl_vars->pcl_index[pcl_id]].fy; }
+	double get_tz() const noexcept override
+	{ return pmodel->pcl_t[cur_sorted_pcl_vars->pcl_index[pcl_id]].fz; }
+	double get_x() const noexcept override
+	{ return pmodel->pcl_pos[cur_sorted_pcl_vars->pcl_index[pcl_id]].x; }
+	double get_y() const noexcept override
+	{ return pmodel->pcl_pos[cur_sorted_pcl_vars->pcl_index[pcl_id]].y; }
+	double get_z() const noexcept override
+	{ return pmodel->pcl_pos[cur_sorted_pcl_vars->pcl_index[pcl_id]].z; }
+	double get_vol() const noexcept override
+	{ return pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]]; }
+	double get_square_r() const noexcept override
+	{
+		double p_vol = pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]];
+		return 0.5 * pow(p_vol, 0.333333);
+	}
+	double get_circle_r() const noexcept override
+	{
+		double p_vol = pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]];
+		return pow(0.75 / 3.14159265359 * p_vol, 0.333333);
+	}
+	MatModel::MaterialModel* get_mat_model() const noexcept override
+	{ return pmodel->pcl_mat_model[cur_sorted_pcl_vars->pcl_index[pcl_id]]; }
+	double get_density() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_density[pcl_id]; }
+	double get_vx() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_v[pcl_id].vx; }
+	double get_vy() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_v[pcl_id].vy; }
+	double get_vz() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_v[pcl_id].vz; }
+	double get_ux() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_disp[pcl_id].ux; }
+	double get_uy() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_disp[pcl_id].uy; }
+	double get_uz() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_disp[pcl_id].uz; }
+	double get_s11() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_stress[pcl_id].s11; }
+	double get_s22() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_stress[pcl_id].s22; }
+	double get_s33() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_stress[pcl_id].s33; }
+	double get_s12() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_stress[pcl_id].s12; }
+	double get_s23() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_stress[pcl_id].s23; }
+	double get_s31() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_stress[pcl_id].s31; }
+	double get_e11() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_strain[pcl_id].e11; }
+	double get_e22() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_strain[pcl_id].e22; }
+	double get_e33() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_strain[pcl_id].e33; }
+	double get_e12() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_strain[pcl_id].e12; }
+	double get_e23() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_strain[pcl_id].e23; }
+	double get_e31() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_strain[pcl_id].e31; }
+	double get_ee11() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e11; }
+	double get_ee22() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e22; }
+	double get_ee33() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e33; }
+	double get_ee12() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e12; }
+	double get_ee23() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e23; }
+	double get_ee31() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e31; }
+	double get_pe11() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e11; }
+	double get_pe22() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e22; }
+	double get_pe33() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e33; }
+	double get_pe12() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e12; }
+	double get_pe23() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e23; }
+	double get_pe31() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e31; }
+	double get_N1() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_N[pcl_id].N1; }
+	double get_N2() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_N[pcl_id].N2; }
+	double get_N3() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_N[pcl_id].N3; }
+	double get_N4() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_N[pcl_id].N4; }
 };
 
 #endif

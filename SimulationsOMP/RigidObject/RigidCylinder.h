@@ -15,7 +15,11 @@ protected:
 		Point3D centre;
 	};
 
-	double vx, vy, vz;
+	union
+	{
+		struct { double vx, vy, vz; };
+		Vector3D velocity;
+	};
 
 	union
 	{
@@ -35,14 +39,18 @@ public:
 	explicit RigidCylinder();
 	~RigidCylinder();
 
+	double get_h() const noexcept { return h; }
+	double get_r() const noexcept { return r; }
 	const Point3D& get_centre() const noexcept { return centre; }
+	const Vector3D& get_velocity() const noexcept { return velocity; }
 	const ContactForce3D& get_cont_force() const noexcept { return cont_force; }
-
+	
 	void init(double _x, double _y, double _z,
 		double _h, double _r) noexcept;
-
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
-	
+	void set_cont_force(double fx, double fy, double fz,
+						double mx, double my, double mz) noexcept;
+
 	inline void reset_f_cont() noexcept
 	{
 		fx_cont = 0.0;
@@ -73,6 +81,16 @@ public:
 		gp.z = lp.z + z;
 	}
 
+	inline void get_local_point(
+		const Point3D& gp,
+		Point3D& lp
+		) const noexcept
+	{
+		lp.x = gp.x + x;
+		lp.y = gp.y + y;
+		lp.z = gp.z + z;
+	}
+
 	inline void get_global_vector(
 		const Vector3D &lv,
 		Vector3D &gv
@@ -83,9 +101,19 @@ public:
 		gv.z = lv.z;
 	}
 
+	inline void get_local_vector(
+		const Vector3D& gv,
+		Vector3D& lv
+		) const noexcept
+	{
+		lv.x = gv.x;
+		lv.y = gv.y;
+		lv.z = gv.z;
+	}
+
 	bool detect_collision_with_point(
-		double p_x,	double p_y,	double p_z, double p_vol,
-		double& dist, Vector3D& lnorm, Point3D& lcontpos
+		double p_x,	double p_y,	double p_z, double p_r,
+		double &dist, Vector3D& lnorm, Point3D& lcontpos
 		) noexcept;
 
 	inline void update_motion(double dt) noexcept

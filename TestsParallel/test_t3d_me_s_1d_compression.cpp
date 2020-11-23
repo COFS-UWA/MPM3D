@@ -109,7 +109,7 @@ void test_t3d_me_s_1d_compression(int argc, char **argv)
 
 	Step_T3D_ME_s step("step1");
 	step.set_model(model);
-	step.set_step_time(2.0);
+	step.set_step_time(2.5);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -135,6 +135,6 @@ void test_t3d_me_s_1d_compression_result(int argc, char **argv)
 	app.set_color_map_fld_range(-10.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_me_s_1d_compression");
-	//app.set_gif_name("t3d_me_s_1d_compression");
+	app.set_gif_name("t3d_me_s_1d_compression");
 	app.start();
 }

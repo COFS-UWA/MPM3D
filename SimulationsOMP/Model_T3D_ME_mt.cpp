@@ -1,7 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
-#include <fstream>
 #include <iomanip>
+#include <fstream>
 
 #include "TetrahedronUtils.h"
 #include "SearchingGrid3D.hpp"
@@ -93,9 +93,7 @@ void Model_T3D_ME_mt::alloc_mesh(
 	size_t mem_len = (sizeof(ElemNodeIndex)
 		+ sizeof(size_t) * 8
 		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
-		+ sizeof(double)
-		+ sizeof(size_t) + sizeof(double) * 4
-		+ sizeof(StrainInc)
+		+ sizeof(double) * 4 + sizeof(StrainInc)
 		+ sizeof(ElemNodeVM) * 4
 		+ sizeof(ElemNodeForce) * 4) * e_num
 		+ (sizeof(size_t) * 2 + sizeof(Position)
@@ -121,13 +119,9 @@ void Model_T3D_ME_mt::alloc_mesh(
 	cur_mem += sizeof(double) * elem_num;
 	node_pos = (Position *)cur_mem; // node_num
 	cur_mem += sizeof(Position) * node_num;
-	elem_substep_id = (size_t *)cur_mem; // elem_num
-	cur_mem += sizeof(size_t) * elem_num;
 	elem_density = (double *)cur_mem; // elem_num
 	cur_mem += sizeof(double) * elem_num;
 	elem_pcl_m = (double *)cur_mem; // elem_num
-	cur_mem += sizeof(double) * elem_num;
-	elem_pcl_vol = (double *)cur_mem; // elem_num
 	cur_mem += sizeof(double) * elem_num;
 	elem_de = (StrainInc *)cur_mem; // elem_num
 	cur_mem += sizeof(StrainInc) * elem_num;
@@ -137,8 +131,6 @@ void Model_T3D_ME_mt::alloc_mesh(
 	cur_mem += sizeof(ElemNodeVM) * elem_num * 4;
 	elem_node_force = (ElemNodeForce *)cur_mem; // elem_num * 4
 	cur_mem += sizeof(ElemNodeForce) * elem_num * 4;
-	node_substep_id = (size_t *)cur_mem; // node_num
-	cur_mem += sizeof(size_t) * node_num;
 	node_a = (Acceleration *)cur_mem; // node_num
 	cur_mem += sizeof(Acceleration) * node_num;
 	node_v = (Velocity *)cur_mem; // node_num
@@ -173,11 +165,10 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 		n_vbc.has_vz_bc = false;
 	}
 
-	size_t elem_num4 = elem_num * 4;
+	const size_t elem_num4 = elem_num * 4;
 	size_t *elem_id_array_tmp = new size_t[elem_num4 * 2 + node_num];
 	size_t *node_elem_id_array_tmp = elem_id_array_tmp + elem_num4;
 	size_t *node_bin_tmp = node_elem_id_array_tmp + elem_num4;
-	
 	memset(node_bin_tmp, 0, sizeof(size_t) * node_num);
 
 	// init elem connectivity, area and shape functions
@@ -413,12 +404,12 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	ori_pcl_num = num;
 	pcl_num = ori_pcl_num;
 	mem_len = (sizeof(double) + sizeof(Force) * 2
-			+ sizeof(Position)
-			+ sizeof(double) + sizeof(ShapeFunc)
+			+ sizeof(Position) + sizeof(double)
 			+ sizeof(MatModel::MaterialModel*)
 			+ (sizeof(size_t) + sizeof(double)
 			 + sizeof(Displacement) + sizeof(Velocity)
-			 + sizeof(Stress) + sizeof(Strain) * 3) * 2
+			 + sizeof(Stress) + sizeof(Strain) * 3
+			 + sizeof(ShapeFunc)) * 2
 			) * num;
 	pcl_mem_raw = new char[mem_len];
 
@@ -433,8 +424,6 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Position) * num;
 	pcl_vol = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
-	pcl_N = (ShapeFunc*)cur_mem;
-	cur_mem += sizeof(ShapeFunc) * num;
 	pcl_mat_model = (MatModel::MaterialModel**)cur_mem;
 	cur_mem += sizeof(MatModel::MaterialModel*) * num;
 
@@ -455,6 +444,8 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Strain) * num;
 	spva0.pcl_pstrain = (Strain*)cur_mem;
 	cur_mem += sizeof(Strain) * num;
+	spva0.pcl_N = (ShapeFunc*)cur_mem;
+	cur_mem += sizeof(ShapeFunc) * num;
 
 	SortedPclVarArrays &spva1 = sorted_pcl_var_arrays[1];
 	spva1.pcl_index = (size_t *)cur_mem;
@@ -473,6 +464,8 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Strain) * num;
 	spva1.pcl_pstrain = (Strain*)cur_mem;
 	cur_mem += sizeof(Strain) * num;
+	spva1.pcl_N = (ShapeFunc*)cur_mem;
+	cur_mem += sizeof(ShapeFunc) * num;
 
 	alloc_contact_mem(num);
 }
@@ -865,5 +858,5 @@ void Model_T3D_ME_mt::alloc_contact_mem(size_t num)
 	cur_mem += sizeof(size_t) * num;
 	prev_contact_pos = (Position *)cur_mem;
 	cur_mem += sizeof(Position) * num;
-	prev_contact_force = (Force *)cur_mem;
+	prev_contact_tan_force = (Force *)cur_mem;
 }

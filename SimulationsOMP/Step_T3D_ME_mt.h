@@ -1,9 +1,6 @@
 #ifndef __Step_T3D_ME_mt_h__
 #define __Step_T3D_ME_mt_h__
 
-#include <fstream>
-#include <iomanip>
-
 #include "CacheAlignedMem.h"
 #include "Step_OMP.h"
 #include "Model_T3D_ME_mt.h"
@@ -47,95 +44,82 @@ public:
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_ME_mt::ElemNodeForce ElemNodeForce;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
-
-	struct SortedPclVarArrays
-	{
-		size_t* pcl_index; // ori_pcl_num
-		double* pcl_density; // ori_pcl_num
-		Displacement* pcl_disp; // ori_pcl_num
-		Velocity* pcl_v; // ori_pcl_num
-		Stress* pcl_stress; // ori_pcl_num
-		Strain* pcl_strain; // ori_pcl_num
-		Strain* pcl_estrain; // ori_pcl_num
-		Strain* pcl_pstrain; // ori_pcl_num
-		size_t* pcl_in_elem; // ori_pcl_num
-	};
-
+	typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+	
 protected:
 	double* pcl_m;
 	Force *pcl_bf;
 	Force *pcl_t;
 	Position* pcl_pos;
 	double* pcl_vol;
-	ShapeFunc* pcl_N;
 	MatModel::MaterialModel** pcl_mat_model;
-
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
-	size_t *pcl_in_elem_tmp;
 
 	size_t* contact_substep_id; // ori_pcl_num
 	Position* prev_contact_pos; // ori_pcl_num
-	Force* prev_contact_force; // ori_pcl_num
+	Force* prev_contact_tan_force; // ori_pcl_num
 
+	size_t elem_num;
+	size_t node_num;
+	
 	ElemNodeIndex* elem_node_id;
-	size_t* elem_id_array;
-	size_t* node_elem_id_array;
-	size_t* node_elem_list;
 	DShapeFuncABC* elem_dN_abc;
 	DShapeFuncD* elem_dN_d;
 	double* elem_vol;
 
-	size_t* elem_substep_id;
 	double* elem_density;
 	double* elem_pcl_m;
-	double* elem_pcl_vol;
 	StrainInc* elem_de;
 	double* elem_m_de_vol;
 
 	ElemNodeVM *elem_node_vm;
 	ElemNodeForce *elem_node_force;
 
-	size_t *node_substep_id;
 	Acceleration *node_a;
 	Velocity *node_v;
 	NodeHasVBC* node_has_vbc;
 	double *node_am;
 	double *node_de_vol;
 
-	// task division
+	// thread-wise data
 	union ThreadData
 	{
 		struct
 		{
 			size_t sorted_pcl_var_id;
+			size_t sorted_pcl_in_elem_id;
+			PclVar_T3D_ME_mt pcl_var_getter;
 		};
-		char padding[Cache_Alignment];
+		char padding[Cache_Alignment * 2];
 	};
 	ThreadData* thread_datas;
-	size_t *node_range;
-	size_t *node_elem_range;
-
+	
+	size_t *valid_elem_id; // elem_num
+	size_t *pcl_in_elems[2]; // pcl_num
+	size_t *prev_pcl_ids[2]; // pcl_num
+	size_t *node_has_elems[2]; // elem_num * 4
+	size_t *node_elem_pairs[2]; // elem_num * 4
 	// radix sort
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
 
-	double Kn_cont, Kt_cont;
 	RigidCylinder* prc;
-	
-	size_t elem_num, pcl_num;
+	ContactModel3D *pcf;
+
+	size_t valid_elem_num, valid_pcl_num;
 	double rc_fx_cont, rc_fy_cont, rc_fz_cont;
 	double rc_mx_cont, rc_my_cont, rc_mz_cont;
 
-	CacheAlignedMem task_range_mem;
-	CacheAlignedMem radix_sort_var_mem;
-	CacheAlignedMem elem_bin_mem;
+	CacheAlignedMem thread_mem;
+	CacheAlignedMem cal_mem;
 
 	int apply_rigid_cylinder(
 		size_t p_id0, size_t p_id1,
 		size_t *pcl_in_elem,
 		SortedPclVarArrays &cur_spva,
 		ContactForce3D &rc_cf,
-		size_t substp_id) noexcept;
+		size_t substp_id,
+		ThreadData &thd) noexcept;
 
 public:
 	int init_calculation() override;
@@ -147,7 +131,7 @@ public:
 	Step_T3D_ME_mt(const char* _name);
 	~Step_T3D_ME_mt();
 
-	inline size_t get_pcl_num() const noexcept { return pcl_num; }
+	inline size_t get_pcl_num() const noexcept { return valid_pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
 	inline double get_rc_fx_contact() const noexcept { return rc_fx_cont; }
 	inline double get_rc_fy_contact() const noexcept { return rc_fy_cont; }

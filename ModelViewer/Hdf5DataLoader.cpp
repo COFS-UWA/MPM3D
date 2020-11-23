@@ -78,7 +78,10 @@ int Hdf5DataLoader::set_time_history(
 	return 0;
 }
 
-int Hdf5DataLoader::load_frame_data(size_t fm_id)
+int Hdf5DataLoader::load_frame_data(
+	size_t fm_id,
+	bool need_mat_model
+	)
 {
 	if (frame_id == fm_id)
 		return 0;
@@ -105,9 +108,164 @@ int Hdf5DataLoader::load_frame_data(size_t fm_id)
 			goto exit;
 	}
 
+	if (need_mat_model && rf.has_group(frame_grp_id, "MaterialModel"))
+	{
+		mat_model_map.clear();
+		MatModelPointer mm_pt;
+
+		hid_t mat_model_id = rf.open_group(frame_grp_id, "MaterialModel");
+
+		if (rf.has_group(mat_model_id, "LinearElasticity"))
+		{
+			hid_t le_grp = rf.open_group(mat_model_id, "LinearElasticity");
+			hid_t le_dt = Model_hdf5_utilities::get_le_hdf5_dt_id();
+			rf.read_attribute(mat_model_id, "LinearElasticity_num", LinearElasticity_num);
+			LinearElasticity_mem.reserve(LinearElasticity_num);
+			LinearElasticityStateData *le_mem = LinearElasticity_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"LinearElasticity",
+				LinearElasticity_num,
+				le_mem,
+				le_dt
+				);
+			mm_pt.type = MatModelType::LinearElasticity;
+			for (size_t mm_id = 0; mm_id < LinearElasticity_num; ++mm_id)
+			{
+				LinearElasticityStateData& mm = le_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			H5Tclose(le_dt);
+			rf.close_group(le_grp);
+		}
+
+		if (rf.has_group(mat_model_id, "ModifiedCamClay"))
+		{
+			hid_t mcc_grp = rf.open_group(mat_model_id, "ModifiedCamClay");
+			hid_t mcc_dt = Model_hdf5_utilities::get_mcc_hdf5_dt_id();
+			rf.read_attribute(mat_model_id, "ModifiedCamClay_num", ModifiedCamClay_num);
+			ModifiedCamClay_mem.reserve(ModifiedCamClay_num);
+			ModifiedCamClayStateData* mcc_mem = ModifiedCamClay_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"ModifiedCamClay",
+				ModifiedCamClay_num,
+				mcc_mem,
+				mcc_dt
+				);
+			mm_pt.type = MatModelType::ModifiedCamClay;
+			for (size_t mm_id = 0; mm_id < ModifiedCamClay_num; ++mm_id)
+			{
+				ModifiedCamClayStateData &mm = mcc_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			H5Tclose(mcc_dt);
+			rf.close_group(mcc_grp);
+		}
+
+		if (rf.has_group(mat_model_id, "VonMises"))
+		{
+			hid_t vm_grp = rf.open_group(mat_model_id, "VonMises");
+			hid_t vm_dt = Model_hdf5_utilities::get_von_mises_hdf5_dt_id();
+			rf.read_attribute(mat_model_id, "VonMises_num", VonMises_num);
+			VonMises_mem.reserve(VonMises_num);
+			VonMisesStateData* vm_mem = VonMises_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"VonMises",
+				VonMises_num,
+				vm_mem,
+				vm_dt
+				);
+			mm_pt.type = MatModelType::VonMises;
+			for (size_t mm_id = 0; mm_id < VonMises_num; ++mm_id)
+			{
+				VonMisesStateData &mm = vm_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			H5Tclose(vm_dt);
+			rf.close_group(vm_grp);
+		}
+
+		if (rf.has_group(mat_model_id, "Tresca"))
+		{
+			hid_t tc_grp = rf.open_group(mat_model_id, "Tresca");
+			hid_t tc_dt = Model_hdf5_utilities::get_tresca_hdf5_dt_id();
+			rf.read_attribute(mat_model_id, "Tresca_num", Tresca_num);
+			Tresca_mem.reserve(Tresca_num);
+			TrescaStateData* tc_mem = Tresca_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"Tresca",
+				Tresca_num,
+				tc_mem,
+				tc_dt
+				);
+			mm_pt.type = MatModelType::Tresca;
+			for (size_t mm_id = 0; mm_id < Tresca_num; ++mm_id)
+			{
+				TrescaStateData &mm = tc_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			H5Tclose(tc_dt);
+			rf.close_group(tc_grp);
+		}
+
+		rf.close_group(mat_model_id);
+	}
+
 	frame_id = fm_id;
 exit:
 	rf.close_group(pcl_data_id);
 	rf.close_group(frame_grp_id);
 	return 0;
 }
+
+using Model_hdf5_utilities::LinearElasticityStateData;
+using Model_hdf5_utilities::ModifiedCamClayStateData;
+using Model_hdf5_utilities::VonMisesStateData;
+using Model_hdf5_utilities::TrescaStateData;
+
+const Hdf5DataLoader::MatModelInfo
+Hdf5DataLoader::mat_model_info[] = {
+	{
+		sizeof(LinearElasticityStateData),
+		offsetof(LinearElasticityStateData, s11),
+		offsetof(LinearElasticityStateData, s22),
+		offsetof(LinearElasticityStateData, s33),
+		offsetof(LinearElasticityStateData, s12),
+		offsetof(LinearElasticityStateData, s23),
+		offsetof(LinearElasticityStateData, s31)
+	},
+	{
+		sizeof(ModifiedCamClayStateData),
+		offsetof(ModifiedCamClayStateData, s11),
+		offsetof(ModifiedCamClayStateData, s22),
+		offsetof(ModifiedCamClayStateData, s33),
+		offsetof(ModifiedCamClayStateData, s12),
+		offsetof(ModifiedCamClayStateData, s23),
+		offsetof(ModifiedCamClayStateData, s31)
+	},
+	{
+		sizeof(VonMisesStateData),
+		offsetof(VonMisesStateData, s11),
+		offsetof(VonMisesStateData, s22),
+		offsetof(VonMisesStateData, s33),
+		offsetof(VonMisesStateData, s12),
+		offsetof(VonMisesStateData, s23),
+		offsetof(VonMisesStateData, s31)
+	},
+	{
+		sizeof(TrescaStateData),
+		offsetof(TrescaStateData, s11),
+		offsetof(TrescaStateData, s22),
+		offsetof(TrescaStateData, s33),
+		offsetof(TrescaStateData, s12),
+		offsetof(TrescaStateData, s23),
+		offsetof(TrescaStateData, s31)
+	}
+};

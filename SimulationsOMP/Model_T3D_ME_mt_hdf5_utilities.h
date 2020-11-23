@@ -89,6 +89,7 @@ struct ParticleData
 		)
 	{
 		typedef Step_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+		sorted_var_id ^= 1;
 		SortedPclVarArrays &spva = stp.sorted_pcl_var_arrays[sorted_var_id];
 		id = spva.pcl_index[pcl_offset];
 		Step_T3D_ME_mt::Position &p_p = stp.pcl_pos[id];
@@ -328,8 +329,8 @@ int load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t
 int output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-//int output_rigid_circle_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-//int load_rigid_circle_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_rigid_cylinder_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 // output the whole model to ModelData
 int output_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf);

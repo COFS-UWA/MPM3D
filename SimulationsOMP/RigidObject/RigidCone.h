@@ -11,11 +11,15 @@ protected:
 
 	union
 	{
-		Point3D centre;
 		struct { double x, y, z; };
+		Point3D centre;
 	};
 
-	double vx, vy, vz;
+	union
+	{
+		struct { double vx, vy, vz; };
+		Vector3D velocity;
+	};
 
 	union
 	{
@@ -36,13 +40,18 @@ public:
 	explicit RigidCone();
 	~RigidCone();
 
+	double get_r() const noexcept { return r; }
+	double get_h_tip() const noexcept { return h_tip; }
+	double get_h_shaft() const noexcept { return h_shaft; }
 	const Point3D& get_centre() const noexcept { return centre; }
+	const Vector3D& get_velocity() const noexcept { return velocity; }
 	const ContactForce3D& get_cont_force() const noexcept { return cont_force; }
 
 	void init(double _x, double _y, double _z, double _r,
 		double _tip_h, double _shaft_h) noexcept;
-	
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
+	void set_cont_force(double fx, double fy, double fz,
+						double mx, double my, double mz) noexcept;
 
 	inline void reset_f_cont() noexcept
 	{

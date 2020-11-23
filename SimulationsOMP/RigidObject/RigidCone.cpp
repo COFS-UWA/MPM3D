@@ -55,6 +55,23 @@ void RigidCone::set_vbc(
 	vz = _vz;
 }
 
+void RigidCone::set_cont_force(
+	double fx,
+	double fy,
+	double fz,
+	double mx,
+	double my,
+	double mz
+	) noexcept
+{
+	fx_cont = fx;
+	fy_cont = fy;
+	fz_cont = fz;
+	mx_cont = mx;
+	my_cont = my;
+	mz_cont = mz;
+}
+
 bool RigidCone::detect_collision_with_point(
 	double p_x,
 	double p_y,

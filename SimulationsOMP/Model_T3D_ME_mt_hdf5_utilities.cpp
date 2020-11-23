@@ -4,6 +4,7 @@
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
 #include "Model_T3D_ME_mt_hdf5_utilities.h"
+#include "RigidObject/RigidObject_hdf5_utilities.h"
 
 namespace Model_T3D_ME_mt_hdf5_utilities
 {
@@ -430,6 +431,60 @@ int load_material_model_from_hdf5_file(
 	hid_t mc_grp_id = rf.open_group(grp_id, "MaterialModel");
 	load_material_model_container_from_hdf5_file(md, rf, mc_grp_id);
 	rf.close_group(mc_grp_id);
+	return 0;
+}
+
+int output_rigid_cylinder_to_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_rigid_cylinder())
+		return 0;
+
+	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCylinder");
+
+	auto &rc = md.get_rigid_cylinder();
+	auto& cf = md.get_contact_model();
+	double Kn_cont = cf.get_Kn_cont();
+	double Kt_cont = cf.get_Kt_cont();
+	rf.write_attribute(rc_grp_id, "Kn_cont", Kn_cont);
+	rf.write_attribute(rc_grp_id, "Kt_cont", Kt_cont);
+
+	RigidObject_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
+
+	rf.close_group(rc_grp_id);
+	return 0;
+}
+
+int load_rigid_cylinder_from_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(grp_id, "RigidCylinder"))
+		return 0;
+
+	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCircle");
+
+	double Kn_cont, Kt_cont;
+	rf.read_attribute(rc_grp_id, "Kn_cont", Kn_cont);
+	rf.read_attribute(rc_grp_id, "Kt_cont", Kt_cont);
+	auto &cm = md.get_contact_model();
+	cm.set_K_cont(Kn_cont, Kt_cont);
+
+	RigidObject_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
+
+	md.rigid_cylinder_is_valid = true;
+	rf.close_group(rc_grp_id);
 	return 0;
 }
 

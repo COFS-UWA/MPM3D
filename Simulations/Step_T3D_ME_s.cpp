@@ -1,6 +1,8 @@
 #include "Simulations_pcp.h"
 
-#include <iostream>
+#include <iomanip>
+#include <fstream>
+
 #include <assert.h>
 #include <cmath>
 
@@ -18,7 +20,7 @@ Step_T3D_ME_s::~Step_T3D_ME_s() {}
 
 int Step_T3D_ME_s::init_calculation()
 {
-	//res_file_t3d_me_s.open("t3d_stp_s.txt", std::ios::binary | std::ios::out);
+	res_file_t3d_me_s.open("t3d_stp_s.txt", std::ios::binary | std::ios::out);
 
 	Model_T3D_ME_s &md = *model;
 
@@ -446,6 +448,10 @@ int solve_substep_T3D_ME_s(void *_self)
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
 			Node &n4 = md.nodes[e.n4];
+
+			if (e.id == 199)
+				int fef = 0;
+
 			// strain increment
 			de11 = n1.dux * e.dN1_dx + n2.dux * e.dN2_dx + n3.dux * e.dN3_dx + n4.dux * e.dN4_dx;
 			de22 = n1.duy * e.dN1_dy + n2.duy * e.dN2_dy + n3.duy * e.dN3_dy + n4.duy * e.dN4_dy;
@@ -568,7 +574,17 @@ int solve_substep_T3D_ME_s(void *_self)
 			pcl.s31 += dstress[5];
 
 			// density
-			//pcl.density /= 1.0 + e.de_vol;
+			pcl.density /= 1.0 + e.de_vol;
+
+			//res_file_t3d_me_s
+			//	<< pcl_id << ": "
+			//	<< pcl.pe->id << ", "
+			//	<< de11 << ", "
+			//	<< de22 << ", "
+			//	<< de33 << ", "
+			//	<< de12 << ", "
+			//	<< de23 << ", "
+			//	<< de31 << "\n";
 		}
 	}
 

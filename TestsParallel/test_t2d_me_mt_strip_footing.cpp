@@ -106,12 +106,12 @@ void test_t2d_me_mt_strip_footing_result(int argc, char** argv)
 	app.set_win_size(1600, 1000);
 	app.set_ani_time(8.0);
 	//app.set_display_range(-2.5, 2.5, -2.4, 0.1);
-	//app.set_res_file(rf, "loading", Hdf5Field::s22);
-	//app.set_color_map_fld_range(-20.0, 0.0);
+	app.set_res_file(rf, "loading", Hdf5Field::s22);
+	app.set_color_map_fld_range(-20.0, 0.0);
 	//app.set_res_file(rf, "loading", Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.013);
-	app.set_res_file(rf, "loading", Hdf5Field::vx);
-	app.set_color_map_fld_range(-0.003, 0.003);
+	//app.set_color_map_fld_range(0.0, 0.01);
+	//app.set_res_file(rf, "loading", Hdf5Field::vx);
+	//app.set_color_map_fld_range(-0.003, 0.003);
 	//app.set_png_name("t2d_me_mt_strip_footing");
 	app.set_gif_name("t2d_me_mt_strip_footing");
 	app.start();
