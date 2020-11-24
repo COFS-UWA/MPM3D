@@ -88,6 +88,7 @@ protected:
 		{
 			size_t sorted_pcl_var_id;
 			size_t sorted_pcl_in_elem_id;
+			size_t p_id0, p_id1;
 			PclVar_T3D_ME_mt pcl_var_getter;
 		};
 		char padding[Cache_Alignment * 2];
@@ -133,6 +134,7 @@ public:
 
 	inline size_t get_pcl_num() const noexcept { return valid_pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
+	inline size_t *get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
 	inline double get_rc_fx_contact() const noexcept { return rc_fx_cont; }
 	inline double get_rc_fy_contact() const noexcept { return rc_fy_cont; }
 	inline double get_rc_fz_contact() const noexcept { return rc_fz_cont; }

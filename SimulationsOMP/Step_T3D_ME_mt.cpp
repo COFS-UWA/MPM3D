@@ -82,7 +82,7 @@ int Step_T3D_ME_mt::init_calculation()
 	spva0.pcl_N = md_spva0.pcl_N;
 
 	Model_T3D_ME_mt::SortedPclVarArrays &md_spva1 = md.sorted_pcl_var_arrays[1];
-	SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[1];
+	SortedPclVarArrays &spva1 = sorted_pcl_var_arrays[1];
 	spva1.pcl_index = md_spva1.pcl_index;
 	spva1.pcl_density = md_spva1.pcl_density;
 	spva1.pcl_disp = md_spva1.pcl_disp;
@@ -118,7 +118,7 @@ int Step_T3D_ME_mt::init_calculation()
 	if (md.has_rigid_cylinder())
 	{
 		prc = &md.get_rigid_cylinder();
-		prc->reset_f_cont();
+		prc->reset_cont_force();
 		pcf = &md.get_contact_model();
 		rc_fx_cont = 0.0;
 		rc_fy_cont = 0.0;
@@ -176,12 +176,14 @@ int Step_T3D_ME_mt::init_calculation()
 		ThreadData &thd = thread_datas[my_th_id];
 		thd.sorted_pcl_var_id = 1;
 		thd.sorted_pcl_in_elem_id = 0;
+		thd.p_id0 = Block_Low(my_th_id, thread_num, md.pcl_num);
+		thd.p_id1 = Block_Low(my_th_id + 1, thread_num, md.pcl_num);
 		PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
 		pv_getter.pmodel = &md;
 
 		size_t p_id, ori_p_id, e_id;
-		size_t p_id0 = Block_Low(my_th_id, thread_num, md.pcl_num);
-		size_t p_id1 = Block_Low(my_th_id + 1, thread_num, md.pcl_num);
+		size_t p_id0 = thd.p_id0;
+		size_t p_id1 = thd.p_id1;
 		size_t pcl_in_mesh_num = 0;
 		size_t *pcl_in_elem0 = pcl_in_elems[0];
 		size_t *prev_pcl_id0 = prev_pcl_ids[0];
@@ -348,8 +350,7 @@ int substep_func_omp_T3D_ME_mt(
 	// sort particle variables
 	size_t p_id, bin_id, th_id, pos_id;
 	size_t digit_disp, elem_num_tmp, *other_cbin;
-	size_t p_id0 = Block_Low(my_th_id, thread_num, self.valid_pcl_num);
-	size_t p_id1 = Block_Low(my_th_id + 1, thread_num, self.valid_pcl_num);
+	size_t p_id0 = thd.p_id0, p_id1 = thd.p_id1;
 	size_t* elem_count_bin = self.elem_count_bin;
 	size_t* my_cbin = elem_count_bin + my_th_id * 0x100;
 	size_t* elem_sum_bin = self.elem_sum_bin;
@@ -402,14 +403,18 @@ int substep_func_omp_T3D_ME_mt(
 #pragma omp barrier
 	}
 	
-	// modify p_id0, p_id1
+	// update p_id0, p_id1
 	size_t e_id;
+	p_id0 = Block_Low(my_th_id, thread_num, self.valid_pcl_num);
 	e_id = pcl_in_elem0[p_id0];
 	while (p_id0 != SIZE_MAX && e_id == pcl_in_elem0[--p_id0]);
 	++p_id0;
+	p_id1 = Block_Low(my_th_id + 1, thread_num, self.valid_pcl_num);
 	e_id = pcl_in_elem0[p_id1];
 	while (p_id1 != SIZE_MAX && e_id == pcl_in_elem0[--p_id1]);
 	++p_id1;
+	thd.p_id0 = p_id0;
+	thd.p_id1 = p_id1;
 
 	// map pcl to mesh
 	size_t ori_p_id, prev_p_id, ne_id;
@@ -623,13 +628,13 @@ int substep_func_omp_T3D_ME_mt(
 			
 			ElemNodeIndex &eni = elem_node_id[e_id];
 			my_node_has_elem[ne_id] = eni.n1;
-			my_node_elem_pair[ne_id] = ne_id;
+			my_node_elem_pair[ne_id] = e_id * 4;
 			my_node_has_elem[++ne_id] = eni.n2;
-			my_node_elem_pair[ne_id] = ne_id;
+			my_node_elem_pair[ne_id] = e_id * 4 + 1;
 			my_node_has_elem[++ne_id] = eni.n3;
-			my_node_elem_pair[ne_id] = ne_id;
+			my_node_elem_pair[ne_id] = e_id * 4 + 2;
 			my_node_has_elem[++ne_id] = eni.n4;			
-			my_node_elem_pair[ne_id] = ne_id;
+			my_node_elem_pair[ne_id] = e_id * 4 + 3;
 
 			e_id = pcl_in_elem0[p_id + 1];
 
@@ -675,14 +680,6 @@ int substep_func_omp_T3D_ME_mt(
 #pragma omp critical
 	self.valid_elem_num += my_valid_elem_num;
 
-	//for (size_t n_id = 0; n_id < self.valid_elem_num * 4; ++n_id)
-	//{
-	//	res_file_t3d_me_mt << my_node_has_elem[n_id] << ", ";
-	//	if (n_id % 10 == 9)
-	//		res_file_t3d_me_mt << "\n";
-	//}
-	//res_file_t3d_me_mt << "\n";
-
 	if (md.has_rigid_cylinder())
 	{
 		ContactForce3D cf;
@@ -696,7 +693,7 @@ int substep_func_omp_T3D_ME_mt(
 			);
 
 #pragma omp critical
-		self.prc->combine_f_cont(cf);
+		self.prc->combine_cont_force(cf);
 	}
 
 	// sort node-elem pair according to node id
@@ -706,12 +703,9 @@ int substep_func_omp_T3D_ME_mt(
 	{
 		ne_id = ve_id * 4;
 		++my_cbin[data_digit(my_node_has_elem[ne_id], 0)];
-		++ne_id;
-		++my_cbin[data_digit(my_node_has_elem[ne_id], 0)];
-		++ne_id;
-		++my_cbin[data_digit(my_node_has_elem[ne_id], 0)];
-		++ne_id;
-		++my_cbin[data_digit(my_node_has_elem[ne_id], 0)];
+		++my_cbin[data_digit(my_node_has_elem[++ne_id], 0)];
+		++my_cbin[data_digit(my_node_has_elem[++ne_id], 0)];
+		++my_cbin[data_digit(my_node_has_elem[++ne_id], 0)];
 	}
 
 	my_sbin[0] = my_cbin[0];
@@ -742,16 +736,13 @@ int substep_func_omp_T3D_ME_mt(
 		pos_id = --my_sbin[data_digit(my_node_has_elem[ne_id], 0)];
 		node_has_elem0[pos_id] = my_node_has_elem[ne_id];
 		node_elem_pair0[pos_id] = my_node_elem_pair[ne_id];
-		++ne_id;
-		pos_id = --my_sbin[data_digit(my_node_has_elem[ne_id], 0)];
+		pos_id = --my_sbin[data_digit(my_node_has_elem[++ne_id], 0)];
 		node_has_elem0[pos_id] = my_node_has_elem[ne_id];
 		node_elem_pair0[pos_id] = my_node_elem_pair[ne_id];
-		++ne_id;
-		pos_id = --my_sbin[data_digit(my_node_has_elem[ne_id], 0)];
+		pos_id = --my_sbin[data_digit(my_node_has_elem[++ne_id], 0)];
 		node_has_elem0[pos_id] = my_node_has_elem[ne_id];
 		node_elem_pair0[pos_id] = my_node_elem_pair[ne_id];
-		++ne_id;
-		pos_id = --my_sbin[data_digit(my_node_has_elem[ne_id], 0)];
+		pos_id = --my_sbin[data_digit(my_node_has_elem[++ne_id], 0)];
 		node_has_elem0[pos_id] = my_node_has_elem[ne_id];
 		node_elem_pair0[pos_id] = my_node_elem_pair[ne_id];
 	}
@@ -762,6 +753,8 @@ int substep_func_omp_T3D_ME_mt(
 		node_has_elem1[self.valid_elem_num * 4] = SIZE_MAX;
 	}
 	
+	assert(self.valid_elem_num <= self.elem_num);
+
 #pragma omp barrier
 
 	size_t ve_id0 = Block_Low(my_th_id, thread_num, self.valid_elem_num * 4);
@@ -809,16 +802,6 @@ int substep_func_omp_T3D_ME_mt(
 #pragma omp barrier
 	}
 
-	if (substp_id == 1)
-	{
-		for (size_t n_id = 0; n_id < self.valid_elem_num * 4; ++n_id)
-		{
-			res_file_t3d_me_mt << node_has_elem0[n_id] << ", ";
-			if (n_id % 10 == 9)
-				res_file_t3d_me_mt << "\n";
-		}
-	}
-
 	// modify ne_id0, ne_id1
 	size_t n_id;
 	n_id = node_has_elem0[ve_id0];
@@ -841,7 +824,7 @@ int substep_func_omp_T3D_ME_mt(
 	n_id = node_has_elem0[ve_id0];
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
-		ne_id = node_has_elem0[ve_id];
+		ne_id = node_elem_pair0[ve_id];
 		e_id = ne_id / 4;
 		n_am += elem_pcl_m[e_id];
 		ElemNodeForce& nf = elem_node_force[ne_id];
@@ -853,9 +836,6 @@ int substep_func_omp_T3D_ME_mt(
 		n_vmx += nvm.vmx;
 		n_vmy += nvm.vmy;
 		n_vmz += nvm.vmz;
-
-		if (n_id == 14)
-			int efe = 0;
 		
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
@@ -898,7 +878,7 @@ int substep_func_omp_T3D_ME_mt(
 	{
 		if (md.has_rigid_cylinder())
 		{
-			RigidCylinder& rc = *(self.prc);
+			RigidCylinder &rc = *(self.prc);
 			rc.update_motion(dt);
 			const ContactForce3D& cf = rc.get_cont_force();
 			self.rc_fx_cont = cf.fx;
@@ -907,6 +887,7 @@ int substep_func_omp_T3D_ME_mt(
 			self.rc_mx_cont = cf.mx;
 			self.rc_my_cont = cf.my;
 			self.rc_mz_cont = cf.mz;
+			rc.reset_cont_force();
 		}
 
 		self.valid_pcl_num = 0;
@@ -919,9 +900,6 @@ int substep_func_omp_T3D_ME_mt(
 	for (ve_id = 0; ve_id < my_valid_elem_num; ++ve_id)
 	{
 		e_id = my_valid_elem_id[ve_id];
-		
-		if (e_id == 19)
-			int efe = 0;
 
 		ElemNodeIndex& eni = elem_node_id[e_id];
 		Velocity& n_v1 = node_v[eni.n1];
@@ -957,8 +935,6 @@ int substep_func_omp_T3D_ME_mt(
 		n_am_de_vol += elem_m_de_vol[e_id];
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
-			if (n_id == 4)
-				int efe = 0;
 			node_de_vol[n_id] = n_am_de_vol * one_fourth / node_am[n_id];
 			n_id = node_has_elem0[ve_id + 1];
 			n_am_de_vol = 0.0;
@@ -1005,14 +981,17 @@ int substep_func_omp_T3D_ME_mt(
 		}
 
 		// update velocity
-		prev_p_id = prev_pcl_id0[p_id];
 		ShapeFunc &p_N = pcl_N0[p_id];
 		Velocity &p_v0 = pcl_v0[p_id];
 		p_v0.vx += (p_N.N1 * pn_a1->ax + p_N.N2 * pn_a2->ax + p_N.N3 * pn_a3->ax + p_N.N4 * pn_a4->ax) * dt;
 		p_v0.vy += (p_N.N1 * pn_a1->ay + p_N.N2 * pn_a2->ay + p_N.N3 * pn_a3->ay + p_N.N4 * pn_a4->ay) * dt;
 		p_v0.vz += (p_N.N1 * pn_a1->az + p_N.N2 * pn_a2->az + p_N.N3 * pn_a3->az + p_N.N4 * pn_a4->az) * dt;
 
+		if (p_id == 2541)
+			int efe = 0;
+
 		// update displacement
+		prev_p_id = prev_pcl_id0[p_id];
 		Displacement& p_d1 = pcl_disp1[prev_p_id];
 		Displacement& p_d0 = pcl_disp0[p_id];
 		p_d0.ux = p_d1.ux + (p_N.N1 * pn_v1->vx + p_N.N2 * pn_v2->vx + p_N.N3 * pn_v3->vx + p_N.N4 * pn_v4->vx) * dt;
@@ -1028,7 +1007,7 @@ int substep_func_omp_T3D_ME_mt(
 		p_e_id = e_id;
 		if (!md.is_in_element(p_x, p_y, p_z, e_id, p_N))
 			p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_z, p_N);
-		if (p_e_id != SIZE_MAX) // is in mesh
+		if (p_e_id != SIZE_MAX) // in mesh
 			++pcl_in_mesh_num;
 		pcl_in_elem0[p_id] = p_e_id;
 		prev_pcl_id0[p_id] = p_id;
@@ -1163,7 +1142,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 				p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
 				rc_cen.x, rc_cen.y, rc_cen.z
-			);
+				);
 		}
 	}
 

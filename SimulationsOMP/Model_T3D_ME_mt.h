@@ -71,7 +71,7 @@ public:
 		struct { double ax, ay, az; };
 		struct { size_t iax, iay, iaz; };
 	};
-	struct Velocity
+	union Velocity
 	{
 		struct { double vx, vy, vz; };
 		struct { size_t ivx, ivy, ivz; };

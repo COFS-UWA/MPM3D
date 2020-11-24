@@ -3,6 +3,9 @@
 
 void test_von_mises(int argc, char** argv);
 
+void test_rigid_cylinder(int argc, char** argv);
+void test_rigid_cone(int argc, char** argv);
+
 void test_Step_OMP(int argc, char** argv);
 
 void test_t2d_me_mt_test1(int argc, char** argv);

@@ -23,12 +23,12 @@ protected:
 
 	union
 	{
-		ContactForce3D cont_force;
 		struct
 		{
 			double fx_cont, fy_cont, fz_cont;
 			double mx_cont, my_cont, mz_cont;
 		};
+		ContactForce3D cont_force;
 	};
 	
 	Cube lbbox;
@@ -39,19 +39,19 @@ public:
 	explicit RigidCylinder();
 	~RigidCylinder();
 
-	double get_h() const noexcept { return h; }
-	double get_r() const noexcept { return r; }
-	const Point3D& get_centre() const noexcept { return centre; }
-	const Vector3D& get_velocity() const noexcept { return velocity; }
-	const ContactForce3D& get_cont_force() const noexcept { return cont_force; }
+	inline double get_h() const noexcept { return h; }
+	inline double get_r() const noexcept { return r; }
+	inline const Point3D &get_centre() const noexcept { return centre; }
+	inline const Vector3D &get_velocity() const noexcept { return velocity; }
+	inline const ContactForce3D &get_cont_force() const noexcept { return cont_force; }
 	
 	void init(double _x, double _y, double _z,
-		double _h, double _r) noexcept;
+			  double _h, double _r) noexcept;
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
 
-	inline void reset_f_cont() noexcept
+	inline void reset_cont_force() noexcept
 	{
 		fx_cont = 0.0;
 		fy_cont = 0.0;
@@ -61,7 +61,7 @@ public:
 		mz_cont = 0.0;
 	}
 
-	inline void combine_f_cont(const ContactForce3D& other) noexcept
+	inline void combine_cont_force(const ContactForce3D& other) noexcept
 	{
 		fx_cont += other.fx;
 		fy_cont += other.fy;
@@ -86,9 +86,9 @@ public:
 		Point3D& lp
 		) const noexcept
 	{
-		lp.x = gp.x + x;
-		lp.y = gp.y + y;
-		lp.z = gp.z + z;
+		lp.x = gp.x - x;
+		lp.y = gp.y - y;
+		lp.z = gp.z - z;
 	}
 
 	inline void get_global_vector(
@@ -113,7 +113,7 @@ public:
 
 	bool detect_collision_with_point(
 		double p_x,	double p_y,	double p_z, double p_r,
-		double &dist, Vector3D& lnorm, Point3D& lcontpos
+		double &dist, Vector3D &lnorm, Point3D &lcontpos
 		) noexcept;
 
 	inline void update_motion(double dt) noexcept

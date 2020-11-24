@@ -7,7 +7,7 @@
 #include "SearchingGrid3D.hpp"
 #include "Model_T3D_ME_mt.h"
 
-static std::fstream res_file;
+static std::fstream res_file_md_t3d_me_mt;
 
 Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	ori_pcl_num(0), pcl_num(0),
@@ -25,7 +25,7 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	grid_elem_list_id_array(nullptr),
 	rigid_cylinder_is_valid(false), contact_mem(nullptr)
 {
-	res_file.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
+	res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }
 
 Model_T3D_ME_mt::~Model_T3D_ME_mt()
@@ -270,13 +270,13 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 	//{
 	//	size_t n_id0 = node_elem_list[n_id - 1];
 	//	size_t n_id1 = node_elem_list[n_id];
-	//	res_file << n_id << ", " << n_id0 << ", " << n_id1 << ":\n";
+	//	res_file_md_t3d_me_mt << n_id << ", " << n_id0 << ", " << n_id1 << ":\n";
 	//	for (size_t ne_id = n_id0; ne_id < n_id1; ++ne_id)
-	//		res_file << elem_id_array[ne_id] << ", ";
-	//	res_file << "\n";
+	//		res_file_md_t3d_me_mt << elem_id_array[ne_id] << ", ";
+	//	res_file_md_t3d_me_mt << "\n";
 	//	for (size_t ne_id = n_id0; ne_id < n_id1; ++ne_id)
-	//		res_file << node_elem_id_array[ne_id] << ", ";
-	//	res_file << "\n";
+	//		res_file_md_t3d_me_mt << node_elem_id_array[ne_id] << ", ";
+	//	res_file_md_t3d_me_mt << "\n";
 	//}
 
 	//res_file << std::fixed << std::left << std::setprecision(8);

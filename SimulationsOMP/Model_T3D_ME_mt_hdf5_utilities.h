@@ -21,6 +21,7 @@ struct ParticleData
 	double ee11, ee22, ee33, ee12, ee23, ee31;
 	double pe11, pe22, pe33, pe12, pe23, pe31;
 	size_t mat_id; // material model id
+	size_t elem_id;
 
 	void from_pcl(
 		Model_T3D_ME_mt& md,
@@ -80,6 +81,7 @@ struct ParticleData
 		pe23 = p_pe.e23;
 		pe31 = p_pe.e31;
 		mat_id = md.pcl_mat_model[id]->get_id();
+		elem_id = SIZE_MAX;
 	}
 	
 	void from_pcl(
@@ -141,6 +143,7 @@ struct ParticleData
 		pe23 = p_pe.e23;
 		pe31 = p_pe.e31;
 		mat_id = stp.pcl_mat_model[id]->get_id();
+		elem_id = stp.get_pcl_in_elem()[pcl_offset];
 	}
 
 	void to_pcl(
@@ -247,6 +250,7 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "pe23", HOFFSET(ParticleData, pe23), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "pe31", HOFFSET(ParticleData, pe31), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "elem_id", HOFFSET(ParticleData, elem_id), H5T_NATIVE_ULLONG);
 	return res;
 }
 

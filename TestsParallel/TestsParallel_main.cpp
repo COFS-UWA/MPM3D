@@ -26,11 +26,14 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_strip_footing(argc, argv);
 	//test_t2d_me_mt_strip_footing_result(argc, argv);
 
-	test_t3d_me_mt_1d_compression(argc, argv);
+	//test_t3d_me_mt_1d_compression(argc, argv);
 	//test_t3d_me_mt_1d_compression_result(argc, argv);
 
 	//test_t3d_me_s_1d_compression(argc, argv);
 	//test_t3d_me_s_1d_compression_result(argc, argv);
+
+	//test_rigid_cylinder(argc, argv);
+	test_rigid_cone(argc, argv);
 
 	//system("pause");
 	return 0;

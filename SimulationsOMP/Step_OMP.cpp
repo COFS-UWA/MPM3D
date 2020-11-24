@@ -41,7 +41,6 @@ int Step_OMP::solve()
 		size_t my_th_id = size_t(omp_get_thread_num());
 		do
 		{
-
 			do
 			{
 #pragma omp master

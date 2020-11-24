@@ -447,10 +447,7 @@ int solve_substep_T3D_ME_s(void *_self)
 			Node &n1 = md.nodes[e.n1];
 			Node &n2 = md.nodes[e.n2];
 			Node &n3 = md.nodes[e.n3];
-			Node &n4 = md.nodes[e.n4];
-
-			if (e.id == 199)
-				int fef = 0;
+			Node& n4 = md.nodes[e.n4];
 
 			// strain increment
 			de11 = n1.dux * e.dN1_dx + n2.dux * e.dN2_dx + n3.dux * e.dN3_dx + n4.dux * e.dN4_dx;

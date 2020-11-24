@@ -8,13 +8,13 @@ RigidCylinder::RigidCylinder() :
 	mx_cont(0.0), my_cont(0.0), mz_cont(0.0)
 {
 	Vector3D &v0 = res_norms[0];
-	v0.x = 1.0;
+	v0.x = 0.0;
 	v0.y = 0.0;
-	v0.z = 0.0;
+	v0.z = 1.0;
 	Vector3D& v1 = res_norms[1];
 	v1.x = 0.0;
-	v1.y = 1.0;
-	v1.z = 0.0;
+	v1.y = 0.0;
+	v1.z = -1.0;
 	Vector3D& v2 = res_norms[2];
 	v2.z = 0.0;
 }

@@ -53,7 +53,7 @@ public:
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
 
-	inline void reset_f_cont() noexcept
+	inline void reset_cont_force() noexcept
 	{
 		fx_cont = 0.0;
 		fy_cont = 0.0;
@@ -63,7 +63,7 @@ public:
 		mz_cont = 0.0;
 	}
 
-	inline void combine_f_cont(const ContactForce3D& other) noexcept
+	inline void combine_cont_force(const ContactForce3D& other) noexcept
 	{
 		fx_cont += other.fx;
 		fy_cont += other.fy;
