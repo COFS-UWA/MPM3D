@@ -50,6 +50,7 @@ public:
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
+	void set_cont_force(ContactForce3D &cf) noexcept;
 
 	inline void reset_cont_force() noexcept
 	{

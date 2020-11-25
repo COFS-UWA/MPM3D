@@ -92,6 +92,8 @@ protected:
 			PclVar_T3D_ME_mt pcl_var_getter;
 		};
 		char padding[Cache_Alignment * 2];
+		ThreadData() : pcl_var_getter() {}
+		~ThreadData() {}
 	};
 	ThreadData* thread_datas;
 	
@@ -108,9 +110,8 @@ protected:
 	ContactModel3D *pcf;
 
 	size_t valid_elem_num, valid_pcl_num;
-	double rc_fx_cont, rc_fy_cont, rc_fz_cont;
-	double rc_mx_cont, rc_my_cont, rc_mz_cont;
-
+	ContactForce3D cf_tmp;
+	
 	CacheAlignedMem thread_mem;
 	CacheAlignedMem cal_mem;
 
@@ -135,12 +136,6 @@ public:
 	inline size_t get_pcl_num() const noexcept { return valid_pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
 	inline size_t *get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
-	inline double get_rc_fx_contact() const noexcept { return rc_fx_cont; }
-	inline double get_rc_fy_contact() const noexcept { return rc_fy_cont; }
-	inline double get_rc_fz_contact() const noexcept { return rc_fz_cont; }
-	inline double get_rc_mx_contact() const noexcept { return rc_mx_cont; }
-	inline double get_rc_my_contact() const noexcept { return rc_my_cont; }
-	inline double get_rc_mz_contact() const noexcept { return rc_mz_cont; }
 
 	friend struct Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

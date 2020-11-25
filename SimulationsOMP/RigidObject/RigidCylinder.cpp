@@ -39,12 +39,12 @@ void RigidCylinder::init(
 	r = _r;
 	r2 = r * r;
 	h_div_2 = 0.5 * h;
-	lbbox.xl = x - r;
-	lbbox.xu = x + r;
-	lbbox.yl = y - r;
-	lbbox.yu = y + r;
-	lbbox.zl = z - h_div_2;
-	lbbox.zu = z + h_div_2;
+	lbbox.xl = -r;
+	lbbox.xu = r;
+	lbbox.yl = -r;
+	lbbox.yu = r;
+	lbbox.zl = -h_div_2;
+	lbbox.zu = h_div_2;
 }
 
 void RigidCylinder::set_vbc(
@@ -73,6 +73,18 @@ void RigidCylinder::set_cont_force(
 	mx_cont = mx;
 	my_cont = my;
 	mz_cont = mz;
+}
+
+void RigidCylinder::set_cont_force(
+	ContactForce3D& cf
+	) noexcept
+{
+	fx_cont = cf.fx;
+	fy_cont = cf.fy;
+	fz_cont = cf.fz;
+	mx_cont = cf.mx;
+	my_cont = cf.my;
+	mz_cont = cf.mz;
 }
 
 bool RigidCylinder::detect_collision_with_point(

@@ -23,7 +23,10 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	grid_x_num(0), grid_y_num(0), grid_z_num(0),
 	grid_elem_list(nullptr),
 	grid_elem_list_id_array(nullptr),
-	rigid_cylinder_is_valid(false), contact_mem(nullptr)
+	rigid_cylinder_is_valid(false), contact_mem(nullptr),
+	//pcm(&smooth_contact)
+	//pcm(&rough_contact)
+	pcm(&fric_contact)
 {
 	res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }

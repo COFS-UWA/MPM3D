@@ -1,6 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <exception>
+
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
 #include "Model_T3D_ME_mt_hdf5_utilities.h"
@@ -448,12 +449,9 @@ int output_rigid_cylinder_to_hdf5_file(
 
 	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCylinder");
 
-	auto &rc = md.get_rigid_cylinder();
-	auto& cf = md.get_contact_model();
-	double Kn_cont = cf.get_Kn_cont();
-	double Kt_cont = cf.get_Kt_cont();
-	rf.write_attribute(rc_grp_id, "Kn_cont", Kn_cont);
-	rf.write_attribute(rc_grp_id, "Kt_cont", Kt_cont);
+	rf.write_attribute(rc_grp_id, "Kn_cont", md.Kn_cont);
+	rf.write_attribute(rc_grp_id, "Kt_cont", md.Kt_cont);
+	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
 
 	RigidObject_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
 
@@ -475,11 +473,11 @@ int load_rigid_cylinder_from_hdf5_file(
 
 	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCircle");
 
-	double Kn_cont, Kt_cont;
+	double Kn_cont, Kt_cont, fric_ratio;
 	rf.read_attribute(rc_grp_id, "Kn_cont", Kn_cont);
 	rf.read_attribute(rc_grp_id, "Kt_cont", Kt_cont);
-	auto &cm = md.get_contact_model();
-	cm.set_K_cont(Kn_cont, Kt_cont);
+	rf.read_attribute(rc_grp_id, "fric_ratio", fric_ratio);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio);
 
 	RigidObject_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
 
@@ -504,6 +502,7 @@ int output_model_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, md_grp_id);
 	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }
 
@@ -520,6 +519,7 @@ int time_history_complete_output_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -556,8 +556,8 @@ int load_me_mt_model_from_hdf5_file(
 	load_material_model_from_hdf5_file(md, rf, th_frame_id);
 	// particle data
 	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
-
 	// rigid object
+	load_rigid_cylinder_from_hdf5_file(md, rf, th_frame_id);
 
 	step.is_first_step = false;
 	rf.read_attribute(th_frame_id, "total_time", step.start_time);

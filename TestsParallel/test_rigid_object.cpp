@@ -39,7 +39,6 @@ void test_rigid_cylinder(int argc, char** argv)
 	res = rc.detect_collision_with_point(
 		0.6, 0.6, 0.26, 0.05,
 		dist, norm, cont_pos);
-
 	// up, r
 	res = rc.detect_collision_with_point(
 		0.72, -0.72, 0.26, 0.05,
@@ -49,7 +48,6 @@ void test_rigid_cylinder(int argc, char** argv)
 	res = rc.detect_collision_with_point(
 		0.6, 0.6, -0.26, 0.05,
 		dist, norm, cont_pos);
-
 	// down, r
 	res = rc.detect_collision_with_point(
 		-0.72, 0.72, -0.26, 0.05,

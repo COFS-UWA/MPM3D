@@ -8,7 +8,9 @@
 #include "ParticleGenerator3D.hpp"
 #include "TetrahedronMesh.h"
 #include "RigidObject/RigidCylinder.h"
+#include "RigidObject/SmoothContact3D.h"
 #include "RigidObject/RoughContact3D.h"
+#include "RigidObject/FrictionalContact3D.h"
 
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
@@ -304,8 +306,14 @@ protected:
 
 	bool rigid_cylinder_is_valid;
 	RigidCylinder rigid_cylinder;
+	ContactModel3D *pcm;
+
+	// ad hoc design for output
+	double Kn_cont, Kt_cont, fric_ratio;
+	SmoothContact3D smooth_contact;
 	RoughContact3D rough_contact;
-	
+	FrictionalContact3D fric_contact;
+
 	char* contact_mem;
 	void clear_contact_mem();
 	void alloc_contact_mem(size_t num);
@@ -313,19 +321,24 @@ protected:
 public:
 	bool has_rigid_cylinder() { return rigid_cylinder_is_valid; }
 	RigidCylinder &get_rigid_cylinder() { return rigid_cylinder; }
-	RoughContact3D& get_contact_model() { return rough_contact; }
 	inline void init_rigid_cylinder(
-		double _Kn_cont, double _Kt_cont,
 		double x, double y, double z,
 		double h, double r)
 	{
 		rigid_cylinder_is_valid = true;
 		rigid_cylinder.init(x, y, z, h, r);
-		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 	}
 	inline void set_rigid_cylinder_velocity(
 		double vx, double vy, double vz)
 	{ rigid_cylinder.set_vbc(vx, vy, vz); }
+	inline void set_contact_param(double _Kn_cont, double _Kt_cont, double _fric_ratio)
+	{
+		Kn_cont = _Kn_cont; Kt_cont = _Kt_cont; fric_ratio = _fric_ratio;
+		smooth_contact.set_Kn_cont(_Kn_cont);
+		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
+		fric_contact.set_K_cont(_Kn_cont, _Kt_cont);
+		fric_contact.set_friction_ratio(_fric_ratio);
+	}
 
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -377,12 +390,12 @@ public:
 	double get_square_r() const noexcept override
 	{
 		double p_vol = pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]];
-		return 0.5 * pow(p_vol, 0.333333);
+		return 0.5 * pow(p_vol, 1.0/3.0);
 	}
 	double get_circle_r() const noexcept override
 	{
 		double p_vol = pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]];
-		return pow(0.75 / 3.14159265359 * p_vol, 0.333333);
+		return pow(0.75 / 3.14159265359 * p_vol, 1.0/3.0);
 	}
 	MatModel::MaterialModel* get_mat_model() const noexcept override
 	{ return pmodel->pcl_mat_model[cur_sorted_pcl_vars->pcl_index[pcl_id]]; }

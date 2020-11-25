@@ -5,6 +5,7 @@ void test_von_mises(int argc, char** argv);
 
 void test_rigid_cylinder(int argc, char** argv);
 void test_rigid_cone(int argc, char** argv);
+void test_contact_model_3d(int argc, char** argv);
 
 void test_Step_OMP(int argc, char** argv);
 
@@ -17,5 +18,6 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv);
 
 void test_t3d_me_mt_1d_compression(int argc, char** argv);
 void test_t3d_me_s_1d_compression(int argc, char** argv);
+void test_t3d_me_mt_cap_compression(int argc, char** argv);
 
 #endif

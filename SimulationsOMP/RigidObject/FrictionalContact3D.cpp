@@ -13,6 +13,7 @@ void FrictionalContact3D::cal_contact_force(
 	double dist,
 	const Vector3D& norm,
 	const Point3D& cont_pos,
+	double pcl_len,
 	ParticleVariablesGetter& pv_getter,
 	// out
 	size_t& cont_substp_id,
@@ -22,7 +23,8 @@ void FrictionalContact3D::cal_contact_force(
 	)
 {
 	// normal force
-	double f_cont = Kn_cont * dist;
+	const double pcl_area = pcl_len * pcl_len;
+	double f_cont = Kn_cont * pcl_area * dist;
 	cont_force.x = f_cont * norm.x;
 	cont_force.y = f_cont * norm.y;
 	cont_force.z = f_cont * norm.z;
@@ -53,6 +55,7 @@ void FrictionalContact3D::cal_contact_force(
 		rx -= norm_len * norm.x;
 		ry -= norm_len * norm.y;
 		rz -= norm_len * norm.z;
+		const double K_p_area = Kt_cont * pcl_area;
 		prev_cont_tan_force.x += rx * Kt_cont;
 		prev_cont_tan_force.y += ry * Kt_cont;
 		prev_cont_tan_force.z += rz * Kt_cont;

@@ -23,7 +23,9 @@ add_executable(
     test_t2d_me_mt_strip_footing.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_me_mt_1d_compression.cpp
+    test_t3d_me_mt_cap_compression.cpp
     test_rigid_object.cpp
+    test_contact_model_3d.cpp
     )
 
 target_include_directories(

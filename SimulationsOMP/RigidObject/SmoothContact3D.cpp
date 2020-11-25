@@ -11,6 +11,7 @@ void SmoothContact3D::cal_contact_force(
 	double dist,
 	const Vector3D& norm,
 	const Point3D& cont_pos,
+	double pcl_len,
 	ParticleVariablesGetter& pv_getter,
 	size_t& cont_substp_id,
 	Point3D& prev_cont_pos,
@@ -19,7 +20,8 @@ void SmoothContact3D::cal_contact_force(
 	)
 {
 	// normal force
-	double f_cont = Kn_cont * dist;
+	const double pcl_area = pcl_len * pcl_len;
+	double f_cont = Kn_cont * pcl_area * dist;
 	cont_force.x = f_cont * norm.x;
 	cont_force.y = f_cont * norm.y;
 	cont_force.z = f_cont * norm.z;

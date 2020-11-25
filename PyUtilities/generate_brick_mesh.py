@@ -57,11 +57,11 @@ def generate_brick_mesh(nx, ny, nz, xl, xu, yl, yu, zl, zu):
     return nodes, elems
     
 if __name__ == "__main__":
-    mh_length = 0.5
+    mh_length = 0.1
     inv_x = 5
     inv_y = 5
-    inv_z = 5
-    h5_file = h5py.File("..\\Asset\\brick_mesh_%.2f_%dx%dx%d.h5" % (mh_length, inv_x, inv_y, inv_z), "w")
+    inv_z = 1
+    h5_file = h5py.File("../Asset/brick_mesh_%.2f_%dx%dx%d.h5" % (mh_length, inv_x, inv_y, inv_z), "w")
     mesh_grp = h5_file.create_group("Mesh")
     nodes, elems = generate_brick_mesh(inv_x, inv_y, inv_z,        \
                                        0.0, mh_length/inv_z*inv_x, \
