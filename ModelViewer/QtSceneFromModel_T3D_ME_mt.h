@@ -7,6 +7,7 @@
 #include "Model_T3D_ME_mt.h"
 #include "QtTetrahedronMeshGLObject.h"
 #include "QtMonoColorBallGLObject.h"
+#include "QtRigidCylinderObject.h"
 #include "QtSceneFromModel.h"
 
 class QtSceneFromModel_T3D_ME_mt : public QtSceneFromModel
@@ -24,10 +25,12 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_pts;
+	bool display_rcy, has_rcy;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 	QtMonoColorBallGLObject pcls_obj;
 	QtMonoColorBallGLObject pts_obj;
+	QtRigidCylinderObject rcy_obj;
 
 	// camera info
 	GLfloat fov_angle;

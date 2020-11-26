@@ -20,7 +20,8 @@ QtSceneFromModel_T3D_ME_mt::QtSceneFromModel_T3D_ME_mt(
 	model(nullptr), pt_num(0), pts(nullptr),
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
-	display_pts(true), pts_obj(_gl) {}
+	display_pts(true), pts_obj(_gl),
+	display_rcy(true), has_rcy(false), rcy_obj(_gl) {}
 
 QtSceneFromModel_T3D_ME_mt::~QtSceneFromModel_T3D_ME_mt() {}
 
@@ -140,6 +141,12 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 
 	// bounding circle
 	Cube mh_bbox = model->get_mesh_bbox();
+	if (model->has_rigid_cylinder())
+	{
+		RigidCylinder& rcy = model->get_rigid_cylinder();
+		Cube rcy_box = rcy.get_bbox();
+		mh_bbox.envelop(rcy_box);
+	}
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
 	md_centre.setY(float(mh_bbox.yl + mh_bbox.yu) * 0.5f);
 	md_centre.setZ(float(mh_bbox.zl + mh_bbox.zu) * 0.5f);
@@ -161,7 +168,6 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 	shader_balls.bind();
 	shader_balls.setUniformValue("view_mat", view_mat);
 	shader_balls.setUniformValue("proj_mat", proj_mat);
-
 	shader_balls.setUniformValue("view_pos", view_pos);
 
 	// fog effect
@@ -203,7 +209,7 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 		model->get_elem_node_index(),
 		model->get_elem_num(),
 		gray
-	);
+		);
 
 	// init pcls
 	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
@@ -220,6 +226,15 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 	QVector3D red(1.0f, 0.0f, 0.0f);
 	if (pts && pt_num)
 		pts_obj.init(pts, pt_num, pt_radius, red);
+
+	if (model->has_rigid_cylinder())
+	{
+		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+		RigidCylinder& rcy = model->get_rigid_cylinder();
+		const Point3D &cen = rcy.get_centre();
+		rcy_obj.init(cen.x, cen.y, cen.z, rcy.get_h(), rcy.get_r(), navajowhite);
+		has_rcy = true;
+	}
 
 	return 0;
 }
@@ -244,6 +259,9 @@ void QtSceneFromModel_T3D_ME_mt::draw()
 
 	if (display_pts)
 		pts_obj.draw(shader_balls);
+
+	if (display_rcy && has_rcy)
+		rcy_obj.draw(shader_rigid_mesh);
 }
 
 void QtSceneFromModel_T3D_ME_mt::resize(int wd, int ht)

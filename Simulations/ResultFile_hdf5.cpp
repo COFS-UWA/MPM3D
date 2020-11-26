@@ -112,6 +112,26 @@ int ResultFile_hdf5::write_dataset(
 
 int ResultFile_hdf5::write_dataset(
 	hid_t grp_id,
+	const char* dset_name,
+	size_t num,
+	unsigned long long* data
+	)
+{
+	hid_t dataspace_id, dset_id;
+	dataspace_id = H5Screate_simple(1, &num, nullptr);
+	dset_id = H5Dcreate(grp_id, dset_name, H5T_NATIVE_ULLONG, dataspace_id,
+						H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	if (dset_id < 0)
+		return -1;
+	herr_t res = H5Dwrite(dset_id, H5T_NATIVE_ULLONG, dataspace_id,
+						  dataspace_id, H5P_DEFAULT, data);
+	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
+	return res < 0 ? -2 : 0;
+}
+
+int ResultFile_hdf5::write_dataset(
+	hid_t grp_id,
 	const char *dset_name,
 	size_t row_num,
 	size_t col_num,
@@ -188,6 +208,25 @@ int ResultFile_hdf5::read_dataset(
 	if (dset_id < 0)
 		return -1;
 	herr_t res = H5Dread(dset_id, H5T_NATIVE_DOUBLE, dataspace_id,
+						 dataspace_id, H5P_DEFAULT, data);
+	H5Sclose(dataspace_id);
+	H5Dclose(dset_id);
+	return res < 0 ? -2 : 0;
+}
+
+int ResultFile_hdf5::read_dataset(
+	hid_t grp_id,
+	const char* dset_name,
+	size_t num,
+	unsigned long long* data
+	)
+{
+	hid_t dataspace_id, dset_id;
+	dataspace_id = H5Screate_simple(1, &num, nullptr);
+	dset_id = H5Dopen(grp_id, dset_name, H5P_DEFAULT);
+	if (dset_id < 0)
+		return -1;
+	herr_t res = H5Dread(dset_id, H5T_NATIVE_ULLONG, dataspace_id,
 						 dataspace_id, H5P_DEFAULT, data);
 	H5Sclose(dataspace_id);
 	H5Dclose(dset_id);

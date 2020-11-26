@@ -44,7 +44,16 @@ public:
 	inline const Point3D &get_centre() const noexcept { return centre; }
 	inline const Vector3D &get_velocity() const noexcept { return velocity; }
 	inline const ContactForce3D &get_cont_force() const noexcept { return cont_force; }
-	
+	Cube get_bbox() const noexcept
+	{
+		return Cube(lbbox.xl + x,
+					lbbox.xu + x,
+					lbbox.yl + y,
+					lbbox.yu + y,
+					lbbox.zl + z,
+					lbbox.zu + z);
+	}
+
 	void init(double _x, double _y, double _z,
 			  double _h, double _r) noexcept;
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;

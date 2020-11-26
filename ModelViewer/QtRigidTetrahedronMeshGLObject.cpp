@@ -278,7 +278,7 @@ void QtRigidTetrahedronMeshGLObject::draw(QOpenGLShaderProgram& shader)
 	}
 }
 
-inline void QtRigidTetrahedronMeshGLObject::form_model_mat(
+void QtRigidTetrahedronMeshGLObject::form_model_mat(
 	const Point3D& cen,
 	const Vector3D& ix,
 	const Vector3D& iy, 

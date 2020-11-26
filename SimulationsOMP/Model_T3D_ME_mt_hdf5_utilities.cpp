@@ -105,8 +105,6 @@ int output_background_mesh_to_hdf5_file(
 	H5Tclose(ed_dt_id);
 	delete[] elems_data;
 
-	// output bg mesh...
-
 	rf.close_group(bg_mesh_grp_id);
 	return 0;
 }
@@ -191,15 +189,7 @@ int load_background_mesh_from_hdf5_file(
 		edNd.d4 = elem_data.d4;
 	}
 	delete[] elems_data;
-
-	// init bg_grid
-	double bg_grid_hx, bg_grid_hy, bg_grid_hz;
-	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hx", bg_grid_hx);
-	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hy", bg_grid_hy);
-	rf.read_attribute(bg_mesh_grp_id, "bg_grid_hz", bg_grid_hz);
-
-	// read bg mesh...
-
+	
 	rf.close_group(bg_mesh_grp_id);
 	return 0;
 }
@@ -265,6 +255,120 @@ int load_boundary_condition_from_hdf5_file(
 	H5Tclose(n_vbc_dt_id);
 
 	rf.close_group(bc_id);
+	return 0;
+}
+
+int output_search_mesh_to_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	hid_t search_mesh_grp_id = rf.create_group(grp_id, "SearchMesh");
+
+	rf.write_attribute(search_mesh_grp_id, "grid_xl", md.grid_xl);
+	rf.write_attribute(search_mesh_grp_id, "grid_yl", md.grid_yl);
+	rf.write_attribute(search_mesh_grp_id, "grid_zl", md.grid_zl);
+	rf.write_attribute(search_mesh_grp_id, "grid_xu", md.grid_xu);
+	rf.write_attribute(search_mesh_grp_id, "grid_yu", md.grid_yu);
+	rf.write_attribute(search_mesh_grp_id, "grid_zu", md.grid_zu);
+	rf.write_attribute(search_mesh_grp_id, "grid_hx", md.grid_hx);
+	rf.write_attribute(search_mesh_grp_id, "grid_hy", md.grid_hy);
+	rf.write_attribute(search_mesh_grp_id, "grid_hz", md.grid_hz);
+	rf.write_attribute(search_mesh_grp_id, "grid_x_num", md.grid_x_num);
+	rf.write_attribute(search_mesh_grp_id, "grid_y_num", md.grid_y_num);
+	rf.write_attribute(search_mesh_grp_id, "grid_z_num", md.grid_z_num);
+
+	int res;
+	size_t grid_elem_list_len = md.grid_x_num * md.grid_y_num * md.grid_z_num + 1;
+	rf.write_attribute(
+		search_mesh_grp_id,
+		"grid_elem_list_len",
+		grid_elem_list_len
+		);
+	res = rf.write_dataset(
+		search_mesh_grp_id,
+		"grid_elem_list",
+		grid_elem_list_len,
+		(unsigned long long *)md.grid_elem_list
+		);
+
+	size_t grid_elem_list_id_len = md.grid_elem_list[grid_elem_list_len-1];
+	rf.write_attribute(
+		search_mesh_grp_id,
+		"grid_elem_list_id_len",
+		grid_elem_list_id_len
+		);
+	res = rf.write_dataset(
+		search_mesh_grp_id,
+		"grid_elem_list_id",
+		grid_elem_list_id_len,
+		(unsigned long long *)md.grid_elem_list_id_array
+		);
+
+	rf.close_group(search_mesh_grp_id);
+	return res;
+}	
+
+int load_search_mesh_from_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	md.clear_search_grid();
+
+	hid_t search_mesh_grp_id = rf.create_group(grp_id, "SearchMesh");
+
+	rf.read_attribute(search_mesh_grp_id, "grid_xl", md.grid_xl);
+	rf.read_attribute(search_mesh_grp_id, "grid_yl", md.grid_yl);
+	rf.read_attribute(search_mesh_grp_id, "grid_zl", md.grid_zl);
+	rf.read_attribute(search_mesh_grp_id, "grid_xu", md.grid_xu);
+	rf.read_attribute(search_mesh_grp_id, "grid_yu", md.grid_yu);
+	rf.read_attribute(search_mesh_grp_id, "grid_zu", md.grid_zu);
+	rf.read_attribute(search_mesh_grp_id, "grid_hx", md.grid_hx);
+	rf.read_attribute(search_mesh_grp_id, "grid_hy", md.grid_hy);
+	rf.read_attribute(search_mesh_grp_id, "grid_hz", md.grid_hz);
+	rf.read_attribute(search_mesh_grp_id, "grid_x_num", md.grid_x_num);
+	rf.read_attribute(search_mesh_grp_id, "grid_y_num", md.grid_y_num);
+	rf.read_attribute(search_mesh_grp_id, "grid_z_num", md.grid_z_num);
+	md.grid_xy_num = md.grid_x_num * md.grid_y_num;
+
+	size_t grid_elem_list_len;
+	rf.read_attribute(
+		search_mesh_grp_id,
+		"grid_elem_list_len",
+		grid_elem_list_len
+		);
+	md.grid_elem_list = new size_t[grid_elem_list_len];
+	rf.read_dataset(
+		search_mesh_grp_id,
+		"grid_elem_list",
+		grid_elem_list_len,
+		md.grid_elem_list
+		);
+
+	size_t grid_elem_list_id_len;
+	rf.read_attribute(
+		search_mesh_grp_id,
+		"grid_elem_list_id_len",
+		grid_elem_list_id_len
+		);
+	md.grid_elem_list_id_array = new size_t[grid_elem_list_id_len];
+	rf.read_dataset(
+		search_mesh_grp_id,
+		"grid_elem_list_id_array",
+		grid_elem_list_id_len,
+		md.grid_elem_list_id_array
+		);
+
+	rf.close_group(search_mesh_grp_id);
 	return 0;
 }
 
@@ -497,10 +601,12 @@ int output_model_to_hdf5_file(
 	output_background_mesh_to_hdf5_file(md, rf, md_grp_id);
 	// boundary condition
 	output_boundary_condition_to_hdf5_file(md, rf, md_grp_id);
+
 	// particle data
 	output_ori_pcl_data_to_hdf5_file(md, rf, md_grp_id);
 	// material model
 	output_material_model_to_hdf5_file(md, rf, md_grp_id);
+
 	// rigid object
 	output_rigid_cylinder_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
@@ -523,7 +629,39 @@ int time_history_complete_output_to_hdf5_file(
 	return 0;
 }
 
-// load model data from hdf5 to model data
+// load model data from hdf5
+int load_me_mt_model_from_hdf5_file(
+	Model_T3D_ME_mt &md,
+	const char* hdf5_name
+	)
+{
+	ResultFile_hdf5 rf;
+	rf.open(hdf5_name);
+	hid_t file_id = rf.get_file_id();
+	if (file_id < 0)
+		return -1;
+
+	// model data
+	hid_t md_grp_id = rf.get_model_data_grp_id();
+	// background mesh
+	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
+	// search mesh
+	load_search_mesh_from_hdf5_file(md, rf, md_grp_id);
+	// boundary condition
+	load_boundary_condition_from_hdf5_file(md, rf, md_grp_id);
+
+	//// material model
+	//load_material_model_from_hdf5_file(md, rf, th_frame_id);
+	//// particle data
+	//load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
+
+	//// rigid object
+	//load_rigid_cylinder_from_hdf5_file(md, rf, th_frame_id);
+
+	return 0;
+}
+
+// load model data from hdf5
 int load_me_mt_model_from_hdf5_file(
 	Model_T3D_ME_mt& md,
 	Step_T3D_ME_mt& step,
@@ -542,6 +680,8 @@ int load_me_mt_model_from_hdf5_file(
 	hid_t md_grp_id = rf.get_model_data_grp_id();
 	// background mesh
 	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
+	// search mesh
+	load_search_mesh_from_hdf5_file(md, rf, md_grp_id);
 	// boundary condition
 	load_boundary_condition_from_hdf5_file(md, rf, md_grp_id);
 

@@ -364,21 +364,6 @@ int Model_T3D_ME_mt::init_search_grid(
 		}
 	}
 
-	//res_file << grid_xl << ", " << grid_xu << ", "
-	//	<< grid_yl << ", " << grid_yu << ", "
-	//	<< grid_zl << ", " << grid_zu << ", "
-	//	<< grid_x_num << ", " << grid_y_num << ", "
-	//	<< grid_z_num << ",\n";
-	
-	//cur_id = 0;
-	//for (size_t g_id = 0; g_id < num; ++g_id)
-	//{
-	//	res_file << g_id << ": ";
-	//	for (;cur_id < grid_elem_list[g_id+1]; ++cur_id)
-	//		res_file << grid_elem_list_id_array[cur_id] << ", ";
-	//	res_file << "\n";
-	//}
-
 	return 0;
 }
 

@@ -114,6 +114,8 @@ add_library(
     QtApp_Posp_T2D_CHM_s.h QtApp_Posp_T2D_CHM_s.cpp
     ################## 3D MPM model display ####################
     # 3D OpenGL Buffer Objects
+    QtRigidCylinderObject.h QtRigidCylinderObject.cpp
+    QtRigidConeObject.h QtRigidConeObject.cpp
     QtTetrahedronMeshGLObject.h QtTetrahedronMeshGLObject.cpp
     QtMonoColorBallGLObject.h QtMonoColorBallGLObject.cpp
     QtMultiColorBallGLObject.h QtMultiColorBallGLObject.cpp

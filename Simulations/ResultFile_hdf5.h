@@ -37,6 +37,8 @@ public:
 	int write_dataset(hid_t grp_id, const char *dset_name, 
 					  size_t num, double *data);
 	int write_dataset(hid_t grp_id, const char* dset_name,
+					  size_t num, unsigned long long *data);
+	int write_dataset(hid_t grp_id, const char* dset_name,
 		size_t num, void* data, hid_t datatype_id);
 	int write_dataset(hid_t grp_id, const char *dset_name,
 		size_t row_num, size_t col_num, double *data);
@@ -45,6 +47,8 @@ public:
 
 	int read_dataset(hid_t grp_id, const char *dset_name,
 					 size_t num, double *data);
+	int read_dataset(hid_t grp_id, const char* dset_name,
+					 size_t num, unsigned long long *data);
 	int read_dataset(hid_t grp_id, const char* dset_name,
 		size_t num, void* data, hid_t datatype_id);
 	int read_dataset(hid_t grp_id, const char *dset_name,
