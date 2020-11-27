@@ -15,14 +15,15 @@ void test_t3d_me_mt_cylinder_foundation_create_model(int argc, char** argv)
 {
 	TetrahedronMesh teh_mesh;
 	teh_mesh.load_mesh_from_hdf5("../../Asset/cube_block.h5");
+	teh_mesh.init_search_grid(0.05, 0.05, 0.05);
 
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
-	model.init_search_grid(teh_mesh, 0.05, 0.05, 0.05);
+	model.init_search_grid(teh_mesh);
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 7.0, 0.0, 7.0, 0.0, 4.0), 0.05, 0.05, 0.05);
-	// adjust pcl size pcl_generator.;
+	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	model.init_pcls(pcl_generator, 10.0);
 	size_t pcl_num = model.get_pcl_num();
 	std::cout << "pcl_num: " << pcl_num << "\n";
@@ -37,7 +38,7 @@ void test_t3d_me_mt_cylinder_foundation_create_model(int argc, char** argv)
 
 	model.init_rigid_cylinder(3.5, 3.5, 4.1, 0.2, 0.5);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
-	model.set_contact_param(10.0, 10.0, 0.1);
+	model.set_contact_param(20000.0, 20000.0, 0.1);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);

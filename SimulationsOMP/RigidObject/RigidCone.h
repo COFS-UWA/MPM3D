@@ -46,6 +46,12 @@ public:
 	const Point3D& get_centre() const noexcept { return centre; }
 	const Vector3D& get_velocity() const noexcept { return velocity; }
 	const ContactForce3D& get_cont_force() const noexcept { return cont_force; }
+	Cube get_bbox() const noexcept
+	{
+		return Cube(lbbox.xl + x, lbbox.xu + x,
+					lbbox.yl + y, lbbox.yu + y,
+					lbbox.zl + z, lbbox.zu + z);
+	}
 
 	void init(double _x, double _y, double _z, double _r,
 		double _tip_h, double _shaft_h) noexcept;
@@ -74,7 +80,7 @@ public:
 	}
 
 	bool detect_collision_with_point(
-		double p_x,	double p_y, double p_z, double p_vol,
+		double p_x,	double p_y, double p_z, double p_r,
 		double& dist, Vector3D& lnorm, Point3D& lcontpos
 		) noexcept;
 

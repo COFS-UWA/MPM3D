@@ -15,10 +15,11 @@ void test_contact_model_3d(int argc, char** argv)
 {
 	TetrahedronMesh teh_mesh;
 	teh_mesh.load_mesh_from_hdf5("../../Asset/brick_mesh_0.10_5x5x1.h5");
+	teh_mesh.init_search_grid(0.05, 0.05, 0.05);
 
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
-	model.init_search_grid(teh_mesh, 0.05, 0.05, 0.05);
+	model.init_search_grid(teh_mesh);
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.5, 0.0, 0.5, 0.0, 0.1), 0.025, 0.025, 0.025);
@@ -45,14 +46,14 @@ void test_contact_model_3d(int argc, char** argv)
 	model.init_fixed_vy_bc(all_n_ids.get_num(), all_n_ids.get_mem());
 	model.init_fixed_vz_bc(all_n_ids.get_num(), all_n_ids.get_mem());
 
-	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(30.0f, -30.0f);
-	//md_disp.set_light_dir(90.0f, -30.0f);
-	//md_disp.set_model(model);
+	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(30.0f, 30.0f);
+	md_disp.set_light_dir(90.0f, 30.0f);
+	md_disp.set_model(model);
 	//md_disp.set_pts_from_node_id(all_n_ids.get_mem(), all_n_ids.get_num(), 0.01);
-	//md_disp.start();
-	//return;
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_cylinder_sliding.h5");

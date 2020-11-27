@@ -15,10 +15,11 @@ void test_t3d_me_mt_1d_compression(int argc, char **argv)
 {
 	TetrahedronMesh teh_mesh;
 	teh_mesh.load_mesh_from_hdf5("../../Asset/brick_mesh_1.00_2x2x10.h5");
-	
+	teh_mesh.init_search_grid(0.05, 0.05, 0.05);
+
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
-	model.init_search_grid(teh_mesh, 0.05, 0.05, 0.05);
+	model.init_search_grid(teh_mesh);
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);

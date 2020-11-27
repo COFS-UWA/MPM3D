@@ -23,7 +23,8 @@ QtSceneFromHdf5_T3D_ME_mt::QtSceneFromHdf5_T3D_ME_mt(
 	vol_fld(data_loader), pfld(nullptr),
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
-	has_color_map(false), color_map_obj(_gl), color_map_texture(0)
+	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
+	display_rcy(true), has_rcy(false), rcy_obj(_gl)
 {
 	amb_coef = 0.3f;
 	diff_coef = 1.0f;
@@ -262,6 +263,27 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		);
 	}
 
+	// rigid cylinder
+	if (rf.has_group(md_data_grp_id, "RigidCylinder"))
+	{
+		hid_t rcy_id = rf.open_group(md_data_grp_id, "RigidCylinder");
+		double rcy_x, rcy_y, rcy_z, rcy_h, rcy_r;
+		rf.read_attribute(rcy_id, "x", rcy_x);
+		rf.read_attribute(rcy_id, "y", rcy_y);
+		rf.read_attribute(rcy_id, "z", rcy_z);
+		rf.read_attribute(rcy_id, "h", rcy_h);
+		rf.read_attribute(rcy_id, "r", rcy_r);
+		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+		rcy_obj.init(rcy_x, rcy_y, rcy_z, rcy_h, rcy_r, navajowhite);
+		Cube rcy_bbox(rcy_x - rcy_r, rcy_x + rcy_r,
+					  rcy_y - rcy_r, rcy_y + rcy_r,
+					  rcy_z - rcy_h * 0.5,
+					  rcy_z + rcy_h * 0.5);
+		mh_bbox.envelop(rcy_bbox);
+		rf.close_group(rcy_id);
+		has_rcy = true;
+	}
+
 	// color map texture
 	size_t color_map_texture_size;
 	unsigned char* color_map_texture_data = color_map.gen_1Dtexture(20, color_map_texture_size);
@@ -340,6 +362,17 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		);
 	shader_char.link();
 
+	// shader_rigid_mesh
+	shader_rigid_mesh.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"../../Asset/shader_rigid_mesh.vert"
+		);
+	shader_rigid_mesh.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"../../Asset/shader_rigid_mesh.frag"
+		);
+	shader_rigid_mesh.link();
+
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
 	md_centre.setY(float(mh_bbox.yl + mh_bbox.yu) * 0.5f);
 	md_centre.setZ(float(mh_bbox.zl + mh_bbox.zu) * 0.5f);
@@ -391,6 +424,25 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	shader_char.bind();
 	shader_char.setUniformValue("view_mat", hud_view_mat);
 
+	// rigid mesh shader
+	shader_rigid_mesh.bind();
+	shader_rigid_mesh.setUniformValue("view_mat", view_mat);
+	shader_rigid_mesh.setUniformValue("proj_mat", proj_mat);
+
+	shader_rigid_mesh.setUniformValue("view_pos", view_pos);
+
+	// fog effect
+	shader_rigid_mesh.setUniformValue("fog_coef", fog_coef);
+	shader_rigid_mesh.setUniformValue("fog_color", fog_color);
+
+	// phong model parameters
+	shader_rigid_mesh.setUniformValue("light_pos", light_pos);
+	shader_rigid_mesh.setUniformValue("light_color", light_color);
+	shader_rigid_mesh.setUniformValue("amb_coef", amb_coef);
+	shader_rigid_mesh.setUniformValue("diff_coef", diff_coef);
+	shader_rigid_mesh.setUniformValue("spec_coef", spec_coef);
+	shader_rigid_mesh.setUniformValue("spec_shininess", spec_shininess);
+
 	return 0;
 }
 
@@ -429,6 +481,21 @@ void QtSceneFromHdf5_T3D_ME_mt::update_scene(size_t frame_id)
 			0.5
 			);
 	}
+
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	if (rf.has_group(frame_grp_id, "RigidCylinder"))
+	{
+		hid_t rcy_id = rf.open_group(frame_grp_id, "RigidCylinder");
+		double rcy_x, rcy_y, rcy_z;
+		rf.read_attribute(rcy_id, "x", rcy_x);
+		rf.read_attribute(rcy_id, "y", rcy_y);
+		rf.read_attribute(rcy_id, "z", rcy_z);
+		rcy_obj.update(rcy_x, rcy_y, rcy_z);
+		rf.close_group(rcy_id);
+		has_rcy = true;
+	}
 }
 
 void QtSceneFromHdf5_T3D_ME_mt::draw()
@@ -451,7 +518,11 @@ void QtSceneFromHdf5_T3D_ME_mt::draw()
 		shader_balls.bind();
 		pcls_obj.draw(shader_balls);
 	}
+	
+	if (display_rcy && has_rcy)
+		rcy_obj.draw(shader_rigid_mesh);
 
+	// all 3d objects should be drawn before this
 	gl.glDisable(GL_DEPTH_TEST);
 
 	if (has_color_map)

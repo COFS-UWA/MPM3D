@@ -339,6 +339,9 @@ int load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf,
 int output_rigid_cylinder_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
+int output_rigid_cone_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_cone_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf);
 

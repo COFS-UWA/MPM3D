@@ -2,7 +2,10 @@
 
 #include "RigidCone.h"
 
-RigidCone::RigidCone()
+RigidCone::RigidCone() :
+	vx(0.0), vy(0.0), vz(0.0),
+	fx_cont(0.0), fy_cont(0.0), fz_cont(0.0),
+	mx_cont(0.0), my_cont(0.0), mz_cont(0.0)
 {
 	Vector3D& v1 = res_norms[1];
 	v1.z = 0.0;
@@ -76,7 +79,7 @@ bool RigidCone::detect_collision_with_point(
 	double p_x,
 	double p_y,
 	double p_z,
-	double p_vol,
+	double p_r,
 	double& dist,
 	Vector3D& lnorm,
 	Point3D& lcontpos
@@ -85,7 +88,6 @@ bool RigidCone::detect_collision_with_point(
 	double lp_x = p_x - x;
 	double lp_y = p_y - y;
 	double lp_z = p_z - z;
-	double p_r = 0.5 * pow(p_vol, 0.333333333);
 	if (lp_x < lbbox.xl - p_r || lp_x > lbbox.xu + p_r ||
 		lp_y < lbbox.yl - p_r || lp_y > lbbox.yu + p_r ||
 		lp_z < lbbox.zl - p_r || lp_z > lbbox.zu + p_r)
@@ -118,7 +120,7 @@ bool RigidCone::detect_collision_with_point(
 			v0.y = 0.0;
 			v0.z = -1.0;
 		}
-		tmp = r - p_r;
+		tmp = r - lp_r;
 		if (tmp < dist)
 		{
 			norm_type = 1;
@@ -141,24 +143,24 @@ bool RigidCone::detect_collision_with_point(
 		lnorm.x = ln.x;
 		lnorm.y = ln.y;
 		lnorm.z = ln.z;
-		lcontpos.x -= lp_r * lnorm.x;
-		lcontpos.y -= lp_r * lnorm.y;
-		lcontpos.z -= lp_r * lnorm.z;
+		lcontpos.x = lp_x - p_r * lnorm.x;
+		lcontpos.y = lp_y - p_r * lnorm.y;
+		lcontpos.z = lp_z - p_r * lnorm.z;
 		return true;
 	}
 
 	// outside cone
 	double cone_line_up = lp_z + r_div_ht * lp_r - r2_div_ht;
 	double cone_line_down = lp_z + r_div_ht * lp_r + h_tip;
-	if (z < 0.0)
+	if (lp_z < 0.0)
 	{
 		if (cone_line_down <= 0.0)
 		{
 			tmp = lp_z + h_tip;
-			dist = -sqrt(p_r * lp_r + tmp * tmp);
+			dist = -sqrt(lp_r * lp_r + tmp * tmp);
 			lnorm.x = lp_x;
 			lnorm.y = lp_y;
-			lnorm.z = lp_z + h_tip;
+			lnorm.z = tmp;
 			norm_tmp = sqrt(lnorm.x * lnorm.x
 				+ lnorm.y * lnorm.y
 				+ lnorm.z * lnorm.z);
@@ -168,7 +170,7 @@ bool RigidCone::detect_collision_with_point(
 				lnorm.y /= norm_tmp;
 				lnorm.z /= norm_tmp;
 			}
-			else
+			else // at the tip
 			{
 				lnorm.x = 0.0;
 				lnorm.y = 0.0;
@@ -180,7 +182,7 @@ bool RigidCone::detect_collision_with_point(
 			dist = -abs(tip_line) / sqrt_one_ht2_div_r2;
 			lnorm.x = lp_x;
 			lnorm.y = lp_y;
-			lnorm.z = -r_div_ht * p_r;
+			lnorm.z = -r_div_ht * lp_r;
 			norm_tmp = sqrt(lnorm.x * lnorm.x
 				+ lnorm.y * lnorm.y
 				+ lnorm.z * lnorm.z);
@@ -192,7 +194,7 @@ bool RigidCone::detect_collision_with_point(
 		{
 			tmp = lp_r - r;
 			dist = -sqrt(tmp * tmp + lp_z * lp_z);
-			tmp /= p_r;
+			tmp /= lp_r;
 			lnorm.x = tmp * lp_x;
 			lnorm.y = tmp * lp_y;
 			lnorm.z = lp_z;
@@ -208,15 +210,15 @@ bool RigidCone::detect_collision_with_point(
 	{
 		if (lp_z <= h_shaft)
 		{
-			dist = r - p_r;
+			dist = r - lp_r;
 			lnorm.x = lp_x;
 			lnorm.y = lp_y;
-			lnorm.z = 0.0;
 			norm_tmp = sqrt(lnorm.x * lnorm.x + lnorm.y * lnorm.y);
 			lnorm.x /= norm_tmp;
 			lnorm.y /= norm_tmp;
+			lnorm.z = 0.0;
 		}
-		else if (p_r < r)
+		else if (lp_r < r)
 		{
 			dist = h_shaft - lp_z;
 			lnorm.x = 0.0;
@@ -228,7 +230,7 @@ bool RigidCone::detect_collision_with_point(
 			tmp = lp_r - r;
 			lnorm.z = lp_z - h_shaft;
 			dist = -sqrt(tmp  * tmp + lnorm.z * lnorm.z);
-			tmp /= p_r;
+			tmp /= lp_r;
 			lnorm.x = tmp * lp_x;
 			lnorm.y = tmp * lp_y;
 			norm_tmp = sqrt(lnorm.x * lnorm.x
@@ -243,8 +245,8 @@ bool RigidCone::detect_collision_with_point(
 	dist += p_r;
 	if (dist < 0.0)
 		return false;
-	lcontpos.x -= lp_r * lnorm.x;
-	lcontpos.y -= lp_r * lnorm.y;
-	lcontpos.z -= lp_r * lnorm.z;
+	lcontpos.x = lp_x - p_r * lnorm.x;
+	lcontpos.y = lp_y - p_r * lnorm.y;
+	lcontpos.z = lp_z - p_r * lnorm.z;
 	return true;
 }

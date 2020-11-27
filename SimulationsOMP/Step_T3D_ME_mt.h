@@ -107,8 +107,12 @@ protected:
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
 
-	RigidCylinder* prc;
+	RigidCylinder* prcy;
 	ContactModel3D *pcf;
+
+	// cone and cylinder should use two set of
+	// pcf and contact memory!
+	RigidCone* prco;
 
 	size_t valid_elem_num, valid_pcl_num;
 	ContactForce3D cf_tmp;

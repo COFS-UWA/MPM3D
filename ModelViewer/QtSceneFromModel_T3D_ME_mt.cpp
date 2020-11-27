@@ -21,7 +21,8 @@ QtSceneFromModel_T3D_ME_mt::QtSceneFromModel_T3D_ME_mt(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	display_pts(true), pts_obj(_gl),
-	display_rcy(true), has_rcy(false), rcy_obj(_gl) {}
+	display_rcy(true), has_rcy(false), rcy_obj(_gl),
+	display_rco(true), has_rco(false), rco_obj(_gl) {}
 
 QtSceneFromModel_T3D_ME_mt::~QtSceneFromModel_T3D_ME_mt() {}
 
@@ -147,6 +148,12 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 		Cube rcy_box = rcy.get_bbox();
 		mh_bbox.envelop(rcy_box);
 	}
+	if (model->has_rigid_cone())
+	{
+		RigidCone& rco = model->get_rigid_cone();
+		Cube rco_boxx = rco.get_bbox();
+		mh_bbox.envelop(rco_boxx);
+	}
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
 	md_centre.setY(float(mh_bbox.yl + mh_bbox.yu) * 0.5f);
 	md_centre.setZ(float(mh_bbox.zl + mh_bbox.zu) * 0.5f);
@@ -236,6 +243,20 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 		has_rcy = true;
 	}
 
+	if (model->has_rigid_cone())
+	{
+		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+		RigidCone& rco = model->get_rigid_cone();
+		const Point3D& cen = rco.get_centre();
+		rco_obj.init(
+			cen.x, cen.y, cen.z,
+			rco.get_h_tip(),
+			rco.get_h_shaft(),
+			rco.get_r(),
+			navajowhite);
+		has_rco = true;
+	}
+
 	return 0;
 }
 
@@ -262,6 +283,9 @@ void QtSceneFromModel_T3D_ME_mt::draw()
 
 	if (display_rcy && has_rcy)
 		rcy_obj.draw(shader_rigid_mesh);
+
+	if (display_rco && has_rco)
+		rco_obj.draw(shader_rigid_mesh);
 }
 
 void QtSceneFromModel_T3D_ME_mt::resize(int wd, int ht)

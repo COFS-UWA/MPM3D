@@ -8,6 +8,7 @@
 #include "ParticleGenerator3D.hpp"
 #include "TetrahedronMesh.h"
 #include "RigidObject/RigidCylinder.h"
+#include "RigidObject/RigidCone.h"
 #include "RigidObject/SmoothContact3D.h"
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
@@ -31,6 +32,8 @@ namespace Model_T3D_ME_mt_hdf5_utilities
 	int load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_rigid_cylinder_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_rigid_cone_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_rigid_cone_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
 
 class PclVar_T3D_ME_mt;
@@ -218,7 +221,7 @@ public:
 	void init_mesh(const TetrahedronMesh &mesh);
 	
 	void clear_search_grid();
-	int init_search_grid(TetrahedronMesh &mesh, double _hx, double _hy, double _hz);
+	int init_search_grid(TetrahedronMesh &mesh);
 	
 	void alloc_pcls(size_t num);
 	void alloc_pcls(size_t num, size_t ori_num);
@@ -305,7 +308,9 @@ protected:
 	Force* prev_contact_tan_force; // ori_pcl_num
 
 	bool rigid_cylinder_is_valid;
+	bool rigid_cone_is_valid;
 	RigidCylinder rigid_cylinder;
+	RigidCone rigid_cone;
 	ContactModel3D *pcm;
 
 	// ad hoc design for output
@@ -319,6 +324,7 @@ protected:
 	void alloc_contact_mem(size_t num);
 
 public:
+	// cylinder
 	bool has_rigid_cylinder() { return rigid_cylinder_is_valid; }
 	RigidCylinder &get_rigid_cylinder() { return rigid_cylinder; }
 	inline void init_rigid_cylinder(
@@ -331,6 +337,20 @@ public:
 	inline void set_rigid_cylinder_velocity(
 		double vx, double vy, double vz)
 	{ rigid_cylinder.set_vbc(vx, vy, vz); }
+	// cone
+	bool has_rigid_cone() { return rigid_cone_is_valid; }
+	RigidCone &get_rigid_cone() { return rigid_cone; }
+	inline void init_rigid_cone(
+		double x, double y, double z,
+		double h_tip, double h_shaft, double r)
+	{
+		rigid_cone_is_valid = true;
+		rigid_cone.init(x, y, z, r, h_tip, h_shaft);
+	}
+	inline void set_rigid_cone_velocity(
+		double vx, double vy, double vz)
+	{ rigid_cone.set_vbc(vx, vy, vz); }
+	// for contact model
 	inline void set_contact_param(double _Kn_cont, double _Kt_cont, double _fric_ratio)
 	{
 		Kn_cont = _Kn_cont; Kt_cont = _Kt_cont; fric_ratio = _fric_ratio;
@@ -351,6 +371,8 @@ public:
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_cone_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cone_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend class PclVar_T3D_ME_mt;
 };
 

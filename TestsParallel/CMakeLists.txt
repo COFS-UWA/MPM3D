@@ -27,6 +27,7 @@ add_executable(
     test_t3d_me_mt_cylinder_foundation.cpp
     test_rigid_object.cpp
     test_contact_model_3d.cpp
+    test_omp_barrier_time.cpp
     )
 
 target_include_directories(

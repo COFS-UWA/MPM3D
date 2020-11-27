@@ -19,10 +19,7 @@ RigidCylinder::RigidCylinder() :
 	v2.z = 0.0;
 }
 
-RigidCylinder::~RigidCylinder()
-{
-
-}
+RigidCylinder::~RigidCylinder() {}
 
 void RigidCylinder::init(
 	double _x,

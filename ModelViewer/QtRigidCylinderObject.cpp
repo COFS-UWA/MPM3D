@@ -1,8 +1,5 @@
 #include "ModelViewer_pcp.h"
 
-#include <iostream>
-
-#include "Geometry3D.h"
 #include "QtRigidCylinderObject.h"
 
 QtRigidCylinderObject::QtRigidCylinderObject(
@@ -792,12 +789,6 @@ int QtRigidCylinderObject::init(
         pcn += 3;
     }
 
-    //for (size_t n_id = 0; n_id < cylinder_node_num; ++n_id)
-    //{
-    //    NodeCoord& nc = node_coords[n_id];
-    //    std::cout << nc.x << ", " << nc.y << ", " << nc.z << "\n";
-    //}
-
     vbo_index_num = 3 * cylinder_elem_num;
 
     const unsigned int* pce = cylinder_elems;
@@ -852,13 +843,6 @@ int QtRigidCylinderObject::init(
         pnd += 3;
     }
     
-    //for (size_t i = 0; i < vbo_index_num; i++)
-    //{
-    //    NodeData& nd = node_datas[i];
-    //    std::cout << nd.x << ", " << nd.y << ", " << nd.z << ", "
-    //        << nd.nx << ", " << nd.ny << ", " << nd.nz << "\n";
-    //}
-
     gl.glGenBuffers(1, &vbo);
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo);
     gl.glBufferData(
@@ -913,7 +897,7 @@ void QtRigidCylinderObject::draw(QOpenGLShaderProgram& shader)
     gl.glBindVertexArray(vao);
 
     //gl.glFrontFace(GL_CW);
-    gl.glCullFace(GL_BACK);
+    //gl.glCullFace(GL_BACK);
     gl.glDrawArrays(GL_TRIANGLES, 0, vbo_index_num);
 }
 

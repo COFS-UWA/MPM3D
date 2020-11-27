@@ -17,6 +17,7 @@ public:
 	protected:
 		friend ParticleGenerator3D;
 		LinkListPointer<Particle> pointer;
+		Particle* next2;
 	};
 
 protected:
@@ -107,6 +108,32 @@ public:
 		pg_param.vol_div_num = _vol_div_num;
 		generate_pcls(&ParticleGenerator3D::RandomlyDistributedPoint3DGenerator);
 	}
+
+	// ============ adjust particle size to fit elements ===========
+protected: // helper functions and data structures
+	struct ElemInfo
+	{
+		size_t id;
+		double pcl_vol;
+		Particle* pcls;
+		size_t pcl_num;
+		inline void init()
+		{
+			pcl_vol = 0.0;
+			pcls = nullptr;
+			pcl_num = 0;
+		}
+		inline void add_pcl(Particle* pcl)
+		{
+			pcl_vol += pcl->vol;
+			pcl->next2 = pcls;
+			pcls = pcl;
+			++pcl_num;
+		}
+	};
+	
+public:
+	int adjust_pcl_size_to_fit_elems(TetrahedronMesh& mesh);
 };
 
 template <typename TetrahedronMesh>
@@ -285,6 +312,61 @@ void ParticleGenerator3D<TetrahedronMesh>::generate_pcls(GeneratorFunc cur_gener
 		pg_param.vol = elem.vol;
 		(this->*cur_generator_func)();
 	}
+}
+
+template <typename TetrahedronMesh>
+int ParticleGenerator3D<TetrahedronMesh>::
+	adjust_pcl_size_to_fit_elems(TetrahedronMesh& mesh)
+{
+	typedef typename TetrahedronMesh::Element Element;
+
+	// init element info
+	size_t elem_num = mesh.get_elem_num();
+	if (!elem_num)
+		return -1;
+	ElemInfo* elem_infos = new ElemInfo[elem_num];
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		ElemInfo& ei = elem_infos[e_id];
+		ei.id = e_id;
+		ei.init();
+	}
+
+	const Element* pe;
+	Particle* pcl_tmp;
+	Particle* pcl = first();
+	size_t pid = 0;
+	while (is_not_end(pcl))
+	{
+		++pid;
+		pe = mesh.find_in_which_element(*pcl);
+		if (!pe)
+		{
+			pcl_tmp = pcl;
+			pcl = next(pcl);
+			del_pcl(*pcl_tmp);
+			continue;
+		}
+		elem_infos[pe->id].add_pcl(pcl);
+		pcl = next(pcl);
+	}
+
+	Element* elems = mesh.get_elems();
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		Element& e = elems[e_id];
+		ElemInfo& ei = elem_infos[e_id];
+
+		if (ei.pcl_num == 0)
+			continue;
+
+		double vol_ratio = e.vol / ei.pcl_vol;
+		for (Particle* pcl = ei.pcls; pcl; pcl = pcl->next2)
+			pcl->vol *= vol_ratio;
+	}
+
+	delete[] elem_infos;
+	return 0;
 }
 
 #endif

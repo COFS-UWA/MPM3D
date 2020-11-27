@@ -23,10 +23,11 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	grid_x_num(0), grid_y_num(0), grid_z_num(0),
 	grid_elem_list(nullptr),
 	grid_elem_list_id_array(nullptr),
-	rigid_cylinder_is_valid(false), contact_mem(nullptr),
-	//pcm(&smooth_contact)
+	rigid_cylinder_is_valid(false), rigid_cone_is_valid(false), 
+	contact_mem(nullptr),
+	pcm(&smooth_contact)
 	//pcm(&rough_contact)
-	pcm(&fric_contact)
+	//pcm(&fric_contact)
 {
 	res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }
@@ -312,17 +313,11 @@ void Model_T3D_ME_mt::clear_search_grid()
 	grid_z_num = 0;
 }
 
-int Model_T3D_ME_mt::init_search_grid(
-	TetrahedronMesh &mesh,
-	double _hx,
-	double _hy,
-	double _hz
-	)
+int Model_T3D_ME_mt::init_search_grid(TetrahedronMesh &mesh)
 {
 	clear_search_grid();
 	
-	SearchingGrid3D<TetrahedronMesh> search_grid;
-	search_grid.init(mesh, _hx, _hy, _hz);
+	TetrahedronMesh::SearchGrid &search_grid = mesh.get_bg_grid();
 
 	grid_xl = search_grid.get_xl();
 	grid_yl = search_grid.get_yl();
@@ -339,7 +334,7 @@ int Model_T3D_ME_mt::init_search_grid(
 	grid_xy_num = grid_x_num * grid_y_num;
 
 	size_t num = grid_x_num * grid_y_num * grid_z_num;
-	typedef SearchingGrid3D<TetrahedronMesh>::Grid Grid;
+	typedef TetrahedronMesh::SearchGrid::Grid Grid;
 	Grid *sg = search_grid.get_grids();
 	grid_elem_list = new size_t[num + 1];
 	grid_elem_list[0] = 0;

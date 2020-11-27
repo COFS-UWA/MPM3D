@@ -4,6 +4,8 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
+#include "Geometry3D.h"
+
 class QtRigidCylinderObject
 {
 public:

@@ -337,7 +337,6 @@ int ParticleGenerator2D<TriangleMesh>::
 	return 0;
 }
 
-
 template <typename TriangleMesh>
 void ParticleGenerator2D<TriangleMesh>::init_node_info()
 {

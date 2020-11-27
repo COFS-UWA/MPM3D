@@ -11,7 +11,7 @@
 #include "UniformColorMap_Abaqus.h"
 #include "QtUniformColorMapObject.h"
 #include "Model_hdf5_utilities.h"
-#include "QtRigidTetrahedronMeshGLObject.h"
+#include "QtRigidCylinderObject.h"
 #include "QtSceneFromHdf5.h"
 
 class QtSceneFromHdf5_T3D_ME_mt : public QtSceneFromHdf5
@@ -34,12 +34,15 @@ protected:
 	
 	bool display_bg_mesh;
 	bool display_pcls;
+	bool display_rcy, has_rcy;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 
 	UniformColorMap_Abaqus color_map;
 	GLuint color_map_texture;
 	QtMultiColorBallGLObject pcls_obj;
+
+	QtRigidCylinderObject rcy_obj;
 
 	bool has_color_map;
 	float cm_xpos, cm_ypos, cm_ht;
@@ -83,6 +86,7 @@ protected:
 	QOpenGLShaderProgram shader_balls;
 	QOpenGLShaderProgram shader_plain2D;
 	QOpenGLShaderProgram shader_char;
+	QOpenGLShaderProgram shader_rigid_mesh;
 
 	void clear();
 

@@ -117,14 +117,21 @@ int Step_T3D_ME_mt::init_calculation()
 	
 	if (md.has_rigid_cylinder())
 	{
-		prc = &md.get_rigid_cylinder();
-		prc->reset_cont_force();
+		prcy = &md.get_rigid_cylinder();
+		prcy->reset_cont_force();
 		pcf = md.pcm;
 		cf_tmp.reset();
 		contact_substep_id = md.contact_substep_id;
 		prev_contact_pos = md.prev_contact_pos;
 		prev_contact_tan_force = md.prev_contact_tan_force;
 		memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
+	}
+	
+	if (md.has_rigid_cone())
+	{
+		prco = &md.get_rigid_cone();
+		prco->reset_cont_force();
+		// ...
 	}
 	
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
@@ -887,7 +894,7 @@ int substep_func_omp_T3D_ME_mt(
 	{
 		if (md.has_rigid_cylinder())
 		{
-			RigidCylinder &rc = *(self.prc);
+			RigidCylinder &rc = *(self.prcy);
 			rc.set_cont_force(self.cf_tmp);
 			rc.update_motion(dt);
 			self.cf_tmp.reset();
@@ -1099,12 +1106,12 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 		p_y = p_p.y + p_d.uy;
 		p_z = p_p.z + p_d.uz;
 		p_r = 0.5 * pow(pcl_vol[p_id], one_third);
-		if (prc->detect_collision_with_point(
+		if (prcy->detect_collision_with_point(
 			p_x, p_y, p_z, p_r,
 			dist, lnorm, cur_cont_pos))
 		{
 			pv_getter.pcl_id = p_id;
-			prc->get_global_vector(lnorm, gnorm);
+			prcy->get_global_vector(lnorm, gnorm);
 			pcf->cal_contact_force(
 				substp_id,
 				dist,
@@ -1117,7 +1124,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 				prev_contact_tan_force[ori_p_id].vec,
 				lcont_f.vec
 				);
-			prc->get_global_vector(lcont_f.vec, gcont_f.vec);
+			prcy->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
 			e_id = pcl_in_elem[p_id];
@@ -1138,7 +1145,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 			en_f4.fy += p_N.N4 * gcont_f.fy;
 			en_f4.fz += p_N.N4 * gcont_f.fz;
 			// apply contact force to rigid body
-			const Point3D& rc_cen = prc->get_centre();
+			const Point3D& rc_cen = prcy->get_centre();
 			rc_cf.add_force(
 				p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
