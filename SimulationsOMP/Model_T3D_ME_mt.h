@@ -9,9 +9,12 @@
 #include "TetrahedronMesh.h"
 #include "RigidObject/RigidCylinder.h"
 #include "RigidObject/RigidCone.h"
+#include "RigidObject/RigidCube.h"
 #include "RigidObject/SmoothContact3D.h"
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
+
+// current code only allow one rigid object in model!!
 
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
@@ -34,6 +37,8 @@ namespace Model_T3D_ME_mt_hdf5_utilities
 	int load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_rigid_cone_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_rigid_cone_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_rigid_cube_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_rigid_cube_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
 
 class PclVar_T3D_ME_mt;
@@ -309,12 +314,14 @@ protected:
 
 	bool rigid_cylinder_is_valid;
 	bool rigid_cone_is_valid;
+	bool rigid_cube_is_valid;
 	RigidCylinder rigid_cylinder;
 	RigidCone rigid_cone;
-	ContactModel3D *pcm;
+	RigidCube rigid_cube;
 
 	// ad hoc design for output
 	double Kn_cont, Kt_cont, fric_ratio;
+	ContactModel3D* pcm;
 	SmoothContact3D smooth_contact;
 	RoughContact3D rough_contact;
 	FrictionalContact3D fric_contact;
@@ -350,6 +357,23 @@ public:
 	inline void set_rigid_cone_velocity(
 		double vx, double vy, double vz)
 	{ rigid_cone.set_vbc(vx, vy, vz); }
+	// cube
+	bool has_rigid_cube() { return rigid_cube_is_valid; }
+	RigidCube &get_rigid_cube() { return rigid_cube; }
+	inline void init_rigid_cube(
+		double x, double y, double z,
+		double hx, double hy, double hz, double density)
+	{
+		rigid_cube_is_valid = true;
+		rigid_cube.init(x, y, z, hx, hy, hz, density);
+	}
+	inline void set_rigid_cube_force(double fx, double fy, double fz)
+	{
+		rigid_cube.set_fx_ext(fx);
+		rigid_cube.set_fy_ext(fy);
+		rigid_cube.set_fz_ext(fz);
+	}
+
 	// for contact model
 	inline void set_contact_param(double _Kn_cont, double _Kt_cont, double _fric_ratio)
 	{
@@ -373,6 +397,8 @@ public:
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_cone_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cone_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_cube_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cube_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend class PclVar_T3D_ME_mt;
 };
 

@@ -59,26 +59,12 @@ public:
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
-	void set_cont_force(ContactForce3D &cf) noexcept;
+	void set_cont_force(const ContactForce3D &cf) noexcept;
 
 	inline void reset_cont_force() noexcept
 	{
-		fx_cont = 0.0;
-		fy_cont = 0.0;
-		fz_cont = 0.0;
-		mx_cont = 0.0;
-		my_cont = 0.0;
-		mz_cont = 0.0;
-	}
-
-	inline void combine_cont_force(const ContactForce3D& other) noexcept
-	{
-		fx_cont += other.fx;
-		fy_cont += other.fy;
-		fz_cont += other.fz;
-		mx_cont += other.mx;
-		my_cont += other.my;
-		mz_cont += other.mz;
+		fx_cont = 0.0; fy_cont = 0.0; fz_cont = 0.0;
+		mx_cont = 0.0; my_cont = 0.0; mz_cont = 0.0;
 	}
 
 	inline void get_global_point(

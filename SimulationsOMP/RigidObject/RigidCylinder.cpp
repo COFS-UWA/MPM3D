@@ -73,7 +73,7 @@ void RigidCylinder::set_cont_force(
 }
 
 void RigidCylinder::set_cont_force(
-	ContactForce3D& cf
+	const ContactForce3D& cf
 	) noexcept
 {
 	fx_cont = cf.fx;

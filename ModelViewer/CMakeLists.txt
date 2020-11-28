@@ -116,6 +116,7 @@ add_library(
     # 3D OpenGL Buffer Objects
     QtRigidCylinderObject.h QtRigidCylinderObject.cpp
     QtRigidConeObject.h QtRigidConeObject.cpp
+    QtRigidCubeObject.h QtRigidCubeObject.cpp
     QtTetrahedronMeshGLObject.h QtTetrahedronMeshGLObject.cpp
     QtMonoColorBallGLObject.h QtMonoColorBallGLObject.cpp
     QtMultiColorBallGLObject.h QtMultiColorBallGLObject.cpp

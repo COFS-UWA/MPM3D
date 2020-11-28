@@ -4,6 +4,7 @@
 #include "ResultFile_hdf5.h"
 #include "RigidCylinder.h"
 #include "RigidCone.h"
+#include "RigidCube.h"
 
 namespace RigidObject_hdf5_utilities
 {
@@ -11,6 +12,8 @@ namespace RigidObject_hdf5_utilities
 	int load_rigid_cylinder_from_hdf5_file(RigidCylinder &rc, ResultFile_hdf5 &rf, hid_t rc_grp_id);
 	int output_rigid_cone_to_hdf5_file(RigidCone &rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
 	int load_rigid_cone_from_hdf5_file(RigidCone &rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
+	int output_rigid_cube_to_hdf5_file(RigidCube& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
+	int load_rigid_cube_from_hdf5_file(RigidCube& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
 }
 
 #endif

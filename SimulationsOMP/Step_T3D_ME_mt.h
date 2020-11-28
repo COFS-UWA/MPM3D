@@ -108,11 +108,10 @@ protected:
 	size_t* elem_sum_bin;
 
 	RigidCylinder* prcy;
-	ContactModel3D *pcf;
-
-	// cone and cylinder should use two set of
-	// pcf and contact memory!
 	RigidCone* prco;
+	RigidCube* prcu;
+
+	ContactModel3D *pcf;
 
 	size_t valid_elem_num, valid_pcl_num;
 	ContactForce3D cf_tmp;
@@ -127,6 +126,14 @@ protected:
 		ContactForce3D &rc_cf,
 		size_t substp_id,
 		ThreadData &thd) noexcept;
+
+	int apply_rigid_cube(
+		size_t p_id0, size_t p_id1,
+		size_t* pcl_in_elem,
+		SortedPclVarArrays& cur_spva,
+		ContactForce3D& rc_cf,
+		size_t substp_id,
+		ThreadData& thd) noexcept;
 
 public:
 	int init_calculation() override;

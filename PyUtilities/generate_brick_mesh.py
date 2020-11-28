@@ -57,8 +57,8 @@ def generate_brick_mesh(nx, ny, nz, xl, xu, yl, yu, zl, zu):
     return nodes, elems
     
 if __name__ == "__main__":
-    mh_length = 0.1
-    inv_x = 5
+    mh_length = 1.0
+    inv_x = 20
     inv_y = 5
     inv_z = 1
     h5_file = h5py.File("../Asset/brick_mesh_%.2f_%dx%dx%d.h5" % (mh_length, inv_x, inv_y, inv_z), "w")

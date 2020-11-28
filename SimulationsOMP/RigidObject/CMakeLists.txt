@@ -5,6 +5,7 @@ target_sources(
     RoughContact3D.h RoughContact3D.cpp
     FrictionalContact3D.h FrictionalContact3D.cpp
     ContactForce3D.h
+    RigidCube.h RigidCube.cpp
     RigidCylinder.h RigidCylinder.cpp
     RigidCone.h RigidCone.cpp
     RigidObject_hdf5_utilities.h RigidObject_hdf5_utilities.cpp

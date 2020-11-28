@@ -115,25 +115,31 @@ int Step_T3D_ME_mt::init_calculation()
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 	
+	pcf = md.pcm;
+	cf_tmp.reset();
+	contact_substep_id = md.contact_substep_id;
+	prev_contact_pos = md.prev_contact_pos;
+	prev_contact_tan_force = md.prev_contact_tan_force;
+	memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
+	
 	if (md.has_rigid_cylinder())
 	{
 		prcy = &md.get_rigid_cylinder();
 		prcy->reset_cont_force();
-		pcf = md.pcm;
-		cf_tmp.reset();
-		contact_substep_id = md.contact_substep_id;
-		prev_contact_pos = md.prev_contact_pos;
-		prev_contact_tan_force = md.prev_contact_tan_force;
-		memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
 	}
 	
 	if (md.has_rigid_cone())
 	{
 		prco = &md.get_rigid_cone();
 		prco->reset_cont_force();
-		// ...
 	}
 	
+	if (md.has_rigid_cube())
+	{
+		prcu = &md.get_rigid_cube();
+		prcu->reset_cont_force();
+	}
+
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 	
 	char *cur_mem = (char *)thread_mem.alloc(
@@ -712,6 +718,22 @@ int substep_func_omp_T3D_ME_mt(
 		self.cf_tmp.combine(cf);
 	}
 
+	if (md.has_rigid_cube())
+	{
+		ContactForce3D cf;
+		cf.reset();
+		self.apply_rigid_cube(
+			p_id0, p_id1,
+			pcl_in_elem0,
+			spva0, cf,
+			substp_id,
+			thd
+		);
+
+#pragma omp critical
+		self.cf_tmp.combine(cf);
+	}
+
 	// sort node-elem pair according to node id
 	size_t ve_id;
 	memset(my_cbin, 0, 0x100 * sizeof(size_t));
@@ -897,8 +919,16 @@ int substep_func_omp_T3D_ME_mt(
 			RigidCylinder &rc = *(self.prcy);
 			rc.set_cont_force(self.cf_tmp);
 			rc.update_motion(dt);
-			self.cf_tmp.reset();
 		}
+
+		if (md.has_rigid_cube())
+		{
+			RigidCube &rc = *(self.prcu);
+			rc.set_cont_force(self.cf_tmp);
+			rc.update_motion(dt);
+		}
+		
+		self.cf_tmp.reset();
 
 		self.valid_pcl_num = 0;
 	}
@@ -1146,6 +1176,85 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 			en_f4.fz += p_N.N4 * gcont_f.fz;
 			// apply contact force to rigid body
 			const Point3D& rc_cen = prcy->get_centre();
+			rc_cf.add_force(
+				p_x, p_y, p_z,
+				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
+				rc_cen.x, rc_cen.y, rc_cen.z
+				);
+		}
+	}
+
+	return 0;
+}
+
+int Step_T3D_ME_mt::apply_rigid_cube(
+	size_t p_id0, size_t p_id1,
+	size_t* pcl_in_elem,
+	SortedPclVarArrays& cur_spva,
+	ContactForce3D& rc_cf,
+	size_t substp_id,
+	ThreadData& thd) noexcept
+{
+	double p_x, p_y, p_z, p_r;
+	size_t ori_p_id, e_id;
+	double dist;
+	Vector3D lnorm, gnorm;
+	Force lcont_f, gcont_f;
+	Point3D cur_cont_pos;
+	size_t* pcl_index = cur_spva.pcl_index;
+	Displacement* pcl_disp = cur_spva.pcl_disp;
+	ShapeFunc* pcl_N = cur_spva.pcl_N;
+	PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
+	pv_getter.cur_sorted_pcl_vars = &cur_spva;
+	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+	{
+		ori_p_id = pcl_index[p_id];
+		Position& p_p = pcl_pos[ori_p_id];
+		Displacement& p_d = pcl_disp[p_id];
+		p_x = p_p.x + p_d.ux;
+		p_y = p_p.y + p_d.uy;
+		p_z = p_p.z + p_d.uz;
+		p_r = 0.5 * pow(pcl_vol[p_id], one_third);
+		if (prcu->detect_collision_with_point(
+			p_x, p_y, p_z, p_r,
+			dist, lnorm, cur_cont_pos))
+		{
+			pv_getter.pcl_id = p_id;
+			prcu->get_global_vector(lnorm, gnorm);
+			pcf->cal_contact_force(
+				substp_id,
+				dist,
+				lnorm,
+				cur_cont_pos,
+				p_r + p_r,
+				pv_getter,
+				contact_substep_id[ori_p_id],
+				prev_contact_pos[ori_p_id].pt,
+				prev_contact_tan_force[ori_p_id].vec,
+				lcont_f.vec
+				);
+			prcu->get_global_vector(lcont_f.vec, gcont_f.vec);
+			// apply contact force to mesh
+			ShapeFunc& p_N = pcl_N[p_id];
+			e_id = pcl_in_elem[p_id];
+			ElemNodeForce& en_f1 = elem_node_force[e_id * 4];
+			en_f1.fx += p_N.N1 * gcont_f.fx;
+			en_f1.fy += p_N.N1 * gcont_f.fy;
+			en_f1.fz += p_N.N1 * gcont_f.fz;
+			ElemNodeForce& en_f2 = elem_node_force[e_id * 4 + 1];
+			en_f2.fx += p_N.N2 * gcont_f.fx;
+			en_f2.fy += p_N.N2 * gcont_f.fy;
+			en_f2.fz += p_N.N2 * gcont_f.fz;
+			ElemNodeForce& en_f3 = elem_node_force[e_id * 4 + 2];
+			en_f3.fx += p_N.N3 * gcont_f.fx;
+			en_f3.fy += p_N.N3 * gcont_f.fy;
+			en_f3.fz += p_N.N3 * gcont_f.fz;
+			ElemNodeForce& en_f4 = elem_node_force[e_id * 4 + 3];
+			en_f4.fx += p_N.N4 * gcont_f.fx;
+			en_f4.fy += p_N.N4 * gcont_f.fy;
+			en_f4.fz += p_N.N4 * gcont_f.fz;
+			// apply contact force to rigid body
+			const Point3D& rc_cen = prcu->get_centre();
 			rc_cf.add_force(
 				p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
