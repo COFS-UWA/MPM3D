@@ -704,7 +704,7 @@ int substep_func_omp_T3D_ME_mt(
 
 	if (md.has_rigid_cylinder())
 	{
-		ContactForce3D cf;
+		Force3D cf;
 		cf.reset();
 		self.apply_rigid_cylinder(
 			p_id0, p_id1,
@@ -720,7 +720,7 @@ int substep_func_omp_T3D_ME_mt(
 
 	if (md.has_rigid_cube())
 	{
-		ContactForce3D cf;
+		Force3D cf;
 		cf.reset();
 		self.apply_rigid_cube(
 			p_id0, p_id1,
@@ -1111,7 +1111,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 	size_t p_id1,
 	size_t* pcl_in_elem,
 	SortedPclVarArrays &cur_spva,
-	ContactForce3D& rc_cf,
+	Force3D& rc_cf,
 	size_t substp_id,
 	ThreadData &thd
 	) noexcept
@@ -1191,7 +1191,7 @@ int Step_T3D_ME_mt::apply_rigid_cube(
 	size_t p_id0, size_t p_id1,
 	size_t* pcl_in_elem,
 	SortedPclVarArrays& cur_spva,
-	ContactForce3D& rc_cf,
+	Force3D& rc_cf,
 	size_t substp_id,
 	ThreadData& thd) noexcept
 {

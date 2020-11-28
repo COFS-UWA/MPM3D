@@ -56,9 +56,9 @@ void FrictionalContact3D::cal_contact_force(
 		ry -= norm_len * norm.y;
 		rz -= norm_len * norm.z;
 		const double K_p_area = Kt_cont * pcl_area;
-		prev_cont_tan_force.x += rx * Kt_cont;
-		prev_cont_tan_force.y += ry * Kt_cont;
-		prev_cont_tan_force.z += rz * Kt_cont;
+		prev_cont_tan_force.x -= rx * Kt_cont;
+		prev_cont_tan_force.y -= ry * Kt_cont;
+		prev_cont_tan_force.z -= rz * Kt_cont;
 		// contact consitutive model
 		double tan_force = sqrt(prev_cont_tan_force.x * prev_cont_tan_force.x
 							  + prev_cont_tan_force.y * prev_cont_tan_force.y

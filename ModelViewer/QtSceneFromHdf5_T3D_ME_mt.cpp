@@ -24,7 +24,9 @@ QtSceneFromHdf5_T3D_ME_mt::QtSceneFromHdf5_T3D_ME_mt(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
-	display_rcy(true), has_rcy(false), rcy_obj(_gl)
+	display_rcy(true), has_rcy(false), rcy_obj(_gl),
+	display_rco(true), has_rco(false), rco_obj(_gl),
+	display_rcu(true), has_rcu(false), rcu_obj(_gl)
 {
 	amb_coef = 0.3f;
 	diff_coef = 1.0f;
@@ -263,6 +265,8 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		);
 	}
 
+	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+	
 	// rigid cylinder
 	if (rf.has_group(md_data_grp_id, "RigidCylinder"))
 	{
@@ -273,7 +277,6 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		rf.read_attribute(rcy_id, "z", rcy_z);
 		rf.read_attribute(rcy_id, "h", rcy_h);
 		rf.read_attribute(rcy_id, "r", rcy_r);
-		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 		rcy_obj.init(rcy_x, rcy_y, rcy_z, rcy_h, rcy_r, navajowhite);
 		Cube rcy_bbox(rcy_x - rcy_r, rcy_x + rcy_r,
 					  rcy_y - rcy_r, rcy_y + rcy_r,
@@ -282,6 +285,51 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		mh_bbox.envelop(rcy_bbox);
 		rf.close_group(rcy_id);
 		has_rcy = true;
+	}
+
+	// rigid cone
+	if (rf.has_group(md_data_grp_id, "RigidCone"))
+	{
+		hid_t rco_id = rf.open_group(md_data_grp_id, "RigidCone");
+		double rco_x, rco_y, rco_z;
+		double rco_h_tip, rco_h_shaft, rco_r;
+		rf.read_attribute(rco_id, "x", rco_x);
+		rf.read_attribute(rco_id, "y", rco_y);
+		rf.read_attribute(rco_id, "z", rco_z);
+		rf.read_attribute(rco_id, "h_tip", rco_h_tip);
+		rf.read_attribute(rco_id, "h_shaft", rco_h_shaft);
+		rf.read_attribute(rco_id, "r", rco_r);
+		rco_obj.init(rco_x, rco_y, rco_z,
+			rco_h_tip, rco_h_shaft, rco_r,
+			navajowhite);
+		Cube rco_bbox(rco_x - rco_r, rco_x + rco_r,
+					  rco_y - rco_r, rco_y + rco_r,
+					  rco_z - rco_h_tip, rco_z + rco_h_shaft);
+		mh_bbox.envelop(rco_bbox);
+		rf.close_group(rco_id);
+		has_rco = true;
+	}
+
+	// rigid cube
+	if (rf.has_group(md_data_grp_id, "RigidCube"))
+	{
+		hid_t rcu_id = rf.open_group(md_data_grp_id, "RigidCube");
+		double rcu_x, rcu_y, rcu_z;
+		double rcu_hx, rcu_hy, rcu_hz;
+		rf.read_attribute(rcu_id, "x", rcu_x);
+		rf.read_attribute(rcu_id, "y", rcu_y);
+		rf.read_attribute(rcu_id, "z", rcu_z);
+		rf.read_attribute(rcu_id, "hx", rcu_hx);
+		rf.read_attribute(rcu_id, "hy", rcu_hy);
+		rf.read_attribute(rcu_id, "hz", rcu_hz);
+		rcu_obj.init(rcu_x, rcu_y, rcu_z,
+			rcu_hx, rcu_hy, rcu_hz,	navajowhite);
+		Cube rcu_bbox(rcu_x - 0.5 * rcu_hx, rcu_x + 0.5 * rcu_hy,
+					  rcu_y - 0.5 * rcu_hy, rcu_y + 0.5 * rcu_hy,
+					  rcu_z - 0.5 * rcu_hz, rcu_z + 0.5 * rcu_hz);
+		mh_bbox.envelop(rcu_bbox);
+		rf.close_group(rcu_id);
+		has_rcu = true;
 	}
 
 	// color map texture
@@ -485,6 +533,7 @@ void QtSceneFromHdf5_T3D_ME_mt::update_scene(size_t frame_id)
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	
 	if (rf.has_group(frame_grp_id, "RigidCylinder"))
 	{
 		hid_t rcy_id = rf.open_group(frame_grp_id, "RigidCylinder");
@@ -495,6 +544,30 @@ void QtSceneFromHdf5_T3D_ME_mt::update_scene(size_t frame_id)
 		rcy_obj.update(rcy_x, rcy_y, rcy_z);
 		rf.close_group(rcy_id);
 		has_rcy = true;
+	}
+
+	if (rf.has_group(frame_grp_id, "RigidCone"))
+	{
+		hid_t rco_id = rf.open_group(frame_grp_id, "RigidCone");
+		double rco_x, rco_y, rco_z;
+		rf.read_attribute(rco_id, "x", rco_x);
+		rf.read_attribute(rco_id, "y", rco_y);
+		rf.read_attribute(rco_id, "z", rco_z);
+		rco_obj.update(rco_x, rco_y, rco_z);
+		rf.close_group(rco_id);
+		has_rco = true;
+	}
+
+	if (rf.has_group(frame_grp_id, "RigidCube"))
+	{
+		hid_t rcu_id = rf.open_group(frame_grp_id, "RigidCube");
+		double rcu_x, rcu_y, rcu_z;
+		rf.read_attribute(rcu_id, "x", rcu_x);
+		rf.read_attribute(rcu_id, "y", rcu_y);
+		rf.read_attribute(rcu_id, "z", rcu_z);
+		rcu_obj.update(rcu_x, rcu_y, rcu_z);
+		rf.close_group(rcu_id);
+		has_rcu = true;
 	}
 }
 
@@ -521,6 +594,12 @@ void QtSceneFromHdf5_T3D_ME_mt::draw()
 	
 	if (display_rcy && has_rcy)
 		rcy_obj.draw(shader_rigid_mesh);
+
+	if (display_rco && has_rco)
+		rco_obj.draw(shader_rigid_mesh);
+
+	if (display_rcu && has_rcu)
+		rcu_obj.draw(shader_rigid_mesh);
 
 	// all 3d objects should be drawn before this
 	gl.glDisable(GL_DEPTH_TEST);

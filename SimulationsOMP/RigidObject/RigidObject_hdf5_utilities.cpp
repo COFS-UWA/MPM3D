@@ -23,7 +23,7 @@ namespace RigidObject_hdf5_utilities
 		rf.write_attribute(rc_grp_id, "vx", v.x);
 		rf.write_attribute(rc_grp_id, "vy", v.y);
 		rf.write_attribute(rc_grp_id, "vz", v.z);
-		const ContactForce3D &cf = rc.get_cont_force();
+		const Force3D &cf = rc.get_cont_force();
 		rf.write_attribute(rc_grp_id, "fx", cf.fx);
 		rf.write_attribute(rc_grp_id, "fy", cf.fy);
 		rf.write_attribute(rc_grp_id, "fz", cf.fz);
@@ -85,7 +85,7 @@ namespace RigidObject_hdf5_utilities
 		rf.write_attribute(rc_grp_id, "vx", v.x);
 		rf.write_attribute(rc_grp_id, "vy", v.y);
 		rf.write_attribute(rc_grp_id, "vz", v.z);
-		const ContactForce3D& cf = rc.get_cont_force();
+		const Force3D& cf = rc.get_cont_force();
 		rf.write_attribute(rc_grp_id, "fx", cf.fx);
 		rf.write_attribute(rc_grp_id, "fy", cf.fy);
 		rf.write_attribute(rc_grp_id, "fz", cf.fz);
@@ -153,13 +153,20 @@ namespace RigidObject_hdf5_utilities
 		rf.write_attribute(rc_grp_id, "vx", v.x);
 		rf.write_attribute(rc_grp_id, "vy", v.y);
 		rf.write_attribute(rc_grp_id, "vz", v.z);
-		const ContactForce3D& cf = rc.get_cont_force();
-		rf.write_attribute(rc_grp_id, "fx", cf.fx);
-		rf.write_attribute(rc_grp_id, "fy", cf.fy);
-		rf.write_attribute(rc_grp_id, "fz", cf.fz);
-		rf.write_attribute(rc_grp_id, "mx", cf.mx);
-		rf.write_attribute(rc_grp_id, "my", cf.my);
-		rf.write_attribute(rc_grp_id, "mz", cf.mz);
+		const Force3D& cf = rc.get_cont_force();
+		rf.write_attribute(rc_grp_id, "fx_cont", cf.fx);
+		rf.write_attribute(rc_grp_id, "fy_cont", cf.fy);
+		rf.write_attribute(rc_grp_id, "fz_cont", cf.fz);
+		rf.write_attribute(rc_grp_id, "mx_cont", cf.mx);
+		rf.write_attribute(rc_grp_id, "my_cont", cf.my);
+		rf.write_attribute(rc_grp_id, "mz_cont", cf.mz);
+		const Force3D& ef = rc.get_ext_force();
+		rf.write_attribute(rc_grp_id, "fx_ext", ef.fx);
+		rf.write_attribute(rc_grp_id, "fy_ext", ef.fy);
+		rf.write_attribute(rc_grp_id, "fz_ext", ef.fz);
+		rf.write_attribute(rc_grp_id, "mx_ext", ef.mx);
+		rf.write_attribute(rc_grp_id, "my_ext", ef.my);
+		rf.write_attribute(rc_grp_id, "mz_ext", ef.mz);
 		return 0;
 	}
 
@@ -174,7 +181,8 @@ namespace RigidObject_hdf5_utilities
 
 		double hx, hy, hz, density;
 		double x, y, z, ax, ay, az, vx, vy, vz;
-		double fx, fy, fz, mx, my, mz;
+		double fx_cont, fy_cont, fz_cont, mx_cont, my_cont, mz_cont;
+		double fx_ext, fy_ext, fz_ext, mx_ext, my_ext, mz_ext;
 		rf.read_attribute(rc_grp_id, "hx", hx);
 		rf.read_attribute(rc_grp_id, "hy", hy);
 		rf.read_attribute(rc_grp_id, "hz", hz);
@@ -188,16 +196,23 @@ namespace RigidObject_hdf5_utilities
 		rf.read_attribute(rc_grp_id, "vx", vx);
 		rf.read_attribute(rc_grp_id, "vy", vy);
 		rf.read_attribute(rc_grp_id, "vz", vz);
-		rf.read_attribute(rc_grp_id, "fx", fx);
-		rf.read_attribute(rc_grp_id, "fy", fy);
-		rf.read_attribute(rc_grp_id, "fz", fz);
-		rf.read_attribute(rc_grp_id, "mx", mx);
-		rf.read_attribute(rc_grp_id, "my", my);
-		rf.read_attribute(rc_grp_id, "mz", mz);
+		rf.read_attribute(rc_grp_id, "fx_cont", fx_cont);
+		rf.read_attribute(rc_grp_id, "fy_cont", fy_cont);
+		rf.read_attribute(rc_grp_id, "fz_cont", fz_cont);
+		rf.read_attribute(rc_grp_id, "mx_cont", mx_cont);
+		rf.read_attribute(rc_grp_id, "my_cont", my_cont);
+		rf.read_attribute(rc_grp_id, "mz_cont", mz_cont);
+		rf.read_attribute(rc_grp_id, "fx_ext", fx_ext);
+		rf.read_attribute(rc_grp_id, "fy_ext", fy_ext);
+		rf.read_attribute(rc_grp_id, "fz_ext", fz_ext);
+		rf.read_attribute(rc_grp_id, "mx_ext", mx_ext);
+		rf.read_attribute(rc_grp_id, "my_ext", my_ext);
+		rf.read_attribute(rc_grp_id, "mz_exxt", mz_ext);
 		rc.init(x, y, z, hx, hy, hz, density);
 		rc.set_acceleration(ax, ay, az);
 		rc.set_velocity(vx, vy, vz);
-		rc.set_cont_force(fx, fy, fz, mx, my, mz);
+		rc.set_cont_force(fx_cont, fy_cont, fz_cont, mx_cont, my_cont, mz_cont);
+		rc.set_ext_force(fx_ext, fy_ext, fz_ext, mx_ext, my_ext, mz_ext);
 		return 0;
 	}
 }

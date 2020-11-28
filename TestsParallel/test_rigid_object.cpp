@@ -17,7 +17,7 @@ void test_rigid_cylinder(int argc, char** argv)
 	const Vector3D &rc_v = rc.get_velocity();
 
 	rc.reset_cont_force();
-	const ContactForce3D &cf = rc.get_cont_force();
+	const Force3D &cf = rc.get_cont_force();
 	
 	bool res; double dist; Vector3D norm; Point3D cont_pos;
 
@@ -72,7 +72,7 @@ void test_rigid_cone(int argc, char** argv)
 	const Vector3D& rc_v = rc.get_velocity();
 
 	rc.reset_cont_force();
-	const ContactForce3D& cf = rc.get_cont_force();
+	const Force3D& cf = rc.get_cont_force();
 
 	bool res; double dist; Vector3D norm; Point3D cont_pos;
 

@@ -2,7 +2,7 @@
 #define __Rigid_Cube_h__
 
 #include "Geometry3D.h"
-#include "ContactForce3D.h"
+#include "Force3D.h"
 
 class RigidCube
 {
@@ -37,7 +37,7 @@ protected:
 			double fx_cont, fy_cont, fz_cont;
 			double mx_cont, my_cont, mz_cont;
 		};
-		ContactForce3D cont_force;
+		Force3D cont_force;
 	};
 	
 	double m;
@@ -49,8 +49,15 @@ protected:
 		struct { size_t ivx_bc, ivy_bc, ivz_bc; };
 	};
 
-	double fx_ext, fy_ext, fz_ext;
-	double mx_ext, my_ext, mz_ext;
+	union
+	{
+		struct
+		{
+			double fx_ext, fy_ext, fz_ext;
+			double mx_ext, my_ext, mz_ext;
+		};
+		Force3D ext_force;
+	};
 
 	double hhx, hhy, hhz;
 
@@ -67,7 +74,8 @@ public:
 	const Point3D& get_centre() const noexcept { return centre; }
 	const Vector3D& get_acceleration() const noexcept { return acceleration; }
 	const Vector3D& get_velocity() const noexcept { return velocity; }
-	const ContactForce3D& get_cont_force() const noexcept { return cont_force; }
+	const Force3D& get_cont_force() const noexcept { return cont_force; }
+	const Force3D& get_ext_force() const noexcept { return ext_force; }
 	Cube get_bbox() const noexcept
 	{ return Cube(-hhx + x, hhx + x, -hhy + y, hhy + y, -hhz + z, hhz + z); }
 
@@ -87,7 +95,9 @@ public:
 			  double _density) noexcept;
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
-	void set_cont_force(const ContactForce3D &cf) noexcept;
+	void set_cont_force(const Force3D &cf) noexcept;
+	void set_ext_force(double fx, double fy, double fz,
+					   double mx, double my, double mz) noexcept;
 
 	inline void reset_cont_force() noexcept
 	{

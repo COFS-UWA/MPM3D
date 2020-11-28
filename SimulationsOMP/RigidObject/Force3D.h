@@ -1,29 +1,21 @@
-#ifndef __Contact_Force_3D_h__
-#define __Contact_Force_3D_h__
+#ifndef __Force_3D_h__
+#define __Force_3D_h__
 
-struct ContactForce3D
+struct Force3D
 {
 	double fx, fy, fz;
 	double mx, my, mz;
 
 	inline void reset() noexcept
 	{
-		fx = 0.0;
-		fy = 0.0;
-		fz = 0.0;
-		mx = 0.0;
-		my = 0.0;
-		mz = 0.0;
+		fx = 0.0; fy = 0.0; fz = 0.0;
+		mx = 0.0; my = 0.0; mz = 0.0;
 	}
 
-	inline void combine(const ContactForce3D &other) noexcept
+	inline void combine(const Force3D &other) noexcept
 	{
-		fx += other.fx;
-		fy += other.fy;
-		fz += other.fz;
-		mx += other.mx;
-		my += other.my;
-		mz += other.mz;
+		fx += other.fx; fy += other.fy; fz += other.fz;
+		mx += other.mx; my += other.my; mz += other.mz;
 	}
 
 	inline void add_force(

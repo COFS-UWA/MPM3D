@@ -114,7 +114,7 @@ protected:
 	ContactModel3D *pcf;
 
 	size_t valid_elem_num, valid_pcl_num;
-	ContactForce3D cf_tmp;
+	Force3D cf_tmp;
 	
 	CacheAlignedMem thread_mem;
 	CacheAlignedMem cal_mem;
@@ -123,7 +123,7 @@ protected:
 		size_t p_id0, size_t p_id1,
 		size_t *pcl_in_elem,
 		SortedPclVarArrays &cur_spva,
-		ContactForce3D &rc_cf,
+		Force3D &rc_cf,
 		size_t substp_id,
 		ThreadData &thd) noexcept;
 
@@ -131,7 +131,7 @@ protected:
 		size_t p_id0, size_t p_id1,
 		size_t* pcl_in_elem,
 		SortedPclVarArrays& cur_spva,
-		ContactForce3D& rc_cf,
+		Force3D& rc_cf,
 		size_t substp_id,
 		ThreadData& thd) noexcept;
 

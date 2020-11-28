@@ -59,10 +59,23 @@ void RigidCube::set_cont_force(
 	mx_cont = mx; my_cont = my; mz_cont = mz;
 }
 
-void RigidCube::set_cont_force(const ContactForce3D &cf) noexcept
+void RigidCube::set_cont_force(const Force3D &cf) noexcept
 {
 	fx_cont = cf.fx; fy_cont = cf.fy; fz_cont = cf.fz;
 	mx_cont = cf.mx; my_cont = cf.my; mz_cont = cf.mz;
+}
+
+void RigidCube::set_ext_force(
+	double fx,
+	double fy,
+	double fz,
+	double mx,
+	double my,
+	double mz
+	) noexcept
+{
+	fx_ext = fx; fy_ext = fy; fz_ext = fz;
+	mx_ext = mx; my_ext = my; mz_ext = mz;
 }
 
 bool RigidCube::detect_collision_with_point(

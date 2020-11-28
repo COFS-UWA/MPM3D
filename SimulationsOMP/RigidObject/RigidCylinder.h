@@ -2,7 +2,7 @@
 #define __Rigid_Cylinder_h__
 
 #include "Geometry3D.h"
-#include "ContactForce3D.h"
+#include "Force3D.h"
 
 class RigidCylinder
 {
@@ -28,7 +28,7 @@ protected:
 			double fx_cont, fy_cont, fz_cont;
 			double mx_cont, my_cont, mz_cont;
 		};
-		ContactForce3D cont_force;
+		Force3D cont_force;
 	};
 	
 	Cube lbbox;
@@ -43,7 +43,7 @@ public:
 	inline double get_r() const noexcept { return r; }
 	inline const Point3D &get_centre() const noexcept { return centre; }
 	inline const Vector3D &get_velocity() const noexcept { return velocity; }
-	inline const ContactForce3D &get_cont_force() const noexcept { return cont_force; }
+	inline const Force3D &get_cont_force() const noexcept { return cont_force; }
 	Cube get_bbox() const noexcept
 	{
 		return Cube(lbbox.xl + x,
@@ -59,7 +59,7 @@ public:
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
-	void set_cont_force(const ContactForce3D &cf) noexcept;
+	void set_cont_force(const Force3D &cf) noexcept;
 
 	inline void reset_cont_force() noexcept
 	{

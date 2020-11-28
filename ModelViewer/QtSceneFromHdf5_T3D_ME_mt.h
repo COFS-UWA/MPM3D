@@ -10,8 +10,9 @@
 #include "QtMultiColorBallGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtUniformColorMapObject.h"
-#include "Model_hdf5_utilities.h"
 #include "QtRigidCylinderObject.h"
+#include "QtRigidConeObject.h"
+#include "QtRigidCubeObject.h"
 #include "QtSceneFromHdf5.h"
 
 class QtSceneFromHdf5_T3D_ME_mt : public QtSceneFromHdf5
@@ -35,6 +36,8 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rcy, has_rcy;
+	bool display_rco, has_rco;
+	bool display_rcu, has_rcu;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 
@@ -43,6 +46,8 @@ protected:
 	QtMultiColorBallGLObject pcls_obj;
 
 	QtRigidCylinderObject rcy_obj;
+	QtRigidConeObject rco_obj;
+	QtRigidCubeObject rcu_obj;
 
 	bool has_color_map;
 	float cm_xpos, cm_ypos, cm_ht;

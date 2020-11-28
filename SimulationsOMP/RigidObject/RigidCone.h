@@ -2,7 +2,7 @@
 #define __Rigid_Cone_h__
 
 #include "Geometry3D.h"
-#include "ContactForce3D.h"
+#include "Force3D.h"
 
 class RigidCone
 {
@@ -23,7 +23,7 @@ protected:
 
 	union
 	{
-		ContactForce3D cont_force;
+		Force3D cont_force;
 		struct
 		{
 			double fx_cont, fy_cont, fz_cont;
@@ -45,7 +45,7 @@ public:
 	double get_h_shaft() const noexcept { return h_shaft; }
 	const Point3D& get_centre() const noexcept { return centre; }
 	const Vector3D& get_velocity() const noexcept { return velocity; }
-	const ContactForce3D& get_cont_force() const noexcept { return cont_force; }
+	const Force3D& get_cont_force() const noexcept { return cont_force; }
 	Cube get_bbox() const noexcept
 	{
 		return Cube(lbbox.xl + x, lbbox.xu + x,
@@ -69,7 +69,7 @@ public:
 		mz_cont = 0.0;
 	}
 
-	inline void combine_cont_force(const ContactForce3D& other) noexcept
+	inline void combine_cont_force(const Force3D& other) noexcept
 	{
 		fx_cont += other.fx;
 		fy_cont += other.fy;
