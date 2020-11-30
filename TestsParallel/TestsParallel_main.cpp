@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_block_sliding(argc, argv);
 	//test_t3d_me_mt_block_sliding_result(argc, argv);
 
-	test_t3d_me_mt_cylinder_foundation_create_model(argc, argv);
+	//test_t3d_me_mt_cylinder_foundation_create_model(argc, argv);
 	test_t3d_me_mt_cylinder_foundation(argc, argv);
 	
 	//system("pause");
