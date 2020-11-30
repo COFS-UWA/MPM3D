@@ -12,7 +12,8 @@
 #include "QtRigidCubeObject.h"
 #include "QtSceneFromModel.h"
 
-class QtSceneFromModel_T3D_ME_mt : public QtSceneFromModel
+class QtSceneFromModel_T3D_ME_mt :
+	public QtSceneFromModel
 {
 protected:
 	struct PointData { GLfloat x, y, z; };
@@ -141,6 +142,9 @@ public:
 	inline void set_model(Model_T3D_ME_mt &_model) { model = &_model; }
 	int set_pts_from_pcl_id(size_t* ids, size_t id_num, float radius);
 	int set_pts_from_node_id(size_t* ids, size_t id_num, float radius);
+	int set_pts_from_vx_bc(float radius);
+	int set_pts_from_vy_bc(float radius);
+	int set_pts_from_vz_bc(float radius);
 	template<typename Point3D>
 	int set_pts(Point3D* _pts, size_t _pt_num, float radius)
 	{
@@ -162,6 +166,11 @@ public:
 	int initialize(int wd, int ht);
 	void draw();
 	void resize(int wd, int ht);
+
+protected:
+	void init_shaders();
+	void init_pts_buffer();
+	void init_rigid_objects_buffer();
 };
 
 #endif

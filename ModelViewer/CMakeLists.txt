@@ -84,6 +84,8 @@ add_library(
     Hdf5FieldExtraction_p.h Hdf5FieldExtraction_p.cpp
     # Constitutive model
     Hdf5MatExtraction_max_shear_stress.h Hdf5MatExtraction_max_shear_stress.cpp
+    # Set for display division in 3D
+    DivisionSet.h DivisionSet.cpp
     ################## 2D MPM model display ######################
     # 2D OpenGL Buffer Objects
     QtTriangleMeshGLObject.h QtTriangleMeshGLObject.cpp
@@ -139,6 +141,8 @@ add_library(
     # prep process
     QtSceneFromModel_T3D_ME_mt.h QtSceneFromModel_T3D_ME_mt.cpp
     QtApp_Prep_T3D_ME_mt.h QtApp_Prep_T3D_ME_mt.cpp
+    QtSceneFromModel_T3D_ME_mt_Div.h
+    QtApp_Prep_T3D_ME_mt_Div.h QtApp_Prep_T3D_ME_mt_Div.cpp
     # post process
     QtSceneFromHdf5_T3D_ME_mt.h QtSceneFromHdf5_T3D_ME_mt.cpp
     QtApp_Posp_T3D_ME_mt.h QtApp_Posp_T3D_ME_mt.cpp

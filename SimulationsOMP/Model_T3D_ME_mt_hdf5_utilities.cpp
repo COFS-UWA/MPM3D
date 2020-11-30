@@ -324,7 +324,7 @@ int load_search_mesh_from_hdf5_file(
 
 	md.clear_search_grid();
 
-	hid_t search_mesh_grp_id = rf.create_group(grp_id, "SearchMesh");
+	hid_t search_mesh_grp_id = rf.open_group(grp_id, "SearchMesh");
 
 	rf.read_attribute(search_mesh_grp_id, "grid_xl", md.grid_xl);
 	rf.read_attribute(search_mesh_grp_id, "grid_yl", md.grid_yl);
@@ -363,7 +363,7 @@ int load_search_mesh_from_hdf5_file(
 	md.grid_elem_list_id_array = new size_t[grid_elem_list_id_len];
 	rf.read_dataset(
 		search_mesh_grp_id,
-		"grid_elem_list_id_array",
+		"grid_elem_list_id",
 		grid_elem_list_id_len,
 		md.grid_elem_list_id_array
 		);
@@ -469,7 +469,7 @@ int load_pcl_data_from_hdf5_file(
 	md.ori_pcl_num = ori_pcl_num;
 	md.pcl_num = pcl_num;
 
-	if (pcl_num && rf.has_dataset(pcl_data_grp_id, "ParticleData"))
+	if (pcl_num && rf.has_dataset(pcl_data_grp_id, "field"))
 	{
 		ParticleData* pcls_data = new ParticleData[pcl_num];
 		hid_t pcl_dt_id = get_pcl_dt_id();
@@ -479,7 +479,7 @@ int load_pcl_data_from_hdf5_file(
 			pcl_num,
 			pcls_data,
 			pcl_dt_id
-		);
+			);
 		H5Tclose(pcl_dt_id);
 
 		if (res)
@@ -501,7 +501,7 @@ int load_pcl_data_from_hdf5_file(
 				throw std::exception("func load_pcl_data_from_hdf5_file error: "
 					"particle has no material model.");
 			}
-			pcl_data.to_pcl(md, p_id, 0, *pmat);
+			pcl_data.to_pcl(md, 0, p_id, *pmat);
 		}
 		delete[] pcls_data;
 	}
@@ -575,7 +575,7 @@ int load_rigid_cylinder_from_hdf5_file(
 	if (!rf.has_group(grp_id, "RigidCylinder"))
 		return 0;
 
-	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCircle");
+	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCylinder");
 
 	double Kn_cont, Kt_cont, fric_ratio;
 	rf.read_attribute(rc_grp_id, "Kn_cont", Kn_cont);

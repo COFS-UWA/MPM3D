@@ -90,8 +90,8 @@ void test_t3d_me_mt_block_sliding_result(int argc, char** argv)
 	app.set_res_file(rf, "sliding", Hdf5Field::s33);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 950);
-	app.set_view_dir(180.0f, 20.0f);
-	app.set_light_dir(180.0f, 20.0f);
+	app.set_view_dir(90.0f, 20.0f);
+	app.set_light_dir(90.0f, 20.0f);
 	app.set_color_map_fld_range(-10.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_me_mt_block_sliding");

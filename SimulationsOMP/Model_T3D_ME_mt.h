@@ -220,7 +220,8 @@ public:
 	inline size_t get_grid_z_num() const noexcept { return grid_z_num; }
 	inline const size_t* get_grid_elem_list_id_array() const noexcept { return grid_elem_list_id_array; }
 	inline const size_t* get_grid_elem_list() const noexcept { return grid_elem_list; }
-	
+	inline const NodeHasVBC* get_node_has_vbc() const noexcept { return node_has_vbc; }
+
 	void clear_mesh();
 	void alloc_mesh(size_t n_num, size_t e_num);
 	void init_mesh(const TetrahedronMesh &mesh);

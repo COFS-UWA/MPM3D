@@ -104,13 +104,171 @@ int QtSceneFromModel_T3D_ME_mt::set_pts_from_node_id(
 	return 0;
 }
 
+int QtSceneFromModel_T3D_ME_mt::set_pts_from_vx_bc(float radius)
+{
+	Model_T3D_ME_mt& md = *model;
+	size_t node_num = md.get_node_num();
+	const Model_T3D_ME_mt::NodeHasVBC* nhv = md.get_node_has_vbc();
+	const Position* node_pos = md.get_node_pos();
+	pt_radius = radius;
+	pt_num = 0;
+	pts_mem.reserve(100);
+	PointData pd_tmp;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		if (nhv[n_id].has_vx_bc)
+		{
+			const Position& n = node_pos[n_id];
+			pd_tmp.x = n.x;
+			pd_tmp.y = n.y;
+			pd_tmp.z = n.z;
+			pts_mem.add(pd_tmp);
+			++pt_num;
+		}
+	}
+	pts = pts_mem.get_mem();
+	return 0;
+}
+
+int QtSceneFromModel_T3D_ME_mt::set_pts_from_vy_bc(float radius)
+{
+	Model_T3D_ME_mt& md = *model;
+	size_t node_num = md.get_node_num();
+	const Model_T3D_ME_mt::NodeHasVBC* nhv = md.get_node_has_vbc();
+	const Position* node_pos = md.get_node_pos();
+	pt_radius = radius;
+	pt_num = 0;
+	pts_mem.reserve(100);
+	PointData pd_tmp;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		if (nhv[n_id].has_vy_bc)
+		{
+			const Position& n = node_pos[n_id];
+			pd_tmp.x = n.x;
+			pd_tmp.y = n.y;
+			pd_tmp.z = n.z;
+			pts_mem.add(pd_tmp);
+			++pt_num;
+		}
+	}
+	pts = pts_mem.get_mem();
+	return 0;
+}
+
+int QtSceneFromModel_T3D_ME_mt::set_pts_from_vz_bc(float radius)
+{
+	Model_T3D_ME_mt& md = *model;
+	size_t node_num = md.get_node_num();
+	const Model_T3D_ME_mt::NodeHasVBC* nhv = md.get_node_has_vbc();
+	const Position* node_pos = md.get_node_pos();
+	pt_radius = radius;
+	pt_num = 0;
+	pts_mem.reserve(100);
+	PointData pd_tmp;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		if (nhv[n_id].has_vz_bc)
+		{
+			const Position& n = node_pos[n_id];
+			pd_tmp.x = n.x;
+			pd_tmp.y = n.y;
+			pd_tmp.z = n.z;
+			pts_mem.add(pd_tmp);
+			++pt_num;
+		}
+	}
+	pts = pts_mem.get_mem();
+	return 0;
+}
+
 int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 {
 	gl.glEnable(GL_DEPTH_TEST);
+	width = wd; height = ht;
 
+	init_shaders();
+
+	// init bg_mesh
+	QVector3D gray(0.5f, 0.5f, 0.5f);
+	bg_mesh_obj.init_from_elements(
+		model->get_node_pos(),
+		model->get_node_num(),
+		model->get_elem_node_index(),
+		model->get_elem_num(),
+		gray
+		);
+
+	// init pcls
+	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
+	pcls_obj.init(
+		model->get_pcl_pos(),
+		model->get_pcl_m(),
+		model->get_pcl_density0(),
+		model->get_pcl_num(),
+		moccasin,
+		0.5f
+		);
+
+	// init pts
+	init_pts_buffer();
+	// init rigid object
+	init_rigid_objects_buffer();
+	return 0;
+}
+
+void QtSceneFromModel_T3D_ME_mt::draw()
+{
+	gl.glViewport(0, 0, width, height);
+
+	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
+	gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (display_bg_mesh)
+	{
+		shader_plain3D.bind();
+		bg_mesh_obj.draw(shader_plain3D);
+	}
+
+	shader_balls.bind();
+
+	if (display_pcls)
+		pcls_obj.draw(shader_balls);
+
+	if (display_pts)
+		pts_obj.draw(shader_balls);
+
+	if (display_rcy && has_rcy)
+		rcy_obj.draw(shader_rigid_mesh);
+
+	if (display_rco && has_rco)
+		rco_obj.draw(shader_rigid_mesh);
+
+	if (display_rcu && has_rcu)
+		rcu_obj.draw(shader_rigid_mesh);
+}
+
+void QtSceneFromModel_T3D_ME_mt::resize(int wd, int ht)
+{
 	width = wd;
 	height = ht;
 
+	gl.glViewport(0, 0, width, height);
+
+	update_proj_mat();
+
+	shader_plain3D.bind();
+	shader_plain3D.setUniformValue("proj_mat", proj_mat);
+
+	shader_balls.bind();
+	shader_balls.setUniformValue("proj_mat", proj_mat);
+
+	shader_rigid_mesh.bind();
+	shader_rigid_mesh.setUniformValue("proj_mat", proj_mat);
+}
+
+void QtSceneFromModel_T3D_ME_mt::init_shaders()
+{
 	shader_plain3D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_plain3D.vert"
@@ -214,38 +372,22 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 	shader_rigid_mesh.setUniformValue("diff_coef", diff_coef);
 	shader_rigid_mesh.setUniformValue("spec_coef", spec_coef);
 	shader_rigid_mesh.setUniformValue("spec_shininess", spec_shininess);
+}
 
-	// init bg_mesh
-	QVector3D gray(0.5f, 0.5f, 0.5f);
-	bg_mesh_obj.init_from_elements(
-		model->get_node_pos(),
-		model->get_node_num(),
-		model->get_elem_node_index(),
-		model->get_elem_num(),
-		gray
-		);
-
-	// init pcls
-	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
-	pcls_obj.init(
-		model->get_pcl_pos(),
-		model->get_pcl_m(),
-		model->get_pcl_density0(),
-		model->get_pcl_num(),
-		moccasin,
-		0.5f
-		);
-
-	// init pts
+void QtSceneFromModel_T3D_ME_mt::init_pts_buffer()
+{
 	QVector3D red(1.0f, 0.0f, 0.0f);
 	if (pts && pt_num)
 		pts_obj.init(pts, pt_num, pt_radius, red);
+}
 
+void QtSceneFromModel_T3D_ME_mt::init_rigid_objects_buffer()
+{
 	if (model->has_rigid_cylinder())
 	{
 		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 		RigidCylinder& rcy = model->get_rigid_cylinder();
-		const Point3D &cen = rcy.get_centre();
+		const Point3D& cen = rcy.get_centre();
 		rcy_obj.init(cen.x, cen.y, cen.z, rcy.get_h(), rcy.get_r(), navajowhite);
 		has_rcy = true;
 	}
@@ -267,7 +409,7 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 	if (model->has_rigid_cube())
 	{
 		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
-		RigidCube &rcu = model->get_rigid_cube();
+		RigidCube& rcu = model->get_rigid_cube();
 		const Point3D& cen = rcu.get_centre();
 		rcu_obj.init(
 			cen.x, cen.y, cen.z,
@@ -277,56 +419,4 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 			navajowhite);
 		has_rcu = true;
 	}
-
-	return 0;
-}
-
-void QtSceneFromModel_T3D_ME_mt::draw()
-{
-	gl.glViewport(0, 0, width, height);
-
-	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
-	gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if (display_bg_mesh)
-	{
-		shader_plain3D.bind();
-		bg_mesh_obj.draw(shader_plain3D);
-	}
-
-	shader_balls.bind();
-
-	if (display_pcls)
-		pcls_obj.draw(shader_balls);
-
-	if (display_pts)
-		pts_obj.draw(shader_balls);
-
-	if (display_rcy && has_rcy)
-		rcy_obj.draw(shader_rigid_mesh);
-
-	if (display_rco && has_rco)
-		rco_obj.draw(shader_rigid_mesh);
-
-	if (display_rcu && has_rcu)
-		rcu_obj.draw(shader_rigid_mesh);
-}
-
-void QtSceneFromModel_T3D_ME_mt::resize(int wd, int ht)
-{
-	width = wd;
-	height = ht;
-
-	gl.glViewport(0, 0, width, height);
-
-	update_proj_mat();
-
-	shader_plain3D.bind();
-	shader_plain3D.setUniformValue("proj_mat", proj_mat);
-
-	shader_balls.bind();
-	shader_balls.setUniformValue("proj_mat", proj_mat);
-
-	shader_rigid_mesh.bind();
-	shader_rigid_mesh.setUniformValue("proj_mat", proj_mat);
 }

@@ -5,6 +5,7 @@
 #include <QOpenGLShaderProgram>
 
 #include "NumPairHashTable.hpp"
+#include "DivisionSet.h"
 
 class QtTetrahedronMeshGLObject
 {
@@ -52,22 +53,34 @@ public:
 	// Node has members x, y, z
 	// Edge has members n1, n2
 	template <typename Node, typename Edge>
-	int init_from_edges(Node* nodes, size_t node_num, Edge* edges, size_t edge_num, QVector3D& c);
+	int init_from_edges(const Node* nodes, const size_t node_num,
+						const Edge* edges, const size_t edge_num,
+						const QVector3D& c);
 
 	// Node has members x, y, z
 	// Element has members n1, n2, n3, n4
 	template <typename Node, typename Element>
-	int init_from_elements(Node* nodes, size_t node_num, Element* elems, size_t elem_num, QVector3D& c);
+	int init_from_elements(const Node* nodes, const size_t node_num,
+						   const Element* elems, size_t elem_num, const QVector3D& c);
+
+	// Node has members x, y, z
+	// Element has members n1, n2, n3, n4
+	template <typename Node, typename Element, typename DivisionSet>
+	int init_from_elements(const Node* nodes, const size_t node_num,
+						   const Element* elems, const size_t elem_num,
+						   const QVector3D& c, const DivisionSet &div_set);
 
 	void draw(QOpenGLShaderProgram& shader);
 };
 
 template <typename Node, typename Edge>
 int QtTetrahedronMeshGLObject::init_from_edges(
-	Node* nodes, size_t node_num,
-	Edge* edges, size_t edge_num,
-	QVector3D& c
-)
+	const Node* nodes,
+	const size_t node_num,
+	const Edge* edges,
+	const size_t edge_num,
+	const QVector3D& c
+	)
 {
 	if (!nodes || !node_num ||
 		!edges || !edge_num)
@@ -88,7 +101,7 @@ int QtTetrahedronMeshGLObject::init_from_edges(
 	NodeData* node_datas = new NodeData[node_num];
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
-		Node& n = nodes[n_id];
+		const Node& n = nodes[n_id];
 		NodeData& nd = node_datas[n_id];
 		nd.type = 0; // monocolor
 		nd.x = GLfloat(n.x);
@@ -125,7 +138,7 @@ int QtTetrahedronMeshGLObject::init_from_edges(
 	EdgeData* edge_datas = new EdgeData[edge_num];
 	for (size_t e_id = 0; e_id < edge_num; ++e_id)
 	{
-		Edge& e = edges[e_id];
+		const Edge& e = edges[e_id];
 		EdgeData& ed = edge_datas[e_id];
 		ed.n1 = GLuint(e.n1);
 		ed.n2 = GLuint(e.n2);
@@ -143,12 +156,12 @@ int QtTetrahedronMeshGLObject::init_from_edges(
 
 template <typename Node, typename Element>
 int QtTetrahedronMeshGLObject::init_from_elements(
-	Node* nodes,
-	size_t node_num,
-	Element* elems,
-	size_t elem_num,
-	QVector3D& c
-)
+	const Node* nodes,
+	const size_t node_num,
+	const Element* elems,
+	const size_t elem_num,
+	const QVector3D& c
+	)
 {
 	if (!nodes || !node_num || !elems || !elem_num)
 		return -1;
@@ -162,7 +175,7 @@ int QtTetrahedronMeshGLObject::init_from_elements(
 
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
-		Element& e = elems[e_id];
+		const Element& e = elems[e_id];
 		n1_id = e.n1;
 		n2_id = e.n2;
 		n3_id = e.n3;
@@ -181,6 +194,69 @@ int QtTetrahedronMeshGLObject::init_from_elements(
 		return -1;
 	EdgeData *edges = new EdgeData[edge_num];
 	table.output_pairs((GLuint *)edges);
+	int res = init_from_edges(nodes, node_num, edges, edge_num, c);
+	delete[] edges;
+
+	return res;
+}
+
+template <typename Node,
+		  typename Element,
+		  typename DivisionSet>
+int QtTetrahedronMeshGLObject::init_from_elements(
+	const Node* nodes,
+	const size_t node_num,
+	const Element* elems,
+	const size_t elem_num,
+	const QVector3D& c,
+	const DivisionSet& div_set
+	)
+{
+	if (!nodes || !node_num || !elems || !elem_num)
+		return -1;
+
+	bool *node_is_valid = new bool[node_num];
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		const Node &n = nodes[n_id];
+		node_is_valid[n_id] = !div_set.inside(n.x, n.y, n.z);
+	}
+
+	NumPairHashTable<size_t> table(node_num * 3);
+	union
+	{
+		struct { size_t n1_id, n2_id, n3_id, n4_id; };
+		size_t n_ids[4];
+	};
+
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		const Element& e = elems[e_id];
+		n1_id = e.n1;
+		n2_id = e.n2;
+		n3_id = e.n3;
+		n4_id = e.n4;
+		sort_acc(n_ids); // n1_id < n2_id < n3_id < n4_id
+		if (node_is_valid[n1_id] && node_is_valid[n2_id])
+			table.add_pair(n1_id, n2_id);
+		if (node_is_valid[n1_id] && node_is_valid[n3_id])
+			table.add_pair(n1_id, n3_id);
+		if (node_is_valid[n1_id] && node_is_valid[n4_id])
+			table.add_pair(n1_id, n4_id);
+		if (node_is_valid[n2_id] && node_is_valid[n3_id])
+			table.add_pair(n2_id, n3_id);
+		if (node_is_valid[n2_id] && node_is_valid[n4_id])
+			table.add_pair(n2_id, n4_id);
+		if (node_is_valid[n3_id] && node_is_valid[n4_id])
+			table.add_pair(n3_id, n4_id);
+	}
+	delete[] node_is_valid;
+
+	size_t edge_num = table.get_pair_num();
+	if (!edge_num)
+		return -1;
+	EdgeData* edges = new EdgeData[edge_num];
+	table.output_pairs((GLuint*)edges);
 	int res = init_from_edges(nodes, node_num, edges, edge_num, c);
 	delete[] edges;
 

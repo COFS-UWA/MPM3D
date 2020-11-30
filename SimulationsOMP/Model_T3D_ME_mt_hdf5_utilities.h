@@ -169,6 +169,10 @@ struct ParticleData
 		p_t.fy = ty;
 		p_t.fz = tz;
 		md.pcl_m[id] = m;
+		Model_T3D_ME_mt::Displacement& p_d = spva.pcl_disp[pcl_offset];
+		p_d.ux = 0.0;
+		p_d.uy = 0.0;
+		p_d.uz = 0.0;
 		spva.pcl_density[pcl_offset] = density;
 		Model_T3D_ME_mt::Velocity &p_v = spva.pcl_v[pcl_offset];
 		p_v.vx = vx;

@@ -18,7 +18,9 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv);
 
 void test_t3d_me_mt_1d_compression(int argc, char** argv);
 void test_t3d_me_s_1d_compression(int argc, char** argv);
+
 void test_t3d_me_mt_cap_compression(int argc, char** argv);
+void test_t3d_me_mt_cap_compression_restart(int argc, char** argv);
 
 void test_omp_barrier_time();
 void test_t3d_me_mt_cylinder_foundation_create_model(int argc, char** argv);

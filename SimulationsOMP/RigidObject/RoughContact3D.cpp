@@ -32,11 +32,15 @@ void RoughContact3D::cal_contact_force(
 	// tangential force
 	if (cont_substp_id != substp_id)
 	{
-		// not in contacct
-		// record contact position
-		prev_cont_pos.x = cont_pos.x;
-		prev_cont_pos.y = cont_pos.y;
-		prev_cont_pos.z = cont_pos.z;
+		if (dist > 0.0)
+		{
+			// not in contacct
+			// record contact position
+			prev_cont_pos.x = cont_pos.x;
+			prev_cont_pos.y = cont_pos.y;
+			prev_cont_pos.z = cont_pos.z;
+			cont_substp_id = substp_id + 1;
+		}
 	}
 	else
 	{
@@ -46,6 +50,6 @@ void RoughContact3D::cal_contact_force(
 		cont_force.x -= (cont_pos.x - prev_cont_pos.x) * K_p_area;
 		cont_force.y -= (cont_pos.y - prev_cont_pos.y) * K_p_area;
 		cont_force.z -= (cont_pos.z - prev_cont_pos.z) * K_p_area;
+		cont_substp_id = substp_id + 1;
 	}
-	cont_substp_id = substp_id + 1;
 }

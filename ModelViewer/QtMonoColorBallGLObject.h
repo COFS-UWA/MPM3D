@@ -4,6 +4,8 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
 
+#include "DivisionSet.h"
+
 class QtMonoColorBallGLObject
 {
 protected:
@@ -38,7 +40,14 @@ public:
 	int init(const Particle3D* pcls, const double* pcl_m, const double* pcl_density,
 		size_t pcl_num, QVector3D& c, float radius_scale);
 
-	// Point3D has member x, y and z
+	template <typename DivisionSet>
+	int init(const double *pcl_x, const double *pcl_y,
+			 const double *pcl_z, const double* pcl_vol,
+			 const size_t pcl_num, 
+			 const QVector3D& c, const float radius_scale,
+			 const DivisionSet& div_set);
+	
+	// uniform size particles
 	template <typename Point3D>
 	int init(Point3D* pts, size_t pt_num, float pcl_radius, QVector3D& c);
 
@@ -123,6 +132,39 @@ int QtMonoColorBallGLObject::init(
 	int res = init_gl_buffer(pt_data, _pt_num);
 	delete[] pt_data;
 	return res;
+}
+
+template <typename DivisionSet>
+int QtMonoColorBallGLObject::init(
+	const double* pcl_x,
+	const double* pcl_y,
+	const double* pcl_z,
+	const double* pcl_vol,
+	const size_t pcl_num,
+	const QVector3D& c,
+	const float radius_scale,
+	const DivisionSet &div_set
+	)
+{
+	clear();
+	color = c;
+	PointData* pt_data = new PointData[pcl_num];
+	size_t cur_p_id = 0;
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		if (!div_set.inside(pcl_x[p_id], pcl_y[p_id], pcl_z[p_id]))
+		{
+			PointData& pd = pt_data[cur_p_id++];
+			pd.type = 0; // mono color
+			pd.x = GLfloat(pcl_x[p_id]);
+			pd.y = GLfloat(pcl_y[p_id]);
+			pd.z = GLfloat(pcl_z[p_id]);
+			pd.radius = GLfloat(pow(3.0 * pcl_vol[p_id] / (4.0 * 3.14159265359), 1.0 / 3.0)) * radius_scale;
+		}
+	}
+	int res = init_gl_buffer(pt_data, cur_p_id);
+	delete[] pt_data;
+	return 0;
 }
 
 #endif

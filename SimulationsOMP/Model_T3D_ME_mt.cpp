@@ -28,8 +28,8 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	rigid_cube_is_valid(false),
 	contact_mem(nullptr),
 	//pcm(&smooth_contact)
-	//pcm(&rough_contact)
-	pcm(&fric_contact)
+	pcm(&rough_contact)
+	//pcm(&fric_contact)
 {
 	res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }

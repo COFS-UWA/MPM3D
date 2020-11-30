@@ -7,7 +7,7 @@
 #include "ModelData_T3D_ME_mt.h"
 #include "TimeHistory_T3D_ME_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
-#include "QtApp_Prep_T3D_ME_mt.h"
+#include "QtApp_Prep_T3D_ME_mt_Div.h"
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
@@ -68,7 +68,10 @@ void test_t3d_me_mt_cylinder_foundation(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model, "t3d_me_mt_cylinder_foundation_model.h5");
 
-	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	auto &div_set = md_disp.get_div_set();
+	div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
 	md_disp.set_win_size(1200, 950);
 	md_disp.set_view_dir(30.0f, 30.0f);
 	md_disp.set_light_dir(90.0f, 30.0f);
