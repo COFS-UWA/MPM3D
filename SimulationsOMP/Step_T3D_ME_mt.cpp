@@ -177,6 +177,7 @@ int Step_T3D_ME_mt::init_calculation()
 	node_has_elems[0][-1] = SIZE_MAX;
 	node_has_elems[1][-1] = SIZE_MAX;
 
+	prev_pcl_num = md.pcl_num;
 	valid_pcl_num = 0;
 #pragma omp parallel
 	{
@@ -791,8 +792,6 @@ int substep_func_omp_T3D_ME_mt(
 		node_has_elem1[self.valid_elem_num * 4] = SIZE_MAX;
 	}
 	
-	assert(self.valid_elem_num <= self.elem_num);
-
 #pragma omp barrier
 
 	size_t ve_id0 = Block_Low(my_th_id, thread_num, self.valid_elem_num * 4);
@@ -930,6 +929,7 @@ int substep_func_omp_T3D_ME_mt(
 		
 		self.cf_tmp.reset();
 
+		self.prev_pcl_num = self.valid_pcl_num;
 		self.valid_pcl_num = 0;
 	}
 
@@ -1012,6 +1012,8 @@ int substep_func_omp_T3D_ME_mt(
 				 (node_de_vol[eni.n1] + node_de_vol[eni.n2]
 				+ node_de_vol[eni.n3] + node_de_vol[eni.n4]);
 			elem_density[e_id] /= 1.0 + e_de_vol;
+			//if (elem_density[e_id] < 5.0)
+			//	int ef = substp_id;
 
 			pe_de = elem_de + e_id;
 			e_de_vol *= one_third;

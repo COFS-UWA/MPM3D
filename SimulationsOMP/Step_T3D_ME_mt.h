@@ -113,6 +113,7 @@ protected:
 
 	ContactModel3D *pcf;
 
+	size_t prev_pcl_num; // for output
 	size_t valid_elem_num, valid_pcl_num;
 	Force3D cf_tmp;
 	
@@ -145,7 +146,7 @@ public:
 	Step_T3D_ME_mt(const char* _name);
 	~Step_T3D_ME_mt();
 
-	inline size_t get_pcl_num() const noexcept { return valid_pcl_num; }
+	inline size_t get_pcl_num() const noexcept { return prev_pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
 	inline size_t *get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
 

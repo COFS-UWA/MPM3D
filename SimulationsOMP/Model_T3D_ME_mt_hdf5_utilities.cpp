@@ -81,7 +81,7 @@ int output_background_mesh_to_hdf5_file(
 		elem_data.c1 = edNabc.c1;
 		elem_data.a2 = edNabc.a2;
 		elem_data.b2 = edNabc.b2;
-		elem_data.c2 = edNabc.b2;
+		elem_data.c2 = edNabc.c2;
 		elem_data.a3 = edNabc.a3;
 		elem_data.b3 = edNabc.b3;
 		elem_data.c3 = edNabc.c3;
@@ -158,6 +158,7 @@ int load_background_mesh_from_hdf5_file(
 		ed_dt_id
 		);
 	H5Tclose(ed_dt_id);
+	double *elem_vol = md.elem_vol;
 	Model_T3D_ME_mt::ElemNodeIndex* e_node_id = md.elem_node_id;
 	Model_T3D_ME_mt::DShapeFuncABC* e_dN_abc = md.elem_dN_abc;
 	Model_T3D_ME_mt::DShapeFuncD* e_dN_d = md.elem_dN_d;
@@ -169,6 +170,7 @@ int load_background_mesh_from_hdf5_file(
 		eni.n2 = elem_data.n2;
 		eni.n3 = elem_data.n3;
 		eni.n4 = elem_data.n4;
+		elem_vol[e_id] = elem_data.vol;
 		Model_T3D_ME_mt::DShapeFuncABC &edNabc = e_dN_abc[e_id];
 		edNabc.a1 = elem_data.a1;
 		edNabc.a2 = elem_data.a2;

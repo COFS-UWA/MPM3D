@@ -335,6 +335,7 @@ public:
 	// cylinder
 	bool has_rigid_cylinder() { return rigid_cylinder_is_valid; }
 	RigidCylinder &get_rigid_cylinder() { return rigid_cylinder; }
+	void clear_rigid_cylinder() { rigid_cylinder_is_valid = false; }
 	inline void init_rigid_cylinder(
 		double x, double y, double z,
 		double h, double r)

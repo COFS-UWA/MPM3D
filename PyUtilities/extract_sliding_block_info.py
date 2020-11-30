@@ -40,7 +40,7 @@ line1, = plot1.plot(cal_time, rb_x)
 # line1, = plot1.plot(cal_time, rb_cfz)
 
 # Analytical solution
-#a = 0.33333333333 # snooth
+# a = 0.33333333333 # snooth
 a = (3.0 - 3.0 * 0.2) / 9.0
 an_rb_x = []
 for i in range(len(cal_time)):

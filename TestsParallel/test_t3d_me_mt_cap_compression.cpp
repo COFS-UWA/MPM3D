@@ -56,21 +56,21 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, 0.0);
 	model.init_fixed_vz_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
-	QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
-	//QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
-	//QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(200.0f, 30.0f);
-	md_disp.set_light_dir(200.0f, 30.0f);
-	//md_disp.set_view_dist_scale(0.5);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
+	////QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
+	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(200.0f, 30.0f);
+	//md_disp.set_light_dir(200.0f, 30.0f);
+	////md_disp.set_view_dist_scale(0.5);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_cap_compression.h5");
@@ -86,8 +86,8 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(0.5);
-	//step.set_step_time(1.0e-5);
+	//step.set_step_time(0.5);
+	step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(2);
 	step.add_time_history(out1);
@@ -101,8 +101,9 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 void test_t3d_me_mt_cap_compression_result(int argc, char **argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_cap_compression.h5");
-	
+	//rf.open("t3d_me_mt_cap_compression.h5");
+	rf.open("t3d_me_mt_cap_compression_restart.h5");
+
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::z);
 	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
@@ -123,6 +124,8 @@ void test_t3d_me_mt_cap_compression_restart(int argc, char** argv)
 {
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model, "t3d_me_mt_cap_compression.h5");
+
+	//model.clear_rigid_cylinder();
 
 	//QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
 	////QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
@@ -148,13 +151,14 @@ void test_t3d_me_mt_cap_compression_restart(int argc, char** argv)
 	TimeHistory_T3D_ME_mt_complete out1("compression");
 	out1.set_res_file(res_file_hdf5);
 	out1.set_output_init_state();
-	out1.set_interval_num(50);
+	out1.set_output_final_state();
+	out1.set_interval_num(100);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_step_time(0.5);
-	//step.set_step_time(1.0e-5);
+	//step.set_step_time(5.0e-5);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(2);
 	step.add_time_history(out1);
