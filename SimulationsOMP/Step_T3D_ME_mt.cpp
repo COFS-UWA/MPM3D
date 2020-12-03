@@ -24,41 +24,6 @@
 #define one_fourth (0.25)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
-namespace
-{
-	inline void divide_task_to_thread(
-		size_t thread_num,
-		size_t data_num,
-		size_t data_range[] // len = thread_num+1
-		)
-	{
-		data_range[0] = 0;
-		data_range[thread_num] = data_num;
-		for (register size_t i = 1; i < thread_num; ++i)
-			data_range[i] = Block_Low(i, thread_num, data_num);
-	}
-
-	size_t find_cloest_num_in_sorted_list(
-		size_t num,
-		size_t* num_list,
-		size_t list_len
-		)
-	{
-		size_t lid = 0;
-		size_t uid = list_len - 1;
-		size_t mid;
-		while ((uid - lid) > 1)
-		{
-			mid = (lid + uid) / 2;
-			if (num > num_list[mid])
-				lid = mid;
-			else
-				uid = mid;
-		}
-		return (num - num_list[lid]) > (num_list[uid] - num) ? uid : lid;
-	}
-}
-
 Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) : 
 	Step_OMP(_name, "Step_T3D_ME_mt", &substep_func_omp_T3D_ME_mt) {}
 

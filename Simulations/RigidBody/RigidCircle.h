@@ -45,7 +45,13 @@ protected:
 	double rfx, rfy, rm; // reaction force
 	double ax, ay, a_ang; // acceleration
 	double vx, vy, v_ang; // velocity
-	double x, y, ang; // position and angle
+
+	union // position
+	{
+		struct { double x, y; };
+		Point2D centre;
+	};
+	double ang; // angle
 
 	double *pax, *pay, *pa_ang;
 	double *pvx, *pvy, *pv_ang;
@@ -87,6 +93,7 @@ public:
 	inline double get_density() { return density; }
 	inline double get_x() { return x; }
 	inline double get_y() { return y; }
+	inline const Point2D& get_centre() { return centre; }
 	inline double get_ang() { return ang; }
 	inline double get_ax() { return ax; }
 	inline double get_ay() { return ay; }

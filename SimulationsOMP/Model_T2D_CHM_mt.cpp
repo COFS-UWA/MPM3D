@@ -40,7 +40,7 @@ Rect Model_T2D_CHM_mt::get_mesh_bbox()
 			 node_pos[0].y, node_pos[0].y);
 	for (size_t n_id = 1; n_id < node_num; ++n_id)
 	{
-		NodePos& np = node_pos[n_id];
+		Position &np = node_pos[n_id];
 		if (res.xl > np.x)
 			res.xl = np.x;
 		if (res.xu < np.x)
@@ -71,12 +71,12 @@ void Model_T2D_CHM_mt::alloc_mesh(
 	//elem_num = e_num;
 
 	//size_t mem_len = (sizeof(ElemNodeIndex) + sizeof(double)
-	//	+ sizeof(ElemShapeFuncAB) + sizeof(ElemShapeFuncC)
+	//	+ sizeof(DShapeFuncAB) + sizeof(DShapeFuncC)
 	//	+ sizeof(double) * 4
 	//	+ sizeof(ElemStrainInc) + sizeof(ElemStress)
 	//	+ sizeof(ElemNodeVM) * 3 + sizeof(ElemNodeForce) * 3
 	//	+ sizeof(size_t) * 3 + sizeof(size_t) * 3) * e_num
-	//	+ (sizeof(size_t) + sizeof(NodePos)
+	//	+ (sizeof(size_t) + sizeof(Position)
 	//	+ sizeof(NodeA) + sizeof(NodeV) + sizeof(NodeHasVBC)
 	//	+ sizeof(double) * 2) * n_num;
 	//mesh_mem_raw = new char[mem_len];
@@ -86,10 +86,10 @@ void Model_T2D_CHM_mt::alloc_mesh(
 	//cur_mem += sizeof(ElemNodeIndex) * elem_num;
 	//elem_area = (double*)cur_mem;
 	//cur_mem += sizeof(double) * elem_num;
-	//elem_sf_ab = (ElemShapeFuncAB*)cur_mem;
-	//cur_mem += sizeof(ElemShapeFuncAB) * elem_num;
-	//elem_sf_c = (ElemShapeFuncC*)cur_mem;
-	//cur_mem += sizeof(ElemShapeFuncC) * elem_num;
+	//elem_sf_ab = (DShapeFuncAB*)cur_mem;
+	//cur_mem += sizeof(DShapeFuncAB) * elem_num;
+	//elem_sf_c = (DShapeFuncC*)cur_mem;
+	//cur_mem += sizeof(DShapeFuncC) * elem_num;
 
 	//elem_density = (double*)cur_mem;
 	//cur_mem += sizeof(double) * elem_num;
@@ -116,8 +116,8 @@ void Model_T2D_CHM_mt::alloc_mesh(
 	//node_elem_list = (size_t*)cur_mem;
 	//cur_mem += sizeof(size_t) * node_num;
 
-	//node_pos = (NodePos*)cur_mem;
-	//cur_mem += sizeof(NodePos) * node_num;
+	//node_pos = (Position*)cur_mem;
+	//cur_mem += sizeof(Position) * node_num;
 	//node_a = (NodeA *)cur_mem;
 	//cur_mem += sizeof(NodeA) * node_num;
 	//node_v = (NodeV *)cur_mem;
@@ -145,7 +145,7 @@ void Model_T2D_CHM_mt::init_mesh(const TriangleMesh &mesh)
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
 		const TriangleMesh::Node& n = nodes[n_id];
-		NodePos& np = node_pos[n_id];
+		Position& np = node_pos[n_id];
 		np.x = n.x;
 		np.y = n.y;
 		NodeHasVBC& n_vbc_s = node_has_vbc_s[n_id];
@@ -156,12 +156,11 @@ void Model_T2D_CHM_mt::init_mesh(const TriangleMesh &mesh)
 		n_vbc_f.has_vy_bc = false;
 	}
 
-	size_t elem_num3 = elem_num * 3;
-	size_t *elem_id_array_tmp = new size_t[elem_num3 * 2 + node_num];
-	size_t *node_elem_id_array_tmp = elem_id_array_tmp + elem_num3;
-	size_t *node_bin_tmp = node_elem_id_array_tmp + elem_num3;
-	
-	memset(node_bin_tmp, 0, sizeof(size_t) * node_num);
+	const size_t elem_num3 = elem_num * 3;
+	//size_t *elem_id_array_tmp = new size_t[elem_num3 * 2 + node_num];
+	//size_t *node_elem_id_array_tmp = elem_id_array_tmp + elem_num3;
+	//size_t *node_bin_tmp = node_elem_id_array_tmp + elem_num3;
+	//memset(node_bin_tmp, 0, sizeof(size_t) * node_num);
 
 	// init elem connectivity, area and shape functions
 	PointInTriangle pit;
@@ -175,58 +174,58 @@ void Model_T2D_CHM_mt::init_mesh(const TriangleMesh &mesh)
 		eni.n1 = e.n1;
 		eni.n2 = e.n2;
 		eni.n3 = e.n3;
-		NodePos &n1_pos = node_pos[e.n1];
-		NodePos &n2_pos = node_pos[e.n2];
-		NodePos &n3_pos = node_pos[e.n3];
+		Position &n1_pos = node_pos[e.n1];
+		Position &n2_pos = node_pos[e.n2];
+		Position &n3_pos = node_pos[e.n3];
 		elem_area[e_id] = cal_triangle_area(n1_pos, n2_pos, n3_pos);
 		// shape functions
 		pit.init_triangle(n1_pos, n2_pos, n3_pos, elem_area[e_id]);
-		ElemShapeFuncAB &esfab = elem_sf_ab[e_id];
+		DShapeFuncAB &esfab = elem_N_ab[e_id];
 		esfab.dN1_dx = pit.dN1_dx();
 		esfab.dN1_dy = pit.dN1_dy();
 		esfab.dN2_dx = pit.dN2_dx();
 		esfab.dN2_dy = pit.dN2_dy();
 		esfab.dN3_dx = pit.dN3_dx();
 		esfab.dN3_dy = pit.dN3_dy();
-		ElemShapeFuncC& esfc = elem_sf_c[e_id];
+		DShapeFuncC& esfc = elem_N_c[e_id];
 		esfc.c1 = pit.get_coef1();
 		esfc.c2 = pit.get_coef2();
 		esfc.c3 = pit.get_coef3();
-		// node-element relation
-		elem_id_array_tmp[e_id3] = e_id;
-		elem_id_array_tmp[e_id3 + 1] = e_id;
-		elem_id_array_tmp[e_id3 + 2] = e_id;
-		node_elem_id_array_tmp[e_id3] = e_id3;
-		node_elem_id_array_tmp[e_id3 + 1] = e_id3 + 1;
-		node_elem_id_array_tmp[e_id3 + 2] = e_id3 + 2;
-		e_id3 += 3;
-		++node_bin_tmp[e.n1];
-		++node_bin_tmp[e.n2];
-		++node_bin_tmp[e.n3];
+		//// node-element relation
+		//elem_id_array_tmp[e_id3] = e_id;
+		//elem_id_array_tmp[e_id3 + 1] = e_id;
+		//elem_id_array_tmp[e_id3 + 2] = e_id;
+		//node_elem_id_array_tmp[e_id3] = e_id3;
+		//node_elem_id_array_tmp[e_id3 + 1] = e_id3 + 1;
+		//node_elem_id_array_tmp[e_id3 + 2] = e_id3 + 2;
+		//e_id3 += 3;
+		//++node_bin_tmp[e.n1];
+		//++node_bin_tmp[e.n2];
+		//++node_bin_tmp[e.n3];
 	}
 
-	node_elem_list[0] = node_bin_tmp[0];
-	for (size_t n_id = 1; n_id < node_num; ++n_id)
-	{
-		node_bin_tmp[n_id] += node_bin_tmp[n_id - 1];
-		node_elem_list[n_id] = node_bin_tmp[n_id];
-	}
-	
-	for (size_t e_id = elem_num, e_id3 = elem_num3-1; e_id--; e_id3 -= 3)
-	{
-		const TriangleMesh::Element& e = elems[e_id];
-		--node_bin_tmp[e.n3];
-		elem_id_array[node_bin_tmp[e.n3]] = elem_id_array_tmp[e_id3];
-		node_elem_id_array[node_bin_tmp[e.n3]] = node_elem_id_array_tmp[e_id3];
-		--node_bin_tmp[e.n2];
-		elem_id_array[node_bin_tmp[e.n2]] = elem_id_array_tmp[e_id3 - 1];
-		node_elem_id_array[node_bin_tmp[e.n2]] = node_elem_id_array_tmp[e_id3 - 1];
-		--node_bin_tmp[e.n1];
-		elem_id_array[node_bin_tmp[e.n1]] = elem_id_array_tmp[e_id3 - 2];
-		node_elem_id_array[node_bin_tmp[e.n1]] = node_elem_id_array_tmp[e_id3 - 2];
-	}
+	//node_elem_list[0] = node_bin_tmp[0];
+	//for (size_t n_id = 1; n_id < node_num; ++n_id)
+	//{
+	//	node_bin_tmp[n_id] += node_bin_tmp[n_id - 1];
+	//	node_elem_list[n_id] = node_bin_tmp[n_id];
+	//}
+	//
+	//for (size_t e_id = elem_num, e_id3 = elem_num3-1; e_id--; e_id3 -= 3)
+	//{
+	//	const TriangleMesh::Element& e = elems[e_id];
+	//	--node_bin_tmp[e.n3];
+	//	elem_id_array[node_bin_tmp[e.n3]] = elem_id_array_tmp[e_id3];
+	//	node_elem_id_array[node_bin_tmp[e.n3]] = node_elem_id_array_tmp[e_id3];
+	//	--node_bin_tmp[e.n2];
+	//	elem_id_array[node_bin_tmp[e.n2]] = elem_id_array_tmp[e_id3 - 1];
+	//	node_elem_id_array[node_bin_tmp[e.n2]] = node_elem_id_array_tmp[e_id3 - 1];
+	//	--node_bin_tmp[e.n1];
+	//	elem_id_array[node_bin_tmp[e.n1]] = elem_id_array_tmp[e_id3 - 2];
+	//	node_elem_id_array[node_bin_tmp[e.n1]] = node_elem_id_array_tmp[e_id3 - 2];
+	//}
 
-	delete[] elem_id_array_tmp;
+	//delete[] elem_id_array_tmp;
 }
 
 void Model_T2D_CHM_mt::clear_search_grid()
@@ -322,12 +321,12 @@ void Model_T2D_CHM_mt::alloc_pcls(size_t num)
 
 	ori_pcl_num = num;
 	pcl_num = ori_pcl_num;
-	mem_len = (sizeof(double) + sizeof(PclBodyForce)
-			 + sizeof(PclTraction) + sizeof(PclPos) + sizeof(double)
+	mem_len = 0; /*(sizeof(double) + sizeof(Force)
+			 + sizeof(Force) + sizeof(PclPos) + sizeof(double)
 			+ (sizeof(size_t) + sizeof(double)
 			 + sizeof(PclDisp) + sizeof(PclV)
 			 + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2
-			) * num;
+			) * num;*/
 	pcl_mem_raw = new char[mem_len];
 
 	//cur_mem = pcl_mem_raw;
@@ -335,8 +334,8 @@ void Model_T2D_CHM_mt::alloc_pcls(size_t num)
 	//cur_mem += sizeof(double) * num;
 	//pcl_bf = (PclBodyForce *)(cur_mem);
 	//cur_mem += sizeof(PclBodyForce) * num;
-	//pcl_t = (PclTraction *)cur_mem;
-	//cur_mem += sizeof(PclTraction) * num;
+	//pcl_t = (Force *)cur_mem;
+	//cur_mem += sizeof(Force) * num;
 	//pcl_pos = (PclPos *)cur_mem;
 	//cur_mem += sizeof(PclPos) * num;
 	//pcl_vol = (double *)cur_mem;
@@ -388,11 +387,11 @@ void Model_T2D_CHM_mt::alloc_pcls(
 
 	ori_pcl_num = ori_num;
 	pcl_num = num;
-	mem_len = (sizeof(double) + sizeof(PclBodyForce)
-			 + sizeof(PclTraction) + sizeof(PclPos)) * ori_num
+	mem_len = 0; /*(sizeof(double) + sizeof(PclBodyForce)
+			 + sizeof(Force) + sizeof(PclPos)) * ori_num
 			 + (sizeof(size_t) + sizeof(double)
 			  + sizeof(PclDisp) + sizeof(PclV)
-			  + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2 * num;
+			  + sizeof(PclShapeFunc) + sizeof(PclStress)) * 2 * num;*/
 	pcl_mem_raw = new char[mem_len];
 
 	//cur_mem = pcl_mem_raw;
@@ -400,8 +399,8 @@ void Model_T2D_CHM_mt::alloc_pcls(
 	//cur_mem += sizeof(double) * ori_num;
 	//pcl_bf = (PclBodyForce *)(cur_mem);
 	//cur_mem += sizeof(PclBodyForce) * ori_num;
-	//pcl_t = (PclTraction *)cur_mem;
-	//cur_mem += sizeof(PclTraction) * ori_num;
+	//pcl_t = (Force *)cur_mem;
+	//cur_mem += sizeof(Force) * ori_num;
 	//pcl_pos = (PclPos *)cur_mem;
 	//cur_mem += sizeof(PclPos) * ori_num;
 
@@ -440,7 +439,7 @@ int Model_T2D_CHM_mt::init_pcls(size_t num, double m, double density)
 {
 	alloc_pcls(num);
 
-	PclSortedVarArray& psva0 = pcl_sorted_var_array[0];
+	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[0];
 	size_t p_id;
 	//for (p_id = 0; p_id < num; ++p_id)
 	//{
@@ -448,7 +447,7 @@ int Model_T2D_CHM_mt::init_pcls(size_t num, double m, double density)
 	//	PclBodyForce &p_bf = pcl_bf[p_id];
 	//	p_bf.bfx = 0.0;
 	//	p_bf.bfy = 0.0;
-	//	PclTraction& p_t = pcl_t[p_id];
+	//	Force& p_t = pcl_t[p_id];
 	//	p_t.tx = 0.0;
 	//	p_t.ty = 0.0;
 	//	psva0.pcl_index[p_id] = p_id;
@@ -601,8 +600,8 @@ void Model_T2D_CHM_mt::init_txs(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			p_id = t_pcls[t_id];
-			PclTraction &t = pcl_t[p_id];
-			t.tx += ts[t_id];
+			Force &t = pcl_t[p_id];
+			t.fx += ts[t_id];
 		}
 	}
 	else
@@ -628,8 +627,8 @@ void Model_T2D_CHM_mt::init_tys(
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
 		{
 			size_t p_id = t_pcls[t_id];
-			PclTraction &t = pcl_t[p_id];
-			t.ty += ts[t_id];
+			Force &t = pcl_t[p_id];
+			t.fy += ts[t_id];
 		}
 	}
 	else

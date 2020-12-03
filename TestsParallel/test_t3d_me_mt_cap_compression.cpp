@@ -95,31 +95,6 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	step.solve();
 }
 
-#include "QtApp_Posp_T3D_ME_mt.h"
-#include "test_model_view_omp.h"
-
-void test_t3d_me_mt_cap_compression_result(int argc, char **argv)
-{
-	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_cap_compression.h5");
-	//rf.open("t3d_me_mt_cap_compression_restart.h5");
-
-	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
-	//app.set_res_file(rf, "compression", 2, Hdf5Field::z);
-	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
-	app.set_res_file(rf, "compression", Hdf5Field::s33);
-	app.set_ani_time(5.0);
-	app.set_win_size(1200, 950);
-	app.set_view_dir(30.0f, 0.0f);
-	app.set_light_dir(35.0f, -30.0f);
-	app.set_view_dist_scale(1.1);
-	app.set_color_map_fld_range(-50.0, 0.0);
-	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
-	//app.set_png_name("t3d_me_mt_cap_compression");
-	app.set_gif_name("t3d_me_mt_cap_compression");
-	app.start();
-}
-
 void test_t3d_me_mt_cap_compression_restart(int argc, char** argv)
 {
 	Model_T3D_ME_mt model;
@@ -160,8 +135,83 @@ void test_t3d_me_mt_cap_compression_restart(int argc, char** argv)
 	step.set_step_time(0.5);
 	//step.set_step_time(5.0e-5);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(2);
+	step.set_thread_num(6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
+}
+
+void test_t3d_me_mt_cap_compression_restart2(int argc, char **argv)
+{
+	Model_T3D_ME_mt model;
+	Step_T3D_ME_mt step("step1");
+	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
+		model,
+		step,
+		"t3d_me_mt_cap_compression.h5",
+		"compression",
+		0
+		);
+
+	//QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
+	////QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	////auto& div_set = md_disp.get_div_set();
+	////div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	////div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(30.0f, 30.0f);
+	//md_disp.set_light_dir(30.0f, 30.0f);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_vx_bc(0.01);
+	//md_disp.set_pts_from_vy_bc(0.01);
+	////md_disp.set_pts_from_vz_bc(0.01);
+	//md_disp.start();
+	//return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_me_mt_cap_compression_restart2.h5");
+
+	ModelData_T3D_ME_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T3D_ME_mt_complete out1("compression");
+	out1.set_res_file(res_file_hdf5);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_interval_num(100);
+	TimeHistory_ConsoleProgressBar out_cpb;
+
+	step.set_step_time(0.5);
+	//step.set_step_time(5.0e-5);
+	step.set_dtime(1.0e-5);
+	step.set_thread_num(6);
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
+}
+
+#include "QtApp_Posp_T3D_ME_mt.h"
+#include "test_model_view_omp.h"
+
+void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
+{
+	ResultFile_hdf5 rf;
+	//rf.open("t3d_me_mt_cap_compression.h5");
+	//rf.open("t3d_me_mt_cap_compression_restart.h5");
+	rf.open("t3d_me_mt_cap_compression_restart2.h5");
+
+	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
+	//app.set_res_file(rf, "compression", 2, Hdf5Field::z);
+	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
+	app.set_res_file(rf, "compression", Hdf5Field::s33);
+	app.set_ani_time(5.0);
+	app.set_win_size(1200, 950);
+	app.set_view_dir(30.0f, 0.0f);
+	app.set_light_dir(35.0f, -30.0f);
+	app.set_view_dist_scale(1.1);
+	app.set_color_map_fld_range(-50.0, 0.0);
+	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
+	//app.set_png_name("t3d_me_mt_cap_compression");
+	app.set_gif_name("t3d_me_mt_cap_compression");
+	app.start();
 }

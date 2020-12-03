@@ -21,10 +21,12 @@ void test_t3d_me_s_1d_compression(int argc, char** argv);
 
 void test_t3d_me_mt_cap_compression(int argc, char** argv);
 void test_t3d_me_mt_cap_compression_restart(int argc, char** argv);
+void test_t3d_me_mt_cap_compression_restart2(int argc, char **argv);
 
 void test_omp_barrier_time();
 void test_t3d_me_mt_cylinder_foundation_create_model(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation(int argc, char** argv);
+void test_t3d_me_mt_cylinder_foundation_restart(int argc, char** argv);
 
 void test_t3d_me_mt_block_sliding(int argc, char** argv);
 

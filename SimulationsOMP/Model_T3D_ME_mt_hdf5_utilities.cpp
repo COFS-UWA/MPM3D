@@ -814,6 +814,7 @@ int load_me_mt_model_from_hdf5_file(
 	load_rigid_cone_from_hdf5_file(md, rf, th_frame_id);
 	load_rigid_cube_from_hdf5_file(md, rf, th_frame_id);;
 
+	step.set_model(md);
 	step.is_first_step = false;
 	rf.read_attribute(th_frame_id, "total_time", step.start_time);
 	rf.read_attribute(th_frame_id, "total_substep_num", step.prev_substep_num);

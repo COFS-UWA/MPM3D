@@ -1,45 +1,35 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <fstream>
+
 #include <omp.h>
 
 #include "Step_T2D_CHM_mt.h"
 
 #define one_third (1.0/3.0)
-#define N_min (1.0e-8)
+#define N_min (1.0e-10)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
-static std::fstream res_file_t2d_me_mt;
+#ifdef _DEBUG
+	static std::fstream res_file_t2d_me_mt;
+#endif // _DEBUG
 
 Step_T2D_CHM_mt::Step_T2D_CHM_mt(const char* _name) : 
 	Step_OMP(_name, "Step_T2D_CHM_mt", &substep_func_omp_T2D_CHM_mt) {}
 
 Step_T2D_CHM_mt::~Step_T2D_CHM_mt() {}
 
-namespace
-{
-	inline void divide_task_to_thread(
-		size_t thread_num,
-		size_t data_num,
-		size_t data_range[] // len = thread_num+1
-		)
-	{
-		data_range[0] = 0;
-		data_range[thread_num] = data_num;
-		for (register size_t i = 1; i < thread_num; ++i)
-			data_range[i] = Block_Low(i, thread_num, data_num);
-	}
-}
-
 int Step_T2D_CHM_mt::init_calculation()
 {
-	res_file_t2d_me_mt.open("me_mt_res.txt", std::ios::out | std::ios::binary);
-	
+#ifdef _DEBUG
+	res_file_t2d_me_mt.open("t2d_chm_mt_res.txt", std::ios::out | std::ios::binary);
+#endif
+
 	Model_T2D_CHM_mt &md = *(Model_T2D_CHM_mt *)model;
 
 	omp_set_num_threads(thread_num);
 
-//	size_t th_num_1 = thread_num + 1;
+//	const size_t th_num_1 = thread_num + 1;
 //	char *mem_range = (char *)task_range_mem.alloc((sizeof(PclRange) + sizeof(size_t) * 3) * th_num_1);
 //	pcl_range = (PclRange *)mem_range;
 //	mem_range += sizeof(PclRange) * th_num_1;
@@ -188,55 +178,7 @@ int Step_T2D_CHM_mt::init_calculation()
 //
 //#pragma omp critical
 //		next_pcl_num += pcl_in_mesh_num;
-//		
-//		size_t* my_cbin = elem_count_bin + my_th_id * 0x100;
-//		size_t* my_sbin = elem_sum_bin + my_th_id * 0x100;
-//		size_t data_digit, bin_id, th_id;
-//		size_t* other_cbin;
-//		for (size_t digit_disp = 0, elem_num_tmp = elem_num;
-//			 elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
-//		{
-//			memset(my_cbin, 0, sizeof(size_t) * 0x100);
-//
-//			for (p_id = p_id0; p_id < p_id1; ++p_id)
-//			{
-//				data_digit = (pcl_in_elem_array[p_id] >> digit_disp) & 0xFF;
-//				++my_cbin[data_digit];
-//			}
-//
-//			my_sbin[0] = my_cbin[0];
-//			for (bin_id = 1; bin_id < 0x100; ++bin_id)
-//			{
-//				my_cbin[bin_id] += my_cbin[bin_id - 1];
-//				my_sbin[bin_id] = my_cbin[bin_id];
-//			}
-//#pragma omp barrier
-//
-//			for (th_id = 0; th_id < my_th_id; ++th_id)
-//			{
-//				other_cbin = elem_count_bin + (th_id << 8);
-//				for (bin_id = 0; bin_id < 0x100; ++bin_id)
-//					my_sbin[bin_id] += other_cbin[bin_id];
-//			}
-//			for (th_id = my_th_id + 1; th_id < thread_num; ++th_id)
-//			{
-//				other_cbin = elem_count_bin + (th_id << 8);
-//				for (bin_id = 1; bin_id < 0x100; ++bin_id)
-//					my_sbin[bin_id] += other_cbin[bin_id - 1];
-//			}
-//
-//			for (p_id = p_id1; p_id-- > p_id0;)
-//			{
-//				data_digit = (pcl_in_elem_array[p_id] >> digit_disp) & 0xFF;
-//				pcl_in_elem_array_tmp[--my_sbin[data_digit]] = pcl_in_elem_array[p_id];
-//				new_to_prev_pcl_map_tmp[my_sbin[data_digit]] = new_to_prev_pcl_map[p_id];
-//			}
-//
-//			new_to_prev_pcl_map_tmp = new_to_prev_pcl_map;
-//			pcl_in_elem_array_tmp = pcl_in_elem_array;
-//			sort_var_id ^= 1;
-//			new_to_prev_pcl_map = new_to_prev_pcl_maps[sort_var_id];
-//			pcl_in_elem_array = pcl_in_elem_arrays[sort_var_id];
+
 //#pragma omp barrier
 //		}
 //
@@ -262,14 +204,6 @@ int Step_T2D_CHM_mt::init_calculation()
 //			}
 //		}
 //	}
-//
-//	K_cont = md.K_cont;
-//	mem_range = (char*)contact_mem.alloc((sizeof(size_t) + sizeof(ContPos)) * md.pcl_num + Cache_Alignment);
-//	contact_state = (size_t *)mem_range;
-//	mem_range += sizeof(size_t) * md.pcl_num;
-//	contact_pos = (ContPos *)cache_aligned(mem_range);
-//	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-//		contact_state[p_id] = SIZE_MAX;
 	
 	return 0;
 }
@@ -289,73 +223,251 @@ int substep_func_omp_T2D_CHM_mt(
 	size_t substp_id
 	)
 {
-	typedef Model_T2D_CHM_mt::PclBodyForce PclBodyForce;
-	typedef Model_T2D_CHM_mt::PclTraction PclTraction;
-	typedef Model_T2D_CHM_mt::PclPos PclPos;
-	typedef Model_T2D_CHM_mt::PclSortedVarArray PclSortedVarArray;
-	typedef Model_T2D_CHM_mt::PclDisp PclDisp;
-	typedef Model_T2D_CHM_mt::PclV PclV;
-	typedef Model_T2D_CHM_mt::PclShapeFunc PclShapeFunc;
-	typedef Model_T2D_CHM_mt::PclStress PclStress;
+	typedef Model_T2D_CHM_mt::ShapeFunc ShapeFunc;
+	typedef Model_T2D_CHM_mt::DShapeFuncAB DShapeFuncAB;
+	typedef Model_T2D_CHM_mt::DShapeFuncC DShapeFuncC;
+	typedef Model_T2D_CHM_mt::Force Force;
+	typedef Model_T2D_CHM_mt::Position Position;
+	typedef Model_T2D_CHM_mt::Displacement Displacement;
+	typedef Model_T2D_CHM_mt::Velocity Velocity;
+	typedef Model_T2D_CHM_mt::Acceleration Acceleration;
+	typedef Model_T2D_CHM_mt::Stress Stress;
+	typedef Model_T2D_CHM_mt::Strain Strain;
+	typedef Model_T2D_CHM_mt::StrainInc StrainInc;
+	typedef Model_T2D_CHM_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Model_T2D_CHM_mt::ElemNodeIndex ElemNodeIndex;
-	typedef Model_T2D_CHM_mt::ElemShapeFuncAB ElemShapeFuncAB;
-	typedef Model_T2D_CHM_mt::ElemShapeFuncC ElemShapeFuncC;
-	typedef Model_T2D_CHM_mt::ElemStrainInc ElemStrainInc;
-	typedef Model_T2D_CHM_mt::ElemStress ElemStress;
 	typedef Model_T2D_CHM_mt::ElemNodeVM ElemNodeVM;
-	typedef Model_T2D_CHM_mt::ElemNodeForce ElemNodeForce;
-	typedef Model_T2D_CHM_mt::NodeA NodeA;
-	typedef Model_T2D_CHM_mt::NodeV NodeV;
 	typedef Model_T2D_CHM_mt::NodeHasVBC NodeHasVBC;
-	typedef Model_T2D_CHM_mt::NodePos NodePos;
+	typedef Step_T2D_CHM_mt::ThreadData ThreadData;
 
 	Step_T2D_CHM_mt& self = *(Step_T2D_CHM_mt*)(_self);
+	
+	if (self.valid_pcl_num == 0)
+	{
+#pragma omp master
+		self.abort_calculation();
+
+#pragma omp barrier
+		return 0;
+	}
+	
 	Model_T2D_CHM_mt& md = *(Model_T2D_CHM_mt*)(self.model);
 
-//	PclSortedVarArray& pscv0 = self.pcl_sorted_var_array[self.pcl_sorted_var_id];
-//	size_t* pcl_index0 = pscv0.pcl_index;
-//	double *pcl_density_s0 = pscv0.pcl_density_s;
-//	double* pcl_density_f0 = pscv0.pcl_density_f;
-//	PclDisp *pcl_disp_s0 = pscv0.pcl_disp_s;
-//	PclDisp* pcl_disp_f0 = pscv0.pcl_disp_f;
-//	PclV *pcl_v_s0 = pscv0.pcl_v_s;
-//	PclV* pcl_v_f0 = pscv0.pcl_v_f;
-//	PclShapeFunc* pcl_N0 = pscv0.pcl_N;
-//	PclStress* pcl_stress0 = pscv0.pcl_stress;
-//	double* pcl_p0 = pscv0.pcl_p;
+	const double* const pcl_m_s = self.pcl_m_s;
+	const double* pcl_density_s = self.pcl_density_s;
+	const Force* const pcl_bf = self.pcl_bf;
+	const Force* const pcl_t = self.pcl_t;
+	const Position* const pcl_pos = self.pcl_pos;
+	double* const pcl_vol = self.pcl_vol;
+	MatModel::MaterialModel** const pcl_mat_model = self.pcl_mat_model;
+	
+//	const size_t thread_num = self.thread_num;
+//	ThreadData &thd = self.thread_datas[my_th_id];
+//	SortedPclVarArrays &spva0 = self.sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
+//	thd.sorted_pcl_var_id ^= 1;
+//	SortedPclVarArrays& spva1 = self.sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
+//	size_t* pcl_index0 = spva0.pcl_index;
+//	double* pcl_n0 = spva0.pcl_n;
+//	double* pcl_density_f0 = spva0.pcl_density_f;
+//	Velocity* pcl_v0 = spva0.pcl_v; 
+//	Displacement* pcl_disp0 = spva0.pcl_disp;
+//	Stress* pcl_stress0 = spva0.pcl_stress;
+//	Strain* pcl_strain0 = spva0.pcl_strain;
+//	Strain* pcl_estrain0 = spva0.pcl_estrain;
+//	Strain* pcl_pstrain0 = spva0.pcl_pstrain;
+//	ShapeFunc* pcl_N0 = spva0.pcl_N;
 //
-//	PclSortedVarArray& pscv1 = self.pcl_sorted_var_array[self.pcl_sorted_var_id ^ 1];
-//	size_t* pcl_index1 = pscv1.pcl_index;
-//	double* pcl_density_s1 = pscv1.pcl_density_s;
-//	double* pcl_density_f1 = pscv1.pcl_density_f;
-//	PclDisp* pcl_disp_s1 = pscv1.pcl_disp_s;
-//	PclDisp* pcl_disp_f1 = pscv1.pcl_disp_f;
-//	PclV *pcl_v_s1 = pscv1.pcl_v_s;
-//	PclV* pcl_v_f1 = pscv1.pcl_v_f;
-//	PclShapeFunc *pcl_N1 = pscv1.pcl_N;
-//	PclStress *pcl_stress1 = pscv1.pcl_stress;
-//	double* pcl_p1 = pscv1.pcl_p;
+//	size_t* pcl_index1 = spva1.pcl_index;
+//	double* pcl_n1 = spva1.pcl_n;
+//	double* pcl_density_f1 = spva1.pcl_density_f;
+//	Velocity* pcl_v1 = spva1.pcl_v;
+//	Displacement* pcl_disp1 = spva1.pcl_disp;
+//	Stress* pcl_stress1 = spva1.pcl_stress;
+//	Strain* pcl_strain1 = spva1.pcl_strain;
+//	Strain* pcl_estrain1 = spva1.pcl_estrain;
+//	Strain* pcl_pstrain1 = spva1.pcl_pstrain;
+//	ShapeFunc* pcl_N1 = spva1.pcl_N;
 //
-//	size_t sort_var_id = self.radix_sort_var_id;
-//	size_t* new_to_prev_pcl_map = self.new_to_prev_pcl_maps[sort_var_id];
-//	size_t* new_to_prev_pcl_map_tmp = self.new_to_prev_pcl_maps[sort_var_id ^ 1];
-//	size_t* pcl_in_elem_array = self.pcl_in_elem_arrays[sort_var_id];
-//	size_t* pcl_in_elem_array_tmp = self.pcl_in_elem_arrays[sort_var_id ^ 1];
+//	ElemNodeIndex* elem_node_id;
+//	DShapeFuncAB* elem_N_ab;
+//	DShapeFuncC* elem_N_c;
+//	double* elem_area;
 //
-//	size_t p_id0 = self.pcl_range[my_th_id].id;
-//	size_t p_id1 = self.pcl_range[my_th_id + 1].id;
-//	size_t p_id, e_id;
-//	size_t prev_pcl_id, ori_pcl_id;
+//	double* elem_density_f; // elem_num
+//	double* elem_pcl_n; // elem_num
+//	double* elem_pcl_m_s; // elem_num
+//	double* elem_pcl_m_f; // elem_num
+//	StrainInc* elem_de; // elem_num
+//	double* elem_p; // elem_num
+//	double* elem_m_de_vol_s; // elem_num
+//	double* elem_m_de_vol_f; // elem_num
+//
+//	// element-node data
+//	ElemNodeVM* elem_node_vm_s; // elem_num * 3
+//	ElemNodeVM* elem_node_vm_f; // elem_num * 3
+//	Force* elem_node_force_s; // elem_num * 3
+//	Force* elem_node_force_f; // elem_num * 3
+//
+//	Acceleration* node_a_s; // node_num
+//	Acceleration* node_a_f; // node_num
+//	Velocity* node_v_s; // node_num
+//	Velocity* node_v_f; // node_num
+//	NodeHasVBC* node_has_vbc_s;
+//	NodeHasVBC* node_has_vbc_f; // node_num
+//	double* node_am_s; // node_num
+//	double* node_am_f; // node_num
+//	double* node_de_vol_s; // node_num
+//	double* node_de_vol_f; // node_num
+//	
+//	union
+//	{
+//		struct
+//		{
+//			size_t* prev_pcl_id0;
+//			size_t* prev_pcl_id1;
+//			size_t* pcl_in_elem0;
+//			size_t* pcl_in_elem1;
+//			size_t* node_has_elem0;
+//			size_t* node_has_elem1;
+//			size_t* node_elem_pair0;
+//			size_t* node_elem_pair1;
+//		};
+//		struct
+//		{
+//			size_t prev_pcl_id_ui0;
+//			size_t prev_pcl_id_ui1;
+//			size_t pcl_in_elem_ui0;
+//			size_t pcl_in_elem_ui1;
+//			size_t node_has_elem_ui0;
+//			size_t node_has_elem_ui1;
+//			size_t node_elem_pair_ui0;
+//			size_t node_elem_pair_ui1;
+//		};
+//	};
+//
+//	prev_pcl_id0 = self.prev_pcl_ids[thd.sorted_pcl_in_elem_id];
+//	prev_pcl_id1 = self.prev_pcl_ids[thd.sorted_pcl_in_elem_id ^ 1];
+//	pcl_in_elem0 = self.pcl_in_elems[thd.sorted_pcl_in_elem_id];
+//	pcl_in_elem1 = self.pcl_in_elems[thd.sorted_pcl_in_elem_id ^ 1];
+//	node_has_elem0 = self.node_has_elems[0];
+//	node_has_elem1 = self.node_has_elems[1];
+//	node_elem_pair0 = self.node_elem_pairs[0];
+//	node_elem_pair1 = self.node_elem_pairs[1];
+//
+//	size_t p_id, bin_id, th_id, pos_id;
+//	size_t digit_disp, elem_num_tmp, * other_cbin;
+//	size_t p_id0 = Block_Low(my_th_id, thread_num, self.valid_pcl_num);
+//	size_t p_id1 = Block_Low(my_th_id + 1, thread_num, self.valid_pcl_num);
+//	size_t* const elem_count_bin = self.elem_count_bin;
+//	size_t* const my_cbin = elem_count_bin + my_th_id * 0x100;
+//	size_t* const elem_sum_bin = self.elem_sum_bin;
+//	size_t* const my_sbin = elem_sum_bin + my_th_id * 0x100;
+//#define data_digit(num, disp) (((num) >> (disp)) & 0xFF)
+//#define swap(a, b) \
+//		(a) = (a) ^ (b); \
+//		(b) = (a) ^ (b); \
+//		(a) = (a) ^ (b)
+//	for (digit_disp = 0, elem_num_tmp = self.elem_num;
+//		elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
+//	{
+//		memset(my_cbin, 0, 0x100 * sizeof(size_t));
+//
+//		for (p_id = p_id0; p_id < p_id1; ++p_id)
+//			++my_cbin[data_digit(pcl_in_elem0[p_id], digit_disp)];
+//
+//		my_sbin[0] = my_cbin[0];
+//		for (bin_id = 1; bin_id < 0x100; ++bin_id)
+//		{
+//			my_cbin[bin_id] += my_cbin[bin_id - 1];
+//			my_sbin[bin_id] = my_cbin[bin_id];
+//		}
+//
+//#pragma omp barrier
+//
+//		for (th_id = 0; th_id < my_th_id; ++th_id)
+//		{
+//			other_cbin = elem_count_bin + th_id * 0x100;
+//			for (bin_id = 0; bin_id < 0x100; ++bin_id)
+//				my_sbin[bin_id] += other_cbin[bin_id];
+//		}
+//		for (th_id = my_th_id + 1; th_id < thread_num; ++th_id)
+//		{
+//			other_cbin = elem_count_bin + th_id * 0x100;
+//			for (bin_id = 1; bin_id < 0x100; ++bin_id)
+//				my_sbin[bin_id] += other_cbin[bin_id - 1];
+//		}
+//
+//		for (p_id = p_id1; p_id-- > p_id0;)
+//		{
+//			pos_id = --my_sbin[data_digit(pcl_in_elem0[p_id], digit_disp)];
+//			pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
+//			prev_pcl_id1[pos_id] = prev_pcl_id0[p_id];
+//		}
+//
+//		swap(pcl_in_elem_ui0, pcl_in_elem_ui1);
+//		swap(prev_pcl_id_ui0, prev_pcl_id_ui1);
+//		thd.sorted_pcl_in_elem_id ^= 1;
+//#pragma omp barrier
+//	}
+//
+//	// update p_id0, p_id1
+//	size_t e_id;
+//	e_id = pcl_in_elem0[p_id0];
+//	while (p_id0 != SIZE_MAX && e_id == pcl_in_elem0[--p_id0]);
+//	++p_id0;
+//	e_id = pcl_in_elem0[p_id1];
+//	while (p_id1 != SIZE_MAX && e_id == pcl_in_elem0[--p_id1]);
+//	++p_id1;
+//	
+//	size_t ori_p_id, prev_p_id, ne_id;
 //	double p_m, p_vol, p_N_m;
-//	double one_third_bfx, one_third_bfy;
+//	double one_third_bfx_s, one_third_bfy_s;
+//	double one_third_bfx_f, one_third_bfy_f;
+//	double e_p_m = 0.0;
+//	double e_p_vol = 0.0;
+//	double e_s11 = 0.0;
+//	double e_s22 = 0.0;
+//	double e_s12 = 0.0;
+//	double en1_vm = 0.0;
+//	double en1_vmx_s = 0.0;
+//	double en1_vmy_s = 0.0;
+//	double en1_vmx_f = 0.0;
+//	double en1_vmy_f = 0.0;
+//	double en2_vm = 0.0;
+//	double en2_vmx_s = 0.0;
+//	double en2_vmy_s = 0.0;
+//	double en2_vmx_f = 0.0;
+//	double en2_vmy_f = 0.0;
+//	double en3_vm = 0.0;
+//	double en3_vmx_s = 0.0;
+//	double en3_vmy_s = 0.0;
+//	double en3_vmx_f = 0.0;
+//	double en3_vmy_f = 0.0;
+//	double en1_fx_s = 0.0;
+//	double en1_fy_s = 0.0;
+//	double en1_fx_f = 0.0;
+//	double en1_fy_f = 0.0;
+//	double en2_fx_s = 0.0;
+//	double en2_fy_s = 0.0;
+//	double en2_fx_f = 0.0;
+//	double en2_fy_f = 0.0;
+//	double en3_fx_s = 0.0;
+//	double en3_fy_s = 0.0;
+//	double en3_fx_f = 0.0;
+//	double en3_fy_f = 0.0;
+//	e_id = pcl_in_elem0[p_id0];
+//	size_t* const my_valid_elem_id = self.valid_elem_id + e_id;
+//	size_t* const my_node_has_elem = node_has_elem1 + e_id * 3;
+//	size_t* const my_node_elem_pair = node_elem_pair1 + e_id * 3;
+//	size_t my_valid_elem_num = 0;
 //	for (p_id = p_id0; p_id < p_id1; ++p_id)
 //	{
-//		prev_pcl_id = new_to_prev_pcl_map[p_id];
+//		prev_p_id = new_to_prev_pcl_map[p_id];
 //
-//		ori_pcl_id = pcl_index1[prev_pcl_id];
-//		pcl_index0[p_id] = ori_pcl_id;
+//		ori_p_id = pcl_index1[prev_p_id];
+//		pcl_index0[p_id] = ori_p_id;
 //
-//		e_id = pcl_in_elem_array[p_id];
+//		e_id = pcl_in_elem0[p_id];
 //
 //		// map pcl mass
 //		p_m = self.pcl_m[ori_pcl_id];
@@ -367,23 +479,22 @@ int substep_func_omp_T2D_CHM_mt(
 //		self.elem_pcl_vol[e_id] += p_vol;
 //
 //		// map stress
-//		PclStress& p_s1 = pcl_stress1[prev_pcl_id];
-//		PclStress& p_s0 = pcl_stress0[p_id];
+//		Stress& p_s1 = pcl_stress1[prev_p_id];
+//		Stress& p_s0 = pcl_stress0[p_id];
 //		p_s0.s11 = p_s1.s11;
 //		p_s0.s22 = p_s1.s22;
 //		p_s0.s12 = p_s1.s12;
-//		ElemStress & e_s = self.elem_stress[e_id];
-//		e_s.s11 += p_s0.s11 * p_vol;
-//		e_s.s22 += p_s0.s22 * p_vol;
-//		e_s.s12 += p_s0.s12 * p_vol;
+//		e_s11 += p_s0.s11 * p_vol;
+//		e_s22 += p_s0.s22 * p_vol;
+//		e_s12 += p_s0.s12 * p_vol;
 //
 //		// map pore pressure
 //		pcl_p0[p_id] = pcl_p1[prev_pcl_id];
 //		self.elem_p[p_id] += pcl_p0[p_id] * p_vol;
 //
 //		// map velocity
-//		PclShapeFunc& p_N1 = pcl_N1[prev_pcl_id];
-//		PclShapeFunc& p_N0 = pcl_N0[p_id];
+//		ShapeFunc& p_N1 = pcl_N1[prev_pcl_id];
+//		ShapeFunc& p_N0 = pcl_N0[p_id];
 //		p_N0.N1 = p_N1.N1;
 //		p_N0.N2 = p_N1.N2;
 //		p_N0.N3 = p_N1.N3;
@@ -408,9 +519,10 @@ int substep_func_omp_T2D_CHM_mt(
 //		en_vm3.vmy += p_N_m * p_v0.vy;
 //
 //		// External load
-//		PclBodyForce& p_bf = self.pcl_bf[ori_pcl_id];
-//		one_third_bfx = one_third * p_bf.bfx;
-//		one_third_bfy = one_third * p_bf.bfy;
+//		Force& p_bf = self.pcl_bf_s[ori_p_id];
+//		one_third_bfx_s = one_third * p_bf.fx;
+//		one_third_bfy_s = one_third * p_bf.fy;
+//
 //		PclTraction& p_t = self.pcl_t[ori_pcl_id];
 //		ElemNodeForce& en_f1 = self.elem_node_force[e_id * 3];
 //		en_f1.fx += one_third_bfx + p_N0.N1 * p_t.tx;
@@ -421,34 +533,41 @@ int substep_func_omp_T2D_CHM_mt(
 //		ElemNodeForce& en_f3 = self.elem_node_force[e_id * 3 + 2];
 //		en_f3.fx += one_third_bfx + p_N0.N3 * p_t.tx;
 //		en_f3.fy += one_third_bfy + p_N0.N3 * p_t.ty;
+//	
+//	
 //	}
 //
-//	if (md.has_rigid_rect())
+//	if (md.has_rigid_circle())
 //	{
-//		RigidRect& rr = md.get_rigid_rect();
-//		RigidRectForce rr_force;
-//		rr_force.reset_f_contact();
-//		self.apply_rigid_rect_avg(
-//			my_th_id, dt,
-//			pcl_in_elem_array, pscv0,
-//			rr_force
+//		RigidCircle& rc = md.get_rigid_circle();
+//		Force2D rc_force;
+//		rc_force.reset();
+//		self.apply_rigid_circle(
+//			p_id0,
+//			p_id1,
+//			pcl_in_elem0,
+//			spva0,
+//			rc_force,
+//			substp_id,
+//			thd
 //			);
+//
 //#pragma omp critical
-//		{
-//			rr.combine(rr_force);
-//		}
+//		self.cf_tmp.combine(rc_force);
 //	}
 //#pragma omp barrier
 //
 //#pragma omp master
 //	{
-//		if (md.has_rigid_rect())
+//		if (md.has_rigid_circle())
 //		{
-//			RigidRect& rr = md.get_rigid_rect();
-//			rr.update_motion(dt);
+//			RigidCircle rc = md.get_rigid_circle();
+//			rc.set_rcf(self.cf_tmp);
+//			rc.update_motion(dt);
+//			self.cf_tmp.reset();
 //		}
 //	}
-//
+
 //	size_t e_id0 = self.elem_range[my_th_id];
 //	size_t e_id1 = self.elem_range[my_th_id + 1];
 //	double e_pcl_vol;
@@ -767,61 +886,61 @@ int substep_func_omp_T2D_CHM_mt(
 //		}
 //	}
 //
-//#pragma omp barrier
-//	return 0;
-//}
-//
-//int Step_T2D_CHM_mt::apply_rigid_rect_avg(
-//	size_t my_th_id,
-//	double dt,
-//	size_t *pcl_in_elem_array,
-//	PclSortedVarArray &cur_pscv,
-//	RigidRectForce &rr_force
-//	)
-//{
-//	double p_x, p_y;
-//	double dist, norm_x, norm_y;
-//	double f_cont, fx_cont, fy_cont;
-//	size_t e_id, pcl_ori_id;
-//	size_t p_id0 = pcl_range[my_th_id].id;
-//	size_t p_id1 = pcl_range[my_th_id + 1].id;
-//	Model_T2D_CHM_mt& md = *(Model_T2D_CHM_mt*)model;
-//	RigidRect& rr = md.get_rigid_rect();
-//	const Point2D &rr_centre = rr.get_centre();
-//	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
-//	{
-//		pcl_ori_id = cur_pscv.pcl_index[p_id];
-//		PclPos& p_p = pcl_pos[pcl_ori_id];
-//		PclDisp& p_d = cur_pscv.pcl_disp[p_id];
-//		p_x = p_p.x + p_d.ux;
-//		p_y = p_p.y + p_d.uy;
-//		if (rr.detect_collision_with_point(
-//			p_x, p_y, pcl_vol[p_id],
-//			dist, norm_x, norm_y))
-//		{
-//			f_cont = K_cont * dist;
-//			fx_cont = f_cont * norm_x;
-//			fy_cont = f_cont * norm_y;
-//			// apply contact force to rigid body
-//			rr_force.add_f_contact(
-//				p_x, p_y,
-//				-fx_cont, -fy_cont,
-//				rr_centre.x, rr_centre.y
-//				);
-//			// apply contact force to mesh
-//			PclShapeFunc &p_N = cur_pscv.pcl_N[p_id];
-//			e_id = pcl_in_elem_array[p_id];
-//			ElemNodeForce& en_f1 = elem_node_force[e_id * 3];
-//			en_f1.fx += p_N.N1 * fx_cont;
-//			en_f1.fy += p_N.N1 * fy_cont;
-//			ElemNodeForce& en_f2 = elem_node_force[e_id * 3 + 1];
-//			en_f2.fx += p_N.N2 * fx_cont;
-//			en_f2.fy += p_N.N2 * fy_cont;
-//			ElemNodeForce& en_f3 = elem_node_force[e_id * 3 + 2];
-//			en_f3.fx += p_N.N3 * fx_cont;
-//			en_f3.fy += p_N.N3 * fy_cont;
-//		}
-//	}
+#pragma omp barrier
+	return 0;
+}
+
+int Step_T2D_CHM_mt::apply_rigid_circle(
+	size_t p_id0,
+	size_t p_id1,
+	size_t* pcl_in_elem,
+	SortedPclVarArrays& cur_spva,
+	Force2D& rc_cf,
+	size_t substp_id,
+	ThreadData& thd
+	) noexcept
+{
+	double p_x, p_y;
+	double dist, norm_x, norm_y;
+	double f_cont, fx_cont, fy_cont;
+	size_t e_id, pcl_ori_id;
+	Model_T2D_CHM_mt& md = *(Model_T2D_CHM_mt*)model;
+	RigidCircle& rc = md.get_rigid_circle();
+	const Point2D &rc_centre = rc.get_centre();
+	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+	{
+		pcl_ori_id = cur_spva.pcl_index[p_id];
+		Position& p_p = pcl_pos[pcl_ori_id];
+		Displacement& p_d = cur_spva.pcl_disp[p_id];
+		p_x = p_p.x + p_d.ux;
+		p_y = p_p.y + p_d.uy;
+		if (rc.detect_collision_with_point(
+			p_x, p_y, pcl_vol[p_id],
+			dist, norm_x, norm_y))
+		{
+			f_cont = Kn_cont * dist;
+			fx_cont = f_cont * norm_x;
+			fy_cont = f_cont * norm_y;
+			// apply contact force to rigid body
+			rc_cf.add_force(
+				p_x, p_y,
+				-fx_cont, -fy_cont,
+				rc_centre.x, rc_centre.y
+				);
+			// apply contact force to mesh
+			ShapeFunc &p_N = cur_spva.pcl_N[p_id];
+			e_id = pcl_in_elem[p_id];
+			Force& en_f1 = elem_node_force_s[e_id * 3];
+			en_f1.fx += p_N.N1 * fx_cont;
+			en_f1.fy += p_N.N1 * fy_cont;
+			Force& en_f2 = elem_node_force_s[e_id * 3 + 1];
+			en_f2.fx += p_N.N2 * fx_cont;
+			en_f2.fy += p_N.N2 * fy_cont;
+			Force& en_f3 = elem_node_force_s[e_id * 3 + 2];
+			en_f3.fx += p_N.N3 * fx_cont;
+			en_f3.fy += p_N.N3 * fy_cont;
+		}
+	}
 
 	return 0;
 }
