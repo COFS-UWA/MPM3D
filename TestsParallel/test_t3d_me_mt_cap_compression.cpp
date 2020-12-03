@@ -86,10 +86,10 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	//step.set_step_time(0.5);
-	step.set_step_time(1.0e-5);
+	step.set_step_time(0.5);
+	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(2);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -101,8 +101,8 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 void test_t3d_me_mt_cap_compression_result(int argc, char **argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t3d_me_mt_cap_compression.h5");
-	rf.open("t3d_me_mt_cap_compression_restart.h5");
+	rf.open("t3d_me_mt_cap_compression.h5");
+	//rf.open("t3d_me_mt_cap_compression_restart.h5");
 
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::z);

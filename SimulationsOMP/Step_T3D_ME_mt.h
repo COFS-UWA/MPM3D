@@ -89,10 +89,21 @@ protected:
 		{
 			size_t sorted_pcl_var_id;
 			size_t sorted_pcl_in_elem_id;
-			size_t p_id0, p_id1;
 			PclVar_T3D_ME_mt pcl_var_getter;
+#ifdef _DEBUG
+			// time profiling
+			std::chrono::nanoseconds total;
+			std::chrono::nanoseconds d0;
+			std::chrono::nanoseconds d1, d10[8], d11[8], d12[8], d13[8];
+			std::chrono::nanoseconds d20;
+			std::chrono::nanoseconds d3, d30[8], d31[8], d32[8], d33[8];
+			std::chrono::nanoseconds d4, d40, d49;
+			std::chrono::nanoseconds d5, d59;
+			std::chrono::nanoseconds d6, d69;
+			std::chrono::nanoseconds d7;
+#endif
 		};
-		char padding[Cache_Alignment * 2];
+		char padding[Cache_Alignment * 20];
 		ThreadData() : pcl_var_getter() {}
 		~ThreadData() {}
 	};

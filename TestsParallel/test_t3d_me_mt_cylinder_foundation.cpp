@@ -28,12 +28,19 @@ void test_t3d_me_mt_cylinder_foundation_create_model(int argc, char** argv)
 	size_t pcl_num = model.get_pcl_num();
 	std::cout << "pcl_num: " << pcl_num << "\n";
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
+	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::LinearElasticity& le = les[pcl_id];
+	//	le.set_param(1000.0, 0.0);
+	//	mms[pcl_id] = &le;
+	//}
+	MatModel::Tresca *tcs = model.add_Tresca(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::LinearElasticity& le = les[pcl_id];
-		le.set_param(1000.0, 0.0);
-		mms[pcl_id] = &le;
+		MatModel::Tresca &tc = tcs[pcl_id];
+		tc.set_param(4000.0, 0.3, 5.0);
+		mms[pcl_id] = &tc;
 	}
 
 	model.init_rigid_cylinder(3.5, 3.5, 4.1, 0.2, 0.5);
@@ -68,26 +75,26 @@ void test_t3d_me_mt_cylinder_foundation(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model, "t3d_me_mt_cylinder_foundation_model.h5");
 
-	QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
-	auto &div_set = md_disp.get_div_set();
-	div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
-	div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
-	md_disp.set_model(model);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(30.0f, 30.0f);
-	md_disp.set_light_dir(0.0f, 30.0f);
-	md_disp.set_display_bg_mesh(false);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	//auto &div_set = md_disp.get_div_set();
+	//div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	//div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	//md_disp.set_model(model);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(30.0f, 30.0f);
+	//md_disp.set_light_dir(0.0f, 30.0f);
+	//md_disp.set_display_bg_mesh(false);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_cylinder_foundation.h5");
 
 	ModelData_T3D_ME_mt md;
-	md.output_model(model, res_file_hdf5);
+	//md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T3D_ME_mt_complete out1("penetration");
 	out1.set_res_file(res_file_hdf5);
@@ -97,10 +104,11 @@ void test_t3d_me_mt_cylinder_foundation(int argc, char** argv)
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
-	//step.set_step_time(1.0e-4);
+	step.set_thread_num(2);
+	//step.set_step_time(1.0);
+	step.set_step_time(2.0e-5);
 	step.set_dtime(1.0e-5);
-	step.add_time_history(out1);
+	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }

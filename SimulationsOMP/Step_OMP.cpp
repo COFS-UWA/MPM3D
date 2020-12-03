@@ -34,8 +34,7 @@ int Step_OMP::solve()
 	}
 
 	continue_cal = true;
-	cpu_time = 0;
-	std::clock_t t0, t1;
+	cpu_time = std::chrono::nanoseconds::zero();
 #pragma omp parallel
 	{
 		size_t my_th_id = size_t(omp_get_thread_num());
@@ -45,7 +44,7 @@ int Step_OMP::solve()
 			{
 #pragma omp master
 				{
-					t0 = std::clock();
+					t0 = std::chrono::high_resolution_clock::now();
 				}
 
 				// a barrier is needed at the end of cal_substep_func_omp
@@ -53,7 +52,7 @@ int Step_OMP::solve()
 			
 #pragma omp master
 				{
-					t1 = std::clock();
+					t1 = std::chrono::high_resolution_clock::now();
 					cpu_time += t1 - t0;
 				}
 			} while (output_not_needed);

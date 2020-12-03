@@ -217,7 +217,7 @@ namespace Model_hdf5_utilities
 		// von mises
 		if (rf.has_dataset(mc_grp_id, "VonMises"))
 		{
-			rf.read_attribute(mc_grp_id, "VonMises", mm_num);
+			rf.read_attribute(mc_grp_id, "VonMises_num", mm_num);
 
 			// get data
 			VonMisesStateData* mm_data = new VonMisesStateData[mm_num];
@@ -243,7 +243,7 @@ namespace Model_hdf5_utilities
 		// tresca
 		if (rf.has_dataset(mc_grp_id, "Tresca"))
 		{
-			rf.read_attribute(mc_grp_id, "Tresca", mm_num);
+			rf.read_attribute(mc_grp_id, "Tresca_num", mm_num);
 
 			// get data
 			TrescaStateData* mm_data = new TrescaStateData[mm_num];

@@ -71,5 +71,41 @@ namespace MatModel
 				throw std::exception(exception_msg);
 			}
 		}
+
+		// VonMises
+		for (MatModel::VonMises *iter = mc.first_VonMises();
+			mc.is_not_end_VonMises(iter);
+			iter = mc.next_VonMises(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(
+					exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: Von Mises model %zu already exists.",
+					iter->get_id()
+				);
+				throw std::exception(exception_msg);
+			}
+		}
+
+		// Tresca
+		for (MatModel::Tresca *iter = mc.first_Tresca();
+			mc.is_not_end_Tresca(iter);
+			iter = mc.next_Tresca(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(
+					exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: Tresca model %zu already exists.",
+					iter->get_id()
+					);
+				throw std::exception(exception_msg);
+			}
+		}
 	}
 }

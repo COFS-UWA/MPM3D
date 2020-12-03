@@ -59,7 +59,7 @@ void test_omp_barrier_time()
 	step.add_time_history(out_cpb);
 	step.solve();
 
-	std::cout << step.cpu_time_in_ms() << "\n";
+	std::cout << step.get_time() << "\n";
 	system("pause");
 }
 
