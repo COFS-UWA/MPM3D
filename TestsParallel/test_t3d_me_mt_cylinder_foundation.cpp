@@ -81,12 +81,12 @@ void test_t3d_me_mt_cylinder_foundation(int argc, char** argv)
 	//div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(30.0f, 30.0f);
+	//md_disp.set_view_dir(90.0f, 00.0f);
 	//md_disp.set_light_dir(0.0f, 30.0f);
 	//md_disp.set_display_bg_mesh(false);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_vx_bc(0.04);
+	////md_disp.set_pts_from_vy_bc(0.04);
+	//md_disp.set_pts_from_vz_bc(0.04);
 	//md_disp.start();
 	//return;
 
@@ -105,7 +105,7 @@ void test_t3d_me_mt_cylinder_foundation(int argc, char** argv)
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_thread_num(6);
-	step.set_step_time(0.05);
+	step.set_step_time(0.5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
