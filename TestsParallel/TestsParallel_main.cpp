@@ -48,7 +48,8 @@ int main(int argc, char *argv[])
 
 	//test_t3d_me_mt_cylinder_foundation_create_model(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation(argc, argv);
-	test_t3d_me_mt_cylinder_foundation_restart(argc, argv);
+	//test_t3d_me_mt_cylinder_foundation_restart(argc, argv);
+	test_t3d_me_mt_cylinder_foundation_restart2(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_result(argc, argv);
 
 	//system("pause");

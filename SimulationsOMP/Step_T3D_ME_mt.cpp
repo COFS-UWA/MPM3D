@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <assert.h>
 #include <chrono>
 #include <omp.h>
 
@@ -15,9 +16,9 @@
 #define TIME_DURATION_RESET(d) (d) = std::chrono::nanoseconds(); 
 #define TIME_DURATION(t0, t1, d) (d) = (t0) - (t1)
 #else
-#define TIME_POINT(txx) (void)0
-#define TIME_DURATION_RESET(d) (void)0
-#define TIME_DURATION(t0, t1, d) (void)0
+#define TIME_POINT(txx) ((void)0)
+#define TIME_DURATION_RESET(d) ((void)0)
+#define TIME_DURATION(t0, t1, d) ((void)0)
 #endif
 
 #define one_third (1.0/3.0)
@@ -154,7 +155,7 @@ int Step_T3D_ME_mt::init_calculation()
 	node_has_elems[0][-1] = SIZE_MAX;
 	node_has_elems[1][-1] = SIZE_MAX;
 
-	prev_pcl_num = md.pcl_num;
+	prev_valid_pcl_num = md.pcl_num;
 	valid_pcl_num = 0;
 #pragma omp parallel
 	{
@@ -168,8 +169,8 @@ int Step_T3D_ME_mt::init_calculation()
 		pv_getter.pmodel = &md;
 
 		size_t p_id, ori_p_id, e_id;
-		size_t p_id0 = Block_Low(my_th_id, thread_num, md.pcl_num);
-		size_t p_id1 = Block_Low(my_th_id+1, thread_num, md.pcl_num);
+		size_t p_id0 = Block_Low(my_th_id, thread_num, prev_valid_pcl_num);
+		size_t p_id1 = Block_Low(my_th_id+1, thread_num, prev_valid_pcl_num);
 		size_t pcl_in_mesh_num = 0;
 		size_t *pcl_in_elem0 = pcl_in_elems[0];
 		size_t *prev_pcl_id0 = prev_pcl_ids[0];
@@ -342,8 +343,8 @@ int substep_func_omp_T3D_ME_mt(
 	// sort particle variables
 	size_t p_id, bin_id, th_id, pos_id;
 	size_t digit_disp, elem_num_tmp, * other_cbin;
-	size_t p_id0 = Block_Low(my_th_id, thread_num, self.valid_pcl_num);
-	size_t p_id1 = Block_Low(my_th_id + 1, thread_num, self.valid_pcl_num);
+	size_t p_id0 = Block_Low(my_th_id, thread_num, self.prev_valid_pcl_num);
+	size_t p_id1 = Block_Low(my_th_id + 1, thread_num, self.prev_valid_pcl_num);
 	size_t* const elem_count_bin = self.elem_count_bin;
 	size_t* const my_cbin = elem_count_bin + my_th_id * 0x100;
 	size_t* const elem_sum_bin = self.elem_sum_bin;
@@ -361,7 +362,11 @@ int substep_func_omp_T3D_ME_mt(
 		memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
+		{
 			++my_cbin[data_digit(pcl_in_elem0[p_id], digit_disp)];
+			assert(pcl_in_elem0[p_id] < self.elem_num ||
+				   pcl_in_elem0[p_id] == SIZE_MAX);
+		}
 
 		my_sbin[0] = my_cbin[0];
 		for (bin_id = 1; bin_id < 0x100; ++bin_id)
@@ -394,6 +399,9 @@ int substep_func_omp_T3D_ME_mt(
 			pos_id = --my_sbin[data_digit(pcl_in_elem0[p_id], digit_disp)];
 			pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
 			prev_pcl_id1[pos_id] = prev_pcl_id0[p_id];
+			assert((pcl_in_elem0[p_id] < self.elem_num ||
+					pcl_in_elem0[p_id] == SIZE_MAX) &&
+				(prev_pcl_id0[p_id] < self.prev_valid_pcl_num));
 		}
 
 		swap(pcl_in_elem_ui0, pcl_in_elem_ui1);
@@ -411,12 +419,16 @@ int substep_func_omp_T3D_ME_mt(
 
 	// update p_id0, p_id1
 	size_t e_id;
+	p_id0 = Block_Low(my_th_id, thread_num, self.valid_pcl_num);
 	e_id = pcl_in_elem0[p_id0];
 	while (p_id0 != SIZE_MAX && e_id == pcl_in_elem0[--p_id0]);
 	++p_id0;
+	assert(p_id0 <= self.valid_pcl_num);
+	p_id1 = Block_Low(my_th_id + 1, thread_num, self.valid_pcl_num);
 	e_id = pcl_in_elem0[p_id1];
 	while (p_id1 != SIZE_MAX && e_id == pcl_in_elem0[--p_id1]);
 	++p_id1;
+	assert(p_id1 <= self.valid_pcl_num);
 
 	// map pcl to mesh
 	size_t ori_p_id, prev_p_id, ne_id;
@@ -459,6 +471,7 @@ int substep_func_omp_T3D_ME_mt(
 	double en4_fy = 0.0;
 	double en4_fz = 0.0;
 	e_id = pcl_in_elem0[p_id0];
+	assert(e_id < self.elem_num);
 	size_t* const my_valid_elem_id = self.valid_elem_id + e_id;
 	size_t* const my_node_has_elem = node_has_elem1 + e_id * 4;
 	size_t* const my_node_elem_pair = node_elem_pair1 + e_id * 4;
@@ -467,7 +480,9 @@ int substep_func_omp_T3D_ME_mt(
 	{
 		// pcl index
 		prev_p_id = prev_pcl_id0[p_id];
+		assert(prev_p_id < self.prev_valid_pcl_num);
 		ori_p_id = pcl_index1[prev_p_id];
+		assert(ori_p_id < md.ori_pcl_num);
 		pcl_index0[p_id] = ori_p_id;
 
 		// map pcl mass
@@ -646,6 +661,7 @@ int substep_func_omp_T3D_ME_mt(
 			my_node_elem_pair[ne_id] = e_id * 4 + 3;
 
 			e_id = pcl_in_elem0[p_id + 1];
+			assert(e_id < self.elem_num || e_id == SIZE_MAX);
 
 			e_p_m = 0.0;
 			e_p_vol = 0.0;
@@ -803,7 +819,10 @@ int substep_func_omp_T3D_ME_mt(
 		memset(my_cbin, 0, sizeof(size_t) * 0x100);
 
 		for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
+		{
 			++my_cbin[data_digit(node_has_elem0[ve_id], digit_disp)];
+			assert(node_has_elem0[ve_id] < self.node_num);
+		}
 
 		my_sbin[0] = my_cbin[0];
 		for (bin_id = 1; bin_id < 0x100; ++bin_id)
@@ -837,6 +856,8 @@ int substep_func_omp_T3D_ME_mt(
 			pos_id = --my_sbin[data_digit(node_has_elem0[ve_id], digit_disp)];
 			node_has_elem1[pos_id] = node_has_elem0[ve_id];
 			node_elem_pair1[pos_id] = node_elem_pair0[ve_id];
+			assert(node_has_elem0[ve_id] < self.node_num);
+			assert(node_elem_pair0[ve_id] < self.elem_num * 4);
 		}
 
 		swap(node_has_elem_ui0, node_has_elem_ui1);
@@ -856,9 +877,11 @@ int substep_func_omp_T3D_ME_mt(
 	n_id = node_has_elem0[ve_id0];
 	while (ve_id0 != SIZE_MAX && n_id == node_has_elem0[--ve_id0]);
 	++ve_id0;
+	assert(ve_id0 <= self.valid_elem_num * 4);
 	n_id = node_has_elem0[ve_id1];
 	while (ve_id1 != SIZE_MAX && n_id == node_has_elem0[--ve_id1]);
 	++ve_id1;
+	assert(ve_id1 <= self.valid_elem_num * 4);
 
 	// update node variables
 	size_t bc_mask;
@@ -871,9 +894,11 @@ int substep_func_omp_T3D_ME_mt(
 	double n_vmy = 0.0;
 	double n_vmz = 0.0;
 	n_id = node_has_elem0[ve_id0];
+	assert(n_id < self.node_num);
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
 		ne_id = node_elem_pair0[ve_id];
+		assert(n_id < self.elem_num * 4);
 		e_id = ne_id / 4;
 		n_am += elem_pcl_m[e_id];
 		ElemNodeForce& nf = elem_node_force[ne_id];
@@ -910,6 +935,7 @@ int substep_func_omp_T3D_ME_mt(
 			n_v.ivz &= bc_mask;
 
 			n_id = node_has_elem0[ve_id + 1];
+			assert(n_id < self.node_num || n_id == SIZE_MAX);
 
 			n_am = 0.0;
 			n_fx = 0.0;
@@ -944,7 +970,10 @@ int substep_func_omp_T3D_ME_mt(
 		
 		self.cf_tmp.reset();
 
-		self.prev_pcl_num = self.valid_pcl_num;
+#ifdef _DEBUG
+		self.prev_valid_pcl_num_tmp = self.prev_valid_pcl_num;
+#endif
+		self.prev_valid_pcl_num = self.valid_pcl_num;
 		self.valid_pcl_num = 0;
 	}
 
@@ -958,6 +987,7 @@ int substep_func_omp_T3D_ME_mt(
 	for (ve_id = 0; ve_id < my_valid_elem_num; ++ve_id)
 	{
 		e_id = my_valid_elem_id[ve_id];
+		assert(e_id < self.elem_num);
 
 		ElemNodeIndex& eni = elem_node_id[e_id];
 		Velocity& n_v1 = node_v[eni.n1];
@@ -990,14 +1020,17 @@ int substep_func_omp_T3D_ME_mt(
 
 	double n_am_de_vol = 0.0;
 	n_id = node_has_elem0[ve_id0];
+	assert(n_id < self.node_num);
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
 		e_id = node_elem_pair0[ve_id] / 4;
+		assert(e_id < self.elem_num);
 		n_am_de_vol += elem_m_de_vol[e_id];
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
 			node_de_vol[n_id] = n_am_de_vol * one_fourth / node_am[n_id];
 			n_id = node_has_elem0[ve_id + 1];
+			assert(n_id < self.node_num || n_id == SIZE_MAX);
 			n_am_de_vol = 0.0;
 		}
 	}
@@ -1019,6 +1052,7 @@ int substep_func_omp_T3D_ME_mt(
 		if (e_id != pcl_in_elem0[p_id])
 		{
 			e_id = pcl_in_elem0[p_id];
+			assert(e_id < self.elem_num);
 
 			ElemNodeIndex& eni = elem_node_id[e_id];
 
@@ -1059,6 +1093,7 @@ int substep_func_omp_T3D_ME_mt(
 
 		// update location (in which element)
 		ori_p_id = pcl_index0[p_id];
+		assert(ori_p_id < md.ori_pcl_num);
 		const Position& p_p = pcl_pos[ori_p_id];
 		p_x = p_p.x + p_d0.ux;
 		p_y = p_p.y + p_d0.uy;
@@ -1070,6 +1105,7 @@ int substep_func_omp_T3D_ME_mt(
 			++pcl_in_mesh_num;
 		pcl_in_elem0[p_id] = p_e_id;
 		prev_pcl_id0[p_id] = p_id;
+		assert(p_e_id < self.elem_num || p_e_id == SIZE_MAX);
 
 		// update density
 		pcl_density0[p_id] = elem_density[e_id];
@@ -1087,6 +1123,9 @@ int substep_func_omp_T3D_ME_mt(
 		p_s.s31 += dstress[5];
 
 		prev_p_id = prev_pcl_id0[p_id];
+#ifdef _DEBUG
+		assert(prev_p_id < self.prev_valid_pcl_num_tmp);
+#endif
 		Strain &p_e1 = pcl_strain1[prev_p_id];
 		Strain &p_e0 = pcl_strain0[p_id];
 		p_e0.e11 = p_e1.e11 + pe_de->de11;
