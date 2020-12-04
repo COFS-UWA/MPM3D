@@ -140,7 +140,7 @@ void test_t3d_me_mt_cylinder_foundation_restart(int argc, char** argv)
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t3d_me_mt_cylinder_foundation.h5");
+	res_file_hdf5.create("t3d_me_mt_cylinder_foundation2.h5");
 
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
