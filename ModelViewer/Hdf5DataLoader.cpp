@@ -6,15 +6,9 @@
 
 Hdf5DataLoader::Hdf5DataLoader() :
 	res_file(nullptr), th_id(-1), pcl_dt_id(-1), pcl_size(0),
-	frame_id(std::numeric_limits<size_t>::max()), pcl_num(0)
-{
+	frame_id(std::numeric_limits<size_t>::max()), pcl_num(0) {}
 
-}
-
-Hdf5DataLoader::~Hdf5DataLoader()
-{
-	close_res_file();
-}
+Hdf5DataLoader::~Hdf5DataLoader() { close_res_file(); }
 
 void Hdf5DataLoader::close_res_file()
 {
@@ -74,7 +68,6 @@ int Hdf5DataLoader::set_time_history(
 	rf.close_dataset(pcl_dset_id);
 	rf.close_group(pcl_grp_id);
 	rf.close_group(frame_grp_id);
-
 	return 0;
 }
 
@@ -115,9 +108,9 @@ int Hdf5DataLoader::load_frame_data(
 
 		hid_t mat_model_id = rf.open_group(frame_grp_id, "MaterialModel");
 
-		if (rf.has_group(mat_model_id, "LinearElasticity"))
+		if (rf.has_dataset(mat_model_id, "LinearElasticity"))
 		{
-			hid_t le_grp = rf.open_group(mat_model_id, "LinearElasticity");
+			hid_t le_grp = rf.open_dataset(mat_model_id, "LinearElasticity");
 			hid_t le_dt = Model_hdf5_utilities::get_le_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "LinearElasticity_num", LinearElasticity_num);
 			LinearElasticity_mem.reserve(LinearElasticity_num);
@@ -137,12 +130,12 @@ int Hdf5DataLoader::load_frame_data(
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
 			H5Tclose(le_dt);
-			rf.close_group(le_grp);
+			rf.close_dataset(le_grp);
 		}
 
-		if (rf.has_group(mat_model_id, "ModifiedCamClay"))
+		if (rf.has_dataset(mat_model_id, "ModifiedCamClay"))
 		{
-			hid_t mcc_grp = rf.open_group(mat_model_id, "ModifiedCamClay");
+			hid_t mcc_grp = rf.open_dataset(mat_model_id, "ModifiedCamClay");
 			hid_t mcc_dt = Model_hdf5_utilities::get_mcc_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "ModifiedCamClay_num", ModifiedCamClay_num);
 			ModifiedCamClay_mem.reserve(ModifiedCamClay_num);
@@ -162,12 +155,12 @@ int Hdf5DataLoader::load_frame_data(
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
 			H5Tclose(mcc_dt);
-			rf.close_group(mcc_grp);
+			rf.close_dataset(mcc_grp);
 		}
 
-		if (rf.has_group(mat_model_id, "VonMises"))
+		if (rf.has_dataset(mat_model_id, "VonMises"))
 		{
-			hid_t vm_grp = rf.open_group(mat_model_id, "VonMises");
+			hid_t vm_grp = rf.open_dataset(mat_model_id, "VonMises");
 			hid_t vm_dt = Model_hdf5_utilities::get_von_mises_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "VonMises_num", VonMises_num);
 			VonMises_mem.reserve(VonMises_num);
@@ -187,12 +180,12 @@ int Hdf5DataLoader::load_frame_data(
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
 			H5Tclose(vm_dt);
-			rf.close_group(vm_grp);
+			rf.close_dataset(vm_grp);
 		}
 
-		if (rf.has_group(mat_model_id, "Tresca"))
+		if (rf.has_dataset(mat_model_id, "Tresca"))
 		{
-			hid_t tc_grp = rf.open_group(mat_model_id, "Tresca");
+			hid_t tc_grp = rf.open_dataset(mat_model_id, "Tresca");
 			hid_t tc_dt = Model_hdf5_utilities::get_tresca_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "Tresca_num", Tresca_num);
 			Tresca_mem.reserve(Tresca_num);
@@ -212,7 +205,7 @@ int Hdf5DataLoader::load_frame_data(
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
 			H5Tclose(tc_dt);
-			rf.close_group(tc_grp);
+			rf.close_dataset(tc_grp);
 		}
 
 		rf.close_group(mat_model_id);

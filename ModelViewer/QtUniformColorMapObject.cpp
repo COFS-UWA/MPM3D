@@ -8,23 +8,20 @@
 #include "QtUniformcolorMapObject.h"
 
 // "empirical factor"
-#define Title_Font_Size_Scale 0.7f
-#define Num_Font_Size_Scale 0.65f
+#define Title_Font_Size_Scale 1.0f // 0.7f
+#define Num_Font_Size_Scale 0.55f
 
 QtUniformColorMapObject::QtUniformColorMapObject(
 	QOpenGLFunctions_3_3_Core& _gl) : gl(_gl), char_loader(_gl),
 	// geometry parameters
-	ht_margin_ratio(0.05f), wd_margin_ratio(0.1f),
-	gap_ratio(0.5f), title_ratio(1.5f),
+	ht_margin_ratio(0.05f), wd_margin_ratio(0.05f),
+	gap_ratio(0.5f), title_ratio(0.7f),
 	cbox_as(1.3f), cbox_tick_ratio(0.2f), cbox_gap_ratio(0.3f),
 	// gl draw infos
 	line_width(1.0f), char_num(0),
 	line_vao(0), line_vbo(0), line_veo(0),
 	tri_vao(0), tri_vbo(0), tri_veo(0),
-	char_vao(0), char_vbo(0)
-{
-
-}
+	char_vao(0), char_vbo(0) {}
 
 QtUniformColorMapObject::~QtUniformColorMapObject() { clear_gl_buffer(); }
 
@@ -54,11 +51,11 @@ void QtUniformColorMapObject::cal_str_geometry(
 	GLint& font_wd, GLint& font_ht
 	)
 {
-	size_t str_len = strlen(str);
-	font_wd = 0;
 	const QtCharBitmapLoader::CharData* pref_char 
 				= loader.get_char_data('1');
 	font_ht = pref_char->get_advance_y();
+	size_t str_len = strlen(str);
+	font_wd = 0;
 	for (size_t c_id = 0; c_id < str_len; ++c_id)
 	{
 		const QtCharBitmapLoader::CharData* pcd
@@ -328,7 +325,6 @@ int QtUniformColorMapObject::init(
 		ei.number = num_start + float(c_id) * num_inv;
 		snprintf(num_str_buf, 200, num_format, ei.number);
 		si.str = num_str_buf;
-		//std::cout << ei.num_str_info.str << "\n";
 		// get num str geometry
 		cal_str_geometry(num_str_buf, char_loader, str_wd, str_ht);
 		si.as = GLfloat(str_wd) / GLfloat(str_ht);
@@ -343,21 +339,16 @@ int QtUniformColorMapObject::init(
 		content_wd = title_wd;
 	title_wd = content_wd;
 
-	cmap_wd = title_wd / (1.0 - 2.0f * wd_margin_ratio);
+	cmap_wd = title_wd / (1.0f - 2.0f * wd_margin_ratio);
 	GLfloat margin_wd = cmap_wd * wd_margin_ratio;
 
 	// ==== calculate position of each components ====
 	xpos = _xpos;
 	ypos = _ypos;
-	// adjust xpos, ypos
 	if (xpos < 0.0f)
 		xpos = 0.0f;
-	//if (xpos + cmap_wd > 1.0f)
-	//	xpos = 1.0f - cmap_wd;
 	if (ypos < 0.0f)
 		ypos = 0.0f;
-	//if (ypos + cmap_ht > 1.0f)
-	//	ypos = 1.0f - cmap_ht;
 
 	cmap_rect.xl = xpos;
 	cmap_rect.xu = xpos + cmap_wd;

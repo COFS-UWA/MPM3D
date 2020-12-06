@@ -35,12 +35,11 @@ protected:
 	typedef Model_T2D_CHM_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T2D_CHM_mt::NodeHasVBC NodeHasVBC;
 
-	size_t elem_num;
-	size_t node_num;
-
 	double* pcl_m_s; // ori_pcl_num
 	double* pcl_density_s; // ori_pcl_num
-	Force* pcl_bf; // ori_pcl_num
+	double* pcl_vol_s; // ori_pcl_num
+	Force* pcl_bf_s; // ori_pcl_num
+	Force* pcl_bf_f; // ori_pcl_num
 	Force* pcl_t; // ori_pcl_num
 	Position* pcl_pos; // ori_pcl_num
 	double* pcl_vol; // ori_pcl_num
@@ -72,22 +71,13 @@ protected:
 	Acceleration* node_a_f; // node_num
 	Velocity* node_v_s; // node_num
 	Velocity* node_v_f; // node_num
-	NodeHasVBC* node_has_vbc_s;
+	NodeHasVBC* node_has_vbc_s; // node_num
 	NodeHasVBC* node_has_vbc_f; // node_num
 	double* node_am_s; // node_num
 	double* node_am_f; // node_num
 	double* node_de_vol_s; // node_num
 	double* node_de_vol_f; // node_num
 
-	union ThreadData
-	{
-		size_t sorted_pcl_var_id;
-		size_t sorted_pcl_in_elem_id;
-		char padding[Cache_Alignment];
-	};
-	ThreadData *thread_datas;
-
-	// radix sort
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
 	
@@ -95,17 +85,33 @@ protected:
 	size_t *pcl_in_elems[2];
 	size_t* node_has_elems[2];
 	size_t* node_elem_pairs[2];
+	size_t* valid_elem_id;
 
-	size_t pcl_num;
-	size_t valid_pcl_num;
-	size_t valid_elem_num;
-
-	CacheAlignedMem elem_bin_mem;
-	CacheAlignedMem task_datas_mem;
-	CacheAlignedMem radix_sort_var_mem;
+	size_t elem_num, node_num;
+	double Kf;
 
 	double Kn_cont;
+
+	union ThreadData
+	{
+		struct
+		{
+			size_t sorted_pcl_var_id;
+			size_t sorted_pcl_in_elem_id;
+		};
+		char padding[Cache_Alignment * 2];
+	};
+	ThreadData* thread_datas;
+	
+#ifdef _DEBUG
+	size_t prev_valid_pcl_num_tmp;
+#endif
+	size_t prev_valid_pcl_num, valid_pcl_num;
+	size_t valid_elem_num;
 	Force2D cf_tmp;
+
+	CacheAlignedMem thread_mem;
+	CacheAlignedMem cal_mem;
 
 	int apply_rigid_circle(
 		size_t p_id0, size_t p_id1,
@@ -125,7 +131,9 @@ public:
 	Step_T2D_CHM_mt(const char* _name);
 	~Step_T2D_CHM_mt();
 
-	inline size_t get_pcl_num() const noexcept { return pcl_num; }
+	inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
+	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
+	inline size_t* get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
 };
 
 #endif

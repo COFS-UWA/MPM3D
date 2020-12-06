@@ -7,7 +7,7 @@
 #include "MatModelContainer.h"
 #include "ParticleGenerator2D.hpp"
 #include "TriangleMesh.h"
-#include "RigidBody/RigidCircle.h"
+#include "RigidObject/RigidCircle.h"
 
 class Model_T2D_CHM_mt;
 class Step_T2D_CHM_mt;
@@ -105,9 +105,12 @@ public:
 		size_t *pcl_index; // ori_pcl_num
 		double* pcl_n;
 		double *pcl_density_f; // ori_pcl_num
-		Velocity *pcl_v; // ori_pcl_num
-		Displacement *pcl_disp; // ori_pcl_num
+		Velocity *pcl_v_s; // ori_pcl_num
+		Velocity* pcl_v_f; // ori_pcl_num
+		Displacement *pcl_u_s; // ori_pcl_num
+		Displacement* pcl_u_f; // ori_pcl_num
 		Stress* pcl_stress; // ori_pcl_num
+		double* pcl_p; // ori_pcl_num
 		Strain* pcl_strain; // ori_pcl_num
 		Strain* pcl_estrain; // ori_pcl_num
 		Strain* pcl_pstrain; // ori_pcl_num
@@ -121,10 +124,11 @@ protected:
 	
 	double *pcl_m_s; // ori_pcl_num
 	double* pcl_density_s; // ori_pcl_num
-	Force *pcl_bf; // ori_pcl_num
+	double* pcl_vol_s; // ori_pcl_num
+	Force *pcl_bf_s; // ori_pcl_num
+	Force* pcl_bf_f; // ori_pcl_num
 	Force *pcl_t; // ori_pcl_num
 	Position *pcl_pos; // ori_pcl_num
-	double *pcl_vol_s; // ori_pcl_num
 	double *pcl_vol; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
 
@@ -299,8 +303,7 @@ public:
 	//friend int Model_T2D_CHM_mt_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 protected: // rigid object contact
-	double K_cont;
-	// rigid rect
+	double Kn_cont;
 	bool rigid_circle_is_valid;
 	RigidCircle rigid_circle;
 
@@ -310,15 +313,15 @@ protected: // rigid object contact
 public:
 	inline bool has_rigid_circle() const noexcept { return rigid_circle_is_valid; }
 	inline RigidCircle &get_rigid_circle() { return rigid_circle; }
-	inline void init_rigid_circle(double _K_cont,
+	inline void init_rigid_circle(double _Kn_cont,
 		double x, double y, double r, double density = 1.0)
 	{
+		Kn_cont = _Kn_cont;
 		rigid_circle_is_valid = true;
-		K_cont = _K_cont;
 		rigid_circle.init(x, y, r, density);
 	}
 	inline void set_rigid_circle_velocity(double vx, double vy, double v_ang)
-	{ rigid_circle.set_v_bc(vx, vy, v_ang); }
+	{ rigid_circle.set_vbc(vx, vy, v_ang); }
 };
 
 #endif

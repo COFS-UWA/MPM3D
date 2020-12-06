@@ -11,7 +11,7 @@
 #include "Step_T3D_ME_mt.h"
 
 #ifdef _DEBUG
-	static std::fstream res_file_t3d_me_mt;
+static std::fstream res_file_t3d_me_mt;
 #define TIME_POINT(txx) auto (txx) = std::chrono::high_resolution_clock::now()
 #define TIME_DURATION_RESET(d) (d) = std::chrono::nanoseconds(); 
 #define TIME_DURATION(t0, t1, d) (d) = (t0) - (t1)
@@ -25,7 +25,7 @@
 #define one_fourth (0.25)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
-Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) : 
+Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) :
 	Step_OMP(_name, "Step_T3D_ME_mt", &substep_func_omp_T3D_ME_mt) {}
 
 Step_T3D_ME_mt::~Step_T3D_ME_mt() {}
@@ -35,8 +35,8 @@ int Step_T3D_ME_mt::init_calculation()
 #ifdef _DEBUG
 	res_file_t3d_me_mt.open("t3d_stp_mt.txt", std::ios::out | std::ios::binary);
 #endif
-	
-	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt *)model;
+
+	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt*)model;
 
 	omp_set_num_threads(thread_num);
 
@@ -47,8 +47,8 @@ int Step_T3D_ME_mt::init_calculation()
 	pcl_vol = md.pcl_vol;
 	pcl_mat_model = md.pcl_mat_model;
 
-	Model_T3D_ME_mt::SortedPclVarArrays &md_spva0 = md.sorted_pcl_var_arrays[0];
-	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[0];
+	Model_T3D_ME_mt::SortedPclVarArrays& md_spva0 = md.sorted_pcl_var_arrays[0];
+	SortedPclVarArrays& spva0 = sorted_pcl_var_arrays[0];
 	spva0.pcl_index = md_spva0.pcl_index;
 	spva0.pcl_density = md_spva0.pcl_density;
 	spva0.pcl_disp = md_spva0.pcl_disp;
@@ -59,8 +59,8 @@ int Step_T3D_ME_mt::init_calculation()
 	spva0.pcl_pstrain = md_spva0.pcl_pstrain;
 	spva0.pcl_N = md_spva0.pcl_N;
 
-	Model_T3D_ME_mt::SortedPclVarArrays &md_spva1 = md.sorted_pcl_var_arrays[1];
-	SortedPclVarArrays &spva1 = sorted_pcl_var_arrays[1];
+	Model_T3D_ME_mt::SortedPclVarArrays& md_spva1 = md.sorted_pcl_var_arrays[1];
+	SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[1];
 	spva1.pcl_index = md_spva1.pcl_index;
 	spva1.pcl_density = md_spva1.pcl_density;
 	spva1.pcl_disp = md_spva1.pcl_disp;
@@ -70,7 +70,7 @@ int Step_T3D_ME_mt::init_calculation()
 	spva1.pcl_estrain = md_spva1.pcl_estrain;
 	spva1.pcl_pstrain = md_spva1.pcl_pstrain;
 	spva1.pcl_N = md_spva1.pcl_N;
-	
+
 	elem_num = md.elem_num;
 	node_num = md.node_num;
 
@@ -92,26 +92,26 @@ int Step_T3D_ME_mt::init_calculation()
 	node_has_vbc = md.node_has_vbc;
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
-	
+
 	pcf = md.pcm;
 	cf_tmp.reset();
 	contact_substep_id = md.contact_substep_id;
 	prev_contact_pos = md.prev_contact_pos;
 	prev_contact_tan_force = md.prev_contact_tan_force;
 	memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
-	
+
 	if (md.has_rigid_cylinder())
 	{
 		prcy = &md.get_rigid_cylinder();
 		prcy->reset_cont_force();
 	}
-	
+
 	if (md.has_rigid_cone())
 	{
 		prco = &md.get_rigid_cone();
 		prco->reset_cont_force();
 	}
-	
+
 	if (md.has_rigid_cube())
 	{
 		prcu = &md.get_rigid_cube();
@@ -119,15 +119,15 @@ int Step_T3D_ME_mt::init_calculation()
 	}
 
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
-	
-	char *cur_mem = (char *)thread_mem.alloc(
-		  sizeof(size_t) * md.elem_num * (1 + 16)
+
+	char* cur_mem = (char*)thread_mem.alloc(
+		sizeof(size_t) * md.elem_num * (1 + 16)
 		+ sizeof(size_t) * (md.pcl_num * 4 + 8)
 		+ Cache_Alignment
 		+ sizeof(size_t) * thread_num * 0x100 * 2);
-	valid_elem_id = (size_t *)cur_mem;
+	valid_elem_id = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * md.elem_num;
-	pcl_in_elems[0] = ((size_t *)cur_mem) + 1;
+	pcl_in_elems[0] = ((size_t*)cur_mem) + 1;
 	cur_mem += sizeof(size_t) * (md.pcl_num + 2);
 	pcl_in_elems[1] = ((size_t*)cur_mem) + 1;
 	cur_mem += sizeof(size_t) * (md.pcl_num + 2);
@@ -144,9 +144,9 @@ int Step_T3D_ME_mt::init_calculation()
 	node_elem_pairs[1] = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * md.elem_num * 4;
 	cur_mem = cache_aligned(cur_mem);
-	elem_count_bin = (size_t *)cur_mem;
+	elem_count_bin = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * thread_num * 0x100;
-	elem_sum_bin = (size_t *)cur_mem;
+	elem_sum_bin = (size_t*)cur_mem;
 
 	pcl_in_elems[0][-1] = SIZE_MAX;
 	pcl_in_elems[0][md.pcl_num] = SIZE_MAX;
@@ -160,8 +160,8 @@ int Step_T3D_ME_mt::init_calculation()
 #pragma omp parallel
 	{
 		size_t my_th_id = size_t(omp_get_thread_num());
-		
-		ThreadData &thd = thread_datas[my_th_id];
+
+		ThreadData& thd = thread_datas[my_th_id];
 		new (&thd) ThreadData;
 		thd.sorted_pcl_var_id = 1;
 		thd.sorted_pcl_in_elem_id = 0;
@@ -170,10 +170,10 @@ int Step_T3D_ME_mt::init_calculation()
 
 		size_t p_id, ori_p_id, e_id;
 		size_t p_id0 = Block_Low(my_th_id, thread_num, prev_valid_pcl_num);
-		size_t p_id1 = Block_Low(my_th_id+1, thread_num, prev_valid_pcl_num);
+		size_t p_id1 = Block_Low(my_th_id + 1, thread_num, prev_valid_pcl_num);
 		size_t pcl_in_mesh_num = 0;
-		size_t *pcl_in_elem0 = pcl_in_elems[0];
-		size_t *prev_pcl_id0 = prev_pcl_ids[0];
+		size_t* pcl_in_elem0 = pcl_in_elems[0];
+		size_t* prev_pcl_id0 = prev_pcl_ids[0];
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			ori_p_id = spva0.pcl_index[p_id];
@@ -187,6 +187,8 @@ int Step_T3D_ME_mt::init_calculation()
 			p_d.uz = 0.0;
 			ShapeFunc& p_N = spva0.pcl_N[p_id];
 			e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_p.z, p_N);
+			if (e_id == SIZE_MAX)
+				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
 			pcl_in_elem0[p_id] = e_id;
 			prev_pcl_id0[p_id] = p_id;
 			if (e_id != SIZE_MAX)
@@ -203,7 +205,7 @@ int Step_T3D_ME_mt::init_calculation()
 
 int Step_T3D_ME_mt::finalize_calculation()
 {
-	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt *)model;
+	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt*)model;
 	md.pcl_num = valid_pcl_num;
 	for (size_t t_id = 0; t_id < thread_num; ++t_id)
 		thread_datas[t_id].~ThreadData();
@@ -365,7 +367,7 @@ int substep_func_omp_T3D_ME_mt(
 		{
 			++my_cbin[data_digit(pcl_in_elem0[p_id], digit_disp)];
 			assert(pcl_in_elem0[p_id] < self.elem_num ||
-				   pcl_in_elem0[p_id] == SIZE_MAX);
+				pcl_in_elem0[p_id] == SIZE_MAX);
 		}
 
 		my_sbin[0] = my_cbin[0];
@@ -376,10 +378,10 @@ int substep_func_omp_T3D_ME_mt(
 		}
 
 		TIME_POINT(t12);
-		TIME_DURATION(t12, t11, thd.d10[digit_disp/8]);
+		TIME_DURATION(t12, t11, thd.d10[digit_disp / 8]);
 #pragma omp barrier
 		TIME_POINT(t13);
-		TIME_DURATION(t13, t12, thd.d11[digit_disp/8]);
+		TIME_DURATION(t13, t12, thd.d11[digit_disp / 8]);
 
 		for (th_id = 0; th_id < my_th_id; ++th_id)
 		{
@@ -400,7 +402,7 @@ int substep_func_omp_T3D_ME_mt(
 			pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
 			prev_pcl_id1[pos_id] = prev_pcl_id0[p_id];
 			assert((pcl_in_elem0[p_id] < self.elem_num ||
-					pcl_in_elem0[p_id] == SIZE_MAX) &&
+				pcl_in_elem0[p_id] == SIZE_MAX) &&
 				(prev_pcl_id0[p_id] < self.prev_valid_pcl_num));
 		}
 
@@ -409,10 +411,10 @@ int substep_func_omp_T3D_ME_mt(
 		thd.sorted_pcl_in_elem_id ^= 1;
 
 		TIME_POINT(t14);
-		TIME_DURATION(t14, t13, thd.d12[digit_disp/8]);
+		TIME_DURATION(t14, t13, thd.d12[digit_disp / 8]);
 #pragma omp barrier
 		TIME_POINT(t15);
-		TIME_DURATION(t15, t14, thd.d13[digit_disp/8]);
+		TIME_DURATION(t15, t14, thd.d13[digit_disp / 8]);
 	}
 
 	TIME_POINT(t20);
@@ -832,11 +834,11 @@ int substep_func_omp_T3D_ME_mt(
 		}
 
 		TIME_POINT(t36);
-		TIME_DURATION(t36, t35, thd.d30[digit_disp/8]);
+		TIME_DURATION(t36, t35, thd.d30[digit_disp / 8]);
 #pragma omp barrier
 		TIME_POINT(t37);
-		TIME_DURATION(t37, t36, thd.d31[digit_disp/8]);
-		
+		TIME_DURATION(t37, t36, thd.d31[digit_disp / 8]);
+
 		for (th_id = 0; th_id < my_th_id; ++th_id)
 		{
 			other_cbin = elem_count_bin + th_id * 0x100;
@@ -905,12 +907,12 @@ int substep_func_omp_T3D_ME_mt(
 		n_fx += nf.fx;
 		n_fy += nf.fy;
 		n_fz += nf.fz;
-		ElemNodeVM &nvm = elem_node_vm[ne_id];
+		ElemNodeVM& nvm = elem_node_vm[ne_id];
 		n_vm += nvm.vm;
 		n_vmx += nvm.vmx;
 		n_vmy += nvm.vmy;
 		n_vmz += nvm.vmz;
-		
+
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
 			Acceleration& n_a = node_a[n_id];
@@ -956,18 +958,18 @@ int substep_func_omp_T3D_ME_mt(
 	{
 		if (md.has_rigid_cylinder())
 		{
-			RigidCylinder &rc = *(self.prcy);
+			RigidCylinder& rc = *(self.prcy);
 			rc.set_cont_force(self.cf_tmp);
 			rc.update_motion(dt);
 		}
 
 		if (md.has_rigid_cube())
 		{
-			RigidCube &rc = *(self.prcu);
+			RigidCube& rc = *(self.prcu);
 			rc.set_cont_force(self.cf_tmp);
 			rc.update_motion(dt);
 		}
-		
+
 		self.cf_tmp.reset();
 
 #ifdef _DEBUG
@@ -1000,11 +1002,11 @@ int substep_func_omp_T3D_ME_mt(
 		e_de.de22 = (e_dN.dN1_dy * n_v1.vy + e_dN.dN2_dy * n_v2.vy + e_dN.dN3_dy * n_v3.vy + e_dN.dN4_dy * n_v4.vy) * dt;
 		e_de.de33 = (e_dN.dN1_dz * n_v1.vz + e_dN.dN2_dz * n_v2.vz + e_dN.dN3_dz * n_v3.vz + e_dN.dN4_dz * n_v4.vz) * dt;
 		e_de.de12 = (e_dN.dN1_dx * n_v1.vy + e_dN.dN2_dx * n_v2.vy + e_dN.dN3_dx * n_v3.vy + e_dN.dN4_dx * n_v4.vy
-				   + e_dN.dN1_dy * n_v1.vx + e_dN.dN2_dy * n_v2.vx + e_dN.dN3_dy * n_v3.vx + e_dN.dN4_dy * n_v4.vx) * dt * 0.5;
+			+ e_dN.dN1_dy * n_v1.vx + e_dN.dN2_dy * n_v2.vx + e_dN.dN3_dy * n_v3.vx + e_dN.dN4_dy * n_v4.vx) * dt * 0.5;
 		e_de.de23 = (e_dN.dN1_dy * n_v1.vz + e_dN.dN2_dy * n_v2.vz + e_dN.dN3_dy * n_v3.vz + e_dN.dN4_dy * n_v4.vz
-				   + e_dN.dN1_dz * n_v1.vy + e_dN.dN2_dz * n_v2.vy + e_dN.dN3_dz * n_v3.vy + e_dN.dN4_dz * n_v4.vy) * dt * 0.5;
+			+ e_dN.dN1_dz * n_v1.vy + e_dN.dN2_dz * n_v2.vy + e_dN.dN3_dz * n_v3.vy + e_dN.dN4_dz * n_v4.vy) * dt * 0.5;
 		e_de.de31 = (e_dN.dN1_dz * n_v1.vx + e_dN.dN2_dz * n_v2.vx + e_dN.dN3_dz * n_v3.vx + e_dN.dN4_dz * n_v4.vx
-				   + e_dN.dN1_dx * n_v1.vz + e_dN.dN2_dx * n_v2.vz + e_dN.dN3_dx * n_v3.vz + e_dN.dN4_dx * n_v4.vz) * dt * 0.5;
+			+ e_dN.dN1_dx * n_v1.vz + e_dN.dN2_dx * n_v2.vz + e_dN.dN3_dx * n_v3.vz + e_dN.dN4_dx * n_v4.vz) * dt * 0.5;
 		e_de_vol = e_de.de11 + e_de.de22 + e_de.de33;
 		elem_m_de_vol[e_id] = elem_pcl_m[e_id] * e_de_vol;
 		e_de_vol *= one_third;
@@ -1040,10 +1042,10 @@ int substep_func_omp_T3D_ME_mt(
 	TIME_POINT(t70);
 	TIME_DURATION(t70, t69, thd.d69);
 
-	Acceleration *pn_a1, *pn_a2, *pn_a3, *pn_a4;
-	Velocity *pn_v1, *pn_v2, *pn_v3, *pn_v4;
+	Acceleration* pn_a1, * pn_a2, * pn_a3, * pn_a4;
+	Velocity* pn_v1, * pn_v2, * pn_v3, * pn_v4;
 	StrainInc* pe_de;
-	const double *estrain, *pstrain, *dstress;
+	const double* estrain, * pstrain, * dstress;
 	double p_x, p_y, p_z;
 	size_t p_e_id, pcl_in_mesh_num = 0;
 	e_id = SIZE_MAX;
@@ -1060,15 +1062,15 @@ int substep_func_omp_T3D_ME_mt(
 			pn_a2 = node_a + eni.n2;
 			pn_a3 = node_a + eni.n3;
 			pn_a4 = node_a + eni.n4;
-			
+
 			pn_v1 = node_v + eni.n1;
 			pn_v2 = node_v + eni.n2;
 			pn_v3 = node_v + eni.n3;
 			pn_v4 = node_v + eni.n4;
 
 			e_de_vol = one_fourth *
-				 (node_de_vol[eni.n1] + node_de_vol[eni.n2]
-				+ node_de_vol[eni.n3] + node_de_vol[eni.n4]);
+				(node_de_vol[eni.n1] + node_de_vol[eni.n2]
+					+ node_de_vol[eni.n3] + node_de_vol[eni.n4]);
 			elem_density[e_id] /= 1.0 + e_de_vol;
 
 			pe_de = elem_de + e_id;
@@ -1079,8 +1081,8 @@ int substep_func_omp_T3D_ME_mt(
 		}
 
 		// update velocity
-		ShapeFunc &p_N = pcl_N0[p_id];
-		Velocity &p_v0 = pcl_v0[p_id];
+		ShapeFunc& p_N = pcl_N0[p_id];
+		Velocity& p_v0 = pcl_v0[p_id];
 		p_v0.vx += (p_N.N1 * pn_a1->ax + p_N.N2 * pn_a2->ax + p_N.N3 * pn_a3->ax + p_N.N4 * pn_a4->ax) * dt;
 		p_v0.vy += (p_N.N1 * pn_a1->ay + p_N.N2 * pn_a2->ay + p_N.N3 * pn_a3->ay + p_N.N4 * pn_a4->ay) * dt;
 		p_v0.vz += (p_N.N1 * pn_a1->az + p_N.N2 * pn_a2->az + p_N.N3 * pn_a3->az + p_N.N4 * pn_a4->az) * dt;
@@ -1100,7 +1102,16 @@ int substep_func_omp_T3D_ME_mt(
 		p_z = p_p.z + p_d0.uz;
 		p_e_id = e_id;
 		if (!md.is_in_element(p_x, p_y, p_z, e_id, p_N))
+		{
 			p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_z, p_N);
+			if (p_e_id == SIZE_MAX)
+			{
+				if (md.is_in_element_tol(p_x, p_y, p_z, e_id, p_N))
+					p_e_id = e_id;
+				else
+					p_e_id = md.find_pcl_in_which_elem_tol(p_x, p_y, p_z, p_N);
+			}
+		}
 		if (p_e_id != SIZE_MAX) // in mesh
 			++pcl_in_mesh_num;
 		pcl_in_elem0[p_id] = p_e_id;
@@ -1114,7 +1125,7 @@ int substep_func_omp_T3D_ME_mt(
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
 		pcl_mm.integrate(pe_de->de);
 		dstress = pcl_mm.get_dstress();
-		Stress &p_s = pcl_stress0[p_id];
+		Stress& p_s = pcl_stress0[p_id];
 		p_s.s11 += dstress[0];
 		p_s.s22 += dstress[1];
 		p_s.s33 += dstress[2];
@@ -1126,8 +1137,8 @@ int substep_func_omp_T3D_ME_mt(
 #ifdef _DEBUG
 		assert(prev_p_id < self.prev_valid_pcl_num_tmp);
 #endif
-		Strain &p_e1 = pcl_strain1[prev_p_id];
-		Strain &p_e0 = pcl_strain0[p_id];
+		Strain& p_e1 = pcl_strain1[prev_p_id];
+		Strain& p_e0 = pcl_strain0[p_id];
 		p_e0.e11 = p_e1.e11 + pe_de->de11;
 		p_e0.e22 = p_e1.e22 + pe_de->de22;
 		p_e0.e33 = p_e1.e33 + pe_de->de33;
@@ -1158,7 +1169,7 @@ int substep_func_omp_T3D_ME_mt(
 
 #pragma omp critical
 	self.valid_pcl_num += pcl_in_mesh_num;
-	
+
 #pragma omp master
 	{
 		self.valid_elem_num = 0;
@@ -1174,57 +1185,57 @@ int substep_func_omp_T3D_ME_mt(
 	TIME_DURATION(t69, t60, thd.d6);
 	TIME_DURATION(t79, t70, thd.d7);
 	TIME_DURATION(t79, t00, thd.total);
-	
+
 #pragma omp barrier
 
-//#ifdef _DEBUG
-//#pragma omp master
-//	{
-//		res_file_t3d_me_mt << "th_id, init, sort_pcl, map_pcl, "
-//			"sort_node, up_node, elem_de, node_de, up_pcl, total\n";
-//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-//		{
-//			ThreadData& thd = self.thread_datas[t_id];
-//			res_file_t3d_me_mt << t_id << ", "
-//				<< thd.d0.count() << ", " << thd.d1.count() << ", "
-//				<< thd.d20.count() << ", " << thd.d3.count() << ", "
-//				<< thd.d40.count() << ", " << thd.d5.count() << ", "
-//				<< thd.d6.count() << ", " << thd.d7.count() << ", "
-//				<< thd.total.count() << "\n";
-//		}
-//		res_file_t3d_me_mt << "sort_pcl\n"
-//							"d10[0], d10[1], d11[0], d11[1], "
-//							"d12[0], d12[1], d13[0], d13[1]\n";
-//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-//		{
-//			ThreadData& thd = self.thread_datas[t_id];
-//			res_file_t3d_me_mt
-//				<< thd.d10[0].count() << ", " << thd.d10[1].count() << ", "
-//				<< thd.d11[0].count() << ", " << thd.d11[1].count() << ", "
-//				<< thd.d12[0].count() << ", " << thd.d12[1].count() << ", "
-//				<< thd.d13[0].count() << ", " << thd.d13[1].count() << "\n";
-//		}
-//		res_file_t3d_me_mt << "sort_node\n"
-//							"d30[0], d30[1], d31[0], d31[1], "
-//							"d32[0], d32[1], d33[0], d33[1]\n";
-//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-//		{
-//			ThreadData& thd = self.thread_datas[t_id];
-//			res_file_t3d_me_mt
-//				<< thd.d30[0].count() << ", " << thd.d30[1].count() << ", "
-//				<< thd.d31[0].count() << ", " << thd.d31[1].count() << ", "
-//				<< thd.d32[0].count() << ", " << thd.d32[0].count() << ", "
-//				<< thd.d33[0].count() << ", " << thd.d33[0].count() << "\n";
-//		}
-//		res_file_t3d_me_mt << "barrier\nd49, d59, d69\n";
-//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-//		{
-//			ThreadData& thd = self.thread_datas[t_id];
-//			res_file_t3d_me_mt << thd.d49.count() << ", "
-//				<< thd.d59.count() << ", " << thd.d69.count() << "\n";
-//		}
-//	}
-//#endif
+	//#ifdef _DEBUG
+	//#pragma omp master
+	//	{
+	//		res_file_t3d_me_mt << "th_id, init, sort_pcl, map_pcl, "
+	//			"sort_node, up_node, elem_de, node_de, up_pcl, total\n";
+	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+	//		{
+	//			ThreadData& thd = self.thread_datas[t_id];
+	//			res_file_t3d_me_mt << t_id << ", "
+	//				<< thd.d0.count() << ", " << thd.d1.count() << ", "
+	//				<< thd.d20.count() << ", " << thd.d3.count() << ", "
+	//				<< thd.d40.count() << ", " << thd.d5.count() << ", "
+	//				<< thd.d6.count() << ", " << thd.d7.count() << ", "
+	//				<< thd.total.count() << "\n";
+	//		}
+	//		res_file_t3d_me_mt << "sort_pcl\n"
+	//							"d10[0], d10[1], d11[0], d11[1], "
+	//							"d12[0], d12[1], d13[0], d13[1]\n";
+	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+	//		{
+	//			ThreadData& thd = self.thread_datas[t_id];
+	//			res_file_t3d_me_mt
+	//				<< thd.d10[0].count() << ", " << thd.d10[1].count() << ", "
+	//				<< thd.d11[0].count() << ", " << thd.d11[1].count() << ", "
+	//				<< thd.d12[0].count() << ", " << thd.d12[1].count() << ", "
+	//				<< thd.d13[0].count() << ", " << thd.d13[1].count() << "\n";
+	//		}
+	//		res_file_t3d_me_mt << "sort_node\n"
+	//							"d30[0], d30[1], d31[0], d31[1], "
+	//							"d32[0], d32[1], d33[0], d33[1]\n";
+	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+	//		{
+	//			ThreadData& thd = self.thread_datas[t_id];
+	//			res_file_t3d_me_mt
+	//				<< thd.d30[0].count() << ", " << thd.d30[1].count() << ", "
+	//				<< thd.d31[0].count() << ", " << thd.d31[1].count() << ", "
+	//				<< thd.d32[0].count() << ", " << thd.d32[0].count() << ", "
+	//				<< thd.d33[0].count() << ", " << thd.d33[0].count() << "\n";
+	//		}
+	//		res_file_t3d_me_mt << "barrier\nd49, d59, d69\n";
+	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+	//		{
+	//			ThreadData& thd = self.thread_datas[t_id];
+	//			res_file_t3d_me_mt << thd.d49.count() << ", "
+	//				<< thd.d59.count() << ", " << thd.d69.count() << "\n";
+	//		}
+	//	}
+	//#endif
 
 	return 0;
 }
@@ -1233,11 +1244,11 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 	size_t p_id0,
 	size_t p_id1,
 	size_t* pcl_in_elem,
-	SortedPclVarArrays &cur_spva,
+	SortedPclVarArrays& cur_spva,
 	Force3D& rc_cf,
 	size_t substp_id,
-	ThreadData &thd
-	) noexcept
+	ThreadData& thd
+) noexcept
 {
 	double p_x, p_y, p_z, p_r;
 	size_t ori_p_id, e_id;
@@ -1246,15 +1257,15 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 	Force lcont_f, gcont_f;
 	Point3D cur_cont_pos;
 	size_t* pcl_index = cur_spva.pcl_index;
-	Displacement *pcl_disp = cur_spva.pcl_disp;
+	Displacement* pcl_disp = cur_spva.pcl_disp;
 	ShapeFunc* pcl_N = cur_spva.pcl_N;
 	PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
 	pv_getter.cur_sorted_pcl_vars = &cur_spva;
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		ori_p_id = pcl_index[p_id];
-		Position &p_p = pcl_pos[ori_p_id];
-		Displacement &p_d = pcl_disp[p_id];
+		Position& p_p = pcl_pos[ori_p_id];
+		Displacement& p_d = pcl_disp[p_id];
 		p_x = p_p.x + p_d.ux;
 		p_y = p_p.y + p_d.uy;
 		p_z = p_p.z + p_d.uz;
@@ -1276,7 +1287,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 				prev_contact_pos[ori_p_id].pt,
 				prev_contact_tan_force[ori_p_id].vec,
 				lcont_f.vec
-				);
+			);
 			prcy->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
@@ -1303,7 +1314,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 				p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
 				rc_cen.x, rc_cen.y, rc_cen.z
-				);
+			);
 		}
 	}
 
@@ -1355,7 +1366,7 @@ int Step_T3D_ME_mt::apply_rigid_cube(
 				prev_contact_pos[ori_p_id].pt,
 				prev_contact_tan_force[ori_p_id].vec,
 				lcont_f.vec
-				);
+			);
 			prcu->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
@@ -1382,7 +1393,7 @@ int Step_T3D_ME_mt::apply_rigid_cube(
 				p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
 				rc_cen.x, rc_cen.y, rc_cen.z
-				);
+			);
 		}
 	}
 

@@ -10,7 +10,7 @@ namespace Hdf5Field
 			"x", // 0
 			"y", // 1
 			"z", // 2
-			"vol", // 3
+			"volume", // 3
 			"m", // 4
 			"density", //5
 			"vx", // 6
@@ -28,19 +28,19 @@ namespace Hdf5Field
 			"e12", // 18
 			"e23", // 19
 			"e31", // 20
-			"m_s", // 21
-			"m_f", // 22
-			"density_s", // 23
-			"density_f", // 24
-			"vol_m", // 25
-			"vx_s", // 26
-			"vy_s", // 27
-			"vz_s", // 28
-			"vx_f", // 29
-			"vy_f", // 30
-			"vz_f", // 31
-			"p", // 32
-			"Mises Strain", // 33
+			"solid mass", // 21
+			"fluid mass", // 22
+			"solid density", // 23
+			"fluid density", // 24
+			"mixture volume", // 25
+			"solid vx", // 26
+			"solid vy", // 27
+			"solid vz", // 28
+			"fluid vx", // 29
+			"fluid vy", // 30
+			"fluid vz", // 31
+			"pore pressure", // 32
+			"mises strain", // 33
 			"ee11", // 34
 			"ee22", // 35
 			"ee33", // 36
@@ -53,7 +53,8 @@ namespace Hdf5Field
 			"pe12",  // 43
 			"pe23",  // 44
 			"pe31",  // 45
-			"plastic_mises_strain_2d" // 46
+			"plastic mises strain 2d", // 46
+			"maximum shear stress" // 47
 		};
 	}
 }

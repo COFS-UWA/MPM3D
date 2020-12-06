@@ -50,6 +50,5 @@ int Hdf5MatExtraction_max_shear_stress::
 		pcl_fld_data[pcl_id] = (ps[0] - ps[2]) * 0.5;
 		cur_pcl += pcl_size;
 	}
-
 	return 0;
 }

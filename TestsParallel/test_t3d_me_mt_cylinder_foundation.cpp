@@ -206,7 +206,7 @@ void test_t3d_me_mt_cylinder_foundation_restart2(int argc, char** argv)
 	step.solve();
 }
 
-#include "QtApp_Posp_T3D_ME_mt.h"
+#include "QtApp_Posp_T3D_ME_mt_Div.h"
 #include "test_model_view_omp.h"
 
 void test_t3d_me_mt_cylinder_foundation_result(int argc, char** argv)
@@ -214,18 +214,20 @@ void test_t3d_me_mt_cylinder_foundation_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t3d_me_mt_cylinder_foundation.h5");
 
-	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
-	//app.set_res_file(rf, "compression", 2, Hdf5Field::z);
-	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
+	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
+	//app.set_res_file(rf, "penetration", 2, Hdf5Field::z);
+	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
 	app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	app.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 950);
-	app.set_view_dir(30.0f, 0.0f);
-	app.set_light_dir(35.0f, -50.0f);
-	app.set_view_dist_scale(1.5);
-	app.set_color_map_fld_range(-100.0, 0.0);
+	app.set_view_dir(0.0f, 10.0f);
+	app.set_light_dir(0.0f, 10.0f);
+	//app.set_view_dist_scale(1.5);
+	app.set_display_bg_mesh(false);
+	app.set_color_map_fld_range(-20.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_me_mt_cylinder_foundation");
-	//app.set_gif_name("t3d_me_mt_cylinder_foundation");
+	app.set_gif_name("t3d_me_mt_cylinder_foundation");
 	app.start();
 }

@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <fstream>
 
+#include "SimulationsOMPUtils.h"
 #include "TetrahedronUtils.h"
 #include "SearchingGrid3D.hpp"
 #include "Model_T3D_ME_mt.h"
@@ -351,14 +352,20 @@ int Model_T3D_ME_mt::init_search_grid(TetrahedronMesh &mesh)
 
 	grid_elem_list_id_array = new size_t[cur_id];
 	cur_id = 0;
+	size_t ge_start_id;
 	for (size_t g_id = 0; g_id < num; ++g_id)
 	{
 		Grid& grid = sg[g_id];
+		ge_start_id = cur_id;
 		for (auto pe = grid.pelems; pe; pe = pe->next)
 		{
 			grid_elem_list_id_array[cur_id] = pe->e->id;
 			++cur_id;
 		}
+		// sort grid elem list to speed up memory access
+		SimulationsOMP::swap_sort_acc(
+			grid_elem_list_id_array + ge_start_id,
+			cur_id - ge_start_id);
 	}
 
 	return 0;

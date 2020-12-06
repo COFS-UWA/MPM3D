@@ -33,6 +33,7 @@ protected:
 	std::string field_name;
 	hid_t th_id;
 	
+	bool need_mat_model_data;
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rcy, has_rcy;
@@ -177,6 +178,12 @@ public:
 	void update_scene(size_t frame_id) override;
 	void draw() override;
 	void resize(int wd, int ht) override;
+
+protected:
+	void init_rigid_objects_buffer(Cube &mh_bbox, ResultFile_hdf5 &rf);
+	bool init_color_map_texture();
+	void init_shaders(Cube& mh_bbox, int wd, int ht);
+	void update_rigid_objects_buffer(hid_t frame_grp_id, ResultFile_hdf5& rf);
 };
 
 #endif

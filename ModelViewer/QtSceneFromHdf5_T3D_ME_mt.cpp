@@ -24,6 +24,7 @@ QtSceneFromHdf5_T3D_ME_mt::QtSceneFromHdf5_T3D_ME_mt(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
+	need_mat_model_data(false),
 	display_rcy(true), has_rcy(false), rcy_obj(_gl),
 	display_rco(true), has_rco(false), rco_obj(_gl),
 	display_rcu(true), has_rcu(false), rcu_obj(_gl)
@@ -165,8 +166,7 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	if (!res_file || !res_file->is_open())
 		return -1;
 
-	win_wd = wd;
-	win_ht = ht;
+	win_wd = wd; win_ht = ht;
 
 	int res;
 	ResultFile_hdf5& rf = *res_file;
@@ -228,9 +228,10 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		return res;
 
 	// init particle data
+	need_mat_model_data = pfld->need_mat_model_data();
 	res = data_loader.load_frame_data(
 		frame_id,
-		pfld->need_mat_model_data()
+		need_mat_model_data
 		);
 	if (res)
 		return res;
@@ -265,7 +266,120 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		);
 	}
 
+	init_rigid_objects_buffer(mh_bbox, rf);
+	if (!init_color_map_texture())
+		return -2;
+	init_shaders(mh_bbox, wd, ht);
+	return 0;
+}
+
+void QtSceneFromHdf5_T3D_ME_mt::update_scene(size_t frame_id)
+{
+	ResultFile_hdf5 &rf = *res_file;
+
+	data_loader.load_frame_data(frame_id, need_mat_model_data);
+	size_t pcl_num = data_loader.get_pcl_num();
+	if (pcl_num)
+	{
+		pcl_fld_mem.reserve(pcl_num * 5);
+		// x coord
+		double* pcl_x_data = pcl_fld_mem.get_mem();
+		x_fld.extract_pcl_fld_data(pcl_x_data);
+		// y coord
+		double* pcl_y_data = pcl_x_data + pcl_num;
+		y_fld.extract_pcl_fld_data(pcl_y_data);
+		// z coord
+		double* pcl_z_data = pcl_y_data + pcl_num;
+		z_fld.extract_pcl_fld_data(pcl_z_data);
+		// vol
+		double* pcl_vol_data = pcl_z_data + pcl_num;
+		vol_fld.extract_pcl_fld_data(pcl_vol_data);
+		// pcl fld
+		double* pcl_fld_data = pcl_vol_data + pcl_num;
+		pfld->extract_pcl_fld_data(pcl_fld_data);
+		pcls_obj.update(
+			pcl_num,
+			pcl_x_data,
+			pcl_y_data,
+			pcl_z_data,
+			pcl_vol_data,
+			pcl_fld_data,
+			0.5
+			);
+	}
+
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);	
+	update_rigid_objects_buffer(frame_grp_id, rf);
+	rf.close_group(frame_grp_id);
+}
+
+void QtSceneFromHdf5_T3D_ME_mt::draw()
+{
+	gl.glEnable(GL_DEPTH_TEST);
+
+	gl.glViewport(0, 0, win_wd, win_ht);
+
+	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
+	gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (display_bg_mesh)
+	{
+		shader_plain3D.bind();
+		bg_mesh_obj.draw(shader_plain3D);
+	}
+
+	if (display_pcls)
+	{
+		shader_balls.bind();
+		pcls_obj.draw(shader_balls);
+	}
+	
+	if (display_rcy && has_rcy)
+		rcy_obj.draw(shader_rigid_mesh);
+
+	if (display_rco && has_rco)
+		rco_obj.draw(shader_rigid_mesh);
+
+	if (display_rcu && has_rcu)
+		rcu_obj.draw(shader_rigid_mesh);
+
+	// all 3d objects should be drawn before this
+	gl.glDisable(GL_DEPTH_TEST);
+
+	if (has_color_map)
+		color_map_obj.draw(shader_plain2D, shader_char);
+}
+
+void QtSceneFromHdf5_T3D_ME_mt::resize(int wd, int ht)
+{
+	win_wd = wd;
+	win_ht = ht;
+
+	gl.glViewport(0, 0, win_wd, win_ht);
+
+	update_proj_mat();
+	shader_plain3D.bind();
+	shader_plain3D.setUniformValue("proj_mat", proj_mat);
+	shader_balls.bind();
+	shader_balls.setUniformValue("proj_mat", proj_mat);
+
+	hud_view_mat.setToIdentity();
+	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
+	shader_plain2D.bind();
+	shader_plain2D.setUniformValue("view_mat", hud_view_mat);
+	shader_char.bind();
+	shader_char.setUniformValue("view_mat", hud_view_mat);
+}
+
+void QtSceneFromHdf5_T3D_ME_mt::init_rigid_objects_buffer(
+	Cube &mh_bbox,
+	ResultFile_hdf5& rf
+	)
+{
 	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+	hid_t md_data_grp_id = rf.get_model_data_grp_id();
 	
 	// rigid cylinder
 	if (rf.has_group(md_data_grp_id, "RigidCylinder"))
@@ -303,8 +417,8 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 			rco_h_tip, rco_h_shaft, rco_r,
 			navajowhite);
 		Cube rco_bbox(rco_x - rco_r, rco_x + rco_r,
-					  rco_y - rco_r, rco_y + rco_r,
-					  rco_z - rco_h_tip, rco_z + rco_h_shaft);
+			rco_y - rco_r, rco_y + rco_r,
+			rco_z - rco_h_tip, rco_z + rco_h_shaft);
 		mh_bbox.envelop(rco_bbox);
 		rf.close_group(rco_id);
 		has_rco = true;
@@ -323,23 +437,26 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		rf.read_attribute(rcu_id, "hy", rcu_hy);
 		rf.read_attribute(rcu_id, "hz", rcu_hz);
 		rcu_obj.init(rcu_x, rcu_y, rcu_z,
-			rcu_hx, rcu_hy, rcu_hz,	navajowhite);
+			rcu_hx, rcu_hy, rcu_hz, navajowhite);
 		Cube rcu_bbox(rcu_x - 0.5 * rcu_hx, rcu_x + 0.5 * rcu_hy,
-					  rcu_y - 0.5 * rcu_hy, rcu_y + 0.5 * rcu_hy,
-					  rcu_z - 0.5 * rcu_hz, rcu_z + 0.5 * rcu_hz);
+			rcu_y - 0.5 * rcu_hy, rcu_y + 0.5 * rcu_hy,
+			rcu_z - 0.5 * rcu_hz, rcu_z + 0.5 * rcu_hz);
 		mh_bbox.envelop(rcu_bbox);
 		rf.close_group(rcu_id);
 		has_rcu = true;
 	}
+}
 
+bool QtSceneFromHdf5_T3D_ME_mt::init_color_map_texture()
+{
 	// color map texture
 	size_t color_map_texture_size;
 	unsigned char* color_map_texture_data = color_map.gen_1Dtexture(20, color_map_texture_size);
 	if (!color_map_texture_data || !color_map_texture_size)
-		return -2;
+		return false;
 	gl.glGenTextures(1, &color_map_texture);
 	if (color_map_texture == 0)
-		return -1;
+		return false;
 	gl.glBindTexture(GL_TEXTURE_1D, color_map_texture);
 	gl.glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	gl.glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -360,11 +477,20 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 			cm_xpos, cm_ypos, cm_ht,
 			color_map,
 			field_name.c_str(),
-			"%8.3e",
+			"%11.6e",
 			"../../Asset/times_new_roman.ttf"
 			);
 	}
 
+	return true;
+}
+
+void QtSceneFromHdf5_T3D_ME_mt::init_shaders(
+	Cube& mh_bbox,
+	int wd,
+	int ht
+	)
+{
 	// init shaders
 	// shader_plain3D
 	shader_plain3D.addShaderFromSourceFile(
@@ -392,33 +518,33 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_plain2D.vert"
-		);
+	);
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_plain2D.frag"
-		);
+	);
 	shader_plain2D.link();
 
 	// shader_char
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_char.vert"
-		);
+	);
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_char.frag"
-		);
+	);
 	shader_char.link();
 
 	// shader_rigid_mesh
 	shader_rigid_mesh.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
 		"../../Asset/shader_rigid_mesh.vert"
-		);
+	);
 	shader_rigid_mesh.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
 		"../../Asset/shader_rigid_mesh.frag"
-		);
+	);
 	shader_rigid_mesh.link();
 
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
@@ -490,50 +616,13 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	shader_rigid_mesh.setUniformValue("diff_coef", diff_coef);
 	shader_rigid_mesh.setUniformValue("spec_coef", spec_coef);
 	shader_rigid_mesh.setUniformValue("spec_shininess", spec_shininess);
-
-	return 0;
 }
 
-void QtSceneFromHdf5_T3D_ME_mt::update_scene(size_t frame_id)
+void QtSceneFromHdf5_T3D_ME_mt::update_rigid_objects_buffer(
+	hid_t frame_grp_id,
+	ResultFile_hdf5& rf
+	)
 {
-	ResultFile_hdf5& rf = *res_file;
-
-	data_loader.load_frame_data(frame_id);
-
-	size_t pcl_num = data_loader.get_pcl_num();
-	if (pcl_num)
-	{
-		pcl_fld_mem.reserve(pcl_num * 5);
-		// x coord
-		double* pcl_x_data = pcl_fld_mem.get_mem();
-		x_fld.extract_pcl_fld_data(pcl_x_data);
-		// y coord
-		double* pcl_y_data = pcl_x_data + pcl_num;
-		y_fld.extract_pcl_fld_data(pcl_y_data);
-		// z coord
-		double* pcl_z_data = pcl_y_data + pcl_num;
-		z_fld.extract_pcl_fld_data(pcl_z_data);
-		// vol
-		double* pcl_vol_data = pcl_z_data + pcl_num;
-		vol_fld.extract_pcl_fld_data(pcl_vol_data);
-		// pcl fld
-		double* pcl_fld_data = pcl_vol_data + pcl_num;
-		pfld->extract_pcl_fld_data(pcl_fld_data);
-		pcls_obj.update(
-			pcl_num,
-			pcl_x_data,
-			pcl_y_data,
-			pcl_z_data,
-			pcl_vol_data,
-			pcl_fld_data,
-			0.5
-			);
-	}
-
-	char frame_name[50];
-	snprintf(frame_name, 50, "frame_%zu", frame_id);
-	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	
 	if (rf.has_group(frame_grp_id, "RigidCylinder"))
 	{
 		hid_t rcy_id = rf.open_group(frame_grp_id, "RigidCylinder");
@@ -569,62 +658,4 @@ void QtSceneFromHdf5_T3D_ME_mt::update_scene(size_t frame_id)
 		rf.close_group(rcu_id);
 		has_rcu = true;
 	}
-}
-
-void QtSceneFromHdf5_T3D_ME_mt::draw()
-{
-	gl.glEnable(GL_DEPTH_TEST);
-
-	gl.glViewport(0, 0, win_wd, win_ht);
-
-	gl.glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), 1.0f);
-	gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if (display_bg_mesh)
-	{
-		shader_plain3D.bind();
-		bg_mesh_obj.draw(shader_plain3D);
-	}
-
-	if (display_pcls)
-	{
-		shader_balls.bind();
-		pcls_obj.draw(shader_balls);
-	}
-	
-	if (display_rcy && has_rcy)
-		rcy_obj.draw(shader_rigid_mesh);
-
-	if (display_rco && has_rco)
-		rco_obj.draw(shader_rigid_mesh);
-
-	if (display_rcu && has_rcu)
-		rcu_obj.draw(shader_rigid_mesh);
-
-	// all 3d objects should be drawn before this
-	gl.glDisable(GL_DEPTH_TEST);
-
-	if (has_color_map)
-		color_map_obj.draw(shader_plain2D, shader_char);
-}
-
-void QtSceneFromHdf5_T3D_ME_mt::resize(int wd, int ht)
-{
-	win_wd = wd;
-	win_ht = ht;
-
-	gl.glViewport(0, 0, win_wd, win_ht);
-
-	update_proj_mat();
-	shader_plain3D.bind();
-	shader_plain3D.setUniformValue("proj_mat", proj_mat);
-	shader_balls.bind();
-	shader_balls.setUniformValue("proj_mat", proj_mat);
-
-	hud_view_mat.setToIdentity();
-	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
-	shader_plain2D.bind();
-	shader_plain2D.setUniformValue("view_mat", hud_view_mat);
-	shader_char.bind();
-	shader_char.setUniformValue("view_mat", hud_view_mat);
 }
