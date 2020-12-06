@@ -197,8 +197,8 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	//rf.open("t3d_me_mt_cap_compression.h5");
-	rf.open("t3d_me_mt_cap_compression_restart.h5");
-	//rf.open("t3d_me_mt_cap_compression_restart2.h5");
+	//rf.open("t3d_me_mt_cap_compression_restart.h5");
+	rf.open("t3d_me_mt_cap_compression_restart2.h5");
 
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::max_shear_stress);

@@ -1049,6 +1049,7 @@ int substep_func_omp_T3D_ME_mt(
 	double p_x, p_y, p_z;
 	size_t p_e_id, pcl_in_mesh_num = 0;
 	e_id = SIZE_MAX;
+	thd.sorted_pcl_in_elem_id ^= 1;
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		if (e_id != pcl_in_elem0[p_id])
@@ -1114,8 +1115,8 @@ int substep_func_omp_T3D_ME_mt(
 		}
 		if (p_e_id != SIZE_MAX) // in mesh
 			++pcl_in_mesh_num;
-		pcl_in_elem0[p_id] = p_e_id;
-		prev_pcl_id0[p_id] = p_id;
+		pcl_in_elem1[p_id] = p_e_id;
+		prev_pcl_id1[p_id] = p_id;
 		assert(p_e_id < self.elem_num || p_e_id == SIZE_MAX);
 
 		// update density
