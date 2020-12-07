@@ -12,6 +12,7 @@ target_sources(
     RigidCube.h RigidCube.cpp
     RigidCylinder.h RigidCylinder.cpp
     RigidCone.h RigidCone.cpp
+    RigidTetrahedronMesh.h RigidTetrahedronMesh.cpp
     # utilities
     RigidObject_hdf5_utilities.h RigidObject_hdf5_utilities.cpp
     )

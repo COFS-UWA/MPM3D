@@ -1,3 +1,4 @@
+import math
 import h5py as py
 import matplotlib.pyplot as plt
 
@@ -39,5 +40,15 @@ line1, = plot1.plot(rb_fz, rb_z)
 plt.xlim(0.0)
 plt.ylim(rb_z[0], rb_z[-1])
 
-#plt.legend(handles=[line1,line2], labels=['MPM', 'Analytical Solution'])
+# smooth
+smooth_ana_bc = 0.5 * 0.5 * math.pi * 5.14 * 1.11 * 5.0
+# rough
+rough_ana_bc = 0.5 * 0.5 * math.pi * 5.14 * 1.2 * 5.0
+
+y_range = [rb_z[0], rb_z[-1]]
+line2, = plot1.plot([smooth_ana_bc, smooth_ana_bc], y_range, 'r--')
+line3, = plot1.plot([rough_ana_bc, rough_ana_bc], y_range, 'k--')
+
+plt.legend(handles=[line1, line2, line3], \
+    labels=['MPM', 'Smooth Analytical', 'Rough Analytical'])
 plt.show()

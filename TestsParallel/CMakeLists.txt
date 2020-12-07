@@ -13,6 +13,9 @@ add_executable(
     test_model_view_omp.h
     # entry
     TestsParallel_main.cpp
+    test_rigid_object.cpp
+    test_contact_model_3d.cpp
+    test_omp_barrier_time.cpp
     test_von_mises.cpp
     test_Step_OMP.cpp
     test_t2d_me_mt_test1.cpp
@@ -25,10 +28,8 @@ add_executable(
     test_t3d_me_mt_1d_compression.cpp
     test_t3d_me_mt_cap_compression.cpp
     test_t3d_me_mt_cylinder_foundation.cpp
+    test_t3d_me_mt_cylinder_foundation_den.cpp
     test_t3d_me_mt_block_sliding.cpp
-    test_rigid_object.cpp
-    test_contact_model_3d.cpp
-    test_omp_barrier_time.cpp
     )
 
 target_include_directories(

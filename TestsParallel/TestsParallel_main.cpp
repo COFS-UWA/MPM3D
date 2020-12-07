@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
 	
 	//test_t3d_me_mt_cap_compression(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart(argc, argv);
-	test_t3d_me_mt_cap_compression_restart2(argc, argv);
-	test_t3d_me_mt_cap_compression_result(argc, argv);
+	//test_t3d_me_mt_cap_compression_restart2(argc, argv);
+	//test_t3d_me_mt_cap_compression_result(argc, argv);
 	//test_t3d_me_mt_cap_compression_result_div(argc, argv);
 
 	//test_t3d_me_mt_block_sliding(argc, argv);
@@ -52,6 +52,12 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cylinder_foundation_restart(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_restart2(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_result(argc, argv);
+
+	//test_t3d_me_mt_cylinder_foundation_create_model_den(argc, argv);
+	test_t3d_me_mt_cylinder_foundation_den(argc, argv);
+	//test_t3d_me_mt_cylinder_foundation_restart_den(argc, argv);
+	//test_t3d_me_mt_cylinder_foundation_restart_den2(argc, argv);
+	//test_t3d_me_mt_cylinder_foundation_result_den(argc, argv);
 
 	//system("pause");
 	return 0;

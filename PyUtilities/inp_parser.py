@@ -116,5 +116,5 @@ if __name__ == "__main__":
     # print(keyword_props)
     # file.close()
     
-    nodes, elems = get_mesh_from_inp("../Asset/cube_block.inp", "Part-1")
-    output_mesh_to_hdf5(nodes, elems, "../Asset/cube_block.h5")
+    nodes, elems = get_mesh_from_inp("../Asset/cube_block_dense.inp", "Part-1")
+    output_mesh_to_hdf5(nodes, elems, "../Asset/cube_block_dense.h5")

@@ -97,10 +97,8 @@ int QtSceneFromHdf5_T3D_ME_mt_Div<DivisionSet>
 		return res;
 
 	// init particle data
-	res = data_loader.load_frame_data(
-		frame_id,
-		pfld->need_mat_model_data()
-		);
+	need_mat_model_data = pfld->need_mat_model_data();
+	res = data_loader.load_frame_data(frame_id, need_mat_model_data);
 	if (res)
 		return res;
 
@@ -156,7 +154,7 @@ void QtSceneFromHdf5_T3D_ME_mt_Div<DivisionSet>
 {
 	ResultFile_hdf5& rf = *res_file;
 
-	data_loader.load_frame_data(frame_id);
+	data_loader.load_frame_data(frame_id, need_mat_model_data);
 	size_t pcl_num = data_loader.get_pcl_num();
 	if (pcl_num)
 	{
