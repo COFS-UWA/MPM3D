@@ -34,7 +34,6 @@ protected:
 	Cube lbbox;
 	double ht_div_r, r_div_ht, r2_div_ht;
 	double sqrt_one_ht2_div_r2;
-	Vector3D res_norms[3];
 
 public:
 	explicit RigidCone();
@@ -54,19 +53,15 @@ public:
 	}
 
 	void init(double _x, double _y, double _z, double _r,
-		double _tip_h, double _shaft_h) noexcept;
+			  double _tip_h, double _shaft_h) noexcept;
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
 
 	inline void reset_cont_force() noexcept
 	{
-		fx_cont = 0.0;
-		fy_cont = 0.0;
-		fz_cont = 0.0;
-		mx_cont = 0.0;
-		my_cont = 0.0;
-		mz_cont = 0.0;
+		fx_cont = 0.0; fy_cont = 0.0; fz_cont = 0.0;
+		mx_cont = 0.0; my_cont = 0.0; mz_cont = 0.0;
 	}
 
 	inline void combine_cont_force(const Force3D& other) noexcept
@@ -79,17 +74,17 @@ public:
 		mz_cont += other.mz;
 	}
 
-	bool detect_collision_with_point(
-		double p_x,	double p_y, double p_z, double p_r,
-		double& dist, Vector3D& lnorm, Point3D& lcontpos
-		) noexcept;
-
 	inline void update_motion(double dt) noexcept
 	{
 		x += vx * dt;
 		y += vy * dt;
 		z += vz * dt;
 	}
+
+	bool detect_collision_with_point(
+		double p_x, double p_y, double p_z, double p_r,
+		double& dist, Vector3D& lnorm, Point3D& lcontpos
+	) const noexcept;
 };
 
 #endif

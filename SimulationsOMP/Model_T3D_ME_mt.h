@@ -236,12 +236,12 @@ public:
 	int init_pcls(ParticleGenerator3D<TetrahedronMesh>& pg, double density);
 
 	INIT_BC_TEMPLATE(bfx, BodyForceAtPcl)
-		INIT_BC_TEMPLATE(bfy, BodyForceAtPcl)
-		INIT_BC_TEMPLATE(bfz, BodyForceAtPcl)
-		INIT_BC_TEMPLATE(tx, TractionBCAtPcl)
-		INIT_BC_TEMPLATE(ty, TractionBCAtPcl)
-		INIT_BC_TEMPLATE(tz, TractionBCAtPcl)
-		void init_bfxs(size_t bf_num, const size_t* bf_pcls, const double* bfs);
+	INIT_BC_TEMPLATE(bfy, BodyForceAtPcl)
+	INIT_BC_TEMPLATE(bfz, BodyForceAtPcl)
+	INIT_BC_TEMPLATE(tx, TractionBCAtPcl)
+	INIT_BC_TEMPLATE(ty, TractionBCAtPcl)
+	INIT_BC_TEMPLATE(tz, TractionBCAtPcl)
+	void init_bfxs(size_t bf_num, const size_t* bf_pcls, const double* bfs);
 	void init_bfys(size_t bf_num, const size_t* bf_pcls, const double* bfs);
 	void init_bfzs(size_t bf_num, const size_t* bf_pcls, const double* bfs);
 	void init_txs(size_t t_num, const size_t* t_pcls, const double* ts);

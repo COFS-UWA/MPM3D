@@ -31,10 +31,9 @@ protected:
 		Force3D cont_force;
 	};
 	
-	Cube lbbox;
 	double h_div_2, r2;
-	Vector3D res_norms[3];
-
+	Cube lbbox;
+	
 public:
 	explicit RigidCylinder();
 	~RigidCylinder();
@@ -46,12 +45,9 @@ public:
 	inline const Force3D &get_cont_force() const noexcept { return cont_force; }
 	Cube get_bbox() const noexcept
 	{
-		return Cube(lbbox.xl + x,
-					lbbox.xu + x,
-					lbbox.yl + y,
-					lbbox.yu + y,
-					lbbox.zl + z,
-					lbbox.zu + z);
+		return Cube(lbbox.xl + x, lbbox.xu + x,
+					lbbox.yl + y, lbbox.yu + y,
+					lbbox.zl + z, lbbox.zu + z);
 	}
 
 	void init(double _x, double _y, double _z,
@@ -67,6 +63,13 @@ public:
 		mx_cont = 0.0; my_cont = 0.0; mz_cont = 0.0;
 	}
 
+	inline void update_motion(double dt) noexcept
+	{
+		x += vx * dt;
+		y += vy * dt;
+		z += vz * dt;
+	}
+	
 	inline void get_global_point(
 		const Point3D &lp,
 		Point3D &gp
@@ -110,14 +113,7 @@ public:
 	bool detect_collision_with_point(
 		double p_x,	double p_y,	double p_z, double p_r,
 		double &dist, Vector3D &lnorm, Point3D &lcontpos
-		) noexcept;
-
-	inline void update_motion(double dt) noexcept
-	{
-		x += vx * dt;
-		y += vy * dt;
-		z += vz * dt;
-	}
+		) const noexcept;
 };
 
 #endif

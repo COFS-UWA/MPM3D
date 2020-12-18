@@ -84,43 +84,40 @@ struct Vector3D
 	}
 
 	template <typename Point3D>
-	inline Vector3D& add(Point3D& p)
+	inline Vector3D& add(const Point3D& p)
 	{
 		x += p.x; y += p.y; z += p.z; return *this;
 	}
 	template <typename Point3D>
-	inline Vector3D& add(Point3D& p1, Point3D& p2)
+	inline Vector3D& add(const Point3D& p1, const Point3D& p2)
 	{
 		x = p1.x + p2.x; y = p1.y + p2.y; z = p1.z + p2.z; return *this;
 	}
 	template <typename Point3D>
-	inline Vector3D& substract(Point3D& p)
+	inline Vector3D& substract(const Point3D& p)
 	{
 		x -= p.x; y -= p.y; z -= p.z; return *this;
 	}
 	template <typename Point3D>
-	inline Vector3D& substract(Point3D& p1, Point3D& p2)
+	inline Vector3D& substract(const Point3D& p1, const Point3D& p2)
 	{
 		x = p1.x - p2.x; y = p1.y - p2.y; z = p1.z - p2.z; return *this;
 	}
 	template <typename Point3D>
-	inline double dot(Point3D& p2)
+	inline double dot(const Point3D& p2)
 	{
 		return x * p2.x + y * p2.y + z * p2.z;
 	}
 	template <typename Point3D>
-	inline Vector3D& cross(Point3D& p1, Point3D& p2)
+	inline Vector3D& cross(const Point3D& p1, const Point3D& p2)
 	{
 		double _x = p1.y * p2.z - p1.z * p2.y;
 		double _y = p1.z * p2.x - p1.x * p2.z;
 		double _z = p1.x * p2.y - p1.y * p2.x;
-		x = _x;
-		y = _y;
-		z = _z;
+		x = _x;	y = _y; z = _z;
 		return *this;
 	}
 };
-
 
 struct Cube
 {
@@ -178,7 +175,6 @@ inline double cal_distance_3D(Node3D& n, Point3D& p) noexcept
 	return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-
 struct IdCube
 {
 	long long xl_id, xu_id;
@@ -229,11 +225,11 @@ struct IdCube
 inline bool detect_cube_collision(Cube& c1, Cube& c2) noexcept
 {
 	return !(c1.xu < c2.xl || c1.xl > c2.xu ||
-		c1.yu < c2.yl || c1.yl > c2.yu ||
-		c1.zu < c2.zl || c1.zl > c2.zu);
+			 c1.yu < c2.yl || c1.yl > c2.yu ||
+			 c1.zu < c2.zl || c1.zl > c2.zu);
 }
 
-inline double cal_cube_point_distance(Cube& box, Point3D& p) noexcept
+inline double cal_cube_point_distance(const Cube& box, const Point3D& p) noexcept
 {
 	double cx, cy, cz, x_diff, y_diff, z_diff;
 	cx = p.x < box.xu ? p.x : box.xu;
@@ -251,243 +247,8 @@ inline double cal_cube_point_distance(Cube& box, Point3D& p) noexcept
 struct OBB3D
 {
 	double xo, yo, zo;
-	double xlen, ylen, zlen;
+	double hx, hy, hz;
 	Vector3D ix, iy, iz;
-};
-
-struct OBB3DAABBCollisionSAT
-{
-	double xhlen, yhlen, zhlen;
-	Vector3D ix, iy, iz;
-	double ix_min, ix_max;
-	double iy_min, iy_max;
-	double iz_min, iz_max;
-	double it1x_min, it1x_max;
-	double it1y_min, it1y_max;
-	double it1z_min, it1z_max;
-	double it2x_min, it2x_max;
-	double it2y_min, it2y_max;
-	double it2z_min, it2z_max;
-	double it3x_min, it3x_max;
-	double it3y_min, it3y_max;
-	double it3z_min, it3z_max;
-	bool it1x_not_zero, it1y_not_zero, it1z_not_zero;
-	bool it2x_not_zero, it2y_not_zero, it2z_not_zero;
-	bool it3x_not_zero, it3y_not_zero, it3z_not_zero;
-
-	inline void init_obb3d(OBB3D& obb)
-	{
-#define Norm_Tol (1.0e-10)
-		xhlen = obb.xlen * 0.5;
-		yhlen = obb.ylen * 0.5;
-		zhlen = obb.zlen * 0.5;
-		ix = obb.ix;
-		iy = obb.iy;
-		iz = obb.iz;
-		double cen, radius;
-		// ix
-		cen = ix.x * obb.xo + ix.y * obb.yo + ix.z * obb.zo;
-		ix_min = cen - xhlen;
-		ix_max = cen + xhlen;
-		// iy
-		cen = iy.x * obb.xo + iy.y * obb.yo + iy.z * obb.zo;
-		iy_min = cen - yhlen;
-		iy_max = cen + yhlen;
-		// iz
-		cen = iz.x * obb.xo + iz.y * obb.yo + iz.z * obb.zo;
-		iz_min = cen - zhlen;
-		iz_max = cen + zhlen;
-		// it1x
-		if ((ix.z * ix.z + ix.y * ix.y) > (Norm_Tol * Norm_Tol))
-		{
-			it1x_not_zero = true;
-			cen = -ix.z * obb.yo + ix.y * obb.zo;
-			radius = xhlen * abs(-ix.z * ix.y + ix.y * ix.z)
-				+ yhlen * abs(-ix.z * iy.y + ix.y * iy.z)
-				+ zhlen * abs(-ix.z * iz.y + ix.y * iz.z);
-			it1x_min = cen - radius;
-			it1x_max = cen + radius;
-		}
-		else
-		{
-			it1x_not_zero = false;
-		}
-		// it1y
-		if ((iy.z * iy.z + iy.y * iy.y) > (Norm_Tol * Norm_Tol))
-		{
-			it1y_not_zero = true;
-			cen = -iy.z * obb.yo + iy.y * obb.zo;
-			radius = xhlen * abs(-iy.z * ix.y + iy.y * ix.z)
-				+ yhlen * abs(-iy.z * iy.y + iy.y * iy.z)
-				+ zhlen * abs(-iy.z * iz.y + iy.y * iz.z);
-			it1y_min = cen - radius;
-			it1y_max = cen + radius;
-		}
-		else
-		{
-			it1y_not_zero = false;
-		}
-		// it1z
-		if ((iz.z * iz.z + iz.y * iz.y) > (Norm_Tol * Norm_Tol))
-		{
-			it1z_not_zero = true;
-			cen = -iz.z * obb.yo + iz.y * obb.zo;
-			radius = xhlen * abs(-iz.z * ix.y + iz.y * ix.z)
-				+ yhlen * abs(-iz.z * iy.y + iz.y * iy.z)
-				+ zhlen * abs(-iz.z * iz.y + iz.y * iz.z);
-			it1z_min = cen - radius;
-			it1z_max = cen + radius;
-		}
-		else
-		{
-			it1z_not_zero = false;
-		}
-		// it2x
-		if ((ix.z * ix.z + ix.x * ix.x) > (Norm_Tol * Norm_Tol))
-		{
-			it2x_not_zero = true;
-			cen = ix.z * obb.xo - ix.x * obb.zo;
-			radius = xhlen * abs(ix.z * ix.x - ix.x * ix.z)
-				+ yhlen * abs(ix.z * iy.x - ix.x * iy.z)
-				+ zhlen * abs(ix.z * iz.x - ix.x * iz.z);
-			it2x_min = cen - radius;
-			it2x_max = cen + radius;
-		}
-		else
-		{
-			it2x_not_zero = false;
-		}
-		// it2y
-		if ((iy.z * iy.z + iy.x * iy.x) > (Norm_Tol * Norm_Tol))
-		{
-			it2y_not_zero = true;
-			cen = iy.z * obb.xo - iy.x * obb.zo;
-			radius = xhlen * abs(iy.z * ix.x - iy.x * ix.z)
-				+ yhlen * abs(iy.z * iy.x - iy.x * iy.z)
-				+ zhlen * abs(iy.z * iz.x - iy.x * iz.z);
-			it2y_min = cen - radius;
-			it2y_max = cen + radius;
-		}
-		else
-		{
-			it2y_not_zero = false;
-		}
-		// it2z
-		if ((iz.z * iz.z + iz.x * iz.x) > (Norm_Tol * Norm_Tol))
-		{
-			it2z_not_zero = true;
-			cen = iz.z * obb.xo - iz.x * obb.zo;
-			radius = xhlen * abs(iz.z * ix.x - iz.x * ix.z)
-				+ yhlen * abs(iz.z * iy.x - iz.x * iy.z)
-				+ zhlen * abs(iz.z * iz.x - iz.x * iz.z);
-			it2z_min = cen - radius;
-			it2z_max = cen + radius;
-		}
-		else
-		{
-			it2z_not_zero = false;
-		}
-		// it3x
-		if ((ix.y * ix.y + ix.x * ix.x) > (Norm_Tol * Norm_Tol))
-		{
-			it3x_not_zero = true;
-			cen = -ix.y * obb.xo + ix.x * obb.yo;
-			radius = xhlen * abs(-ix.y * ix.x + ix.x * ix.y)
-				+ yhlen * abs(-ix.y * iy.x + ix.x * iy.y)
-				+ zhlen * abs(-ix.y * iz.x + ix.x * iz.y);
-			it3x_min = cen - radius;
-			it3x_max = cen + radius;
-		}
-		else
-		{
-			it3x_not_zero = false;
-		}
-		// it3y
-		if ((iy.y * iy.y + iy.x * iy.x) > (Norm_Tol * Norm_Tol))
-		{
-			it3y_not_zero = true;
-			cen = -iy.y * obb.xo + iy.x * obb.yo;
-			radius = xhlen * abs(-iy.y * ix.x + iy.x * ix.y)
-				+ yhlen * abs(-iy.y * iy.x + iy.x * iy.y)
-				+ zhlen * abs(-iy.y * iz.x + iy.x * iz.y);
-			it3y_min = cen - radius;
-			it3y_max = cen + radius;
-		}
-		else
-		{
-			it3y_not_zero = false;
-		}
-		// it3z
-		if ((iz.y * iz.y + iz.x * iz.x) > (Norm_Tol * Norm_Tol))
-		{
-			it3z_not_zero = true;
-			cen = -iz.y * obb.xo + iz.x * obb.yo;
-			radius = xhlen * abs(-iz.y * ix.x + iz.x * ix.y)
-				+ yhlen * abs(-iz.y * iy.x + iz.x * iy.y)
-				+ zhlen * abs(-iz.y * iz.x + iz.x * iz.y);
-			it3z_min = cen - radius;
-			it3z_max = cen + radius;
-		}
-		else
-		{
-			it3z_not_zero = false;
-		}
-#undef Norm_Tol
-	}
-	inline bool detect_collision_with_cube(Cube& cube)
-	{
-		double cube_xm = (cube.xl + cube.xu) * 0.5;
-		double cube_ym = (cube.yl + cube.yu) * 0.5;
-		double cube_zm = (cube.zl + cube.zu) * 0.5;
-		double cube_xhlen = (cube.xu - cube.xl) * 0.5;
-		double cube_yhlen = (cube.yu - cube.yl) * 0.5;
-		double cube_zhlen = (cube.zu - cube.zl) * 0.5;
-		double ix_cube_cen = ix.x * cube_xm + ix.y * cube_ym + ix.z * cube_zm;
-		double ix_cube_range = abs(ix.x * cube_xhlen) + abs(ix.y * cube_yhlen) + abs(ix.z * cube_zhlen);
-		double iy_cube_cen = iy.x * cube_xm + iy.y * cube_ym + iy.z * cube_zm;
-		double iy_cube_range = abs(iy.x * cube_xhlen) + abs(iy.y * cube_yhlen) + abs(iy.z * cube_zhlen);
-		double iz_cube_cen = iz.x * cube_xm + iz.y * cube_ym + iz.z * cube_zm;
-		double iz_cube_range = abs(iz.x * cube_xhlen) + abs(iz.y * cube_yhlen) + abs(iz.z * cube_zhlen);
-		double it1x_cube_cen = -ix.z * cube_ym + ix.y * cube_zm;
-		double it1x_cube_range = abs(-ix.z * cube_yhlen) + abs(ix.y * cube_zhlen);
-		double it1y_cube_cen = -iy.z * cube_ym + iy.y * cube_zm;
-		double it1y_cube_range = abs(-iy.z * cube_yhlen) + abs(iy.y * cube_zhlen);
-		double it1z_cube_cen = -iz.z * cube_ym + iz.y * cube_zm;
-		double it1z_cube_range = abs(-iz.z * cube_yhlen) + abs(iz.y * cube_zhlen);
-		double it2x_cube_cen = ix.z * cube_xm - ix.x * cube_zm;
-		double it2x_cube_range = abs(ix.z * cube_xhlen) + abs(-ix.x * cube_zhlen);
-		double it2y_cube_cen = iy.z * cube_xm - iy.x * cube_zm;
-		double it2y_cube_range = abs(iy.z * cube_xhlen) + abs(-iy.x * cube_zhlen);
-		double it2z_cube_cen = iz.z * cube_xm - iz.x * cube_zm;
-		double it2z_cube_range = abs(iz.z * cube_xhlen) + abs(-iz.x * cube_zhlen);
-		double it3x_cube_cen = -ix.y * cube_xm + ix.x * cube_ym;
-		double it3x_cube_range = abs(-ix.y * cube_xhlen) + abs(ix.x * cube_yhlen);
-		double it3y_cube_cen = -iy.y * cube_xm + iy.x * cube_ym;
-		double it3y_cube_range = abs(-iy.y * cube_xhlen) + abs(iy.x * cube_yhlen);
-		double it3z_cube_cen = -iz.y * cube_xm + iz.x * cube_ym;
-		double it3z_cube_range = abs(-iz.y * cube_xhlen) + abs(iz.x * cube_yhlen);
-
-		return !(is_seperating_axis(ix_cube_range, ix_cube_cen, ix_min, ix_max) ||
-			is_seperating_axis(iy_cube_range, iy_cube_cen, iy_min, iy_max) ||
-			is_seperating_axis(iz_cube_range, iz_cube_cen, iz_min, iz_max) ||
-			(it1x_not_zero && is_seperating_axis(it1x_cube_range, it1x_cube_cen, it1x_min, it1x_max)) ||
-			(it1y_not_zero && is_seperating_axis(it1y_cube_range, it1y_cube_cen, it1y_min, it1y_max)) ||
-			(it1z_not_zero && is_seperating_axis(it1z_cube_range, it1z_cube_cen, it1z_min, it1z_max)) ||
-			(it2x_not_zero && is_seperating_axis(it2x_cube_range, it2x_cube_cen, it2x_min, it2x_max)) ||
-			(it2y_not_zero && is_seperating_axis(it2y_cube_range, it2y_cube_cen, it2y_min, it2y_max)) ||
-			(it2z_not_zero && is_seperating_axis(it2z_cube_range, it2z_cube_cen, it2z_min, it2z_max)) ||
-			(it3x_not_zero && is_seperating_axis(it3x_cube_range, it3x_cube_cen, it3x_min, it3x_max)) ||
-			(it3y_not_zero && is_seperating_axis(it3y_cube_range, it3y_cube_cen, it3y_min, it3y_max)) ||
-			(it3z_not_zero && is_seperating_axis(it3z_cube_range, it3z_cube_cen, it3z_min, it3z_max)));
-	}
-
-protected:
-	inline bool is_seperating_axis(double cube_range, double cube_cen,
-		double obb_min, double obb_max)
-	{
-		return ((obb_min - cube_cen) > cube_range ||
-			(obb_max + cube_cen) < -cube_range);
-	}
 };
 
 template <typename Point3DType1, typename Point3DType2>
@@ -551,6 +312,47 @@ inline void vector_from_local_to_global_coordinate(
 	gp.z = loc_ix.z * lp.x + loc_iy.z * lp.y + loc_iz.z * lp.z;
 }
 
+// use quaternion
+inline void rotate_axses_by_angle(
+	const Vector3D& ang,
+	Vector3D& ix,
+	Vector3D& iy,
+	Vector3D& iz
+) noexcept
+{
+	double theta, Kx, Ky, Kz;
+	theta = ang.norm();
+	if (theta != 0.0)
+	{
+		Kx = ang.x / theta;
+		Ky = ang.y / theta;
+		Kz = ang.z / theta;
+	}
+	else
+	{
+		Kx = 0.0;
+		Ky = 0.0;
+		Kz = 0.0;
+	}
+
+	// quaternion
+	double q0, q1, q2, q3;
+	q0 = cos(0.5 * theta);
+	q1 = Kx * sin(0.5 * theta);
+	q2 = Ky * sin(0.5 * theta);
+	q3 = Kz * sin(0.5 * theta);
+
+	ix.x = 1.0 - 2.0 * (q2 * q2 + q3 * q3);
+	ix.y = 2.0 * (q1 * q2 + q0 * q3);
+	ix.z = 2.0 * (q1 * q3 - q0 * q2);
+	iy.x = 2.0 * (q1 * q2 - q0 * q3);
+	iy.y = 1.0 - 2.0 * (q3 * q3 + q1 * q1);
+	iy.z = 2.0 * (q2 * q3 + q0 * q1);
+	iz.x = 2.0 * (q1 * q3 + q0 * q2);
+	iz.y = 2.0 * (q2 * q3 - q0 * q1);
+	iz.z = 1.0 - 2.0 * (q1 * q1 + q2 * q2);
+}
+
 // rotate coordinates ix, iy, iz by ang
 // pure geometric operations
 //namespace Geometry3D_Internal
@@ -600,46 +402,5 @@ inline void vector_from_local_to_global_coordinate(
 //		Geometry3D_Internal::rotate_axis(rix, riy, riz, sin_ang, cos_ang, iz);
 //	}
 //}
-
-// use quaternion
-inline void rotate_axses_by_angle(
-	const Vector3D& ang,
-	Vector3D& ix,
-	Vector3D& iy,
-	Vector3D& iz
-) noexcept
-{
-	double theta, Kx, Ky, Kz;
-	theta = ang.norm();
-	if (theta != 0.0)
-	{
-		Kx = ang.x / theta;
-		Ky = ang.y / theta;
-		Kz = ang.z / theta;
-	}
-	else
-	{
-		Kx = 0.0;
-		Ky = 0.0;
-		Kz = 0.0;
-	}
-
-	// quaternion
-	double q0, q1, q2, q3;
-	q0 = cos(0.5 * theta);
-	q1 = Kx * sin(0.5 * theta);
-	q2 = Ky * sin(0.5 * theta);
-	q3 = Kz * sin(0.5 * theta);
-
-	ix.x = 1.0 - 2.0 * (q2 * q2 + q3 * q3);
-	ix.y = 2.0 * (q1 * q2 + q0 * q3);
-	ix.z = 2.0 * (q1 * q3 - q0 * q2);
-	iy.x = 2.0 * (q1 * q2 - q0 * q3);
-	iy.y = 1.0 - 2.0 * (q3 * q3 + q1 * q1);
-	iy.z = 2.0 * (q2 * q3 + q0 * q1);
-	iz.x = 2.0 * (q1 * q3 + q0 * q2);
-	iz.y = 2.0 * (q2 * q3 - q0 * q1);
-	iz.z = 1.0 - 2.0 * (q1 * q1 + q2 * q2);
-}
 
 #endif

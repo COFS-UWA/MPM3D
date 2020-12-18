@@ -281,7 +281,7 @@ int RigidTetrahedronMesh::init_bg_grids(
 		Node& n2 = nodes[e.n2];
 		Node& n3 = nodes[e.n3];
 		Node& n4 = nodes[e.n4];
-		e_bbox = get_tetrahedron_bounding_box(n1, n2, n3, n4);
+		get_tetrahedron_bounding_box(n1, n2, n3, n4, e_bbox);
 		e_id_bbox.from_cube(e_bbox, g_bbox.xl, g_bbox.yl, g_bbox.zl, g_h, g_h, g_h, Norm_Tol);
 		init_teh_aabb_collision(e);
 		for (size_t z_id = e_id_bbox.zl_id; z_id < e_id_bbox.zu_id; ++z_id)
@@ -302,7 +302,7 @@ int RigidTetrahedronMesh::init_bg_grids(
 		Node& n1 = nodes[f.n1];
 		Node& n2 = nodes[f.n2];
 		Node& n3 = nodes[f.n3];
-		e_bbox = get_3Dtriangle_bounding_box(n1, n2, n3);
+		get_3Dtriangle_bounding_box(n1, n2, n3, e_bbox);
 		e_id_bbox.from_cube(e_bbox, g_bbox.xl, g_bbox.yl, g_bbox.zl, g_h, g_h, g_h, Norm_Tol);
 		init_tri_aabb_collision(f);
 		for (size_t z_id = e_id_bbox.zl_id; z_id < e_id_bbox.zu_id; ++z_id)

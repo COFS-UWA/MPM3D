@@ -148,7 +148,7 @@ public:
 	bool detect_collision_with_point(
 		double p_x, double p_y, double p_z, double p_r,
 		double& dist, Vector3D& lnorm, Point3D& lcontpos
-	) noexcept;
+		) const noexcept;
 
 	inline void update_motion(double dt) noexcept
 	{

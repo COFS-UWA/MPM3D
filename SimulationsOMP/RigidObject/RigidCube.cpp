@@ -86,7 +86,7 @@ bool RigidCube::detect_collision_with_point(
 	double& dist,
 	Vector3D& lnorm,
 	Point3D& lcontpos
-	) noexcept
+	) const noexcept
 {
 	double lp_x = p_x - x;
 	double lp_y = p_y - y;

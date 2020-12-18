@@ -28,6 +28,11 @@ add_library(
     TetrahedronMesh.cpp
     SearchingGrid3D.hpp
     ParticleGenerator3D.hpp
+    DetectCollisionSAT.hpp
+    ExtractSurfaceFromT3DMesh.h ExtractSurfaceFromT3DMesh.cpp
+    Grid3D.hpp
+    SearchGrid3DTriangle.hpp
+    SearchGrid3DTetrahedron.hpp
     )
 
 set(GEOMETRY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

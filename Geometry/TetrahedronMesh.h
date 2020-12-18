@@ -49,6 +49,8 @@ public:
 
 	int init_search_grid(double _hx, double _hy, double _hz);
 
+	void translate_mesh(double dx, double dy, double dz) noexcept;
+
 	// search using background grid
 	template <typename Point3D>
 	inline Element* find_in_which_element(Point3D& pt)

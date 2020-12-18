@@ -5,19 +5,7 @@
 RigidCylinder::RigidCylinder() : 
 	vx(0.0), vy(0.0), vz(0.0),
 	fx_cont(0.0), fy_cont(0.0), fz_cont(0.0),
-	mx_cont(0.0), my_cont(0.0), mz_cont(0.0)
-{
-	Vector3D &v0 = res_norms[0];
-	v0.x = 0.0;
-	v0.y = 0.0;
-	v0.z = 1.0;
-	Vector3D& v1 = res_norms[1];
-	v1.x = 0.0;
-	v1.y = 0.0;
-	v1.z = -1.0;
-	Vector3D& v2 = res_norms[2];
-	v2.z = 0.0;
-}
+	mx_cont(0.0), my_cont(0.0), mz_cont(0.0) {}
 
 RigidCylinder::~RigidCylinder() {}
 
@@ -92,7 +80,7 @@ bool RigidCylinder::detect_collision_with_point(
 	double& dist,
 	Vector3D& lnorm,
 	Point3D& lcontpos
-	) noexcept
+	) const noexcept
 {
 	double lp_x = p_x - x;
 	double lp_y = p_y - y;
@@ -117,8 +105,8 @@ bool RigidCylinder::detect_collision_with_point(
 			lnorm.y = tmp * lp_y;
 			lnorm.z = z_diff;
 			tmp = sqrt(lnorm.x * lnorm.x
-				+ lnorm.y * lnorm.y
-				+ lnorm.z * lnorm.z);
+					 + lnorm.y * lnorm.y
+					 + lnorm.z * lnorm.z);
 			lnorm.x /= tmp;
 			lnorm.y /= tmp;
 			lnorm.z /= tmp;
@@ -144,8 +132,8 @@ bool RigidCylinder::detect_collision_with_point(
 			lnorm.y = tmp * lp_y;
 			lnorm.z = z_diff;
 			tmp = sqrt(lnorm.x * lnorm.x
-				+ lnorm.y * lnorm.y
-				+ lnorm.z * lnorm.z);
+					 + lnorm.y * lnorm.y
+					 + lnorm.z * lnorm.z);
 			lnorm.x /= tmp;
 			lnorm.y /= tmp;
 			lnorm.z /= tmp;
@@ -170,36 +158,36 @@ bool RigidCylinder::detect_collision_with_point(
 		}
 		else // inside cylinder
 		{
-			unsigned char type = 0;
 			dist = lbbox.zu - p_z + p_r;
+			lnorm.x = 0.0;
+			lnorm.y = 0.0;
+			lnorm.z = 1.0;
 			tmp = p_z + p_r - lbbox.zl;
 			if (tmp < dist)
 			{
-				type = 1;
 				dist = tmp;
+				lnorm.x = 0.0;
+				lnorm.y = 0.0;
+				lnorm.z = -1.0;
 			}
 			rxy = sqrt(rxy2);
 			tmp = r - rxy + p_r;
 			if (tmp < dist)
 			{
-				type = 2;
 				dist = tmp;
-				Vector3D &v2 = res_norms[2];
 				if (rxy2 != 0.0)
 				{
-					v2.x = lp_x / rxy;
-					v2.y = lp_y / rxy;
+					lnorm.x = lp_x / rxy;
+					lnorm.y = lp_y / rxy;
+					lnorm.z = 0.0;
 				}
 				else
 				{
-					v2.x = 0.0;
-					v2.y = 0.0;
+					lnorm.x = 0.0;
+					lnorm.y = 0.0;
+					lnorm.z = 0.0;
 				}
 			}
-			const Vector3D& cur_norm = res_norms[type];
-			lnorm.x = res_norms[type].x;
-			lnorm.y = res_norms[type].y;
-			lnorm.z = res_norms[type].z;
 		}
 	}
 

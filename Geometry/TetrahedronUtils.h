@@ -5,104 +5,104 @@
 #include "Geometry3D.h"
 
 template <typename Point3D>
-Cube get_tetrahedron_bounding_box(
-	Point3D& n1,
-	Point3D& n2,
-	Point3D& n3,
-	Point3D& n4
-	)
+inline void get_tetrahedron_bounding_box(
+	const Point3D& n1,
+	const Point3D& n2,
+	const Point3D& n3,
+	const Point3D& n4,
+	Cube &bbox
+	) noexcept
 {
-	Cube res;
-	res.xl = n1.x;
-	if (res.xl > n2.x)
-		res.xl = n2.x;
-	if (res.xl > n3.x)
-		res.xl = n3.x;
-	if (res.xl > n4.x)
-		res.xl = n4.x;
-	res.xu = n1.x;
-	if (res.xu < n2.x)
-		res.xu = n2.x;
-	if (res.xu < n3.x)
-		res.xu = n3.x;
-	if (res.xu < n4.x)
-		res.xu = n4.x;
-	res.yl = n1.y;
-	if (res.yl > n2.y)
-		res.yl = n2.y;
-	if (res.yl > n3.y)
-		res.yl = n3.y;
-	if (res.yl > n4.y)
-		res.yl = n4.y;
-	res.yu = n1.y;
-	if (res.yu < n2.y)
-		res.yu = n2.y;
-	if (res.yu < n3.y)
-		res.yu = n3.y;
-	if (res.yu < n4.y)
-		res.yu = n4.y;
-	res.zl = n1.z;
-	if (res.zl > n2.z)
-		res.zl = n2.z;
-	if (res.zl > n3.z)
-		res.zl = n3.z;
-	if (res.zl > n4.z)
-		res.zl = n4.z;
-	res.zu = n1.z;
-	if (res.zu < n2.z)
-		res.zu = n2.z;
-	if (res.zu < n3.z)
-		res.zu = n3.z;
-	if (res.zu < n4.z)
-		res.zu = n4.z;
-	return res;
+	bbox.xl = n1.x;
+	if (bbox.xl > n2.x)
+		bbox.xl = n2.x;
+	if (bbox.xl > n3.x)
+		bbox.xl = n3.x;
+	if (bbox.xl > n4.x)
+		bbox.xl = n4.x;
+	bbox.xu = n1.x;
+	if (bbox.xu < n2.x)
+		bbox.xu = n2.x;
+	if (bbox.xu < n3.x)
+		bbox.xu = n3.x;
+	if (bbox.xu < n4.x)
+		bbox.xu = n4.x;
+	bbox.yl = n1.y;
+	if (bbox.yl > n2.y)
+		bbox.yl = n2.y;
+	if (bbox.yl > n3.y)
+		bbox.yl = n3.y;
+	if (bbox.yl > n4.y)
+		bbox.yl = n4.y;
+	bbox.yu = n1.y;
+	if (bbox.yu < n2.y)
+		bbox.yu = n2.y;
+	if (bbox.yu < n3.y)
+		bbox.yu = n3.y;
+	if (bbox.yu < n4.y)
+		bbox.yu = n4.y;
+	bbox.zl = n1.z;
+	if (bbox.zl > n2.z)
+		bbox.zl = n2.z;
+	if (bbox.zl > n3.z)
+		bbox.zl = n3.z;
+	if (bbox.zl > n4.z)
+		bbox.zl = n4.z;
+	bbox.zu = n1.z;
+	if (bbox.zu < n2.z)
+		bbox.zu = n2.z;
+	if (bbox.zu < n3.z)
+		bbox.zu = n3.z;
+	if (bbox.zu < n4.z)
+		bbox.zu = n4.z;
 }
 
 template <typename Point3D>
-Cube get_3Dtriangle_bounding_box(
-	Point3D& n1, Point3D& n2, Point3D& n3)
+inline void get_3Dtriangle_bounding_box(
+	const Point3D& n1,
+	const Point3D& n2,
+	const Point3D& n3,
+	Cube bbox)
 {
-	Cube res;
-	res.xl = n1.x;
-	if (res.xl > n2.x)
-		res.xl = n2.x;
-	if (res.xl > n3.x)
-		res.xl = n3.x;
-	res.xu = n1.x;
-	if (res.xu < n2.x)
-		res.xu = n2.x;
-	if (res.xu < n3.x)
-		res.xu = n3.x;
-	res.yl = n1.y;
-	if (res.yl > n2.y)
-		res.yl = n2.y;
-	if (res.yl > n3.y)
-		res.yl = n3.y;
-	res.yu = n1.y;
-	if (res.yu < n2.y)
-		res.yu = n2.y;
-	if (res.yu < n3.y)
-		res.yu = n3.y;
-	res.zl = n1.z;
-	if (res.zl > n2.z)
-		res.zl = n2.z;
-	if (res.zl > n3.z)
-		res.zl = n3.z;
-	res.zu = n1.z;
-	if (res.zu < n2.z)
-		res.zu = n2.z;
-	if (res.zu < n3.z)
-		res.zu = n3.z;
-	return res;
+	bbox.xl = n1.x;
+	if (bbox.xl > n2.x)
+		bbox.xl = n2.x;
+	if (bbox.xl > n3.x)
+		bbox.xl = n3.x;
+	bbox.xu = n1.x;
+	if (bbox.xu < n2.x)
+		bbox.xu = n2.x;
+	if (bbox.xu < n3.x)
+		bbox.xu = n3.x;
+	bbox.yl = n1.y;
+	if (bbox.yl > n2.y)
+		bbox.yl = n2.y;
+	if (bbox.yl > n3.y)
+		bbox.yl = n3.y;
+	bbox.yu = n1.y;
+	if (bbox.yu < n2.y)
+		bbox.yu = n2.y;
+	if (bbox.yu < n3.y)
+		bbox.yu = n3.y;
+	bbox.zl = n1.z;
+	if (bbox.zl > n2.z)
+		bbox.zl = n2.z;
+	if (bbox.zl > n3.z)
+		bbox.zl = n3.z;
+	bbox.zu = n1.z;
+	if (bbox.zu < n2.z)
+		bbox.zu = n2.z;
+	if (bbox.zu < n3.z)
+		bbox.zu = n3.z;
 }
 
 template <typename Node3D, typename Point3D>
 inline double cal_tetrahedron_vol(
-	Node3D& n1,
-	Node3D& n2,
-	Node3D& n3,
-	Point3D& p4
-	)
+	const Node3D& n1,
+	const Node3D& n2,
+	const Node3D& n3,
+	const Point3D& p4
+	) noexcept
 {
 	double v21_x, v21_y, v21_z;
 	double v31_x, v31_y, v31_z;
@@ -125,17 +125,21 @@ inline double cal_tetrahedron_vol(
 
 struct PointInTetrahedron
 {
-protected:
 	double a1, b1, c1, coef1;
 	double a2, b2, c2, coef2;
 	double a3, b3, c3, coef3;
 	double a4, b4, c4, coef4;
 
-public:
 	template <typename Node3D>
-	inline void init_tetrahedron(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4, double vol)
+	inline void init_tetrahedron(
+		const Node3D& n1,
+		const Node3D& n2,
+		const Node3D& n3,
+		const Node3D& n4,
+		double vol
+		) noexcept
 	{
-		double inv_vol_6 = 1.0 / (6.0 * vol);
+		const double inv_vol_6 = 1.0 / (6.0 * vol);
 		// N1
 		a1 = ((n4.y - n2.y) * (n3.z - n2.z) - (n3.y - n2.y) * (n4.z - n2.z)) * inv_vol_6;
 		b1 = ((n4.z - n2.z) * (n3.x - n2.x) - (n3.z - n2.z) * (n4.x - n2.x)) * inv_vol_6;
@@ -158,32 +162,37 @@ public:
 		coef4 = -(a4 * n1.x + b4 * n1.y + c4 * n1.z);
 	}
 	template <typename Node3D>
-	inline void init_tetrahedron(Node3D& n1, Node3D& n2, Node3D& n3, Node3D& n4)
+	inline void init_tetrahedron(const Node3D& n1,
+		const Node3D& n2, const Node3D& n3, const Node3D& n4) noexcept
 	{ init_tetrahedron(n1, n2, n3, n4, cal_tetrahedron_vol<Node3D, Node3D>(n1, n2, n3, n4)); }
 
-	inline bool is_in_tetrahedron(double x, double y, double z)
+	inline bool is_in_tetrahedron(
+		const double x,
+		const double y,
+		const double z
+		) const noexcept
 	{
-		double N1v = N1(x, y, z);
-		double N2v = N2(x, y, z);
-		double N3v = N3(x, y, z);
-		double N4v = N4(x, y, z);
+		const double N1v = N1(x, y, z);
+		const double N2v = N2(x, y, z);
+		const double N3v = N3(x, y, z);
+		const double N4v = N4(x, y, z);
 		return !(N1v < 0.0 || N1v > 1.0 || N2v < 0.0 || N2v > 1.0 ||
 				 N3v < 0.0 || N3v > 1.0 || N4v < 0.0 || N4v > 1.0);
 	}
 	template <typename Point3D>
-	inline bool is_in_tetrahedron(Point3D& p)
+	inline bool is_in_tetrahedron(const Point3D& p) const noexcept
 	{ return is_in_tetrahedron(p.x, p.y, p.z); }
 
 	// shape functions
-	inline double N1(double x, double y, double z) const noexcept
+	inline double N1(const double x, const double y, const double z) const noexcept
 	{ return a1 * x + b1 * y + c1 * z + coef1; }
-	inline double N2(double x, double y, double z) const noexcept
+	inline double N2(const double x, const double y, const double z) const noexcept
 	{ return a2 * x + b2 * y + c2 * z + coef2; }
-	inline double N3(double x, double y, double z) const noexcept
+	inline double N3(const double x, const double y, const double z) const noexcept
 	{ return a3 * x + b3 * y + c3 * z + coef3; }
-	inline double N4(double x, double y, double z) const noexcept
+	inline double N4(const double x, const double y, const double z) const noexcept
 	{ return a4 * x + b4 * y + c4 * z + coef4; }
-	inline void cal_N(double x, double y, double z,
+	inline void cal_N(const double x, const double y, const double z,
 		double &N1v, double &N2v, double &N3v, double &N4v) const noexcept
 	{
 		N1v = N1(x, y, z); N2v = N2(x, y, z);
@@ -484,14 +493,15 @@ protected:
 	double a1, a2, a3;
 
 public:
-	PointToTriangleDistance() {}
+	inline PointToTriangleDistance() {}
+	~PointToTriangleDistance() {}
 
 	template <typename Node3D>
 	void init_triangle(
 		Node3D& _n1,
 		Node3D& _n2,
 		Node3D& _n3
-		)
+		) noexcept
 	{
 		n1.x = _n1.x;
 		n1.y = _n1.y;
@@ -542,7 +552,10 @@ public:
 		iz3.cross<Vector3D>(ix3, iy3);
 	}
 
-	unsigned char cal_distance_to_point(Point3D& p, double& dist)
+	unsigned char cal_distance_to_point(
+		const Point3D& p,
+		double& dist
+		) const noexcept
 	{
 		Vector3D pj1, pj2, pj3, tmp1;
 		tmp1.substract<Point3D>(p, n1);
@@ -618,7 +631,11 @@ public:
 		return 7;
 	}
 
-	void cal_normal_to_point(Point3D& pt, unsigned char norm_type, Vector3D& normal)
+	void cal_normal_to_point(
+		const Point3D& pt,
+		unsigned char norm_type,
+		Vector3D& normal
+		) const noexcept
 	{
 		Vector3D v1, v2, tmp1;
 		double coef;
@@ -684,7 +701,7 @@ public:
 };
 
 template <typename Point3D>
-void cal_tetrahedron_moi(
+inline void cal_tetrahedron_moi(
 	double xc,
 	double yc,
 	double zc,
@@ -694,7 +711,7 @@ void cal_tetrahedron_moi(
 	Point3D &p4,
 	double vol,
 	double moi_mat[6]
-	)
+	) noexcept
 {
 	moi_mat[0] = vol / 10.0 *
 		 (p1.y * p1.y + p1.y * p2.y + p2.y * p2.y + p1.y * p3.y + p2.y * p3.y

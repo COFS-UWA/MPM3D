@@ -76,6 +76,9 @@ public:
 	inline size_t get_xy_num() const noexcept { return xy_num; }
 	inline size_t get_num() const noexcept { return num; }
 	inline Grid *get_grids() { return grids; }
+	inline Grid& get_grid(size_t x_id, size_t y_id, size_t z_id)
+	{ return grids[xy_num * z_id + x_num * y_id + x_id]; }
+
 
 	int init(TetrahedronMesh &_mesh, double hx, double hy, double hz)
 	{
@@ -163,7 +166,6 @@ public:
 	}
 
 protected: // helper functions
-public:
 	int alloc_grids(Cube box, double _hx, double _hy, double _hz)
 	{
 		clear();
@@ -249,11 +251,6 @@ public:
 				}
 			}
 		}
-	}
-
-	inline Grid &get_grid(size_t x_id, size_t y_id, size_t z_id)
-	{
-		return grids[xy_num * z_id + x_num * y_id + x_id];
 	}
 
 	inline void add_elem_to_grid(Grid &g, MeshElement &e)
