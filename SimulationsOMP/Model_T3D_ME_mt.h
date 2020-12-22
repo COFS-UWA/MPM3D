@@ -10,6 +10,7 @@
 #include "RigidObject/RigidCylinder.h"
 #include "RigidObject/RigidCone.h"
 #include "RigidObject/RigidCube.h"
+#include "RigidObject/RigidObjectByT3DMesh.h"
 #include "RigidObject/SmoothContact3D.h"
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
@@ -73,7 +74,7 @@ public:
 	{
 		struct { double fx, fy, fz; };
 		Vector3D vec;
-		inline Force() {}
+		Force() {}
 	};
 
 	union Acceleration
@@ -385,9 +386,11 @@ protected:
 	bool rigid_cylinder_is_valid;
 	bool rigid_cone_is_valid;
 	bool rigid_cube_is_valid;
+	bool rigid_t3d_mesh_is_valid;
 	RigidCylinder rigid_cylinder;
 	RigidCone rigid_cone;
 	RigidCube rigid_cube;
+	RigidObjectByT3DMesh rigid_t3d_mesh;
 
 	// ad hoc design for output
 	double Kn_cont, Kt_cont, fric_ratio;
@@ -402,9 +405,9 @@ protected:
 
 public:
 	// cylinder
-	bool has_rigid_cylinder() { return rigid_cylinder_is_valid; }
-	RigidCylinder& get_rigid_cylinder() { return rigid_cylinder; }
-	void clear_rigid_cylinder() { rigid_cylinder_is_valid = false; }
+	bool has_rigid_cylinder() const noexcept { return rigid_cylinder_is_valid; }
+	RigidCylinder& get_rigid_cylinder() noexcept { return rigid_cylinder; }
+	void clear_rigid_cylinder() noexcept { rigid_cylinder_is_valid = false; }
 	inline void init_rigid_cylinder(
 		double x, double y, double z,
 		double h, double r)
@@ -418,7 +421,7 @@ public:
 		rigid_cylinder.set_vbc(vx, vy, vz);
 	}
 	// cone
-	bool has_rigid_cone() { return rigid_cone_is_valid; }
+	bool has_rigid_cone() const noexcept { return rigid_cone_is_valid; }
 	RigidCone& get_rigid_cone() { return rigid_cone; }
 	inline void init_rigid_cone(
 		double x, double y, double z,
@@ -433,7 +436,7 @@ public:
 		rigid_cone.set_vbc(vx, vy, vz);
 	}
 	// cube
-	bool has_rigid_cube() { return rigid_cube_is_valid; }
+	bool has_rigid_cube() const noexcept { return rigid_cube_is_valid; }
 	RigidCube& get_rigid_cube() { return rigid_cube; }
 	inline void init_rigid_cube(
 		double x, double y, double z,
@@ -448,6 +451,21 @@ public:
 		rigid_cube.set_fy_ext(fy);
 		rigid_cube.set_fz_ext(fz);
 	}
+	// t3d rigid mesh
+	bool has_t3d_rigid_mesh() const noexcept { return rigid_t3d_mesh_is_valid; }
+	RigidObjectByT3DMesh &get_t3d_rigid_mesh() noexcept { return rigid_t3d_mesh; }
+	inline void init_t3d_rigid_mesh(
+		double _density, const char *filename,
+		double dx, double dy, double dz,
+		double dx_ang, double dy_ang, double dz_ang,
+		double ghx, double ghy, double ghz)
+	{
+		rigid_t3d_mesh_is_valid = true;
+		rigid_t3d_mesh.init(_density, filename,
+			dx, dy, dz, dx_ang, dy_ang, dz_ang, ghx, ghy, ghz);
+	}
+	inline void set_t3d_rigid_mesh_velocity(double vx, double vy, double vz)
+	{ rigid_t3d_mesh.set_translation_velocity_bc(vx, vy, vz);	}
 
 	// for contact model
 	inline void set_contact_param(double _Kn_cont, double _Kt_cont, double _fric_ratio)

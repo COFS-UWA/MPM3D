@@ -10,7 +10,7 @@
 class QtRigidTetrahedronMeshGLObject
 {
 public:
-	enum DisplayMode : unsigned char
+	enum class DisplayMode : unsigned char
 	{
 		Invalid = 0,
 		Surface = 1,
@@ -93,7 +93,7 @@ int QtRigidTetrahedronMeshGLObject::init_faces(
 	if (!bfaces || !bface_num)
 		return -1;
 	
-	mode = Surface;
+	mode = DisplayMode::Surface;
 	color = c;
 	vbo_index_num = bface_num * 3;
 
@@ -219,7 +219,7 @@ int QtRigidTetrahedronMeshGLObject::init_line_frame(
 	if (!line_datas || !line_num)
 		return 0;
 
-	mode = LineFrame;
+	mode = DisplayMode::LineFrame;
 	color = c;
 	vbo_index_num = line_num * 2;
 

@@ -211,6 +211,7 @@ namespace MemoryUtils
 			// update page_size
 			page_size *= fold;
 		}
+
 		void _reset_and_optimize()
 		{
 			// Calculate total allocated size

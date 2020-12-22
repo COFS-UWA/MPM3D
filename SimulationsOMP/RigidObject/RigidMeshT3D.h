@@ -11,11 +11,11 @@ class RigidMeshT3D
 public:
 	enum class GridPosType : unsigned char
 	{
-		AtBoundary = 0,
-		Inside = 1,
-		Outside = 2,
-		FarInside = 5,
-		FarOutside = 6
+		AtBoundary = 0, // 000
+		Inside = 1, // 001
+		Outside = 2, // 010
+		FarInside = 5, // 101
+		FarOutside = 6 // 110
 	};
 
 protected:
@@ -23,12 +23,13 @@ protected:
 	GridPosType* grid_pos_type;
 	size_t *face_in_grid_range;
 	size_t *face_in_grid_list;
-	PointToTriangleDistance* pt_tri_dist;
+	PointToTriangleDistance *pt_tri_dist;
 	
 	// grid_xu_min_hx = grid_xu - grid_hx
 	double grid_xu_min_hx, grid_yu_min_hy, grid_zu_min_hz;
 	// grid_max_x_id = grid_x_num - 1
 	size_t grid_max_x_id, grid_max_y_id, grid_max_z_id;
+	size_t face_in_grid_list_len, face_num;
 
 	inline size_t offset_from_xyz_id(size_t x_id, size_t y_id, size_t z_id) const noexcept
 	{ return grid.offset_from_xyz_id(x_id, y_id, z_id); }
@@ -118,6 +119,9 @@ public:
 
 	inline void clear() noexcept
 	{
+		grid.clear();
+		face_in_grid_list_len = 0;
+		face_num = 0;
 		if (grid_pos_type)
 		{
 			delete[] grid_pos_type;
@@ -140,10 +144,39 @@ public:
 		}
 	}
 
+	inline const size_t get_grid_xl() const noexcept { return grid.xl; }
+	inline const size_t get_grid_yl() const noexcept { return grid.yl; }
+	inline const size_t get_grid_zl() const noexcept { return grid.zl; }
+	inline const size_t get_grid_hx() const noexcept { return grid.hx; }
+	inline const size_t get_grid_hy() const noexcept { return grid.hy; }
+	inline const size_t get_grid_hz() const noexcept { return grid.hz; }
+	inline const size_t get_grid_xu() const noexcept { return grid.xu; }
+	inline const size_t get_grid_yu() const noexcept { return grid.yu; }
+	inline const size_t get_grid_zu() const noexcept { return grid.zu; }
+	inline const size_t get_grid_x_num() const noexcept { return grid.x_num; }
+	inline const size_t get_grid_y_num() const noexcept { return grid.y_num; }
+	inline const size_t get_grid_z_num() const noexcept { return grid.z_num; }
+	inline const size_t get_grid_num() const noexcept { return grid.num; }
+	inline void get_bbox(Cube& bbox) const noexcept
+	{
+		bbox.xl = grid.xl; bbox.yl = grid.yl; bbox.zl = grid.zl;
+		bbox.xu = grid.xu; bbox.yu = grid.yu; bbox.zu = grid.zu;
+	}
+
+	// grid_num
+	inline const GridPosType* get_grid_pos_type() const noexcept { return grid_pos_type; }
+	// grid_num + 1
+	inline const size_t* get_face_in_grid_range() const noexcept { return face_in_grid_range; }
+	inline size_t get_face_in_grid_list_len() const noexcept { return face_in_grid_list_len; }
+	inline const size_t* get_face_in_grid_list() const noexcept { return face_in_grid_list; }
+	inline size_t get_face_num() const noexcept { return face_num; }
+	inline const PointToTriangleDistance* get_pt_tri_dist() const noexcept { return pt_tri_dist; }
+
 	int init_from_mesh(TetrahedronMesh &tmesh,
 		double ghx, double ghy, double ghz);
-	//  speed up searching, called after init_from_hdf5
-	void init_max_dist(double _dist);
+	// Speed up searching
+	// must be called after init_from_mesh()
+	void init_max_dist(double _dist) noexcept;
 	
 	bool detect_collision_with_point(const Point3D& pt,
 		const double p_r, double& dist, Vector3D& norm) const noexcept;

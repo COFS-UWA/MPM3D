@@ -3,7 +3,7 @@
 #include "QtRigidTetrahedronMeshGLObject.h"
 
 QtRigidTetrahedronMeshGLObject::QtRigidTetrahedronMeshGLObject(QOpenGLFunctions_3_3_Core& _gl) :
-	gl(_gl), mode(Invalid), color(1.0f, 1.0f, 1.0f),
+	gl(_gl), mode(DisplayMode::Invalid), color(1.0f, 1.0f, 1.0f),
 	vao(0), vbo(0), veo(0), vbo_index_num(0) {}
 
 QtRigidTetrahedronMeshGLObject::~QtRigidTetrahedronMeshGLObject() { clear(); }
@@ -26,7 +26,7 @@ void QtRigidTetrahedronMeshGLObject::clear()
 		vao = 0;
 	}
 	vbo_index_num = 0;
-	mode = Invalid;
+	mode = DisplayMode::Invalid;
 }
 
 int QtRigidTetrahedronMeshGLObject::init_faces(
@@ -42,7 +42,7 @@ int QtRigidTetrahedronMeshGLObject::init_faces(
 		!bfaces || !bface_num)
 		return -1;
 
-	mode = Surface;
+	mode = DisplayMode::Surface;
 	color = c;
 	vbo_index_num = bface_num * 3;
 
@@ -158,7 +158,7 @@ int QtRigidTetrahedronMeshGLObject::init_line_frame(
 	if (!line_datas || !line_num)
 		return 0;
 
-	mode = LineFrame;
+	mode = DisplayMode::LineFrame;
 	color = c;
 	vbo_index_num = line_num * 2;
 
@@ -227,7 +227,7 @@ int QtRigidTetrahedronMeshGLObject::init_line_frame(
 
 int QtRigidTetrahedronMeshGLObject::update(const RigidTetrahedronMesh& rb)
 {
-	if (mode == Invalid || !vbo)
+	if (mode == DisplayMode::Invalid || !vbo)
 		return 0;
 
 	const Point3D& cen = rb.get_centre();
@@ -243,7 +243,7 @@ int QtRigidTetrahedronMeshGLObject::update(
 	const Vector3D& ang
 	)
 {
-	if (mode == Invalid || !vbo)
+	if (mode == DisplayMode::Invalid || !vbo)
 		return 0;
 
 	Vector3D ix(1.0, 0.0, 0.0);
@@ -256,7 +256,7 @@ int QtRigidTetrahedronMeshGLObject::update(
 
 void QtRigidTetrahedronMeshGLObject::draw(QOpenGLShaderProgram& shader)
 {
-	if (mode == Invalid || !vao)
+	if (mode == DisplayMode::Invalid || !vao)
 		return;
 
 	shader.setUniformValue("model_mat", model_mat);
@@ -264,13 +264,13 @@ void QtRigidTetrahedronMeshGLObject::draw(QOpenGLShaderProgram& shader)
 	gl.glBindVertexArray(vao);
 
 	// need to adjust color of tetrahedron mesh
-	if (mode == Surface)
+	if (mode == DisplayMode::Surface)
 	{
 		//gl.glFrontFace(GL_CW);
 		gl.glCullFace(GL_BACK);
 		gl.glDrawArrays(GL_TRIANGLES, 0, vbo_index_num);
 	}
-	else if (mode == LineFrame)
+	else if (mode == DisplayMode::LineFrame)
 	{
 		gl.glPolygonMode(GL_FRONT, GL_LINE);
 		gl.glDrawArrays(GL_LINES, 0, vbo_index_num);

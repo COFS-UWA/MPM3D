@@ -1400,3 +1400,81 @@ int Step_T3D_ME_mt::apply_rigid_cube(
 
 	return 0;
 }
+
+int Step_T3D_ME_mt::apply_t3d_rigid_object(
+	size_t p_id0, size_t p_id1,
+	size_t* pcl_in_elem,
+	SortedPclVarArrays& cur_spva,
+	Force3D& rc_cf,
+	size_t substp_id,
+	ThreadData& thd) noexcept
+{
+	double p_x, p_y, p_z, p_r;
+	size_t ori_p_id, e_id;
+	double dist;
+	Vector3D lnorm, gnorm;
+	Force lcont_f, gcont_f;
+	Point3D cur_cont_pos;
+	size_t* pcl_index = cur_spva.pcl_index;
+	Displacement* pcl_disp = cur_spva.pcl_disp;
+	ShapeFunc* pcl_N = cur_spva.pcl_N;
+	PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
+	pv_getter.cur_sorted_pcl_vars = &cur_spva;
+	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+	{
+		ori_p_id = pcl_index[p_id];
+		Position& p_p = pcl_pos[ori_p_id];
+		Displacement& p_d = pcl_disp[p_id];
+		p_x = p_p.x + p_d.ux;
+		p_y = p_p.y + p_d.uy;
+		p_z = p_p.z + p_d.uz;
+		p_r = 0.5 * pow(pcl_vol[p_id], one_third);
+		if (prmesh->detect_collision_with_point(
+			p_x, p_y, p_z, p_r,
+			dist, lnorm, cur_cont_pos))
+		{
+			pv_getter.pcl_id = p_id;
+			prmesh->get_global_vector(lnorm, gnorm);
+			pcf->cal_contact_force(
+				substp_id,
+				dist,
+				lnorm,
+				cur_cont_pos,
+				p_r + p_r,
+				pv_getter,
+				contact_substep_id[ori_p_id],
+				prev_contact_pos[ori_p_id].pt,
+				prev_contact_tan_force[ori_p_id].vec,
+				lcont_f.vec
+			);
+			prmesh->get_global_vector(lcont_f.vec, gcont_f.vec);
+			// apply contact force to mesh
+			ShapeFunc& p_N = pcl_N[p_id];
+			e_id = pcl_in_elem[p_id];
+			ElemNodeForce& en_f1 = elem_node_force[e_id * 4];
+			en_f1.fx += p_N.N1 * gcont_f.fx;
+			en_f1.fy += p_N.N1 * gcont_f.fy;
+			en_f1.fz += p_N.N1 * gcont_f.fz;
+			ElemNodeForce& en_f2 = elem_node_force[e_id * 4 + 1];
+			en_f2.fx += p_N.N2 * gcont_f.fx;
+			en_f2.fy += p_N.N2 * gcont_f.fy;
+			en_f2.fz += p_N.N2 * gcont_f.fz;
+			ElemNodeForce& en_f3 = elem_node_force[e_id * 4 + 2];
+			en_f3.fx += p_N.N3 * gcont_f.fx;
+			en_f3.fy += p_N.N3 * gcont_f.fy;
+			en_f3.fz += p_N.N3 * gcont_f.fz;
+			ElemNodeForce& en_f4 = elem_node_force[e_id * 4 + 3];
+			en_f4.fx += p_N.N4 * gcont_f.fx;
+			en_f4.fy += p_N.N4 * gcont_f.fy;
+			en_f4.fz += p_N.N4 * gcont_f.fz;
+			// apply contact force to rigid body
+			const Point3D& rc_cen = prmesh->get_pos();
+			rc_cf.add_force(
+				p_x, p_y, p_z,
+				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
+				rc_cen.x, rc_cen.y, rc_cen.z
+			);
+		}
+	}
+	return 0;
+}

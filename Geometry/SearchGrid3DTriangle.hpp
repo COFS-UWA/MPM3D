@@ -48,17 +48,36 @@ public:
 		double xl, double yl, double zl,
 		double hx, double hy, double hz,
 		size_t x_num, size_t y_num, size_t z_num)
-	{ return grid.alloc_grid(xl, yl, zl, hx, hy, hz, x_num, y_num, z_num); }
+	{
+		if (grid.alloc_grid(xl, yl, zl, hx, hy, hz, 
+				x_num, y_num, z_num) < 0)
+			return -1;
+		for (size_t g_id = 0; g_id < grid.num; ++g_id)
+			grid.grids[g_id].ptris = nullptr;
+		return 0;
+	}
 
 	inline int alloc_grid(
 		double xl, double yl, double zl,
 		double xu, double yu, double zu,
 		double hx, double hy, double hz)
-	{ return grid.alloc_grid(xl, yl, zl, xu, yu, zu, hx, hy, hz); }
+	{
+		if (grid.alloc_grid(xl, yl, zl, xu, yu, zu, hx, hy, hz) < 0)
+			return -1;
+		for (size_t g_id = 0; g_id < grid.num; ++g_id)
+			grid.grids[g_id].ptris = nullptr;
+		return 0;
+	}
 
 	template <typename Grid2>
 	inline int alloc_grid(const Grid2 &other)
-	{ return grid.alloc_grid(other); }
+	{
+		if (grid.alloc_grid(other) < 0)
+			return -1;
+		for (size_t g_id = 0; g_id < grid.num; ++g_id)
+			grid.grids[g_id].ptris = nullptr;
+		return 0;
+	}
 	
 	template <typename Node>
 	void apply_triangles(
@@ -67,7 +86,7 @@ public:
 		size_t tri_num
 		) noexcept
 	{
-		tri_pt_buffer.set_page_size(tri_num);
+		tri_pt_buffer.set_page_size(tri_num * 4);
 		for (size_t t_id = 0; t_id < tri_num; ++t_id)
 			add_triangle_to_grids<Node>(tris[t_id], nodes);
 	}
@@ -103,12 +122,12 @@ protected:
 
 		Cube tri_bbox;
 		tri_aabb_collision.get_tri_bbox(tri_bbox);
-		const size_t xl_id = size_t(floor((tri_bbox.xl - grid.xl) / grid.hx));
-		const size_t xu_id = size_t(ceil((tri_bbox.xu - grid.xl) / grid.hx));
-		const size_t yl_id = size_t(floor((tri_bbox.yl - grid.yl) / grid.hy));
-		const size_t yu_id = size_t(ceil((tri_bbox.yu - grid.yl) / grid.hy));
-		const size_t zl_id = size_t(floor((tri_bbox.zl - grid.zl) / grid.hz));
-		const size_t zu_id = size_t(ceil((tri_bbox.zu - grid.zl) / grid.hz));
+		const size_t xl_id = grid.get_x_id(tri_bbox.xl);
+		const size_t xu_id = grid.get_x_id(tri_bbox.xu) + 1;
+		const size_t yl_id = grid.get_y_id(tri_bbox.yl);
+		const size_t yu_id = grid.get_y_id(tri_bbox.yu) + 1;
+		const size_t zl_id = grid.get_z_id(tri_bbox.zl);
+		const size_t zu_id = grid.get_z_id(tri_bbox.zu) + 1;
 		const double grid_box_x_min = grid.xl + double(xl_id) * grid.hx;
 		const double grid_box_y_min = grid.yl + double(yl_id) * grid.hy;
 		Cube grid_box;

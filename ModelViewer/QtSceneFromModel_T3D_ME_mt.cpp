@@ -23,7 +23,8 @@ QtSceneFromModel_T3D_ME_mt::QtSceneFromModel_T3D_ME_mt(
 	display_pts(true), pts_obj(_gl),
 	display_rcy(true), has_rcy(false), rcy_obj(_gl),
 	display_rco(true), has_rco(false), rco_obj(_gl),
-	display_rcu(true), has_rcu(false), rcu_obj(_gl) {}
+	display_rcu(true), has_rcu(false), rcu_obj(_gl),
+	display_rmesh_obj(true), has_rmesh_obj(false), rmesh_obj(_gl) {}
 
 QtSceneFromModel_T3D_ME_mt::~QtSceneFromModel_T3D_ME_mt() {}
 
@@ -238,6 +239,8 @@ void QtSceneFromModel_T3D_ME_mt::draw()
 	if (display_pts)
 		pts_obj.draw(shader_balls);
 
+	shader_rigid_mesh.bind();
+
 	if (display_rcy && has_rcy)
 		rcy_obj.draw(shader_rigid_mesh);
 
@@ -246,6 +249,9 @@ void QtSceneFromModel_T3D_ME_mt::draw()
 
 	if (display_rcu && has_rcu)
 		rcu_obj.draw(shader_rigid_mesh);
+
+	if (display_rmesh_obj && has_rmesh_obj)
+		rmesh_obj.draw(shader_rigid_mesh);
 }
 
 void QtSceneFromModel_T3D_ME_mt::resize(int wd, int ht)
@@ -319,12 +325,19 @@ void QtSceneFromModel_T3D_ME_mt::init_shaders()
 		Cube rcu_bbox = rcu.get_bbox();
 		mh_bbox.envelop(rcu_bbox);
 	}
+	if (model->has_t3d_rigid_mesh())
+	{
+		RigidObjectByT3DMesh &rmesh = model->get_t3d_rigid_mesh();
+		Cube rmesh_bbox;
+		rmesh.get_bbox(rmesh_bbox);
+		mh_bbox.envelop(rmesh_bbox);
+	}
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
 	md_centre.setY(float(mh_bbox.yl + mh_bbox.yu) * 0.5f);
 	md_centre.setZ(float(mh_bbox.zl + mh_bbox.zu) * 0.5f);
-	float dx = mh_bbox.xu - mh_bbox.xl;
-	float dy = mh_bbox.yu - mh_bbox.yl;
-	float dz = mh_bbox.zu - mh_bbox.zl;
+	const float dx = mh_bbox.xu - mh_bbox.xl;
+	const float dy = mh_bbox.yu - mh_bbox.yl;
+	const float dz = mh_bbox.zu - mh_bbox.zl;
 	md_radius = sqrt(dx * dx + dy * dy + dz * dz) * 0.5f;
 
 	update_view_mat();
@@ -383,10 +396,11 @@ void QtSceneFromModel_T3D_ME_mt::init_pts_buffer()
 
 void QtSceneFromModel_T3D_ME_mt::init_rigid_objects_buffer()
 {
+	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+
 	if (model->has_rigid_cylinder())
 	{
-		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
-		RigidCylinder& rcy = model->get_rigid_cylinder();
+		const RigidCylinder& rcy = model->get_rigid_cylinder();
 		const Point3D& cen = rcy.get_centre();
 		rcy_obj.init(cen.x, cen.y, cen.z, rcy.get_h(), rcy.get_r(), navajowhite);
 		has_rcy = true;
@@ -394,8 +408,7 @@ void QtSceneFromModel_T3D_ME_mt::init_rigid_objects_buffer()
 
 	if (model->has_rigid_cone())
 	{
-		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
-		RigidCone& rco = model->get_rigid_cone();
+		const RigidCone& rco = model->get_rigid_cone();
 		const Point3D& cen = rco.get_centre();
 		rco_obj.init(
 			cen.x, cen.y, cen.z,
@@ -408,8 +421,7 @@ void QtSceneFromModel_T3D_ME_mt::init_rigid_objects_buffer()
 
 	if (model->has_rigid_cube())
 	{
-		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
-		RigidCube& rcu = model->get_rigid_cube();
+		const RigidCube& rcu = model->get_rigid_cube();
 		const Point3D& cen = rcu.get_centre();
 		rcu_obj.init(
 			cen.x, cen.y, cen.z,
@@ -418,5 +430,13 @@ void QtSceneFromModel_T3D_ME_mt::init_rigid_objects_buffer()
 			rcu.get_hz(),
 			navajowhite);
 		has_rcu = true;
+	}
+
+	if (model->has_t3d_rigid_mesh())
+	{
+		const RigidObjectByT3DMesh& rmesh = model->get_t3d_rigid_mesh();
+		const Point3D &cen = rmesh.get_pos();
+		rmesh_obj.init_faces(rmesh,	navajowhite);
+		has_rmesh_obj = true;
 	}
 }

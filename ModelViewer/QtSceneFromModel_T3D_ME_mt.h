@@ -10,6 +10,7 @@
 #include "QtRigidCylinderObject.h"
 #include "QtRigidConeObject.h"
 #include "QtRigidCubeObject.h"
+#include "QtRigidObjectByT3DMesh.h"
 #include "QtSceneFromModel.h"
 
 class QtSceneFromModel_T3D_ME_mt :
@@ -31,6 +32,7 @@ protected:
 	bool display_rcy, has_rcy;
 	bool display_rco, has_rco;
 	bool display_rcu, has_rcu;
+	bool display_rmesh_obj, has_rmesh_obj;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 	QtMonoColorBallGLObject pcls_obj;
@@ -38,6 +40,7 @@ protected:
 	QtRigidCylinderObject rcy_obj;
 	QtRigidConeObject rco_obj;
 	QtRigidCubeObject rcu_obj;
+	QtRigidObjectByT3DMesh rmesh_obj;
 
 	// camera info
 	GLfloat fov_angle;

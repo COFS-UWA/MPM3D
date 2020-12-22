@@ -62,7 +62,7 @@ inline void get_3Dtriangle_bounding_box(
 	const Point3D& n1,
 	const Point3D& n2,
 	const Point3D& n3,
-	Cube bbox)
+	Cube &bbox)
 {
 	bbox.xl = n1.x;
 	if (bbox.xl > n2.x)
@@ -471,9 +471,9 @@ public:
 	inline const Point3D& get_n3() const noexcept { return n3; }
 };
 
+// Triangle must not be deteriorated
 struct PointToTriangleDistance
 {
-protected:
 	Point3D n1, n2, n3;
 	union
 	{
@@ -492,7 +492,6 @@ protected:
 	};
 	double a1, a2, a3;
 
-public:
 	inline PointToTriangleDistance() {}
 	~PointToTriangleDistance() {}
 

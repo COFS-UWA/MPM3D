@@ -51,7 +51,7 @@ void test_RigidTetrahedronMesh_display(int argc, char** argv)
 	view_app.set_view_dir(0.0, 0.0);
 	view_app.set_view_dist_scale(2.0f);
 	view_app.set_light_dir(20.0, 20.0);
-	view_app.set_rb_display_mode(QtRigidTetrahedronMeshGLObject::LineFrame);
+	view_app.set_rb_display_mode(QtRigidTetrahedronMeshGLObject::DisplayMode::LineFrame);
 	view_app.set_model(model);
 	view_app.start();
 }

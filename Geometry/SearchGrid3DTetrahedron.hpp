@@ -49,21 +49,41 @@ public:
 	inline int alloc_grid(double xl, double yl, double zl,
 		double hx, double hy, double hz,
 		size_t x_num, size_t y_num, size_t z_num)
-	{ return grid.alloc_grid(xl, yl, zl, hx, hy, hz, x_num, y_num, z_num); }
+	{
+		if (grid.alloc_grid(xl, yl, zl, hx, hy, hz,
+				x_num, y_num, z_num) < 0)
+			return -1;
+		for (size_t g_id = 0; g_id < grid.num; ++g_id)
+			grid.grids[g_id].ptehs = nullptr;
+		return 0;
+	}
 
 	inline int alloc_grid(double xl, double yl, double zl,
 		double xu, double yu, double zu,
 		double hx, double hy, double hz)
-	{ return grid.alloc_grid(xl, yl, zl, xu, yu, zu, hx, hy, hz); }
+	{
+		if (grid.alloc_grid(xl, yl, zl, xu, yu, zu,
+				hx, hy, hz) < 0)
+			return -1;
+		for (size_t g_id = 0; g_id < grid.num; ++g_id)
+			grid.grids[g_id].ptehs = nullptr;
+		return 0;
+	}
 
 	template <typename Grid2>
 	inline int alloc_grid(const Grid2 &other)
-	{ return grid.alloc_grid(other); }
+	{
+		if (grid.alloc_grid(other) < 0)
+			return -1;
+		for (size_t g_id = 0; g_id < grid.num; ++g_id)
+			grid.grids[g_id].ptehs = nullptr;
+		return 0;
+	}
 
 	template <typename Node>
 	void apply_tetrahedrons(const Node *nodes, const Teh *tehs, size_t teh_num)
 	{
-		size_t buf_size = teh_num / 16;
+		size_t buf_size = teh_num * 8;
 		if (buf_size < 16) buf_size = 16;
 		teh_pt_buffer.set_page_size(buf_size);
 		for (size_t t_id = 0; t_id < teh_num; ++t_id)
@@ -99,12 +119,12 @@ protected:
 
 		Cube teh_bbox;
 		teh_aabb_collision.get_teh_bbox(teh_bbox);
-		const size_t xl_id = size_t(floor((teh_bbox.xl - grid.xl) / grid.hx));
-		const size_t xu_id = size_t(ceil((teh_bbox.xu - grid.xl) / grid.hx));
-		const size_t yl_id = size_t(floor((teh_bbox.yl - grid.yl) / grid.hy));
-		const size_t yu_id = size_t(ceil((teh_bbox.yu - grid.yl) / grid.hy));
-		const size_t zl_id = size_t(floor((teh_bbox.zl - grid.zl) / grid.hz));
-		const size_t zu_id = size_t(ceil((teh_bbox.zu - grid.zl) / grid.hz));
+		const size_t xl_id = grid.get_x_id(teh_bbox.xl);
+		const size_t xu_id = grid.get_x_id(teh_bbox.xu) + 1;
+		const size_t yl_id = grid.get_y_id(teh_bbox.yl);
+		const size_t yu_id = grid.get_y_id(teh_bbox.yu) + 1; 
+		const size_t zl_id = grid.get_z_id(teh_bbox.zl);
+		const size_t zu_id = grid.get_z_id(teh_bbox.zu) + 1;
 		const double grid_box_x_min = grid.xl + double(xl_id) * grid.hx;
 		const double grid_box_y_min = grid.yl + double(yl_id) * grid.hy;
 		Cube grid_box;

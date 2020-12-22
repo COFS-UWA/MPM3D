@@ -123,6 +123,7 @@ add_library(
     QtMonoColorBallGLObject.h QtMonoColorBallGLObject.cpp
     QtMultiColorBallGLObject.h QtMultiColorBallGLObject.cpp
     QtRigidTetrahedronMeshGLObject.h QtRigidTetrahedronMeshGLObject.cpp
+    QtRigidObjectByT3DMesh.h QtRigidObjectByT3DMesh.cpp
     # Model_T3D_ME_s
     # prep process module
     QtSceneFromModel_T3D_ME_s.h QtSceneFromModel_T3D_ME_s.cpp

@@ -22,7 +22,7 @@ QtSceneFromModel_T3D_ME_s::QtSceneFromModel_T3D_ME_s(
 	display_pcls(true), pcls_obj(_gl),
 	display_pts(true), pts_obj(_gl),
 	has_rb(false), display_rb(true), rb_obj(_gl),
-	rb_mode(QtRigidTetrahedronMeshGLObject::Surface) {}
+	rb_mode(QtRigidTetrahedronMeshGLObject::DisplayMode::Surface) {}
 
 QtSceneFromModel_T3D_ME_s::~QtSceneFromModel_T3D_ME_s() {}
 
@@ -231,9 +231,9 @@ int QtSceneFromModel_T3D_ME_s::initialize(int wd, int ht)
 	if (model->has_rb())
 	{
 		QVector3D navajowhite(1.0f, 0.871f, 0.678f);
-		if (rb_mode == QtRigidTetrahedronMeshGLObject::Surface)
+		if (rb_mode == QtRigidTetrahedronMeshGLObject::DisplayMode::Surface)
 			rb_obj.init_faces(model->get_rb(), navajowhite);
-		else if (rb_mode = QtRigidTetrahedronMeshGLObject::LineFrame)
+		else if (rb_mode == QtRigidTetrahedronMeshGLObject::DisplayMode::LineFrame)
 			rb_obj.init_line_frame(model->get_rb(), navajowhite);
 		has_rb = true;
 	}

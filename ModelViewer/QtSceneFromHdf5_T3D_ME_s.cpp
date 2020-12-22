@@ -26,7 +26,7 @@ QtSceneFromHdf5_T3D_ME_s::QtSceneFromHdf5_T3D_ME_s(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	display_rb(true), has_rb(false), rb_obj(_gl),
-	rb_mode(QtRigidTetrahedronMeshGLObject::Surface),
+	rb_mode(QtRigidTetrahedronMeshGLObject::DisplayMode::Surface),
 	rb_node_num(0), rb_node_data(nullptr),
 	rb_elem_num(0), rb_elem_data(nullptr),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0)
@@ -328,7 +328,7 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		// init rb opengl buffer
 		Point3D rb_cen(rb_x, rb_y, rb_z);
 		Vector3D rb_ang(rb_x_ang, rb_y_ang, rb_z_ang);
-		if (rb_mode == QtRigidTetrahedronMeshGLObject::Surface)
+		if (rb_mode == QtRigidTetrahedronMeshGLObject::DisplayMode::Surface)
 		{
 			rb_obj.init_faces(
 				rb_node_data,
@@ -340,7 +340,7 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 				navajowhite
 				);
 		}
-		else if (rb_mode == QtRigidTetrahedronMeshGLObject::LineFrame)
+		else if (rb_mode == QtRigidTetrahedronMeshGLObject::DisplayMode::LineFrame)
 		{
 			rb_obj.init_line_frame(
 				rb_node_data,

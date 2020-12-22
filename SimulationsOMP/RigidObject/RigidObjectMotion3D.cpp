@@ -31,19 +31,12 @@ void RigidObjectMotion3D::init(
 	double _moi_data[6]
 	)
 {
-	x_ori = _x;
-	y_ori = _y;
-	z_ori = _z;
-	x = _x;
-	y = _y;
-	z = _z;
+	x_ori = _x;	y_ori = _y;	z_ori = _z;
+	x = _x; y = _y;	z = _z;
 	m = _m;
-	moi[0] = _moi_data[0];
-	moi[1] = _moi_data[1];
-	moi[2] = _moi_data[2];
-	moi[3] = _moi_data[3];
-	moi[4] = _moi_data[4];
-	moi[5] = _moi_data[5];
+	moi[0] = _moi_data[0];	moi[1] = _moi_data[1];
+	moi[2] = _moi_data[2];	moi[3] = _moi_data[3];
+	moi[4] = _moi_data[4];	moi[5] = _moi_data[5];
 
 	Eigen::Matrix3d moi_mat;
 	moi_mat << moi[0], moi[3], moi[5],
@@ -60,6 +53,7 @@ void RigidObjectMotion3D::init(
 }
 
 void RigidObjectMotion3D::set_angle(
+	// in radius
 	double _x_ang,
 	double _y_ang,
 	double _z_ang

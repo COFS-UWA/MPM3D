@@ -1,6 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <float.h>
+#include <iostream>
 
 #include "SearchGrid3DTetrahedron.hpp"
 #include "ExtractSurfaceFromT3DMesh.h"
@@ -27,8 +28,10 @@ int RigidMeshT3D::init_from_mesh(
 	clear();
 
 	const Cube& mh_bbox = tmesh.get_bounding_box();
-	grid.alloc_grid(mh_bbox.xl, mh_bbox.yl, mh_bbox.zl,
-		mh_bbox.xu, mh_bbox.yu, mh_bbox.zu, ghx, ghy, ghz);
+	grid.alloc_grid(
+		mh_bbox.xl, mh_bbox.yl, mh_bbox.zl,
+		mh_bbox.xu, mh_bbox.yu, mh_bbox.zu,
+		ghx, ghy, ghz, 0.01);
 	grid_xu_min_hx = grid.xu - grid.hx;
 	grid_yu_min_hy = grid.yu - grid.hy;
 	grid_zu_min_hz = grid.zu - grid.hz;
@@ -52,6 +55,10 @@ int RigidMeshT3D::init_from_mesh(
 		auto& g = teh_grids[g_id];
 		if (g.ptehs)
 			grid_pos_type[g_id] = GridPosType::Inside;
+		//std::cout << g_id << ", ";
+		//for (auto pts = g.ptehs; pts; pts = pts->next)
+		//	std::cout << pts->pteh - tmesh.get_elems() << ", ";
+		//std::cout << "\n";
 	}
 	teh_grid.clear(); // release memory
 
@@ -59,17 +66,15 @@ int RigidMeshT3D::init_from_mesh(
 	ExtractSurfaceFromT3DMesh surf_extractor;
 	surf_extractor.init_from_tetrahedron(
 		tmesh.get_elems(), tmesh.get_elem_num());
-	const size_t face_num = surf_extractor.get_face_num();
+	face_num = surf_extractor.get_face_num();
 	const ExtractSurfaceFromT3DMesh::Face* faces = surf_extractor.get_faces();
 	const TetrahedronMesh::Node* nodes = tmesh.get_nodes();
 	pt_tri_dist = new PointToTriangleDistance[face_num];
 	for (size_t f_id = 0; f_id < face_num; ++f_id)
 	{
 		const ExtractSurfaceFromT3DMesh::Face& f = faces[f_id];
-		auto& n1 = nodes[f.n1];
-		auto& n2 = nodes[f.n2];
-		auto& n3 = nodes[f.n3];
-		pt_tri_dist[f_id].init_triangle(n1, n2, n3);
+		pt_tri_dist[f_id].init_triangle(nodes[f.n1], nodes[f.n2], nodes[f.n3]);
+		//std::cout << f_id << ": " << f.n1 << ", " << f.n2 << ", " << f.n3 << "\n";
 	}
 
 	// apply boundary surface
@@ -86,18 +91,20 @@ int RigidMeshT3D::init_from_mesh(
 	size_t surf_num = 0;
 	for (size_t g_id = 0; g_id < grid.num; ++g_id)
 	{
-		auto &g = surf_grids[g_id];
-		for (auto *ptri = g.ptris; ptri; ptri = ptri->next)
+		const auto &g = surf_grids[g_id];
+		if (g.ptris)
+			grid_pos_type[g_id] = GridPosType::AtBoundary;
+		for (auto* ptri = g.ptris; ptri; ptri = ptri->next)
 			++surf_num;
 		face_in_grid_range[g_id + 1] = surf_num;
 	}
+	face_in_grid_list_len = surf_num;
 	face_in_grid_list = new size_t[surf_num];
 	surf_num = 0;
-	size_t gf_start_id;
 	for (size_t g_id = 0; g_id < grid.num; ++g_id)
 	{
-		gf_start_id = surf_num;
-		auto& g = surf_grids[g_id];
+		const size_t gf_start_id = surf_num;
+		const auto& g = surf_grids[g_id];
 		for (auto* ptri = g.ptris; ptri; ptri = ptri->next)
 		{
 			face_in_grid_list[surf_num] = surf_extractor.get_face_id(*(ptri->ptri));
@@ -106,6 +113,10 @@ int RigidMeshT3D::init_from_mesh(
 		SimulationsOMP::swap_sort_acc<size_t>(
 			face_in_grid_list + gf_start_id,
 			surf_num - gf_start_id);
+		//std::cout << g_id << ": ";
+		//for (size_t f_id = gf_start_id; f_id < surf_num; f_id++)
+		//	std::cout << face_in_grid_list[f_id] << ", ";
+		//std::cout << "\n";
 	}
 	surf_grid.clear(); // release memory
 	surf_extractor.clear();
@@ -113,12 +124,12 @@ int RigidMeshT3D::init_from_mesh(
 	return 0;
 }
 
-void RigidMeshT3D::init_max_dist(double _dist)
+void RigidMeshT3D::init_max_dist(double _dist) noexcept
 {
 	GridPosType* cur_g_pos;
-	size_t gn_x_num = grid.x_num + 1;
-	size_t gn_y_num = grid.y_num + 1;
-	size_t gn_z_num = grid.z_num + 1;
+	const size_t gn_x_num = grid.x_num + 1;
+	const size_t gn_y_num = grid.y_num + 1;
+	const size_t gn_z_num = grid.z_num + 1;
 	
 	if (max_dist != DBL_MAX)
 	{
@@ -135,11 +146,10 @@ void RigidMeshT3D::init_max_dist(double _dist)
 
 	max_dist = _dist;
 
-	size_t gn_xy_num = grid.x_num * grid.y_num;
+	const size_t gn_xy_num = gn_x_num * gn_y_num;
 	double *gns = new double[gn_xy_num * gn_z_num];
 	double *cur_gn = gns;
-	double gn_r;
-	gn_r = grid.hx < grid.hy ? grid.hx : grid.hy;
+	double gn_r = grid.hx < grid.hy ? grid.hx : grid.hy;
 	gn_r = gn_r < grid.hz ? gn_r : grid.hz;
 	gn_r *= 0.5;
 	Vector3D norm;
@@ -162,20 +172,20 @@ void RigidMeshT3D::init_max_dist(double _dist)
 		gn_pt.z += grid.hz;
 	}
 	
-	cur_gn = gns;
 	cur_g_pos = grid_pos_type;
 	for (size_t z_id = 0; z_id < grid.z_num; ++z_id)
 		for (size_t y_id = 0; y_id < grid.y_num; ++y_id)
 			for (size_t x_id = 0; x_id < grid.x_num; ++x_id)
 			{
-				double n1_dist = *cur_gn;
-				double n2_dist = *(cur_gn + 1);
-				double n3_dist = *(cur_gn + gn_x_num);
-				double n4_dist = *(cur_gn + gn_x_num + 1);
-				double n5_dist = *(cur_gn + gn_xy_num);
-				double n6_dist = *(cur_gn + gn_xy_num + 1);
-				double n7_dist = *(cur_gn + gn_xy_num + gn_x_num);
-				double n8_dist = *(cur_gn + gn_xy_num + gn_x_num + 1);
+				cur_gn = gns + (z_id * gn_xy_num + y_id * gn_x_num + x_id);
+				const double n1_dist = *cur_gn;
+				const double n2_dist = *(cur_gn + 1);
+				const double n3_dist = *(cur_gn + gn_x_num);
+				const double n4_dist = *(cur_gn + gn_x_num + 1);
+				const double n5_dist = *(cur_gn + gn_xy_num);
+				const double n6_dist = *(cur_gn + gn_xy_num + 1);
+				const double n7_dist = *(cur_gn + gn_xy_num + gn_x_num);
+				const double n8_dist = *(cur_gn + gn_xy_num + gn_x_num + 1);
 				if (n1_dist <= -max_dist && n2_dist <= -max_dist &&
 					n3_dist <= -max_dist && n4_dist <= -max_dist &&
 					n5_dist <= -max_dist && n6_dist <= -max_dist &&
@@ -186,7 +196,6 @@ void RigidMeshT3D::init_max_dist(double _dist)
 					n5_dist >= max_dist && n6_dist >= max_dist &&
 					n7_dist >= max_dist && n8_dist >= max_dist)
 					*cur_g_pos = GridPosType::FarInside;
-				++cur_gn;
 				++cur_g_pos;
 			}
 

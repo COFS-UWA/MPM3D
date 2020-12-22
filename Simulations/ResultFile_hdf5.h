@@ -21,56 +21,66 @@ public:
 	int open(const char *file_name, bool read_only = true);
 	void close();
 	inline hid_t get_file_id() noexcept { return file_id; }
-	inline bool is_open() { return file_id >= 0 ? true : false; }
+	inline bool is_open() const noexcept { return file_id >= 0 ? true : false; }
 
 	// group
-	hid_t create_group(hid_t parent_id, const char *name);
-	hid_t open_group(hid_t parent_id, const char *name);
-	void close_group(hid_t id);
-	bool has_group(hid_t parent_id, const char *name);
+	hid_t create_group(const hid_t parent_id, const char *name);
+	hid_t open_group(const hid_t parent_id, const char *name);
+	void close_group(const hid_t id);
+	bool has_group(const hid_t parent_id, const char *name);
 
 	// dataset
-	hid_t open_dataset(hid_t parent_id, const char *name);
-	void close_dataset(hid_t id);
-	bool has_dataset(hid_t parent_id, const char *name);
+	hid_t open_dataset(const hid_t parent_id, const char *name);
+	void close_dataset(const hid_t id);
+	bool has_dataset(const hid_t parent_id, const char *name);
 
-	int write_dataset(hid_t grp_id, const char *dset_name, 
-					  size_t num, double *data);
-	int write_dataset(hid_t grp_id, const char* dset_name,
-					  size_t num, unsigned long long *data);
-	int write_dataset(hid_t grp_id, const char* dset_name,
-		size_t num, void* data, hid_t datatype_id);
-	int write_dataset(hid_t grp_id, const char *dset_name,
-		size_t row_num, size_t col_num, double *data);
-	int write_dataset(hid_t grp_id, const char *dset_name,
-		size_t row_num,	size_t col_num, unsigned long long *data);
+	int write_dataset(const hid_t grp_id, const char* dset_name,
+					  const size_t num, const unsigned char* data);
+	int write_dataset(const hid_t grp_id, const char *dset_name,
+					  const size_t num, const double *data);
+	int write_dataset(const hid_t grp_id, const char* dset_name,
+					  const size_t num, const unsigned long long *data);
+	int write_dataset(const hid_t grp_id, const char* dset_name,
+		const size_t num, const void* data, const hid_t datatype_id);
+	int write_dataset(const hid_t grp_id, const char *dset_name,
+		const size_t row_num, const size_t col_num, const double *data);
+	int write_dataset(const hid_t grp_id, const char *dset_name,
+		const size_t row_num, const size_t col_num, const unsigned long long *data);
+	int write_dataset(const hid_t grp_id, const char* dset_name,
+		const size_t row_num, const size_t col_num, const unsigned char *data);
 
-	int read_dataset(hid_t grp_id, const char *dset_name,
-					 size_t num, double *data);
-	int read_dataset(hid_t grp_id, const char* dset_name,
-					 size_t num, unsigned long long *data);
-	int read_dataset(hid_t grp_id, const char* dset_name,
-		size_t num, void* data, hid_t datatype_id);
-	int read_dataset(hid_t grp_id, const char *dset_name,
-		size_t row_num, size_t col_num, double *data);
-	int read_dataset(hid_t grp_id, const char *dset_name,
-		size_t row_num, size_t col_num, unsigned long long *data);
+	int read_dataset(const hid_t grp_id, const char *dset_name,
+		const size_t num, double *data);
+	int read_dataset(const hid_t grp_id, const char* dset_name,
+		const size_t num, unsigned long long *data);
+	int read_dataset(const hid_t grp_id, const char* dset_name,
+		const size_t num, unsigned char *data);
+	int read_dataset(const hid_t grp_id, const char* dset_name,
+		const size_t num, void* data, const hid_t datatype_id);
+	int read_dataset(const hid_t grp_id, const char *dset_name,
+		const size_t row_num, const size_t col_num, double *data);
+	int read_dataset(const hid_t grp_id, const char *dset_name,
+		const size_t row_num, const size_t col_num, unsigned long long *data);
+	int read_dataset(const hid_t grp_id, const char* dset_name,
+		const size_t row_num, const size_t col_num, unsigned char* data);
 
 	// attributes
 	// whether exists
-	bool has_attribute(hid_t grp_id, const char* name);
+	bool has_attribute(const hid_t grp_id, const char *name);
 	// write
-	int write_attribute(hid_t grp_id, const char *name, double value);
-	int write_attribute(hid_t grp_id, const char* name, float value);
-	int write_attribute(hid_t grp_id, const char *name, size_t value);
-	int write_attribute(hid_t grp_id, const char* name, uint32_t value);
-	int write_attribute(hid_t grp_id, const char *name, size_t num, const char *str);
+	int write_attribute(const hid_t grp_id, const char* name, const unsigned int value);
+	int write_attribute(const hid_t grp_id, const char* name, const float value);
+	int write_attribute(const hid_t grp_id, const char* name, const double value);
+	int write_attribute(const hid_t grp_id, const char *name, const unsigned long long value);
+	int write_attribute(const hid_t grp_id, const char *name, const size_t num, const char *str);
+	int write_attribute(const hid_t grp_id, const char* name, const size_t num, const double *num_array);
 	// read
-	int read_attribute(hid_t grp_id, const char *name, double &value);
-	int read_attribute(hid_t grp_id, const char* name, float &value);
-	int read_attribute(hid_t grp_id, const char *name, size_t &value);
-	int read_attribute(hid_t grp_id, const char* name, uint32_t &value);
-	int read_attribute(hid_t grp_id, const char *name, size_t num, const char *str);
+	int read_attribute(const hid_t grp_id, const char* name, unsigned int& value);
+	int read_attribute(const hid_t grp_id, const char* name, float& value);
+	int read_attribute(const hid_t grp_id, const char* name, unsigned long long& value);
+	int read_attribute(const hid_t grp_id, const char *name, double &value);
+	int read_attribute(const hid_t grp_id, const char *name, const size_t num, char *str);
+	int read_attribute(const hid_t grp_id, const char* name, const size_t num, double *num_array);
 
 	// model data group
 	hid_t get_model_data_grp_id();

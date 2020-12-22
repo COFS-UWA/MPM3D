@@ -99,21 +99,26 @@ protected:
 		Force3D force_contact;
 	};
 
-	double m;
-	double moi[6], inv_moi[6];
+	double m, moi[6], inv_moi[6];
 
 	union
 	{
 		struct { Vector3D ix, iy, iz; };
 		double T_mat[3][3];
+		double T_mat_data[9];
 	};
 
 public:
-	explicit RigidObjectMotion3D();
+	RigidObjectMotion3D();
 	~RigidObjectMotion3D();
 
 	inline double get_m() const noexcept { return m; }
 	inline const double *get_moi() const noexcept { return moi; }
+	inline const double *get_inv_moi() const noexcept { return inv_moi; }
+	inline const double *get_T_mat() const noexcept { return T_mat_data; }
+	inline const Vector3D& get_ix() const noexcept { return ix; }
+	inline const Vector3D& get_iy() const noexcept { return iy; }
+	inline const Vector3D& get_iz() const noexcept { return iz; }
 	inline double get_ax() const noexcept { return ax; }
 	inline double get_ay() const noexcept { return ay; }
 	inline double get_az() const noexcept { return az; }
@@ -133,8 +138,8 @@ public:
 	inline double get_x() const noexcept { return x; }
 	inline double get_y() const noexcept { return y; }
 	inline double get_z() const noexcept { return z; }
-	inline Vector3D get_pos() const noexcept
-	{ return Vector3D(x_ori + ux, y_ori + uy, z_ori + uz); }
+	inline Point3D get_pos() const noexcept
+	{ return Point3D(x_ori + ux, y_ori + uy, z_ori + uz); }
 	inline double get_x_ang() const noexcept { return x_ang; }
 	inline double get_y_ang() const noexcept { return y_ang; }
 	inline double get_z_ang() const noexcept { return z_ang; }
@@ -285,7 +290,7 @@ public:
 	{ vector_from_local_to_global_coordinate<Vector3D, Vector3D>(ix, iy, iz, lv, gv); }
 
 	void init(double _x, double _y, double _z, double _m, double _moi_data[6]);
-	void set_angle(double _x_ang, double _y_ang, double _z_ang);
+	void set_angle(double _x_ang, double _y_ang, double _z_ang); // in radius
 	
 	void set_translation_velocity_bc(double _vx, double _vy, double _vz);
 };

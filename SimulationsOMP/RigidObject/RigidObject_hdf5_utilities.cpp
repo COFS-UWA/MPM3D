@@ -215,4 +215,290 @@ namespace RigidObject_hdf5_utilities
 		rc.set_ext_force(fx_ext, fy_ext, fz_ext, mx_ext, my_ext, mz_ext);
 		return 0;
 	}
+
+	int output_rigid_object_by_3dmesh_to_hdf5_file(
+		RigidObjectByT3DMesh& rb,
+		ResultFile_hdf5& rf,
+		hid_t rb_grp_id
+		)
+	{
+		if (rb_grp_id < 0)
+			return -1;
+		
+		rf.write_attribute(rb_grp_id, "density", rb.get_density());
+
+		// rigid object motion
+		rf.write_attribute(rb_grp_id, "m", rb.get_m());
+		rf.write_attribute(rb_grp_id, "moi", 6, rb.get_moi());
+		rf.write_attribute(rb_grp_id, "inv_moi", 6, rb.get_inv_moi());
+		rf.write_attribute(rb_grp_id, "T_mat", 9, rb.get_T_mat());
+		const Vector3D& a = rb.get_a();
+		rf.write_attribute(rb_grp_id, "ax", a.x);
+		rf.write_attribute(rb_grp_id, "ay", a.y);
+		rf.write_attribute(rb_grp_id, "az", a.z);
+		const Vector3D& a_ang = rb.get_a_ang();
+		rf.write_attribute(rb_grp_id, "ax_ang", a_ang.x);
+		rf.write_attribute(rb_grp_id, "ay_ang", a_ang.y);
+		rf.write_attribute(rb_grp_id, "az_ang", a_ang.z);
+		const Vector3D& v = rb.get_v();
+		rf.write_attribute(rb_grp_id, "vx", v.x);
+		rf.write_attribute(rb_grp_id, "vy", v.y);
+		rf.write_attribute(rb_grp_id, "vz", v.z);
+		const Vector3D& v_ang = rb.get_v_ang();
+		rf.write_attribute(rb_grp_id, "vx_ang", v_ang.x);
+		rf.write_attribute(rb_grp_id, "vy_ang", v_ang.y);
+		rf.write_attribute(rb_grp_id, "vz_ang", v_ang.z);
+		const Point3D &pos = rb.get_pos();
+		rf.write_attribute(rb_grp_id, "x", pos.x);
+		rf.write_attribute(rb_grp_id, "y", pos.y);
+		rf.write_attribute(rb_grp_id, "z", pos.z);
+		const Vector3D& pos_ang = rb.get_pos_ang();
+		rf.write_attribute(rb_grp_id, "x_ang", pos_ang.x);
+		rf.write_attribute(rb_grp_id, "y_ang", pos_ang.y);
+		rf.write_attribute(rb_grp_id, "z_ang", pos_ang.z);
+		const Force3D& cf = rb.get_force_contact();
+		rf.write_attribute(rb_grp_id, "fx_cont", cf.fx);
+		rf.write_attribute(rb_grp_id, "fy_cont", cf.fy);
+		rf.write_attribute(rb_grp_id, "fz_cont", cf.fz);
+		rf.write_attribute(rb_grp_id, "mx_cont", cf.mx);
+		rf.write_attribute(rb_grp_id, "my_cont", cf.my);
+		rf.write_attribute(rb_grp_id, "mz_cont", cf.mz);
+		const Force3D& ef = rb.get_force_ext();
+		rf.write_attribute(rb_grp_id, "fx_ext", ef.fx);
+		rf.write_attribute(rb_grp_id, "fy_ext", ef.fy);
+		rf.write_attribute(rb_grp_id, "fz_ext", ef.fz);
+		rf.write_attribute(rb_grp_id, "mx_ext", ef.mx);
+		rf.write_attribute(rb_grp_id, "my_ext", ef.my);
+		rf.write_attribute(rb_grp_id, "mz_ext", ef.mz);
+		if (rb.has_ax_bc())
+			rf.write_attribute(rb_grp_id, "ax_bc", rb.get_ax_bc());
+		if (rb.has_ay_bc())
+			rf.write_attribute(rb_grp_id, "ay_bc", rb.get_ay_bc());
+		if (rb.has_az_bc())
+			rf.write_attribute(rb_grp_id, "az_bc", rb.get_az_bc());
+		if (rb.has_ax_ang_bc())
+			rf.write_attribute(rb_grp_id, "ax_ang_bc", rb.get_ax_ang_bc());
+		if (rb.has_ay_ang_bc())
+			rf.write_attribute(rb_grp_id, "ay_ang_bc", rb.get_ay_ang_bc());
+		if (rb.has_az_ang_bc())
+			rf.write_attribute(rb_grp_id, "az_ang_bc", rb.get_az_ang_bc());
+		if (rb.has_vx_bc())
+			rf.write_attribute(rb_grp_id, "vx_bc", rb.get_vx_bc());
+		if (rb.has_vy_bc())
+			rf.write_attribute(rb_grp_id, "vy_bc", rb.get_vy_bc());
+		if (rb.has_vz_bc())
+			rf.write_attribute(rb_grp_id, "vz_bc", rb.get_vz_bc());
+		if (rb.has_vx_ang_bc())
+			rf.write_attribute(rb_grp_id, "vx_ang_bc", rb.get_vx_ang_bc());
+		if (rb.has_vy_ang_bc())
+			rf.write_attribute(rb_grp_id, "vy_ang_bc", rb.get_vy_ang_bc());
+		if (rb.has_vz_ang_bc())
+			rf.write_attribute(rb_grp_id, "vz_ang_bc", rb.get_vz_ang_bc());
+
+		// rigid mesh
+		rf.write_attribute(rb_grp_id, "grid_xl", rb.get_grid_xl());
+		rf.write_attribute(rb_grp_id, "grid_yl", rb.get_grid_yl());
+		rf.write_attribute(rb_grp_id, "grid_zl", rb.get_grid_zl());
+		rf.write_attribute(rb_grp_id, "grid_hx", rb.get_grid_hx());
+		rf.write_attribute(rb_grp_id, "grid_hy", rb.get_grid_hy());
+		rf.write_attribute(rb_grp_id, "grid_hz", rb.get_grid_hz());
+		rf.write_attribute(rb_grp_id, "grid_x_num", rb.get_grid_x_num());
+		rf.write_attribute(rb_grp_id, "grid_y_num", rb.get_grid_y_num());
+		rf.write_attribute(rb_grp_id, "grid_z_num", rb.get_grid_z_num());
+		rf.write_attribute(rb_grp_id, "face_grid_list_len", rb.get_face_in_grid_list_len());
+		rf.write_attribute(rb_grp_id, "face_num", rb.get_face_num());
+
+		rf.write_dataset(rb_grp_id,
+			"grid_pos_type",
+			rb.get_grid_num(),
+			(const unsigned char *)rb.get_grid_pos_type());
+		rf.write_dataset(rb_grp_id,
+			"face_in_grid_range",
+			rb.get_grid_num() + 1,
+			(unsigned long long*)rb.get_face_in_grid_range());
+		rf.write_dataset(rb_grp_id,
+			"face_in_grid_list",
+			rb.get_face_in_grid_list_len(),
+			(unsigned long long*)rb.get_face_in_grid_list());
+		
+		hid_t pt2tri_dt = get_pt_to_tri_dist_dt_id();
+		rf.write_dataset(rb_grp_id,
+			"pt_tri_dist",
+			rb.get_face_num(),
+			rb.get_pt_tri_dist(),
+			pt2tri_dt
+			);
+		H5Tclose(pt2tri_dt);
+
+		return 0;
+	}
+
+	int load_rigid_object_by_3dmesh_from_hdf5_file(RigidObjectByT3DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id)
+	{
+		// rigid object motion
+		double density, m, moi[6], inv_moi[6], T_mat[9];
+		rf.read_attribute(rb_grp_id, "density", density);
+		rf.read_attribute(rb_grp_id, "m", m);
+		rf.read_attribute(rb_grp_id, "moi", 6, moi);
+		rf.read_attribute(rb_grp_id, "inv_moi", 6, inv_moi);
+		rf.read_attribute(rb_grp_id, "T_mat", 9, T_mat);
+
+		Vector3D acc, acc_ang;
+		rf.read_attribute(rb_grp_id, "ax", acc.x);
+		rf.read_attribute(rb_grp_id, "ay", acc.y);
+		rf.read_attribute(rb_grp_id, "az", acc.z);
+		rf.read_attribute(rb_grp_id, "ax_ang", acc_ang.x);
+		rf.read_attribute(rb_grp_id, "ay_ang", acc_ang.y);
+		rf.read_attribute(rb_grp_id, "az_ang", acc_ang.z);
+		Vector3D vec, vec_ang;
+		rf.read_attribute(rb_grp_id, "vx", vec.x);
+		rf.read_attribute(rb_grp_id, "vy", vec.y);
+		rf.read_attribute(rb_grp_id, "vz", vec.z);
+		rf.read_attribute(rb_grp_id, "vx_ang", vec_ang.x);
+		rf.read_attribute(rb_grp_id, "vy_ang", vec_ang.y);
+		rf.read_attribute(rb_grp_id, "vz_ang", vec_ang.z);
+		Point3D pos;
+		Vector3D pos_ang;
+		rf.read_attribute(rb_grp_id, "x", pos.x);
+		rf.read_attribute(rb_grp_id, "y", pos.y);
+		rf.read_attribute(rb_grp_id, "z", pos.z);
+		rf.read_attribute(rb_grp_id, "x_ang", pos_ang.x);
+		rf.read_attribute(rb_grp_id, "y_ang", pos_ang.y);
+		rf.read_attribute(rb_grp_id, "z_ang", pos_ang.z);
+		Force3D force_cont, force_ext;
+		rf.read_attribute(rb_grp_id, "fx_cont", force_cont.fx);
+		rf.read_attribute(rb_grp_id, "fy_cont", force_cont.fy);
+		rf.read_attribute(rb_grp_id, "fz_cont", force_cont.fz);
+		rf.read_attribute(rb_grp_id, "mx_cont", force_cont.mx);
+		rf.read_attribute(rb_grp_id, "my_cont", force_cont.my);
+		rf.read_attribute(rb_grp_id, "mz_cont", force_cont.mz);
+		rf.read_attribute(rb_grp_id, "fx_ext", force_ext.fx);
+		rf.read_attribute(rb_grp_id, "fy_ext", force_ext.fy);
+		rf.read_attribute(rb_grp_id, "fz_ext", force_ext.fz);
+		rf.read_attribute(rb_grp_id, "mx_ext", force_ext.mx);
+		rf.read_attribute(rb_grp_id, "my_ext", force_ext.my);
+		rf.read_attribute(rb_grp_id, "mz_ext", force_ext.mz);
+		double bc_value;
+		if (rf.has_attribute(rb_grp_id, "ax_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "ax_bc", bc_value);
+			rb.set_ax_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "ay_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "ay_bc", bc_value);
+			rb.set_ay_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "az_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "az_bc", bc_value);
+			rb.set_az_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "ax_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "ax_ang_bc", bc_value);
+			rb.set_ax_ang_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "ay_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "ay_ang_bc", bc_value);
+			rb.set_ay_ang_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "az_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "az_ang_bc", bc_value);
+			rb.set_az_ang_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vx_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vx_bc", bc_value);
+			rb.set_vx_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vy_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vy_bc", bc_value);
+			rb.set_vy_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vz_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vz_bc", bc_value);
+			rb.set_vz_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vx_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vx_ang_bc", bc_value);
+			rb.set_vx_ang_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vy_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vy_ang_bc", bc_value);
+			rb.set_vy_ang_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vz_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vz_ang_bc", bc_value);
+			rb.set_vz_ang_bc(bc_value);
+		}
+
+		// rigid mesh
+		double grid_xl, grid_yl, grid_zl;
+		double grid_xu, grid_yu, grid_zu;
+		double grid_hx, grid_hy, grid_hz;
+		unsigned long long grid_x_num, grid_y_num, grid_z_num;
+		unsigned long long face_in_grid_list_len, face_num;
+		rf.read_attribute(rb_grp_id, "grid_xl", grid_xl);
+		rf.read_attribute(rb_grp_id, "grid_yl", grid_yl);
+		rf.read_attribute(rb_grp_id, "grid_zl", grid_zl);
+		rf.read_attribute(rb_grp_id, "grid_hx", grid_hx);
+		rf.read_attribute(rb_grp_id, "grid_hy", grid_hy);
+		rf.read_attribute(rb_grp_id, "grid_hz", grid_hz);
+		rf.read_attribute(rb_grp_id, "grid_x_num", grid_x_num);
+		rf.read_attribute(rb_grp_id, "grid_y_num", grid_y_num);
+		rf.read_attribute(rb_grp_id, "grid_z_num", grid_z_num);
+		rf.read_attribute(rb_grp_id, "face_grid_list_len", face_in_grid_list_len);
+		rf.read_attribute(rb_grp_id, "face_num", face_num);
+
+		unsigned char *grid_pos_type;
+		unsigned long long* face_in_grid_range;
+		unsigned long long* face_in_grid_list;
+		PointToTriangleDistance* pt_tri_dist;
+		rb.init_from_hdf5_res_file(
+			density, m, moi, inv_moi, T_mat,
+			acc, acc_ang, vec, vec_ang, pos, pos_ang,
+			force_cont, force_ext,
+			grid_xl, grid_yl, grid_zl,
+			grid_hx, grid_hy, grid_hz,
+			grid_x_num, grid_y_num, grid_z_num,
+			face_in_grid_list_len, face_num,
+			grid_pos_type, face_in_grid_range,
+			face_in_grid_list, pt_tri_dist);
+		size_t grid_num = grid_x_num * grid_y_num * grid_z_num;
+		rf.read_dataset(
+			rb_grp_id,
+			"grid_pos_type",
+			grid_num,
+			grid_pos_type);
+		rf.read_dataset(
+			rb_grp_id,
+			"face_in_grid_range",
+			grid_num + 1,
+			face_in_grid_range);
+		rf.read_dataset(
+			rb_grp_id,
+			"face_in_grid_list",
+			face_in_grid_list_len,
+			face_in_grid_list);
+
+		hid_t pt2tri_dt = get_pt_to_tri_dist_dt_id();
+		rf.read_dataset(
+			rb_grp_id,
+			"pt_tri_dist",
+			face_num,
+			pt_tri_dist,
+			pt2tri_dt
+			);
+		H5Tclose(pt2tri_dt);
+
+		return 0;
+	}
 }

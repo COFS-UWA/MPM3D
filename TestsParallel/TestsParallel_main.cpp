@@ -54,11 +54,14 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cylinder_foundation_result(argc, argv);
 
 	//test_t3d_me_mt_cylinder_foundation_create_model_den(argc, argv);
-	test_t3d_me_mt_cylinder_foundation_den(argc, argv);
+	//test_t3d_me_mt_cylinder_foundation_den(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_restart_den(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_restart_den2(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_result_den(argc, argv);
 
-	//system("pause");
+	test_t3d_rigid_mesh(argc, argv);
+	//test_t3d_me_mt_test_rigid_mesh(argc, argv);
+
+	system("pause");
 	return 0;
 }

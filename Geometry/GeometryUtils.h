@@ -4,15 +4,26 @@
 #include <unordered_map>
 
 // limit theta to [-pi, pi]
-#define PI 3.14159265359
 inline void trim_to_pi(double& theta)
 {
+	constexpr double PI = 3.14159265359;
 	if (theta > PI)
 		theta -= (2.0 * PI) * long long((theta + PI) / (2.0 * PI));
 	else if (theta < -PI)
 		theta -= (2.0 * PI) * long long((theta - PI) / (2.0 * PI));
 }
-#undef PI
+
+inline double deg_to_rad(double ang) noexcept
+{
+	constexpr double PI = 3.14159265359;
+	return ang * PI / 180.0;
+}
+
+inline double rad_to_deg(double ang) noexcept
+{
+	constexpr double PI = 3.14159265359;
+	return ang * 180.0 / PI;
+}
 
 template <typename Item>
 inline void sort_array_3_acc(Item ids[3])

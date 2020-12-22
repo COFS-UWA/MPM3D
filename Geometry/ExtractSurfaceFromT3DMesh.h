@@ -6,8 +6,13 @@
 class ExtractSurfaceFromT3DMesh
 {
 public:
-	struct Face { size_t n1, n2, n3; };
-
+	struct Face
+	{
+		size_t n1, n2, n3;
+		inline bool operator==(const Face& other) const noexcept
+		{ return n1 == other.n1 && n2 == other.n2 && n3 == other.n3; }
+	};
+	
 	explicit ExtractSurfaceFromT3DMesh();
 	~ExtractSurfaceFromT3DMesh();
 
@@ -32,12 +37,7 @@ public:
 	{
 		clear();
 		FaceMap face_map;
-		union
-		{
-			Face face_key;
-			char fkey_str[25];
-		};
-		fkey_str[24] = '\0';
+		Face face_key;
 		size_t f_id, inside_face_num = 0;
 		for (f_id = 0; f_id < teh_num; ++f_id)
 		{
@@ -71,11 +71,14 @@ public:
 		{
 			if ((fiter->second & 0x03) == 0)
 			{
-				Face& f = faces[f_id];
-				const size_t* ns = reinterpret_cast<const size_t*>(fiter->first.c_str());
-				f.n1 = ns[(fiter->second >> 2) & 0x3];
-				f.n2 = ns[(fiter->second >> 4) & 0x3];
-				f.n3 = ns[(fiter->second >> 6) & 0x3];
+				Face &f = faces[f_id];
+				const size_t *f_ns = reinterpret_cast<const size_t *>(&fiter->first);
+				//size_t id1 = (fiter->second >> 2) & 0x3;
+				//size_t id2 = (fiter->second >> 4) & 0x3;
+				//size_t id3 = (fiter->second >> 6) & 0x3;
+				f.n1 = f_ns[(fiter->second >> 2) & 0x3];
+				f.n2 = f_ns[(fiter->second >> 4) & 0x3];
+				f.n3 = f_ns[(fiter->second >> 6) & 0x3];
 				++f_id;
 			}
 		}
@@ -85,7 +88,18 @@ protected:
 	Face* faces;
 	size_t face_num;
 
-	using FaceMap = std::unordered_map<std::string, unsigned char>;
+	struct FaceHasher
+	{
+		size_t operator()(const Face& f) const
+		{
+			size_t h = 0;
+			h ^= std::hash<size_t>{}(f.n1) + 0x9e3779b9 + (h << 6) + (h >> 2);
+			h ^= std::hash<size_t>{}(f.n2) + 0x9e3779b9 + (h << 6) + (h >> 2);
+			h ^= std::hash<size_t>{}(f.n3) + 0x9e3779b9 + (h << 6) + (h >> 2);
+			return h;
+		}
+	};
+	using FaceMap = std::unordered_map<Face, unsigned char, FaceHasher>;
 	
 	// if face already in map, return 1
 	// otherwise return 0

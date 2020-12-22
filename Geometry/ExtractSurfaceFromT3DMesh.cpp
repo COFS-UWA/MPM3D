@@ -43,7 +43,7 @@ size_t ExtractSurfaceFromT3DMesh::try_adding_teh_to_map(
 	size_t ids[3] = { 0, 1, 2 };
 	sort_acc_node_index(reinterpret_cast<size_t *>(&face), ids);
 	unsigned char content = ids[2] << 6 | ids[1] << 4 | ids[0] << 2;
-	auto res = face_map.emplace(reinterpret_cast<char*>(&face), content);
+	auto res = face_map.emplace(face, content);
 	if (res.second == false)
 	{
 		// face already in map

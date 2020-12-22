@@ -121,6 +121,7 @@ protected:
 	RigidCylinder* prcy;
 	RigidCone* prco;
 	RigidCube* prcu;
+	RigidObjectByT3DMesh* prmesh;
 
 	ContactModel3D *pcf;
 
@@ -140,6 +141,14 @@ protected:
 		ThreadData &thd) noexcept;
 
 	int apply_rigid_cube(
+		size_t p_id0, size_t p_id1,
+		size_t* pcl_in_elem,
+		SortedPclVarArrays& cur_spva,
+		Force3D& rc_cf,
+		size_t substp_id,
+		ThreadData& thd) noexcept;
+
+	int apply_t3d_rigid_object(
 		size_t p_id0, size_t p_id1,
 		size_t* pcl_in_elem,
 		SortedPclVarArrays& cur_spva,
