@@ -5,8 +5,9 @@
 #include "RigidObjectMotion3D.h"
 
 RigidObjectMotion3D::RigidObjectMotion3D() :
-	ux(0.0), uy(0.0), uz(0.0),
-	x_ang(0.0), y_ang(0.0), z_ang(0.0),
+	ax(0.0), ay(0.0), az(0.0), ax_ang(0.0), ay_ang(0.0), az_ang(0.0),
+	vx(0.0), vy(0.0), vz(0.0), vx_ang(0.0), vy_ang(0.0), vz_ang(0.0),
+	ux(0.0), uy(0.0), uz(0.0), x_ang(0.0), y_ang(0.0), z_ang(0.0),
 	ix(1.0, 0.0, 0.0), iy(0.0, 1.0, 0.0), iz(0.0, 0.0, 1.0),
 	ax_bc_mask(0), ay_bc_mask(0), az_bc_mask(0),
 	ax_bc(0.0), ay_bc(0.0), az_bc(0.0),

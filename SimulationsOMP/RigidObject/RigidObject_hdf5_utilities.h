@@ -69,6 +69,7 @@ namespace RigidObject_hdf5_utilities
 	int load_rigid_cube_from_hdf5_file(RigidCube& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
 
 	int output_rigid_object_by_3dmesh_to_hdf5_file(RigidObjectByT3DMesh &rb, ResultFile_hdf5 &rf, hid_t rb_grp_id);
+	int output_rigid_object_by_3dmesh_state_to_hdf5_file(RigidObjectByT3DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);
 	int load_rigid_object_by_3dmesh_from_hdf5_file(RigidObjectByT3DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);
 }
 

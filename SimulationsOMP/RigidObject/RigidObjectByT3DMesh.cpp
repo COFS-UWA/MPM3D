@@ -150,12 +150,6 @@ void RigidObjectByT3DMesh::init_from_hdf5_res_file(
 	grid.alloc_grid(grid_xl, grid_yl, grid_zl,
 		grid_hx, grid_hy, grid_hz,
 		grid_x_num, grid_y_num, grid_z_num);
-	grid_xu_min_hx = grid.xu - grid_hx;
-	grid_yu_min_hy = grid.yu - grid_hy;
-	grid_zu_min_hz = grid.zu - grid_hz;
-	grid_max_x_id = grid_x_num - 1;
-	grid_max_y_id = grid_y_num - 1;
-	grid_max_z_id = grid_z_num - 1;
 	face_in_grid_list_len = _face_in_grid_list_len;
 	face_num = _face_num;
 	grid_pos_type = new GridPosType[grid.num];

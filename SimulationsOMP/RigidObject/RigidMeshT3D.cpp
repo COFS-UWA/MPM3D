@@ -13,8 +13,7 @@ RigidMeshT3D::RigidMeshT3D() :
 	grid_pos_type(nullptr),
 	face_in_grid_range(nullptr),
 	face_in_grid_list(nullptr),
-	pt_tri_dist(nullptr),
-	max_dist(DBL_MAX) {}
+	pt_tri_dist(nullptr) {}
 
 RigidMeshT3D::~RigidMeshT3D() { clear(); }
 
@@ -32,12 +31,10 @@ int RigidMeshT3D::init_from_mesh(
 		mh_bbox.xl, mh_bbox.yl, mh_bbox.zl,
 		mh_bbox.xu, mh_bbox.yu, mh_bbox.zu,
 		ghx, ghy, ghz, 0.01);
-	grid_xu_min_hx = grid.xu - grid.hx;
-	grid_yu_min_hy = grid.yu - grid.hy;
-	grid_zu_min_hz = grid.zu - grid.hz;
-	grid_max_x_id = grid.x_num - 1;
-	grid_max_y_id = grid.y_num - 1;
-	grid_max_z_id = grid.z_num - 1;
+	
+	// init max_dist and max_stride
+	max_dist = DBL_MAX;
+	max_stride = get_max_stride();
 
 	// init grid_pos_type
 	grid_pos_type = new GridPosType[grid.num];
@@ -131,9 +128,9 @@ void RigidMeshT3D::init_max_dist(double _dist) noexcept
 	const size_t gn_y_num = grid.y_num + 1;
 	const size_t gn_z_num = grid.z_num + 1;
 	
+	// reset previous max_dist result
 	if (max_dist != DBL_MAX)
 	{
-		// reset previous max_dist result
 		cur_g_pos = grid_pos_type;
 		for (size_t z_id = 0; z_id < grid.z_num; ++z_id)
 			for (size_t y_id = 0; y_id < grid.y_num; ++y_id)
@@ -144,14 +141,12 @@ void RigidMeshT3D::init_max_dist(double _dist) noexcept
 				}
 	}
 
-	max_dist = _dist;
-
 	const size_t gn_xy_num = gn_x_num * gn_y_num;
 	double *gns = new double[gn_xy_num * gn_z_num];
 	double *cur_gn = gns;
-	double gn_r = grid.hx < grid.hy ? grid.hx : grid.hy;
-	gn_r = gn_r < grid.hz ? gn_r : grid.hz;
-	gn_r *= 0.5;
+	double g_h = grid.hx < grid.hy ? grid.hx : grid.hy;
+	g_h = g_h < grid.hz ? g_h : grid.hz;
+	g_h *= 0.5;
 	Vector3D norm;
 	Point3D gn_pt;
 	gn_pt.z = grid.zl;
@@ -163,7 +158,8 @@ void RigidMeshT3D::init_max_dist(double _dist) noexcept
 			gn_pt.x = grid.xl;
 			for (size_t x_id = 0; x_id < gn_x_num; ++x_id)
 			{
-				detect_collision_with_point(gn_pt, gn_r, *cur_gn, norm);
+				detect_collision_with_point(gn_pt, g_h, *cur_gn, norm);
+				*cur_gn -= g_h;
 				++cur_gn;
 				gn_pt.x += grid.hx;
 			}
@@ -186,20 +182,29 @@ void RigidMeshT3D::init_max_dist(double _dist) noexcept
 				const double n6_dist = *(cur_gn + gn_xy_num + 1);
 				const double n7_dist = *(cur_gn + gn_xy_num + gn_x_num);
 				const double n8_dist = *(cur_gn + gn_xy_num + gn_x_num + 1);
-				if (n1_dist <= -max_dist && n2_dist <= -max_dist &&
-					n3_dist <= -max_dist && n4_dist <= -max_dist &&
-					n5_dist <= -max_dist && n6_dist <= -max_dist &&
-					n7_dist <= -max_dist && n8_dist <= -max_dist)
+				if (n1_dist <= -_dist && n2_dist <= -_dist &&
+					n3_dist <= -_dist && n4_dist <= -_dist &&
+					n5_dist <= -_dist && n6_dist <= -_dist &&
+					n7_dist <= -_dist && n8_dist <= -_dist)
 					*cur_g_pos = GridPosType::FarOutside;
-				if (n1_dist >= max_dist && n2_dist >= max_dist &&
-					n3_dist >= max_dist && n4_dist >= max_dist &&
-					n5_dist >= max_dist && n6_dist >= max_dist &&
-					n7_dist >= max_dist && n8_dist >= max_dist)
+				else if (n1_dist >= _dist && n2_dist >= _dist &&
+						 n3_dist >= _dist && n4_dist >= _dist &&
+						 n5_dist >= _dist && n6_dist >= _dist &&
+						 n7_dist >= _dist && n8_dist >= _dist)
 					*cur_g_pos = GridPosType::FarInside;
 				++cur_g_pos;
 			}
-
 	delete[] gns;
+
+	// update max_dist and max_stride
+	max_dist = _dist;
+	max_stride = size_t(ceil(_dist / grid.hx));
+	size_t max_stride_tmp = size_t(ceil(_dist / grid.hy));
+	if (max_stride < max_stride_tmp)
+		max_stride = max_stride_tmp;
+	max_stride_tmp = size_t(ceil(_dist / grid.hz));
+	if (max_stride < max_stride_tmp)
+		max_stride = max_stride_tmp;
 }
 
 bool RigidMeshT3D::detect_collision_with_point(
@@ -209,43 +214,38 @@ bool RigidMeshT3D::detect_collision_with_point(
 	Vector3D &norm
 	) const noexcept
 {
-	const double p_xl = pt.x - p_r, p_xu = pt.x + p_r;
-	const double p_yl = pt.y - p_r, p_yu = pt.y + p_r;
-	const double p_zl = pt.z - p_r, p_zu = pt.z + p_r;
-	if (p_xu < grid.xl || p_xl > grid.xu ||
-		p_yu < grid.yl || p_yl > grid.yu ||
-		p_zu < grid.zl || p_zl > grid.zu)
+	//const double p_xl = pt.x - p_r, p_xu = pt.x + p_r;
+	//const double p_yl = pt.y - p_r, p_yu = pt.y + p_r;
+	//const double p_zl = pt.z - p_r, p_zu = pt.z + p_r;
+	if ((pt.x + p_r) < grid.xl || (pt.x - p_r) > grid.xu ||
+		(pt.y + p_r) < grid.yl || (pt.y - p_r) > grid.yu ||
+		(pt.z + p_r) < grid.zl || (pt.z - p_r) > grid.zu)
 		return false;
 
-	const size_t p_x_id = pt.x < 0.0 ? 0 : (pt.x > grid_xu_min_hx ? grid_max_x_id : size_t((pt.x - grid.xl) / grid.hx));
-	const size_t p_y_id = pt.y < 0.0 ? 0 : (pt.y > grid_yu_min_hy ? grid_max_y_id : size_t((pt.y - grid.yl) / grid.hy));
-	const size_t p_z_id = pt.z < 0.0 ? 0 : (pt.z > grid_zu_min_hz ? grid_max_z_id : size_t((pt.z - grid.zl) / grid.hz));
-	const size_t p_off = offset_from_xyz_id(p_x_id, p_y_id, p_z_id);
-	if (unsigned char(grid_pos_type[p_off]) > 2) // far inside or outside mesh
+	const size_t p_x_id = grid.get_x_id(pt.x);
+	const size_t p_y_id = grid.get_y_id(pt.y);
+	const size_t p_z_id = grid.get_z_id(pt.z);
+	if (unsigned char(grid_pos_type[offset_from_xyz_id(p_x_id, p_y_id, p_z_id)]) > 2)
+		// far inside or outside mesh
 		return false;
 	
-	IdRange id_range;
-	id_range.xl_id = p_xl < 0.0 ? 0 : size_t((p_xl - grid.xl) / grid.hx);
-	id_range.yl_id = p_yl < 0.0 ? 0 : size_t((p_yl - grid.yl) / grid.hy);
-	id_range.zl_id = p_zl < 0.0 ? 0 : size_t((p_zl - grid.zl) / grid.hz);
-	id_range.xu_id = p_xu > grid_xu_min_hx ? grid.x_num : size_t(ceil((p_xu - grid.xl) / grid.hx));
-	id_range.yu_id = p_yu > grid_yu_min_hy ? grid.y_num : size_t(ceil((p_yu - grid.yl) / grid.hy));
-	id_range.zu_id = p_zu > grid_zu_min_hz ? grid.z_num : size_t(ceil((p_zu - grid.zl) / grid.hz));
-
-	// cal stride
-	size_t id_len = (id_range.xu_id - id_range.xl_id) > (id_range.yu_id - id_range.yl_id) ?
-					(id_range.xu_id - id_range.xl_id) : (id_range.yu_id - id_range.yl_id);
-	id_len = id_len > (id_range.zu_id - id_range.zl_id) ?
-			 id_len : (id_range.zu_id - id_range.zl_id);
-	size_t stride = 1;
-	while (stride < id_len)
-		stride <<= 1;
-
 	// cal dist
+	IdRange id_range;
+	id_range.xl_id = p_x_id > max_stride ? (p_x_id - max_stride) : 0;
+	id_range.yl_id = p_y_id > max_stride ? (p_y_id - max_stride) : 0;
+	id_range.zl_id = p_z_id > max_stride ? (p_z_id - max_stride) : 0;
+	size_t id_tmp;
+	id_tmp = p_x_id + max_stride + 1;
+	id_range.xu_id = id_tmp < grid.x_num ? id_tmp : grid.x_num;
+	id_tmp = p_y_id + max_stride + 1;
+	id_range.yu_id = id_tmp < grid.y_num ? id_tmp : grid.y_num;
+	id_tmp = p_z_id + max_stride + 1;
+	id_range.zu_id = id_tmp < grid.z_num ? id_tmp : grid.z_num;
+
 	ClosestFaceRes closest_face;
 	closest_face.face_id = SIZE_MAX;
 	closest_face.distance = max_dist;
-	search_closest_face(closest_face, pt, stride, id_range);
+	search_closest_face(closest_face, pt, id_range);
 
 	// cal normal
 	if (closest_face.face_id != SIZE_MAX)
@@ -254,8 +254,8 @@ bool RigidMeshT3D::detect_collision_with_point(
 			pt, closest_face.normal_type, norm);
 		if (closest_face.distance >= 0.0) // inside object
 			norm.reverse();
-		dist = closest_face.distance;
-		return true;
+		dist = closest_face.distance + p_r;
+		return dist >= 0.0;
 	}
 	return false;
 }
@@ -263,10 +263,19 @@ bool RigidMeshT3D::detect_collision_with_point(
 void RigidMeshT3D::search_closest_face(
 	ClosestFaceRes& closest_face,
 	const Point3D &pt,
-	size_t stride,
 	const IdRange &id_range
 	) const noexcept
 {
+	size_t stride = id_range.xu_id - id_range.xl_id;
+	size_t stride_tmp = id_range.yu_id - id_range.yl_id;
+	if (stride < stride_tmp)
+		stride = stride_tmp;
+	stride_tmp = id_range.zu_id - id_range.zl_id;
+	if (stride < stride_tmp)
+		stride = stride_tmp;
+	//std::cout << stride << ": " << id_range.xl_id << ", " << id_range.xu_id << ", "
+	//	<< id_range.yl_id << ", " << id_range.yu_id << ", "
+	//	<< id_range.zl_id << ", " << id_range.zu_id << "\n";
 	if (stride > 1)
 	{
 		stride >>= 1;
@@ -306,8 +315,7 @@ void RigidMeshT3D::search_closest_face(
 #define Search_Closest_Face(child_id) \
 		if (cid##child_id.dist >= abs(closest_face.distance)) \
 			return; \
-		search_closest_face(closest_face, pt, \
-			stride, child_id_ranges[cid##child_id.id])
+		search_closest_face(closest_face, pt, child_id_ranges[cid##child_id.id])
 		if (xm_id < id_range.xu_id)
 		{
 			if (ym_id < id_range.yu_id)
@@ -565,11 +573,13 @@ void RigidMeshT3D::search_closest_face(
 	{
 		const PointToTriangleDistance& ptd = pt_tri_dist[face_in_grid_list[f_id]];
 		norm_type = ptd.cal_distance_to_point(pt, dist_tmp);
-		if (abs(closest_face.distance) > abs(dist_tmp))
+		if (abs(dist_tmp) < abs(closest_face.distance))
 		{
 			closest_face.face_id = face_in_grid_list[f_id];
 			closest_face.distance = dist_tmp;
 			closest_face.normal_type = norm_type;
 		}
 	}
+
+	//std::cout << closest_face.face_id << ", " << closest_face.distance << "\n";
 }

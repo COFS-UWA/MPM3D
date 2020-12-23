@@ -36,7 +36,19 @@ public:
 		bbox.zl = z - rz;
 		bbox.zu = z + rz;
 	}
-	
+
+	inline void set_cont_force(const Force3D& cf) noexcept
+	{
+		fx_cont = cf.fx; fy_cont = cf.fy; fz_cont = cf.fz;
+		mx_cont = cf.mx; my_cont = cf.my; mz_cont = cf.mz;
+	}
+
+	inline void reset_cont_force() noexcept
+	{
+		fx_cont = 0.0; fy_cont = 0.0; fz_cont = 0.0;
+		mx_cont = 0.0; my_cont = 0.0; mz_cont = 0.0;
+	}
+
 	using RigidObjectMotion3D::get_local_point;
 	using RigidObjectMotion3D::get_global_point;
 	using RigidObjectMotion3D::get_local_vector;

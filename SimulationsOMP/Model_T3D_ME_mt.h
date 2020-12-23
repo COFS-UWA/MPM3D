@@ -40,6 +40,8 @@ namespace Model_T3D_ME_mt_hdf5_utilities
 	int load_rigid_cone_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_rigid_cube_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_rigid_cube_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_t3d_rigid_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_t3d_rigid_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
 
 class PclVar_T3D_ME_mt;
@@ -492,6 +494,8 @@ public:
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cone_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_rigid_cube_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_rigid_cube_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::output_t3d_rigid_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_t3d_rigid_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend class PclVar_T3D_ME_mt;
 };
 

@@ -694,6 +694,77 @@ int load_rigid_cube_from_hdf5_file(
 	return 0;
 }
 
+int output_t3d_rigid_mesh_to_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_t3d_rigid_mesh())
+		return 0;
+
+	hid_t rm_grp_id = rf.create_group(grp_id, "RigidObjectByT3DMesh");
+
+	rf.write_attribute(rm_grp_id, "Kn_cont", md.Kn_cont);
+	rf.write_attribute(rm_grp_id, "Kt_cont", md.Kt_cont);
+	rf.write_attribute(rm_grp_id, "fric_ratio", md.fric_ratio);
+
+	RigidObject_hdf5_utilities::output_rigid_object_by_3dmesh_to_hdf5_file(
+		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
+
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
+int output_t3d_rigid_mesh_state_to_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_t3d_rigid_mesh())
+		return 0;
+
+	hid_t rm_grp_id = rf.create_group(grp_id, "RigidObjectByT3DMesh");
+	RigidObject_hdf5_utilities::output_rigid_object_by_3dmesh_state_to_hdf5_file(
+		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
+int load_t3d_rigid_mesh_from_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id
+	)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(grp_id, "RigidObjectByT3DMesh"))
+		return 0;
+
+	hid_t rm_grp_id = rf.open_group(grp_id, "RigidObjectByT3DMesh");
+
+	double Kn_cont, Kt_cont, fric_ratio;
+	rf.read_attribute(rm_grp_id, "Kn_cont", Kn_cont);
+	rf.read_attribute(rm_grp_id, "Kt_cont", Kt_cont);
+	rf.read_attribute(rm_grp_id, "fric_ratio", fric_ratio);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio);
+
+	RigidObject_hdf5_utilities::load_rigid_object_by_3dmesh_from_hdf5_file(
+		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
+
+	md.rigid_t3d_mesh_is_valid = true;
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T3D_ME_mt &md,
@@ -717,7 +788,7 @@ int output_model_to_hdf5_file(
 	output_rigid_cylinder_to_hdf5_file(md, rf, md_grp_id);
 	output_rigid_cone_to_hdf5_file(md, rf, md_grp_id);
 	output_rigid_cube_to_hdf5_file(md, rf, md_grp_id);
-
+	output_t3d_rigid_mesh_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }
 
@@ -737,6 +808,7 @@ int time_history_complete_output_to_hdf5_file(
 	output_rigid_cylinder_to_hdf5_file(md, rf, frame_grp_id);
 	output_rigid_cone_to_hdf5_file(md, rf, frame_grp_id);
 	output_rigid_cube_to_hdf5_file(md, rf, frame_grp_id);
+	output_t3d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 

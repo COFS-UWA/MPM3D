@@ -333,6 +333,81 @@ namespace RigidObject_hdf5_utilities
 		return 0;
 	}
 
+	int output_rigid_object_by_3dmesh_state_to_hdf5_file(
+		RigidObjectByT3DMesh& rb,
+		ResultFile_hdf5& rf,
+		hid_t rb_grp_id
+		)
+	{
+		if (rb_grp_id < 0)
+			return -1;
+
+		const Vector3D& a = rb.get_a();
+		rf.write_attribute(rb_grp_id, "ax", a.x);
+		rf.write_attribute(rb_grp_id, "ay", a.y);
+		rf.write_attribute(rb_grp_id, "az", a.z);
+		const Vector3D& a_ang = rb.get_a_ang();
+		rf.write_attribute(rb_grp_id, "ax_ang", a_ang.x);
+		rf.write_attribute(rb_grp_id, "ay_ang", a_ang.y);
+		rf.write_attribute(rb_grp_id, "az_ang", a_ang.z);
+		const Vector3D& v = rb.get_v();
+		rf.write_attribute(rb_grp_id, "vx", v.x);
+		rf.write_attribute(rb_grp_id, "vy", v.y);
+		rf.write_attribute(rb_grp_id, "vz", v.z);
+		const Vector3D& v_ang = rb.get_v_ang();
+		rf.write_attribute(rb_grp_id, "vx_ang", v_ang.x);
+		rf.write_attribute(rb_grp_id, "vy_ang", v_ang.y);
+		rf.write_attribute(rb_grp_id, "vz_ang", v_ang.z);
+		const Point3D& pos = rb.get_pos();
+		rf.write_attribute(rb_grp_id, "x", pos.x);
+		rf.write_attribute(rb_grp_id, "y", pos.y);
+		rf.write_attribute(rb_grp_id, "z", pos.z);
+		const Vector3D& pos_ang = rb.get_pos_ang();
+		rf.write_attribute(rb_grp_id, "x_ang", pos_ang.x);
+		rf.write_attribute(rb_grp_id, "y_ang", pos_ang.y);
+		rf.write_attribute(rb_grp_id, "z_ang", pos_ang.z);
+		const Force3D& cf = rb.get_force_contact();
+		rf.write_attribute(rb_grp_id, "fx_cont", cf.fx);
+		rf.write_attribute(rb_grp_id, "fy_cont", cf.fy);
+		rf.write_attribute(rb_grp_id, "fz_cont", cf.fz);
+		rf.write_attribute(rb_grp_id, "mx_cont", cf.mx);
+		rf.write_attribute(rb_grp_id, "my_cont", cf.my);
+		rf.write_attribute(rb_grp_id, "mz_cont", cf.mz);
+		const Force3D& ef = rb.get_force_ext();
+		rf.write_attribute(rb_grp_id, "fx_ext", ef.fx);
+		rf.write_attribute(rb_grp_id, "fy_ext", ef.fy);
+		rf.write_attribute(rb_grp_id, "fz_ext", ef.fz);
+		rf.write_attribute(rb_grp_id, "mx_ext", ef.mx);
+		rf.write_attribute(rb_grp_id, "my_ext", ef.my);
+		rf.write_attribute(rb_grp_id, "mz_ext", ef.mz);
+		if (rb.has_ax_bc())
+			rf.write_attribute(rb_grp_id, "ax_bc", rb.get_ax_bc());
+		if (rb.has_ay_bc())
+			rf.write_attribute(rb_grp_id, "ay_bc", rb.get_ay_bc());
+		if (rb.has_az_bc())
+			rf.write_attribute(rb_grp_id, "az_bc", rb.get_az_bc());
+		if (rb.has_ax_ang_bc())
+			rf.write_attribute(rb_grp_id, "ax_ang_bc", rb.get_ax_ang_bc());
+		if (rb.has_ay_ang_bc())
+			rf.write_attribute(rb_grp_id, "ay_ang_bc", rb.get_ay_ang_bc());
+		if (rb.has_az_ang_bc())
+			rf.write_attribute(rb_grp_id, "az_ang_bc", rb.get_az_ang_bc());
+		if (rb.has_vx_bc())
+			rf.write_attribute(rb_grp_id, "vx_bc", rb.get_vx_bc());
+		if (rb.has_vy_bc())
+			rf.write_attribute(rb_grp_id, "vy_bc", rb.get_vy_bc());
+		if (rb.has_vz_bc())
+			rf.write_attribute(rb_grp_id, "vz_bc", rb.get_vz_bc());
+		if (rb.has_vx_ang_bc())
+			rf.write_attribute(rb_grp_id, "vx_ang_bc", rb.get_vx_ang_bc());
+		if (rb.has_vy_ang_bc())
+			rf.write_attribute(rb_grp_id, "vy_ang_bc", rb.get_vy_ang_bc());
+		if (rb.has_vz_ang_bc())
+			rf.write_attribute(rb_grp_id, "vz_ang_bc", rb.get_vz_ang_bc());
+
+		return 0;
+	}
+	
 	int load_rigid_object_by_3dmesh_from_hdf5_file(RigidObjectByT3DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id)
 	{
 		// rigid object motion

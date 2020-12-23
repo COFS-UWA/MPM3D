@@ -118,6 +118,12 @@ int Step_T3D_ME_mt::init_calculation()
 		prcu->reset_cont_force();
 	}
 
+	if (md.has_t3d_rigid_mesh())
+	{
+		prmesh = &md.get_t3d_rigid_mesh();
+		prmesh->reset_cont_force();
+	}
+
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
 	char* cur_mem = (char*)thread_mem.alloc(
@@ -742,6 +748,22 @@ int substep_func_omp_T3D_ME_mt(
 		self.cf_tmp.combine(cf);
 	}
 
+	if (md.has_t3d_rigid_mesh())
+	{
+		Force3D cf;
+		cf.reset();
+		self.apply_t3d_rigid_object(
+			p_id0, p_id1,
+			pcl_in_elem0,
+			spva0, cf,
+			substp_id,
+			thd
+		);
+
+#pragma omp critical
+		self.cf_tmp.combine(cf);
+	}
+
 	TIME_POINT(t29);
 
 	// sort node-elem pair according to node id
@@ -968,6 +990,13 @@ int substep_func_omp_T3D_ME_mt(
 			RigidCube& rc = *(self.prcu);
 			rc.set_cont_force(self.cf_tmp);
 			rc.update_motion(dt);
+		}
+
+		if (md.has_t3d_rigid_mesh())
+		{
+			RigidObjectByT3DMesh& rm = *(self.prmesh);
+			rm.set_cont_force(self.cf_tmp);
+			rm.update_motion(dt);
 		}
 
 		self.cf_tmp.reset();
@@ -1249,7 +1278,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 	Force3D& rc_cf,
 	size_t substp_id,
 	ThreadData& thd
-) noexcept
+	) noexcept
 {
 	double p_x, p_y, p_z, p_r;
 	size_t ori_p_id, e_id;
@@ -1257,16 +1286,16 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 	Vector3D lnorm, gnorm;
 	Force lcont_f, gcont_f;
 	Point3D cur_cont_pos;
-	size_t* pcl_index = cur_spva.pcl_index;
-	Displacement* pcl_disp = cur_spva.pcl_disp;
-	ShapeFunc* pcl_N = cur_spva.pcl_N;
+	size_t *pcl_index = cur_spva.pcl_index;
+	Displacement *pcl_disp = cur_spva.pcl_disp;
+	ShapeFunc *pcl_N = cur_spva.pcl_N;
 	PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
 	pv_getter.cur_sorted_pcl_vars = &cur_spva;
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		ori_p_id = pcl_index[p_id];
-		Position& p_p = pcl_pos[ori_p_id];
-		Displacement& p_d = pcl_disp[p_id];
+		Position &p_p = pcl_pos[ori_p_id];
+		Displacement &p_d = pcl_disp[p_id];
 		p_x = p_p.x + p_d.ux;
 		p_y = p_p.y + p_d.uy;
 		p_z = p_p.z + p_d.uz;
@@ -1288,7 +1317,7 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 				prev_contact_pos[ori_p_id].pt,
 				prev_contact_tan_force[ori_p_id].vec,
 				lcont_f.vec
-			);
+				);
 			prcy->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
@@ -1446,7 +1475,7 @@ int Step_T3D_ME_mt::apply_t3d_rigid_object(
 				prev_contact_pos[ori_p_id].pt,
 				prev_contact_tan_force[ori_p_id].vec,
 				lcont_f.vec
-			);
+				);
 			prmesh->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
@@ -1468,12 +1497,10 @@ int Step_T3D_ME_mt::apply_t3d_rigid_object(
 			en_f4.fy += p_N.N4 * gcont_f.fy;
 			en_f4.fz += p_N.N4 * gcont_f.fz;
 			// apply contact force to rigid body
-			const Point3D& rc_cen = prmesh->get_pos();
-			rc_cf.add_force(
-				p_x, p_y, p_z,
+			const Point3D& rm_cen = prmesh->get_pos();
+			rc_cf.add_force(p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
-				rc_cen.x, rc_cen.y, rc_cen.z
-			);
+				rm_cen.x, rm_cen.y, rm_cen.z);
 		}
 	}
 	return 0;

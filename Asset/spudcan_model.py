@@ -1,5 +1,6 @@
 from abaqus import *
 from abaqusConstants import *
+from caeModules import *
 
 # model parameters
 h1 = 1.44
@@ -69,7 +70,7 @@ assembly = md.rootAssembly
 assembly.DatumCsysByDefault(CARTESIAN)
 assembly.Instance(name = 'Inst-1', part = spudcan_prt, dependent = ON)
 
-job = mdb.Job(name='spudcan_job', model='Model-1', description='', type=ANALYSIS, 
+job = mdb.Job(name='spudcan_model', model='Model-1', description='', type=ANALYSIS, 
     atTime=None, waitMinutes=0, waitHours=0, queue=None, memory=90, 
     memoryUnits=PERCENTAGE, getMemoryFromAnalysis=True, 
     explicitPrecision=SINGLE, nodalOutputPrecision=SINGLE, echoPrint=OFF, 
@@ -77,7 +78,6 @@ job = mdb.Job(name='spudcan_job', model='Model-1', description='', type=ANALYSIS
     scratch='', resultsFormat=ODB, parallelizationMethodExplicit=DOMAIN, 
     numDomains=1, activateLoadBalancing=False, multiprocessingMode=DEFAULT, 
     numCpus=1)
-#mdb.jobs['spudcan_job']
 job.writeInput(consistencyChecking=OFF)
 
 mdb.saveAs(pathName='./spudcan_model')

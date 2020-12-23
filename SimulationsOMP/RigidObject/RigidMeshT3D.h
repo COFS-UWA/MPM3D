@@ -22,20 +22,22 @@ protected:
 	Grid3D<> grid;
 	GridPosType* grid_pos_type;
 	size_t *face_in_grid_range;
+	size_t face_in_grid_list_len;
 	size_t *face_in_grid_list;
+	size_t face_num;
 	PointToTriangleDistance *pt_tri_dist;
-	
-	// grid_xu_min_hx = grid_xu - grid_hx
-	double grid_xu_min_hx, grid_yu_min_hy, grid_zu_min_hz;
-	// grid_max_x_id = grid_x_num - 1
-	size_t grid_max_x_id, grid_max_y_id, grid_max_z_id;
-	size_t face_in_grid_list_len, face_num;
 
 	inline size_t offset_from_xyz_id(size_t x_id, size_t y_id, size_t z_id) const noexcept
 	{ return grid.offset_from_xyz_id(x_id, y_id, z_id); }
 
 	double max_dist;
-	
+	size_t max_stride;
+	inline size_t get_max_stride() const noexcept
+	{
+		const size_t tmp = grid.x_num > grid.y_num ? grid.x_num : grid.y_num;
+		return tmp > grid.z_num ? tmp : grid.z_num;
+	}
+
 	struct IdRange
 	{
 		size_t xl_id, xu_id;
@@ -103,16 +105,17 @@ protected:
 			id1.dist = dist_tmp;
 		}
 	}
+
 	struct ClosestFaceRes
 	{
 		size_t face_id;
 		double distance;
 		unsigned char normal_type;
 	};
-	void search_closest_face(ClosestFaceRes &cloeset_face,
-		const Point3D &pt, size_t stride,
-		const IdRange &id_range) const noexcept;
 
+	void search_closest_face(ClosestFaceRes& cloeset_face,
+		const Point3D& pt, const IdRange& id_range) const noexcept;
+	
 public:
 	RigidMeshT3D();
 	~RigidMeshT3D();
