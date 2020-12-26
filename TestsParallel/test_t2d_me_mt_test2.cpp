@@ -45,7 +45,7 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	}
 
 	IndexArray tbc_pt_array(50);
-	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
+	find_2d_pcls<Model_T2D_ME_mt, Model_T2D_ME_mt::PclPos>(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
 	MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
 	double ty_mag = 0.02 * -10.0;
 	for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)

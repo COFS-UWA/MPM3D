@@ -19,4 +19,9 @@ void test_t3d_me_mt_block_sliding_result(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_result(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_result_den(int argc, char** argv);
 
+void test_t3d_me_mt_test_rigid_mesh_result(int argc, char** argv);
+
+void test_t2d_chm_mt_1d_consolidation_static_result(int argc, char** argv);
+void test_t2d_chm_mt_1d_consolidation_ani_result(int argc, char** argv);
+
 #endif

@@ -1,5 +1,6 @@
 #include "ModelViewer_pcp.h"
 
+#include "RigidObject/RigidObject_hdf5_utilities.h"
 #include "Model_T3D_ME_mt_hdf5_utilities.h"
 #include "QtSceneFromHdf5_T3D_ME_mt.h"
 
@@ -27,7 +28,8 @@ QtSceneFromHdf5_T3D_ME_mt::QtSceneFromHdf5_T3D_ME_mt(
 	need_mat_model_data(false),
 	display_rcy(true), has_rcy(false), rcy_obj(_gl),
 	display_rco(true), has_rco(false), rco_obj(_gl),
-	display_rcu(true), has_rcu(false), rcu_obj(_gl)
+	display_rcu(true), has_rcu(false), rcu_obj(_gl),
+	display_rmesh(true), has_rmesh(false), rmesh_obj(_gl)
 {
 	amb_coef = 0.3f;
 	diff_coef = 1.0f;
@@ -345,6 +347,9 @@ void QtSceneFromHdf5_T3D_ME_mt::draw()
 	if (display_rcu && has_rcu)
 		rcu_obj.draw(shader_rigid_mesh);
 
+	if (display_rmesh && has_rmesh)
+		rmesh_obj.draw(shader_rigid_mesh);
+
 	// all 3d objects should be drawn before this
 	gl.glDisable(GL_DEPTH_TEST);
 
@@ -444,6 +449,62 @@ void QtSceneFromHdf5_T3D_ME_mt::init_rigid_objects_buffer(
 		mh_bbox.envelop(rcu_bbox);
 		rf.close_group(rcu_id);
 		has_rcu = true;
+	}
+
+	// rigid t3d mesh
+	if (rf.has_group(md_data_grp_id, "RigidObjectByT3DMesh"))
+	{
+		hid_t rmesh_id = rf.open_group(md_data_grp_id, "RigidObjectByT3DMesh");
+		size_t face_num;
+		rf.read_attribute(rmesh_id, "face_num", face_num);
+		if (face_num)
+		{
+			Point3D rm_pos;
+			rf.read_attribute(rmesh_id, "x", rm_pos.x);
+			rf.read_attribute(rmesh_id, "y", rm_pos.y);
+			rf.read_attribute(rmesh_id, "z", rm_pos.z);
+			Vector3D rm_ang;
+			rf.read_attribute(rmesh_id, "x_ang", rm_ang.x);
+			rf.read_attribute(rmesh_id, "y_ang", rm_ang.y);
+			rf.read_attribute(rmesh_id, "z_ang", rm_ang.z);
+			PointToTriangleDistance* pt_tri_dist
+				= new PointToTriangleDistance[face_num];
+			hid_t pt_tri_dt = RigidObject_hdf5_utilities::get_pt_to_tri_dist_dt_id();
+			rf.read_dataset(
+				rmesh_id,
+				"pt_tri_dist",
+				face_num,
+				pt_tri_dist,
+				pt_tri_dt
+				);
+			H5Tclose(pt_tri_dt);
+			rmesh_obj.init_faces(
+				pt_tri_dist,
+				face_num,
+				rm_pos,
+				rm_ang,
+				navajowhite
+				);
+			delete[] pt_tri_dist;
+			double grid_xl, grid_yl, grid_zl;
+			double grid_hx, grid_hy, grid_hz;
+			size_t grid_x_num, grid_y_num, grid_z_num;
+			rf.read_attribute(rmesh_id, "grid_xl", grid_xl);
+			rf.read_attribute(rmesh_id, "grid_yl", grid_yl);
+			rf.read_attribute(rmesh_id, "grid_zl", grid_zl);
+			rf.read_attribute(rmesh_id, "grid_hx", grid_hx);
+			rf.read_attribute(rmesh_id, "grid_hy", grid_hy);
+			rf.read_attribute(rmesh_id, "grid_hz", grid_hz);
+			rf.read_attribute(rmesh_id, "grid_x_num", grid_x_num);
+			rf.read_attribute(rmesh_id, "grid_y_num", grid_y_num);
+			rf.read_attribute(rmesh_id, "grid_z_num", grid_z_num);
+			Cube rmesh_bbox(grid_xl + rm_pos.x, grid_xl + double(grid_x_num) * grid_hx + rm_pos.x,
+							grid_yl + rm_pos.y, grid_yl + double(grid_y_num) * grid_hy + rm_pos.y,
+							grid_zl + rm_pos.z, grid_zl + double(grid_z_num) * grid_hz + rm_pos.z);
+			mh_bbox.envelop(rmesh_bbox);
+			rf.close_group(rmesh_id);
+			has_rmesh = true;
+		}
 	}
 }
 
@@ -632,7 +693,6 @@ void QtSceneFromHdf5_T3D_ME_mt::update_rigid_objects_buffer(
 		rf.read_attribute(rcy_id, "z", rcy_z);
 		rcy_obj.update(rcy_x, rcy_y, rcy_z);
 		rf.close_group(rcy_id);
-		has_rcy = true;
 	}
 
 	if (rf.has_group(frame_grp_id, "RigidCone"))
@@ -644,7 +704,6 @@ void QtSceneFromHdf5_T3D_ME_mt::update_rigid_objects_buffer(
 		rf.read_attribute(rco_id, "z", rco_z);
 		rco_obj.update(rco_x, rco_y, rco_z);
 		rf.close_group(rco_id);
-		has_rco = true;
 	}
 
 	if (rf.has_group(frame_grp_id, "RigidCube"))
@@ -656,6 +715,20 @@ void QtSceneFromHdf5_T3D_ME_mt::update_rigid_objects_buffer(
 		rf.read_attribute(rcu_id, "z", rcu_z);
 		rcu_obj.update(rcu_x, rcu_y, rcu_z);
 		rf.close_group(rcu_id);
-		has_rcu = true;
+	}
+
+	if (rf.has_group(frame_grp_id, "RigidObjectByT3DMesh"))
+	{
+		hid_t rmesh_id = rf.open_group(frame_grp_id, "RigidObjectByT3DMesh");
+		Point3D rm_cen;
+		Vector3D rm_ang;
+		rf.read_attribute(rmesh_id, "x", rm_cen.x);
+		rf.read_attribute(rmesh_id, "y", rm_cen.y);
+		rf.read_attribute(rmesh_id, "z", rm_cen.z);
+		rf.read_attribute(rmesh_id, "x_ang", rm_ang.x);
+		rf.read_attribute(rmesh_id, "y_ang", rm_ang.y);
+		rf.read_attribute(rmesh_id, "z_ang", rm_ang.z);
+		rmesh_obj.update(rm_cen, rm_ang);
+		rf.close_group(rmesh_id);
 	}
 }

@@ -438,7 +438,6 @@ int substep_func_omp_T3D_ME_mt(
 	++p_id1;
 	assert(p_id1 <= self.valid_pcl_num);
 
-	// map pcl to mesh
 	size_t ori_p_id, prev_p_id, ne_id;
 	double p_m, p_vol, p_N_m;
 	double one_fourth_bfx, one_fourth_bfy, one_fourth_bfz;

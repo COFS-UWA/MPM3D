@@ -39,4 +39,6 @@ void test_t3d_me_mt_cylinder_foundation_restart2_den(int argc, char** argv);
 void test_t3d_rigid_mesh(int argc, char** argv);
 void test_t3d_me_mt_test_rigid_mesh(int argc, char** argv);
 
+void test_t2d_chm_mt_1d_consolidation(int argc, char** argv);
+
 #endif

@@ -4,6 +4,7 @@
 
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
+#include "RigidBody/RigidBody_hdf5_utilities.h"
 #include "Model_T2D_CHM_s_hdf5_utilities.h"
 
 namespace Model_T2D_CHM_s_hdf5_utilities
@@ -708,7 +709,7 @@ int output_rigid_circle_to_hdf5_file(
 	rf.write_attribute(rc_grp_id, "Ks_cont", md.Ks_cont);
 	rf.write_attribute(rc_grp_id, "Kf_cont", md.Kf_cont);
 
-	using Model_hdf5_utilities::output_rigid_circle_to_hdf5_file;
+	using RigidBody_hdf5_utilities::output_rigid_circle_to_hdf5_file;
 	output_rigid_circle_to_hdf5_file(md.rigid_circle, rf, rc_grp_id);
 
 	rf.close_group(rc_grp_id);
@@ -735,7 +736,7 @@ int load_rigid_circle_from_hdf5_file(
 	rf.read_attribute(rc_grp_id, "Kf_cont", Kf_cont);
 	md.Kf_cont = Kf_cont;
 	
-	using Model_hdf5_utilities::load_rigid_circle_from_hdf5_file;
+	using RigidBody_hdf5_utilities::load_rigid_circle_from_hdf5_file;
 	load_rigid_circle_from_hdf5_file(md.rigid_circle, rf, rc_grp_id);
 
 	md.rigid_circle_is_init = true;

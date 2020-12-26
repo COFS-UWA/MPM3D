@@ -561,6 +561,10 @@ int Model_T2D_ME_mt::init_pcls(
 		p_p.x = pg_pcl->x;
 		p_p.y = pg_pcl->y;
 		pcl_m[p_id] *= pg_pcl->area;
+		pcl_vol[p_id] = pg_pcl->area;
+		PclBodyForce &bf = pcl_bf[p_id];
+		bf.bfx *= pcl_vol[p_id];
+		bf.bfy *= pcl_vol[p_id];
 		pg_pcl = pg.next(pg_pcl);
 	}
 

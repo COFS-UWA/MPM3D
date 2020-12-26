@@ -8,10 +8,11 @@
 
 class Model_T2D_CHM_mt;
 class Step_T2D_CHM_mt;
-//namespace Model_T2D_CHM_mt_hdf5_utilities
-//{
-//	int load_me_mt_model_from_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
-//}
+namespace Model_T2D_CHM_mt_hdf5_utilities
+{
+	int load_chm_mt_model_from_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& step,
+		const char* hdf5_name, const char* th_name, size_t frame_id);
+}
 
 int substep_func_omp_T2D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
@@ -91,6 +92,9 @@ protected:
 	double Kf;
 
 	double Kn_cont;
+	size_t* contact_substep_id;
+	Position* prev_contact_pos;
+	Force* prev_contact_tan_force;
 
 	union ThreadData
 	{
@@ -108,6 +112,7 @@ protected:
 #endif
 	size_t prev_valid_pcl_num, valid_pcl_num;
 	size_t valid_elem_num;
+	RigidObject::RigidCircle* prc;
 	Force2D cf_tmp;
 
 	CacheAlignedMem thread_mem;
@@ -115,7 +120,7 @@ protected:
 
 	int apply_rigid_circle(
 		size_t p_id0, size_t p_id1,
-		size_t* pcl_in_elem,
+		size_t *pcl_in_elem,
 		SortedPclVarArrays& cur_spva,
 		Force2D& rc_cf,
 		size_t substp_id,
@@ -133,7 +138,12 @@ public:
 
 	inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
+	inline size_t* get_prev_pcl_id() const noexcept { return prev_pcl_ids[thread_datas[0].sorted_pcl_in_elem_id]; }
 	inline size_t* get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
+
+	friend int Model_T2D_CHM_mt_hdf5_utilities::load_chm_mt_model_from_hdf5_file(
+		Model_T2D_CHM_mt &md, Step_T2D_CHM_mt &step, const char *hdf5_name,
+		const char* th_name, size_t frame_id);
 };
 
 #endif

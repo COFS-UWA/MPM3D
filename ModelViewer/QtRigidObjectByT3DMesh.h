@@ -41,7 +41,8 @@ protected:
 		const Vector3D& ix,
 		const Vector3D& iy,
 		const Vector3D& iz,
-		QMatrix4x4 &model_mat) noexcept
+		QMatrix4x4 &model_mat
+		) noexcept
 	{
 		float(*mm_data)[4] = reinterpret_cast<float(*)[4]>(model_mat.data());
 		// opengl is column major
@@ -85,16 +86,14 @@ public:
 	}
 	int update(const RigidObjectByT3DMesh &rb);
 
-	//// post process
-	//template <typename Node, typename Element>
-	//int init_faces(const Node* nodes, const size_t node_num,
-	//	const Element* elems, const size_t elem_num,
-	//	const Point3D& cen, const Vector3D& ang, const QVector3D& c);
-	//template <typename Node, typename Element>
+	// post process
+	int init_faces(const PointToTriangleDistance* pt_tri_dist,
+		const size_t face_num, const Point3D& cen,
+		const Vector3D& ang, const QVector3D& c);
 	//int init_line_frame(const Node* nodes, const size_t node_num,
 	//	const Element* elems, const size_t elem_num,
 	//	const Point3D& cen, const Vector3D& ang, const QVector3D& c);
-	//int update(const Point3D& cen, const Vector3D& ang);
+	int update(const Point3D& cen, const Vector3D& ang);
 
 	void draw(QOpenGLShaderProgram& shader);
 };

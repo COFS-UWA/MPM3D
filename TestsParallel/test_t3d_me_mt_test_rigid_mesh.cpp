@@ -150,11 +150,34 @@ void test_t3d_me_mt_test_rigid_mesh(int argc, char** argv)
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	//step.set_step_time(0.5);
-	step.set_step_time(1.0e-5);
+	step.set_step_time(0.5);
+	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
+}
+
+#include "QtApp_Posp_T3D_ME_mt.h"
+#include "test_model_view_omp.h"
+
+void test_t3d_me_mt_test_rigid_mesh_result(int argc, char** argv)
+{
+	ResultFile_hdf5 rf;
+	rf.open("t3d_me_mt_rigid_mesh_compression.h5");
+
+	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
+	//app.set_res_file(rf, "compression", 0, Hdf5Field::s33);
+	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
+	app.set_ani_time(5.0);
+	app.set_res_file(rf, "compression", Hdf5Field::s33);
+	app.set_win_size(1200, 800);
+	app.set_view_dir(0.0f, 10.0f);
+	app.set_light_dir(0.0f, 10.0f);
+	app.set_color_map_fld_range(-20.0, 0.0);
+	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
+	//app.set_png_name("t3d_me_mt_rigid_mesh_compression");
+	//app.set_gif_name("t3d_me_mt_rigid_mesh_compression");
+	app.start();
 }

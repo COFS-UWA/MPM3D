@@ -147,15 +147,15 @@ public:
 		}
 	}
 
-	inline const size_t get_grid_xl() const noexcept { return grid.xl; }
-	inline const size_t get_grid_yl() const noexcept { return grid.yl; }
-	inline const size_t get_grid_zl() const noexcept { return grid.zl; }
-	inline const size_t get_grid_hx() const noexcept { return grid.hx; }
-	inline const size_t get_grid_hy() const noexcept { return grid.hy; }
-	inline const size_t get_grid_hz() const noexcept { return grid.hz; }
-	inline const size_t get_grid_xu() const noexcept { return grid.xu; }
-	inline const size_t get_grid_yu() const noexcept { return grid.yu; }
-	inline const size_t get_grid_zu() const noexcept { return grid.zu; }
+	inline const double get_grid_xl() const noexcept { return grid.xl; }
+	inline const double get_grid_yl() const noexcept { return grid.yl; }
+	inline const double get_grid_zl() const noexcept { return grid.zl; }
+	inline const double get_grid_hx() const noexcept { return grid.hx; }
+	inline const double get_grid_hy() const noexcept { return grid.hy; }
+	inline const double get_grid_hz() const noexcept { return grid.hz; }
+	inline const double get_grid_xu() const noexcept { return grid.xu; }
+	inline const double get_grid_yu() const noexcept { return grid.yu; }
+	inline const double get_grid_zu() const noexcept { return grid.zu; }
 	inline const size_t get_grid_x_num() const noexcept { return grid.x_num; }
 	inline const size_t get_grid_y_num() const noexcept { return grid.y_num; }
 	inline const size_t get_grid_z_num() const noexcept { return grid.z_num; }

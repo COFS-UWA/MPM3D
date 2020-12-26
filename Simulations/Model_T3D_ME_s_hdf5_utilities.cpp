@@ -4,6 +4,7 @@
 
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
+#include "RigidBody/RigidBody_hdf5_utilities.h"
 #include "Model_T3D_ME_s_hdf5_utilities.h"
 
 namespace Model_T3D_ME_s_hdf5_utilities
@@ -602,6 +603,7 @@ int output_rigid_body_to_hdf5_file(
 		return -1;
 
 	hid_t rtm_grp_id = rf.create_group(grp_id, "RigidBody");
+	using RigidBody_hdf5_utilities::output_rigid_tetrahedron_mesh_to_hdf5_file;
 	output_rigid_tetrahedron_mesh_to_hdf5_file(md.get_rb(), rf, rtm_grp_id);
 	rf.close_group(rtm_grp_id);
 	return 0;
@@ -617,6 +619,7 @@ int load_rigid_body_from_hdf5_file(
 		return -1;
 
 	hid_t rtm_grp_id = rf.open_group(grp_id, "RigidBody");
+	using RigidBody_hdf5_utilities::load_rigid_tetrahedron_mesh_from_hdf5_file;
 	load_rigid_tetrahedron_mesh_from_hdf5_file(md.get_rb(), rf, rtm_grp_id);
 	rf.close_group(rtm_grp_id);
 	return 0;
@@ -633,6 +636,7 @@ int output_rigid_body_state_to_hdf5_file(
 		return -1;
 
 	hid_t rtm_grp_id = rf.create_group(grp_id, "RigidBody");
+	using RigidBody_hdf5_utilities::output_rigid_tetrahedron_mesh_state_to_hdf5_file;
 	output_rigid_tetrahedron_mesh_state_to_hdf5_file(md.get_rb(), rf, rtm_grp_id);
 	rf.close_group(rtm_grp_id);
 	return 0;
@@ -648,6 +652,7 @@ int load_rigid_body_state_from_hdf5_file(
 		return -1;
 
 	hid_t rtm_grp_id = rf.open_group(grp_id, "RigidBody");
+	using RigidBody_hdf5_utilities::load_rigid_tetrahedron_mesh_state_from_hdf5_file;
 	load_rigid_tetrahedron_mesh_state_from_hdf5_file(md.get_rb(), rf, rtm_grp_id);
 	rf.close_group(rtm_grp_id);
 	return 0;

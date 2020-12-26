@@ -114,6 +114,13 @@ add_library(
     # post process module
     QtSceneFromHdf5_T2D_CHM_s.h QtSceneFromHdf5_T2D_CHM_s.cpp
     QtApp_Posp_T2D_CHM_s.h QtApp_Posp_T2D_CHM_s.cpp
+    # Model_T2D_CHM_mt
+    # prep process module
+    QtSceneFromModel_T2D_CHM_mt.h QtSceneFromModel_T2D_CHM_mt.cpp
+    QtApp_Prep_T2D_CHM_mt.h QtApp_Prep_T2D_CHM_mt.cpp
+    # post process module
+    QtSceneFromHdf5_T2D_CHM_mt.h QtSceneFromHdf5_T2D_CHM_mt.cpp
+    QtApp_Posp_T2D_CHM_mt.h QtApp_Posp_T2D_CHM_mt.cpp
     ################## 3D MPM model display ####################
     # 3D OpenGL Buffer Objects
     QtRigidCylinderObject.h QtRigidCylinderObject.cpp

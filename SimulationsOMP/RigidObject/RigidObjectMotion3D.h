@@ -211,9 +211,9 @@ public:
 		vy += ay * dt;
 		vz += az * dt;
 		// apply vbc
-		vx = (ivx & ~vx_bc_mask) | (ivx_bc & vx_bc_mask);
-		vy = (ivy & ~vy_bc_mask) | (ivy_bc & vy_bc_mask);
-		vz = (ivz & ~vz_bc_mask) | (ivz_bc & vz_bc_mask);
+		ivx = (ivx & ~vx_bc_mask) | (ivx_bc & vx_bc_mask);
+		ivy = (ivy & ~vy_bc_mask) | (ivy_bc & vy_bc_mask);
+		ivz = (ivz & ~vz_bc_mask) | (ivz_bc & vz_bc_mask);
 		// update position
 		ux += vx * dt;
 		uy += vy * dt;

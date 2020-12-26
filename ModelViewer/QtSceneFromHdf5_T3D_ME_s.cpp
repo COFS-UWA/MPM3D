@@ -298,10 +298,10 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		hid_t rb_grp_id = rf.open_group(md_data_grp_id, "RigidBody");
 		// rigid body node data
 		rf.read_attribute(rb_grp_id, "node_num", rb_node_num);
-		hid_t rb_node_dt_id = get_rigid_teh_mesh_node_dt_id();
+		hid_t rb_node_dt_id = RigidBody_hdf5_utilities::get_rigid_teh_mesh_node_dt_id();
 		if (rb_node_data)
 			delete[] rb_node_data;
-		rb_node_data = new RigidTehMeshNodeData[rb_node_num];
+		rb_node_data = new RigidBody_hdf5_utilities::RigidTehMeshNodeData[rb_node_num];
 		rf.read_dataset(
 			rb_grp_id,
 			"NodeData",
@@ -312,10 +312,10 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		H5Tclose(rb_node_dt_id);
 		// rigid body face data
 		rf.read_attribute(rb_grp_id, "elem_num", rb_elem_num);
-		hid_t rb_elem_dt_id = get_rigid_teh_mesh_elem_dt_id();
+		hid_t rb_elem_dt_id = RigidBody_hdf5_utilities::get_rigid_teh_mesh_elem_dt_id();
 		if (rb_elem_data)
 			delete[] rb_elem_data;
-		rb_elem_data = new RigidTehMeshElemData[rb_elem_num];
+		rb_elem_data = new RigidBody_hdf5_utilities::RigidTehMeshElemData[rb_elem_num];
 		rf.read_dataset(
 			rb_grp_id,
 			"ElementData",
@@ -363,7 +363,7 @@ int QtSceneFromHdf5_T3D_ME_s::init_scene(int wd, int ht, size_t frame_id)
 		rb_bbox.zu = rb_bbox.zl;
 		for (size_t n_id = 1; n_id < rb_node_num; ++n_id)
 		{
-			RigidTehMeshNodeData &n = rb_node_data[n_id];
+			RigidBody_hdf5_utilities::RigidTehMeshNodeData &n = rb_node_data[n_id];
 			if (rb_bbox.xl > n.x)
 				rb_bbox.xl = n.x;
 			if (rb_bbox.xu < n.x)

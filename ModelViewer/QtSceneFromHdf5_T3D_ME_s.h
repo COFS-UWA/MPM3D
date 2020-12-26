@@ -11,6 +11,7 @@
 #include "UniformColorMap_Abaqus.h"
 #include "QtUniformColorMapObject.h"
 #include "Model_hdf5_utilities.h"
+#include "RigidBody/RigidBody_hdf5_utilities.h"
 #include "QtRigidTetrahedronMeshGLObject.h"
 #include "QtSceneFromHdf5.h"
 
@@ -49,9 +50,9 @@ protected:
 	QtMultiColorBallGLObject pcls_obj;
 	
 	size_t rb_node_num;
-	Model_hdf5_utilities::RigidTehMeshNodeData* rb_node_data;
+	RigidBody_hdf5_utilities::RigidTehMeshNodeData* rb_node_data;
 	size_t rb_elem_num;
-	Model_hdf5_utilities::RigidTehMeshElemData* rb_elem_data;
+	RigidBody_hdf5_utilities::RigidTehMeshElemData* rb_elem_data;
 	QtRigidTetrahedronMeshGLObject rb_obj;
 	
 	bool has_color_map;

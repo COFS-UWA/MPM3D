@@ -130,15 +130,6 @@ int QtSceneFromHdf5_T3D_ME_mt_Div<DivisionSet>
 			pcl_fld_data,
 			0.5f, div_set
 			);
-		//pcls_obj.init(
-		//	pcl_num,
-		//	pcl_x_data,
-		//	pcl_y_data,
-		//	pcl_z_data,
-		//	pcl_vol_data,
-		//	pcl_fld_data,
-		//	0.5
-		//);
 	}
 
 	init_rigid_objects_buffer(mh_bbox, rf);

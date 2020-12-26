@@ -13,6 +13,7 @@
 #include "QtRigidCylinderObject.h"
 #include "QtRigidConeObject.h"
 #include "QtRigidCubeObject.h"
+#include "QtRigidObjectByT3DMesh.h"
 #include "QtSceneFromHdf5.h"
 
 class QtSceneFromHdf5_T3D_ME_mt : public QtSceneFromHdf5
@@ -39,6 +40,7 @@ protected:
 	bool display_rcy, has_rcy;
 	bool display_rco, has_rco;
 	bool display_rcu, has_rcu;
+	bool display_rmesh, has_rmesh;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 
@@ -49,6 +51,7 @@ protected:
 	QtRigidCylinderObject rcy_obj;
 	QtRigidConeObject rco_obj;
 	QtRigidCubeObject rcu_obj;
+	QtRigidObjectByT3DMesh rmesh_obj;
 
 	bool has_color_map;
 	float cm_xpos, cm_ypos, cm_ht;

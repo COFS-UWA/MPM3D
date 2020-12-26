@@ -1,11 +1,12 @@
 #ifndef __Rigid_Object_hdf5_utilities_h__
 #define __Rigid_Object_hdf5_utilities_h__
 
-#include "ResultFile_hdf5.h"
+#include "RigidCircle.h"
+#include "RigidCube.h"
 #include "RigidCylinder.h"
 #include "RigidCone.h"
-#include "RigidCube.h"
 #include "RigidObjectByT3DMesh.h"
+#include "ResultFile_hdf5.h"
 
 namespace RigidObject_hdf5_utilities
 {
@@ -59,14 +60,17 @@ namespace RigidObject_hdf5_utilities
 		return res;
 	}
 
+	int output_rigid_circle_to_hdf5_file(RigidObject::RigidCircle& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
+	int load_rigid_circle_from_hdf5_file(RigidObject::RigidCircle& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
+
+	int output_rigid_cube_to_hdf5_file(RigidCube& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
+	int load_rigid_cube_from_hdf5_file(RigidCube& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
+
 	int output_rigid_cylinder_to_hdf5_file(RigidCylinder &rc, ResultFile_hdf5 &rf, hid_t rc_grp_id);
 	int load_rigid_cylinder_from_hdf5_file(RigidCylinder &rc, ResultFile_hdf5 &rf, hid_t rc_grp_id);
 	
 	int output_rigid_cone_to_hdf5_file(RigidCone &rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
 	int load_rigid_cone_from_hdf5_file(RigidCone &rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
-	
-	int output_rigid_cube_to_hdf5_file(RigidCube& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
-	int load_rigid_cube_from_hdf5_file(RigidCube& rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
 
 	int output_rigid_object_by_3dmesh_to_hdf5_file(RigidObjectByT3DMesh &rb, ResultFile_hdf5 &rf, hid_t rb_grp_id);
 	int output_rigid_object_by_3dmesh_state_to_hdf5_file(RigidObjectByT3DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);

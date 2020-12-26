@@ -4,6 +4,129 @@
 
 namespace RigidObject_hdf5_utilities
 {
+	// rigid circle
+	int output_rigid_circle_to_hdf5_file(
+		RigidObject::RigidCircle& rc,
+		ResultFile_hdf5& rf,
+		hid_t rc_grp_id
+		)
+	{
+		if (rc_grp_id < 0)
+			return -1;
+
+		rf.write_attribute(rc_grp_id, "radius", rc.get_radius());
+		rf.write_attribute(rc_grp_id, "density", rc.get_density());
+		rf.write_attribute(rc_grp_id, "ax", rc.get_ax());
+		rf.write_attribute(rc_grp_id, "ay", rc.get_ay());
+		rf.write_attribute(rc_grp_id, "a_angle", rc.get_a_ang());
+		rf.write_attribute(rc_grp_id, "vx", rc.get_vx());
+		rf.write_attribute(rc_grp_id, "vy", rc.get_vy());
+		rf.write_attribute(rc_grp_id, "v_angle", rc.get_v_ang());
+		rf.write_attribute(rc_grp_id, "x", rc.get_x());
+		rf.write_attribute(rc_grp_id, "y", rc.get_y());
+		rf.write_attribute(rc_grp_id, "angle", rc.get_ang());
+		const Force2D& f_cont = rc.get_cont_force();
+		rf.write_attribute(rc_grp_id, "fx_cont", f_cont.fx);
+		rf.write_attribute(rc_grp_id, "fy_cont", f_cont.fy);
+		rf.write_attribute(rc_grp_id, "m_cont", f_cont.m);
+		const Force2D& f_ext = rc.get_ext_force();
+		rf.write_attribute(rc_grp_id, "fx_ext", f_ext.fx);
+		rf.write_attribute(rc_grp_id, "fy_ext", f_ext.fy);
+		rf.write_attribute(rc_grp_id, "m_ext", f_ext.m);
+
+		if (rc.has_ax_bc())
+			rf.write_attribute(rc_grp_id, "ax_bc", rc.get_ax_bc());
+		if (rc.has_ay_bc())
+			rf.write_attribute(rc_grp_id, "ay_bc", rc.get_ay_bc());
+		if (rc.has_a_ang_bc())
+			rf.write_attribute(rc_grp_id, "a_ang_bc", rc.get_a_ang_bc());
+		if (rc.has_vx_bc())
+			rf.write_attribute(rc_grp_id, "vx_bc", rc.get_vx_bc());
+		if (rc.has_vy_bc())
+			rf.write_attribute(rc_grp_id, "vy_bc", rc.get_vy_bc());
+		if (rc.has_v_ang_bc())
+			rf.write_attribute(rc_grp_id, "v_ang_bc", rc.get_v_ang_bc());
+
+		return 0;
+	}
+
+	int load_rigid_circle_from_hdf5_file(
+		RigidObject::RigidCircle& rc,
+		ResultFile_hdf5& rf,
+		hid_t rc_grp_id
+		)
+	{
+		if (rc_grp_id < 0)
+			return -1;
+
+		double rc_radius, rc_density;
+		double rc_ax, rc_ay, rc_a_ang;
+		double rc_vx, rc_vy, rc_v_ang;
+		double rc_x, rc_y, rc_ang;
+		rf.read_attribute(rc_grp_id, "radius", rc_radius);
+		rf.read_attribute(rc_grp_id, "density", rc_density);
+		rf.read_attribute(rc_grp_id, "ax", rc_ax);
+		rf.read_attribute(rc_grp_id, "ay", rc_ay);
+		rf.read_attribute(rc_grp_id, "a_angle", rc_a_ang);
+		rf.read_attribute(rc_grp_id, "vx", rc_vx);
+		rf.read_attribute(rc_grp_id, "vy", rc_vy);
+		rf.read_attribute(rc_grp_id, "v_angle", rc_v_ang);
+		rf.read_attribute(rc_grp_id, "x", rc_x);
+		rf.read_attribute(rc_grp_id, "y", rc_y);
+		rf.read_attribute(rc_grp_id, "angle", rc_ang);
+
+		Force2D f_cont, f_ext;
+		rf.read_attribute(rc_grp_id, "fx_cont", f_cont.fx);
+		rf.read_attribute(rc_grp_id, "fy_cont", f_cont.fy);
+		rf.read_attribute(rc_grp_id, "m_cont", f_cont.m);
+		rf.read_attribute(rc_grp_id, "fx_ext", f_ext.fx);
+		rf.read_attribute(rc_grp_id, "fy_ext", f_ext.fy);
+		rf.read_attribute(rc_grp_id, "m_ext", f_ext.m);
+
+		rc.set_init_state(
+			rc_radius, rc_density,
+			rc_ax, rc_ay, rc_a_ang,
+			rc_vx, rc_vy, rc_v_ang,
+			rc_x, rc_y, rc_ang,
+			f_cont, f_ext
+			);
+
+		// boundary conditions
+		double bc_value;
+		if (rf.has_attribute(rc_grp_id, "ax_bc"))
+		{
+			rf.read_attribute(rc_grp_id, "ax_bc", bc_value);
+			rc.set_ax_bc(bc_value);
+		}
+		if (rf.has_attribute(rc_grp_id, "ay_bc"))
+		{
+			rf.read_attribute(rc_grp_id, "ay_bc", bc_value);
+			rc.set_ay_bc(bc_value);
+		}
+		if (rf.has_attribute(rc_grp_id, "a_ang_bc"))
+		{
+			rf.read_attribute(rc_grp_id, "a_ang_bc", bc_value);
+			rc.set_a_ang_bc(bc_value);
+		}
+		if (rf.has_attribute(rc_grp_id, "vx_bc"))
+		{
+			rf.read_attribute(rc_grp_id, "vx_bc", bc_value);
+			rc.set_vx_bc(bc_value);
+		}
+		if (rf.has_attribute(rc_grp_id, "vy_bc"))
+		{
+			rf.read_attribute(rc_grp_id, "vy_bc", bc_value);
+			rc.set_vy_bc(bc_value);
+		}
+		if (rf.has_attribute(rc_grp_id, "v_ang_bc"))
+		{
+			rf.read_attribute(rc_grp_id, "v_ang_bc", bc_value);
+			rc.set_v_ang_bc(bc_value);
+		}
+
+		return 0;
+	}
+	
 	int output_rigid_cylinder_to_hdf5_file(
 		RigidCylinder& rc,
 		ResultFile_hdf5& rf,

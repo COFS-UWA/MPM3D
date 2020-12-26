@@ -4,15 +4,15 @@
 
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
-#include "RigidBody/RigidBody_hdf5_utilities.h"
-#include "Model_T2D_ME_mt_hdf5_utilities.h"
+#include "RigidObject/RigidObject_hdf5_utilities.h"
+#include "Model_T2D_CHM_mt_hdf5_utilities.h"
 
-namespace Model_T2D_ME_mt_hdf5_utilities
+namespace Model_T2D_CHM_mt_hdf5_utilities
 {
 using namespace Model_hdf5_utilities;
 
 int output_background_mesh_to_hdf5_file(
-	Model_T2D_ME_mt& md,
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -37,12 +37,12 @@ int output_background_mesh_to_hdf5_file(
 
 	// node coordinates
 	NodeData *nodes_data = new NodeData[node_num];
-	Model_T2D_ME_mt::NodePos *node_pos = md.node_pos;
+	Model_T2D_CHM_mt::Position *node_pos = md.node_pos;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
 		NodeData &node_data = nodes_data[n_id];
 		node_data.id = n_id;
-		Model_T2D_ME_mt::NodePos &np = node_pos[n_id];
+		Model_T2D_CHM_mt::Position &np = node_pos[n_id];
 		node_data.x = np.x;
 		node_data.y = np.y;
 	}
@@ -59,27 +59,27 @@ int output_background_mesh_to_hdf5_file(
 
 	// element indices
 	ElementData *elems_data = new ElementData[elem_num];
-	Model_T2D_ME_mt::ElemNodeIndex *e_node_index = md.elem_node_id;
+	Model_T2D_CHM_mt::ElemNodeIndex *e_node_index = md.elem_node_id;
 	double* e_area = md.elem_area;
-	Model_T2D_ME_mt::ElemShapeFuncAB* e_sf_ab = md.elem_sf_ab;
-	Model_T2D_ME_mt::ElemShapeFuncC* e_sf_c = md.elem_sf_c;
+	Model_T2D_CHM_mt::DShapeFuncAB* e_sf_ab = md.elem_N_ab;
+	Model_T2D_CHM_mt::DShapeFuncC* e_sf_c = md.elem_N_c;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		ElementData &elem_data = elems_data[e_id];
 		elem_data.id = e_id;
-		Model_T2D_ME_mt::ElemNodeIndex &eni = e_node_index[e_id];
+		Model_T2D_CHM_mt::ElemNodeIndex &eni = e_node_index[e_id];
 		elem_data.n1 = eni.n1;
 		elem_data.n2 = eni.n2;
 		elem_data.n3 = eni.n3;
 		elem_data.area = e_area[e_id];
-		Model_T2D_ME_mt::ElemShapeFuncAB& esfab = e_sf_ab[e_id];
+		Model_T2D_CHM_mt::DShapeFuncAB &esfab = e_sf_ab[e_id];
 		elem_data.a1 = esfab.a1;
 		elem_data.b1 = esfab.b1;
 		elem_data.a2 = esfab.a2;
 		elem_data.b2 = esfab.b2;
 		elem_data.a3 = esfab.a3;
 		elem_data.b3 = esfab.b3;
-		Model_T2D_ME_mt::ElemShapeFuncC& esfc = e_sf_c[e_id];
+		Model_T2D_CHM_mt::DShapeFuncC& esfc = e_sf_c[e_id];
 		elem_data.c1 = esfc.c1;
 		elem_data.c2 = esfc.c2;
 		elem_data.c3 = esfc.c3;
@@ -102,7 +102,7 @@ int output_background_mesh_to_hdf5_file(
 }
 
 int load_background_mesh_from_hdf5_file(
-	Model_T2D_ME_mt &md,
+	Model_T2D_CHM_mt &md,
 	ResultFile_hdf5 &rf,
 	hid_t grp_id
 	)
@@ -128,10 +128,10 @@ int load_background_mesh_from_hdf5_file(
 		nd_dt_id
 		);
 	H5Tclose(nd_dt_id);
-	Model_T2D_ME_mt::NodePos *node_pos = md.node_pos;
+	Model_T2D_CHM_mt::Position *node_pos = md.node_pos;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
-		Model_T2D_ME_mt::NodePos& np = node_pos[n_id];
+		Model_T2D_CHM_mt::Position &np = node_pos[n_id];
 		NodeData &node_data = nodes_data[n_id];
 		np.x = node_data.x;
 		np.y = node_data.y;
@@ -149,24 +149,24 @@ int load_background_mesh_from_hdf5_file(
 		ed_dt_id
 		);
 	H5Tclose(ed_dt_id);
-	Model_T2D_ME_mt::ElemNodeIndex* e_node_id = md.elem_node_id;
-	Model_T2D_ME_mt::ElemShapeFuncAB* e_sf_ab = md.elem_sf_ab;
-	Model_T2D_ME_mt::ElemShapeFuncC* e_sf_c = md.elem_sf_c;
+	Model_T2D_CHM_mt::ElemNodeIndex* e_node_id = md.elem_node_id;
+	Model_T2D_CHM_mt::DShapeFuncAB* e_sf_ab = md.elem_N_ab;
+	Model_T2D_CHM_mt::DShapeFuncC* e_sf_c = md.elem_N_c;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		ElementData &elem_data = elems_data[e_id];
-		Model_T2D_ME_mt::ElemNodeIndex& eni = e_node_id[e_id];
+		Model_T2D_CHM_mt::ElemNodeIndex& eni = e_node_id[e_id];
 		eni.n1 = elem_data.n1;
 		eni.n2 = elem_data.n2;
 		eni.n3 = elem_data.n3;
-		Model_T2D_ME_mt::ElemShapeFuncAB &esfab = e_sf_ab[e_id];
+		Model_T2D_CHM_mt::DShapeFuncAB &esfab = e_sf_ab[e_id];
 		esfab.a1 = elem_data.a1;
 		esfab.a2 = elem_data.a2;
 		esfab.a3 = elem_data.a3;
 		esfab.b1 = elem_data.b1;
 		esfab.b2 = elem_data.b2;
 		esfab.b3 = elem_data.b3;
-		Model_T2D_ME_mt::ElemShapeFuncC& esfc = e_sf_c[e_id];
+		Model_T2D_CHM_mt::DShapeFuncC& esfc = e_sf_c[e_id];
 		esfc.c1 = elem_data.c1;
 		esfc.c2 = elem_data.c2;
 		esfc.c3 = elem_data.c3;
@@ -185,7 +185,7 @@ int load_background_mesh_from_hdf5_file(
 }
 
 int output_boundary_condition_to_hdf5_file(
-	Model_T2D_ME_mt& md,
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -202,11 +202,21 @@ int output_boundary_condition_to_hdf5_file(
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		NodeVBCData& nvbc = nvbc_data[n_id];
-		Model_T2D_ME_mt::NodeHasVBC& md_nvbc = md.node_has_vbc[n_id];
+		Model_T2D_CHM_mt::NodeHasVBC& md_nvbc = md.node_has_vbc_s[n_id];
 		nvbc.has_vx_bc = md_nvbc.has_vx_bc;
 		nvbc.has_vy_bc = md_nvbc.has_vy_bc;
 	}
-	rf.write_dataset(bc_grp_id, "NodeVelocityBC", md.node_num, nvbc_data, n_vbc_dt_id);
+	rf.write_dataset(bc_grp_id, "NodeVelocityBC_s",
+		md.node_num, nvbc_data, n_vbc_dt_id);
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	{
+		NodeVBCData& nvbc = nvbc_data[n_id];
+		Model_T2D_CHM_mt::NodeHasVBC& md_nvbc = md.node_has_vbc_f[n_id];
+		nvbc.has_vx_bc = md_nvbc.has_vx_bc;
+		nvbc.has_vy_bc = md_nvbc.has_vy_bc;
+	}
+	rf.write_dataset(bc_grp_id, "NodeVelocityBC_f",
+		md.node_num, nvbc_data, n_vbc_dt_id);
 	delete[] nvbc_data;
 	H5Tclose(n_vbc_dt_id);
 	
@@ -215,7 +225,7 @@ int output_boundary_condition_to_hdf5_file(
 }
 
 int load_boundary_condition_from_hdf5_file(
-	Model_T2D_ME_mt& md,
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -231,11 +241,23 @@ int load_boundary_condition_from_hdf5_file(
 	
 	hid_t n_vbc_dt_id = get_node_vbc_dt_id();
 	NodeVBCData *nvbc_data = new NodeVBCData[md.node_num];
-	rf.read_dataset(bc_id, "NodeVelocityBC", md.node_num, nvbc_data, n_vbc_dt_id);
+	rf.read_dataset(bc_id, "NodeVelocityBC_s",
+		md.node_num, nvbc_data, n_vbc_dt_id);
 	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
 	{
 		NodeVBCData& nvbc = nvbc_data[n_id];
-		Model_T2D_ME_mt::NodeHasVBC &md_nvbc = md.node_has_vbc[n_id];
+		Model_T2D_CHM_mt::NodeHasVBC &md_nvbc
+			= md.node_has_vbc_s[n_id];
+		md_nvbc.has_vx_bc = nvbc.has_vx_bc;
+		md_nvbc.has_vy_bc = nvbc.has_vy_bc;
+	}
+	rf.read_dataset(bc_id, "NodeVelocityBC_f",
+		md.node_num, nvbc_data, n_vbc_dt_id);
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	{
+		NodeVBCData& nvbc = nvbc_data[n_id];
+		Model_T2D_CHM_mt::NodeHasVBC& md_nvbc
+			= md.node_has_vbc_f[n_id];
 		md_nvbc.has_vx_bc = nvbc.has_vx_bc;
 		md_nvbc.has_vy_bc = nvbc.has_vy_bc;
 	}
@@ -247,7 +269,7 @@ int load_boundary_condition_from_hdf5_file(
 }
 
 int output_ori_pcl_data_to_hdf5_file(
-	Model_T2D_ME_mt& md,
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -285,11 +307,11 @@ int output_ori_pcl_data_to_hdf5_file(
 }
 
 int output_pcl_data_to_hdf5_file(
-	Model_T2D_ME_mt& md,
-	Step_T2D_ME_mt& stp,
-	ResultFile_hdf5& rf,
+	Model_T2D_CHM_mt &md,
+	Step_T2D_CHM_mt &stp,
+	ResultFile_hdf5 &rf,
 	hid_t grp_id
-)
+	)
 {
 	if (grp_id < 0)
 		return -1;
@@ -304,15 +326,10 @@ int output_pcl_data_to_hdf5_file(
 	int res = 0;
 	if (pcl_num)
 	{
-		size_t sorted_var_id = stp.get_pcl_sorted_var_id();
-		const size_t* new_to_prev_pcl_map = stp.get_new_to_prev_pcl_map();
+		const size_t sorted_pcl_id = stp.get_sorted_pcl_var_id() ^ 1;
 		ParticleData* pcl_data = new ParticleData[pcl_num];
-		size_t p_id;
-		for (p_id = 0; p_id < pcl_num; ++p_id)
-		{
-			ParticleData& pd = pcl_data[p_id];
-			pd.from_pcl(md, p_id, sorted_var_id, new_to_prev_pcl_map);
-		}
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+			pcl_data[p_id].from_pcl(md, p_id, sorted_pcl_id);
 		hid_t pcl_dt_id = get_pcl_dt_id();
 		res = rf.write_dataset(
 			pcl_data_grp_id,
@@ -330,7 +347,7 @@ int output_pcl_data_to_hdf5_file(
 }
 
 int load_pcl_data_from_hdf5_file(
-	Model_T2D_ME_mt& md,
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -387,9 +404,8 @@ int load_pcl_data_from_hdf5_file(
 	return 0;
 }
 
-
 int output_material_model_to_hdf5_file(
-	Model_T2D_ME_mt& md,
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -403,7 +419,7 @@ int output_material_model_to_hdf5_file(
 }
 
 int load_material_model_from_hdf5_file(
-	Model_T2D_ME_mt &md,
+	Model_T2D_CHM_mt &md,
 	ResultFile_hdf5 &rf,
 	hid_t grp_id
 	)
@@ -416,59 +432,8 @@ int load_material_model_from_hdf5_file(
 	return 0;
 }
 
-//int output_rigid_circle_to_hdf5_file(
-//	Model_T2D_ME_mt& md,
-//	ResultFile_hdf5& rf,
-//	hid_t grp_id
-//	)
-//{
-//	if (grp_id < 0)
-//		return -1;
-//
-//	if (!md.rigid_circle_is_valid())
-//		return 0;
-//
-//	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCircle");
-//
-//	rf.write_attribute(rc_grp_id, "K_cont", md.K_cont);
-//
-//	using Model_hdf5_utilities::output_rigid_circle_to_hdf5_file;
-//	output_rigid_circle_to_hdf5_file(md.rigid_circle, rf, rc_grp_id);
-//
-//	rf.close_group(rc_grp_id);
-//	return 0;
-//}
-
-//int load_rigid_circle_from_hdf5_file(
-//	Model_T2D_ME_mt& md,
-//	ResultFile_hdf5& rf,
-//	hid_t grp_id
-//	)
-//{
-//	if (grp_id < 0)
-//		return -1;
-//	
-//	if (!rf.has_group(grp_id, "RigidCircle"))
-//		return 0;
-//
-//	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCircle");
-//
-//	double K_cont;
-//	rf.read_attribute(rc_grp_id, "K_cont", K_cont);
-//	md.K_cont = K_cont;
-//
-//	using Model_hdf5_utilities::load_rigid_circle_from_hdf5_file;
-//	load_rigid_circle_from_hdf5_file(md.rigid_circle, rf, rc_grp_id);
-//
-//	md.rigid_circle_is_init = true;
-//	
-//	rf.close_group(rc_grp_id);
-//	return 0;
-//}
-
-int output_rigid_rect_to_hdf5_file(
-	Model_T2D_ME_mt& md,
-	Step_T2D_ME_mt &stp,
+int output_rigid_circle_to_hdf5_file(
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -476,54 +441,18 @@ int output_rigid_rect_to_hdf5_file(
 	if (grp_id < 0)
 		return -1;
 
-	if (!md.has_rigid_rect())
+	if (!md.has_rigid_circle())
 		return 0;
-
-	hid_t rr_grp_id = rf.create_group(grp_id, "RigidRect");
-
-	rf.write_attribute(rr_grp_id, "K_cont", md.K_cont);
-
-	RigidRect& rr = md.get_rigid_rect();
-	rf.write_attribute(rr_grp_id, "hx", rr.get_hx());
-	rf.write_attribute(rr_grp_id, "hy", rr.get_hy());
-	rf.write_attribute(rr_grp_id, "density", rr.get_density());
-
-	rf.write_attribute(rr_grp_id, "ax", rr.get_ax());
-	rf.write_attribute(rr_grp_id, "ay", rr.get_ay());
-	rf.write_attribute(rr_grp_id, "a_angle", rr.get_a_ang());
-	rf.write_attribute(rr_grp_id, "vx", rr.get_vx());
-	rf.write_attribute(rr_grp_id, "vy", rr.get_vy());
-	rf.write_attribute(rr_grp_id, "v_angle", rr.get_v_ang());
-	rf.write_attribute(rr_grp_id, "x", rr.get_x());
-	rf.write_attribute(rr_grp_id, "y", rr.get_y());
-	rf.write_attribute(rr_grp_id, "angle", rr.get_ang());
-
-	rf.write_attribute(rr_grp_id, "fx_contact", stp.get_rr_fx_contact());
-	rf.write_attribute(rr_grp_id, "fy_contact", stp.get_rr_fy_contact());
-	rf.write_attribute(rr_grp_id, "m_contact", stp.get_rr_m_contact());
-	rf.write_attribute(rr_grp_id, "fx_external", rr.get_fx_external());
-	rf.write_attribute(rr_grp_id, "fy_external", rr.get_fy_external());
-	rf.write_attribute(rr_grp_id, "m_external", rr.get_m_external());
-
-	if (rr.has_ax_bc())
-		rf.write_attribute(rr_grp_id, "ax_bc", rr.get_ax_bc());
-	if (rr.has_ay_bc())
-		rf.write_attribute(rr_grp_id, "ay_bc", rr.get_ay_bc());
-	if (rr.has_a_ang_bc())
-		rf.write_attribute(rr_grp_id, "a_ang_bc", rr.get_a_ang_bc());
-	if (rr.has_vx_bc())
-		rf.write_attribute(rr_grp_id, "vx_bc", rr.get_vx_bc());
-	if (rr.has_vy_bc())
-		rf.write_attribute(rr_grp_id, "vy_bc", rr.get_vy_bc());
-	if (rr.has_v_ang_bc())
-		rf.write_attribute(rr_grp_id, "v_ang_bc", rr.get_v_ang());
-
-	rf.close_group(rr_grp_id);
+	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCircle");
+	rf.write_attribute(rc_grp_id, "K_cont", md.smooth_contact.get_Kn_cont());
+	using RigidObject_hdf5_utilities::output_rigid_circle_to_hdf5_file;
+	output_rigid_circle_to_hdf5_file(md.get_rigid_circle(), rf, rc_grp_id);
+	rf.close_group(rc_grp_id);
 	return 0;
 }
 
-int output_rigid_rect_to_hdf5_file(
-	Model_T2D_ME_mt& md,
+int load_rigid_circle_from_hdf5_file(
+	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
 	hid_t grp_id
 	)
@@ -531,43 +460,17 @@ int output_rigid_rect_to_hdf5_file(
 	if (grp_id < 0)
 		return -1;
 
-	if (!md.has_rigid_rect())
+	if (!rf.has_group(grp_id, "RigidCircle"))
 		return 0;
-
-	hid_t rr_grp_id = rf.create_group(grp_id, "RigidRect");
-
-	rf.write_attribute(rr_grp_id, "K_cont", md.K_cont);
-
-	RigidRect &rr = md.get_rigid_rect();
-	using RigidBody_hdf5_utilities::output_rigid_rect_to_hdf5_file;
-	output_rigid_rect_to_hdf5_file(rr, rf, rr_grp_id);
-
-	rf.close_group(rr_grp_id);
-	return 0;
-}
-
-int load_rigid_rect_from_hdf5_file(
-	Model_T2D_ME_mt& md,
-	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
-{
-	if (grp_id < 0)
-		return -1;
-
-	if (!rf.has_group(grp_id, "RigidRect"))
-		return 0;
-
-	hid_t rr_grp_id = rf.open_group(grp_id, "RigidRect");
-
+	hid_t rr_grp_id = rf.open_group(grp_id, "RigidCircle");
+	
 	double K_cont;
 	rf.read_attribute(rr_grp_id, "K_cont", K_cont);
-	md.K_cont = K_cont;
+	md.smooth_contact.set_Kn_cont(K_cont);
 
-	using RigidBody_hdf5_utilities::load_rigid_rect_from_hdf5_file;
-	load_rigid_rect_from_hdf5_file(md.rigid_rect, rf, rr_grp_id);
-
-	md.rigid_rect_is_valid = true;
+	md.rigid_circle_is_valid = true;
+	using RigidObject_hdf5_utilities::load_rigid_circle_from_hdf5_file;
+	load_rigid_circle_from_hdf5_file(md.get_rigid_circle(), rf, rr_grp_id);
 
 	rf.close_group(rr_grp_id);
 	return 0;
@@ -575,7 +478,7 @@ int load_rigid_rect_from_hdf5_file(
 
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
-	Model_T2D_ME_mt &md,
+	Model_T2D_CHM_mt &md,
 	ResultFile_hdf5 &rf
 	)
 {
@@ -589,15 +492,14 @@ int output_model_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, md_grp_id);
 	// rigid object
-	//output_rigid_circle_to_hdf5_file(md, rf, md_grp_id);
-	output_rigid_rect_to_hdf5_file(md, rf, md_grp_id);
+	output_rigid_circle_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }
 
 // output the particle data and material models to hdf5 (used by time history)
 int time_history_complete_output_to_hdf5_file(
-	Model_T2D_ME_mt &md,
-	Step_T2D_ME_mt &stp,
+	Model_T2D_CHM_mt &md,
+	Step_T2D_CHM_mt &stp,
 	ResultFile_hdf5 &rf,
 	hid_t frame_grp_id
 	)
@@ -607,15 +509,14 @@ int time_history_complete_output_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
-	//output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
-	output_rigid_rect_to_hdf5_file(md, stp, rf, frame_grp_id);
+	output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
 // load model data from hdf5 to model data
-int load_me_mt_model_from_hdf5_file(
-	Model_T2D_ME_mt& md,
-	Step_T2D_ME_mt& step,
+int load_chm_mt_model_from_hdf5_file(
+	Model_T2D_CHM_mt& md,
+	Step_T2D_CHM_mt& step,
 	const char* hdf5_name,
 	const char* th_name,
 	size_t frame_id
@@ -647,8 +548,7 @@ int load_me_mt_model_from_hdf5_file(
 	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
 
 	// rigid object
-	//load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
-	//load_rigid_rect_from_hdf5_file(md, rf, th_frame_id);
+	load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
 
 	step.is_first_step = false;
 	rf.read_attribute(th_frame_id, "total_time", step.start_time);
