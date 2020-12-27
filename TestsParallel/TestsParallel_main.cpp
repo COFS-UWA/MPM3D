@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_test_rigid_mesh(argc, argv);
 	//test_t3d_me_mt_test_rigid_mesh_result(argc, argv);
 
-	//test_t2d_chm_mt_1d_consolidation(argc, argv);
-	test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
+	test_t2d_chm_mt_1d_consolidation(argc, argv);
+	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
 
 	//system("pause");

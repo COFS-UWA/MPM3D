@@ -921,7 +921,7 @@ int substep_func_omp_T3D_ME_mt(
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
 		ne_id = node_elem_pair0[ve_id];
-		assert(n_id < self.elem_num * 4);
+		assert(ne_id < self.elem_num * 4);
 		e_id = ne_id / 4;
 		n_am += elem_pcl_m[e_id];
 		ElemNodeForce& nf = elem_node_force[ne_id];

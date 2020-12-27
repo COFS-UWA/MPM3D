@@ -57,8 +57,10 @@ protected:
 	double* elem_pcl_n; // elem_num
 	double* elem_pcl_m_s; // elem_num
 	double* elem_pcl_m_f; // elem_num
-	StrainInc* elem_de; // elem_num
-	double* elem_p; // elem_num
+	StrainInc *elem_de; // elem_num
+	double *elem_p; // elem_num
+	double *elem_n2_miu_div_k_vol;
+	Force *elem_seep_force;
 	double* elem_m_de_vol_s; // elem_num
 	double* elem_m_de_vol_f; // elem_num
 
@@ -89,7 +91,7 @@ protected:
 	size_t* valid_elem_id;
 
 	size_t elem_num, node_num;
-	double Kf;
+	double k, miu, Kf;
 
 	double Kn_cont;
 	size_t* contact_substep_id;

@@ -150,8 +150,10 @@ protected:
 	double *elem_pcl_m_f; // elem_num
 	StrainInc *elem_de; // elem_num
 	double *elem_p; // elem_num
+	double *elem_n2_miu_div_k_vol; // elem_num
+	Force *elem_seep_force; // elem_num
 	double *elem_m_de_vol_s; // elem_num
-	double* elem_m_de_vol_f; // elem_num
+	double *elem_m_de_vol_f; // elem_num
 
 	// element-node data
 	ElemNodeVM* elem_node_vm_s; // elem_num * 3

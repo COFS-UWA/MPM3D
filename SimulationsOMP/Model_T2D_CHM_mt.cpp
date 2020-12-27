@@ -8,7 +8,7 @@
 
 Model_T2D_CHM_mt::Model_T2D_CHM_mt() :
 	ori_pcl_num(0), pcl_num(0),
-	pcl_mem_raw(nullptr), pcl_mat_model(nullptr),
+	pcl_mem_raw(nullptr),
 	node_num(0), elem_num(0),
 	mesh_mem_raw(nullptr),
 	bfx_s_num(0), bfx_ss(nullptr),
@@ -79,8 +79,8 @@ void Model_T2D_CHM_mt::alloc_mesh(
 
 	size_t mem_len = (sizeof(ElemNodeIndex)
 		+ sizeof(DShapeFuncAB) + sizeof(DShapeFuncC)
-		+ sizeof(double) * 8 + sizeof(StrainInc)
-		+ sizeof(ElemNodeVM) * 6 + sizeof(Force) * 6) * e_num
+		+ sizeof(double) * 9 + sizeof(StrainInc)
+		+ sizeof(ElemNodeVM) * 6 + sizeof(Force) * 7) * e_num
 		+ (sizeof(Position) + sizeof(Acceleration) * 2
 		+ sizeof(Velocity) * 2 + sizeof(NodeHasVBC) * 2
 		+ sizeof(double) * 4) * n_num;
@@ -107,6 +107,10 @@ void Model_T2D_CHM_mt::alloc_mesh(
 	cur_mem += sizeof(StrainInc) * elem_num;
 	elem_p = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
+	elem_n2_miu_div_k_vol = (double *)cur_mem;
+	cur_mem += sizeof(double) * elem_num;
+	elem_seep_force = (Force*)cur_mem;
+	cur_mem += sizeof(Force) * elem_num;
 	elem_m_de_vol_s = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
 	elem_m_de_vol_f = (double*)cur_mem;
@@ -239,14 +243,13 @@ int Model_T2D_CHM_mt::init_search_grid(
 	grid_y_num = search_grid.get_y_num();
 
 	size_t num = grid_x_num * grid_y_num;
-	typedef SearchingGrid2D<TriangleMesh>::Grid Grid;
-	Grid *sg = search_grid.get_grids();
+	auto *sg = search_grid.get_grids();
 	grid_elem_list = new size_t[num + 1];
 	grid_elem_list[0] = 0;
 	size_t cur_id = 0;
 	for (size_t g_id = 0; g_id < num; ++g_id)
 	{
-		Grid &grid = sg[g_id];
+		auto &grid = sg[g_id];
 		for (auto pe = grid.pelems; pe; pe = pe->next)
 			++cur_id;
 		grid_elem_list[g_id+1] = cur_id;
@@ -256,7 +259,7 @@ int Model_T2D_CHM_mt::init_search_grid(
 	cur_id = 0;
 	for (size_t g_id = 0; g_id < num; ++g_id)
 	{
-		Grid& grid = sg[g_id];
+		auto &grid = sg[g_id];
 		for (auto pe = grid.pelems; pe; pe = pe->next)
 		{
 			grid_elem_list_id_array[cur_id] = pe->e->id;
@@ -266,7 +269,6 @@ int Model_T2D_CHM_mt::init_search_grid(
 
 	return 0;
 }
-
 
 void Model_T2D_CHM_mt::clear_pcls()
 {
@@ -297,8 +299,7 @@ void Model_T2D_CHM_mt::alloc_pcls(size_t num)
 		+ sizeof(ShapeFunc)) * 2) * num;
 	pcl_mem_raw = new char[mem_len];
 
-	char* cur_mem;
-	cur_mem = pcl_mem_raw;
+	char* cur_mem = pcl_mem_raw;
 	pcl_m_s = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
 	pcl_density_s = (double *)cur_mem;
@@ -398,9 +399,8 @@ int Model_T2D_CHM_mt::init_pcls(size_t num,
 {
 	if (num == 0)
 		return -1;
-	
-	SortedPclVarArrays &spva = sorted_pcl_var_arrays[0];
 	alloc_pcls(num);
+	SortedPclVarArrays &spva = sorted_pcl_var_arrays[0];
 	const double vol_s = m_s / density_s;
 	const double vol = vol_s / (1.0 - n);
 	size_t p_id;
@@ -538,8 +538,7 @@ int Model_T2D_CHM_mt::init_pcls(
 		return res;
 
 	SortedPclVarArrays& spva = sorted_pcl_var_arrays[0];
-	typedef ParticleGenerator2D<TriangleMesh>::Particle PgPcl;
-	PgPcl* pg_pcl = pg.first();
+	auto *pg_pcl = pg.first();
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		Position &p_p = pcl_pos[p_id];
@@ -680,10 +679,7 @@ void Model_T2D_CHM_mt::init_txs(
 	if (pcl_mem_raw && ori_pcl_num)
 	{
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
-		{
-			const size_t p_id = t_pcls[t_id];
-			pcl_t[p_id].fx += ts[t_id];
-		}
+			pcl_t[t_pcls[t_id]].fx += ts[t_id];
 	}
 	else
 	{
@@ -706,10 +702,7 @@ void Model_T2D_CHM_mt::init_tys(
 	if (pcl_mem_raw && ori_pcl_num)
 	{
 		for (size_t t_id = 0; t_id < t_num; ++t_id)
-		{
-			const size_t p_id = t_pcls[t_id];
-			pcl_t[p_id].fy += ts[t_id];
-		}
+			pcl_t[t_pcls[t_id]].fy += ts[t_id];
 	}
 	else
 	{
@@ -782,10 +775,10 @@ void Model_T2D_CHM_mt::clear_contact_mem()
 
 void Model_T2D_CHM_mt::alloc_contact_mem(size_t num)
 {
+	clear_contact_mem();
+
 	if (num == 0)
 		return;
-
-	clear_contact_mem();
 
 	contact_mem = new char[(sizeof(size_t) + sizeof(Position) + sizeof(Force)) * num];
 	char* cur_mem = contact_mem;
