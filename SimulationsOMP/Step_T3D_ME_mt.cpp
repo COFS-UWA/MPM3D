@@ -1201,6 +1201,8 @@ int substep_func_omp_T3D_ME_mt(
 
 #pragma omp master
 	{
+		pcl_in_elem0[self.prev_valid_pcl_num] = SIZE_MAX;
+		pcl_in_elem1[self.prev_valid_pcl_num] = SIZE_MAX;
 		self.valid_elem_num = 0;
 		self.continue_calculation();
 	}

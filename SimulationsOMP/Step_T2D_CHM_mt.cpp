@@ -1,6 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <fstream>
+#include <iostream>
 #include <omp.h>
 
 #include "Step_T2D_CHM_mt.h"
@@ -362,7 +363,7 @@ int substep_func_omp_T2D_CHM_mt(
 	node_has_elem1 = self.node_has_elems[1];
 	node_elem_pair0 = self.node_elem_pairs[0];
 	node_elem_pair1 = self.node_elem_pairs[1];
-
+	
 	size_t p_id, bin_id, th_id, pos_id;
 	size_t digit_disp, elem_num_tmp, * other_cbin;
 	size_t p_id0 = Block_Low(my_th_id, thread_num, self.prev_valid_pcl_num);
@@ -425,7 +426,7 @@ int substep_func_omp_T2D_CHM_mt(
 		thd.sorted_pcl_in_elem_id ^= 1;
 #pragma omp barrier
 	}
-
+		
 	// update p_id0, p_id1
 	size_t e_id;
 	p_id0 = Block_Low(my_th_id, thread_num, self.valid_pcl_num);
@@ -637,10 +638,12 @@ int substep_func_omp_T2D_CHM_mt(
 			e_n = 1.0 - e_n / e_p_vol;
 			elem_pcl_n[e_id] = e_n;
 			elem_density_f[e_id] = e_p_m_f / e_p_vol_f;
+			
 			e_s11 /= e_p_vol;
 			e_s22 /= e_p_vol;
 			e_s12 /= e_p_vol;
 			e_p /= e_p_vol;
+			elem_p[e_id] = e_p;
 			if (e_p_vol > elem_area[e_id])
 				e_p_vol = elem_area[e_id];
 			// for seepage force
@@ -1138,13 +1141,14 @@ int substep_func_omp_T2D_CHM_mt(
 			pe_de->de11 += e_de_vol_s;
 			pe_de->de22 += e_de_vol_s;
 
+			e_n = elem_pcl_n[e_id];
 			e_de_vol_f = one_third * (node_de_vol_f[eni.n1]
 				+ node_de_vol_f[eni.n2] + node_de_vol_f[eni.n3])
 				- (1.0 - e_n) / e_n * e_de_vol_s;
 			e_density_f = elem_density_f[e_id] / (1.0 - e_de_vol_f);
 			e_p = elem_p[e_id] + self.Kf * e_de_vol_f;
 			
-			e_n = (e_de_vol_s + elem_pcl_n[e_id]) / (1.0 + e_de_vol_s);
+			e_n = (e_de_vol_s + e_n) / (1.0 + e_de_vol_s);
 		}
 
 		// update velocity
@@ -1229,6 +1233,8 @@ int substep_func_omp_T2D_CHM_mt(
 
 #pragma omp master
 	{
+		pcl_in_elem0[self.prev_valid_pcl_num] = SIZE_MAX;
+		pcl_in_elem1[self.prev_valid_pcl_num] = SIZE_MAX;
 		self.valid_elem_num = 0;
 		self.continue_calculation();
 	}

@@ -25,7 +25,7 @@ protected:
 	Hdf5DataLoader data_loader;
 	Hdf5FieldExtraction_x x_fld;
 	Hdf5FieldExtraction_y y_fld;
-	Hdf5FieldExtraction_vol vol_fld;
+	Hdf5FieldExtraction_vol_m vol_fld;
 	Hdf5FieldExtraction* pfld;
 	MemoryUtils::ItemArray<double> pcl_fld_mem;
 
