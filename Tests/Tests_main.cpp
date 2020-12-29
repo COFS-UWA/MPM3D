@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_1d_compression_horizontal(argc, argv);
 	//test_t2d_me_s_1d_compression_horizontal_result(argc, argv);
 
-	//test_t2d_chm_s_1d_consolidation(argc, argv);
+	test_t2d_chm_s_1d_consolidation(argc, argv);
 	//test_t2d_chm_s_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_s_1d_consolidation_ani_result(argc, argv);
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 	// pipe embedment simulation for conference
 	// coupled hydro-mechanics
 	// geostatic step
-	test_t2d_chm_s_pipe_conference_geo(argc, argv);
+	//test_t2d_chm_s_pipe_conference_geo(argc, argv);
 	//test_t2d_chm_s_pipe_conference_geo_result(argc, argv);
 	// penetration step 1
 	//test_t2d_chm_s_pipe_conference_restart1(argc, argv);

@@ -184,7 +184,7 @@ int solve_substep_T2D_CHM_s_avg(void *_self)
 			n1.am_f += pcl_m_f_by_3;
 			n2.am_f += pcl_m_f_by_3;
 			n3.am_f += pcl_m_f_by_3;
-			
+
 			// solid - fluid interaction
 			n2_miu_div_k = e.pcl_n * e.pcl_n * md.miu / md.k;
 			n2_miu_div_k_vrx_vol = one_third * one_third * n2_miu_div_k

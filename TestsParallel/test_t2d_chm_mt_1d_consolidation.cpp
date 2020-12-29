@@ -16,6 +16,7 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
 	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
+	tri_mesh.init_search_grid(0.05, 0.05);
 
 	Model_T2D_CHM_mt model;
 	model.init_mesh(tri_mesh);
@@ -23,6 +24,7 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
 	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
+	//pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
 	model.init_pcls(pcl_generator, 0.4, 20.0, 10.0, 40000.0, 1.0e-4, 1.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(model.get_pcl_num());
@@ -61,6 +63,7 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 	////md_disp.set_pts_from_vy_s_bc(0.01);
 	//md_disp.set_pts_from_vx_f_bc(0.01);
 	////md_disp.set_pts_from_vy_f_bc(0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
 	//md_disp.start();
 	//return;
 
@@ -78,12 +81,12 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
-	//step.set_step_time(1.0e-5);
+	step.set_step_time(15.0);
+	//step.set_step_time(1.0e-3);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
-	//step.set_thread_num(3);
+	step.set_thread_num(3);
 	step.solve();
 }
 
