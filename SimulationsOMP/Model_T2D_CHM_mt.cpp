@@ -373,6 +373,8 @@ void Model_T2D_CHM_mt::alloc_pcls(size_t num)
 	spva1.pcl_pstrain = (Strain*)cur_mem;
 	cur_mem += sizeof(Strain) * num;
 	spva1.pcl_N = (ShapeFunc*)cur_mem;
+
+	alloc_contact_mem(num);
 }
 
 void Model_T2D_CHM_mt::alloc_pcls(

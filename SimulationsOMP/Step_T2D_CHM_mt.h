@@ -93,7 +93,7 @@ protected:
 	size_t elem_num, node_num;
 	double k, miu, Kf;
 
-	double Kn_cont;
+	double Ksn_cont, Kfn_cont;
 	size_t* contact_substep_id;
 	Position* prev_contact_pos;
 	Force* prev_contact_tan_force;
@@ -122,8 +122,8 @@ protected:
 
 	int apply_rigid_circle(
 		size_t p_id0, size_t p_id1,
-		size_t *pcl_in_elem,
-		SortedPclVarArrays& cur_spva,
+		const size_t *pcl_in_elem,
+		const SortedPclVarArrays& cur_spva,
 		Force2D& rc_cf,
 		size_t substp_id,
 		ThreadData& thd) noexcept;

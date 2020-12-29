@@ -444,7 +444,8 @@ int output_rigid_circle_to_hdf5_file(
 	if (!md.has_rigid_circle())
 		return 0;
 	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCircle");
-	rf.write_attribute(rc_grp_id, "K_cont", md.smooth_contact.get_Kn_cont());
+	rf.write_attribute(rc_grp_id, "Ksn_cont", md.smh_cont_s.get_Kn_cont());
+	rf.write_attribute(rc_grp_id, "Kfn_cont", md.smh_cont_f.get_Kn_cont());
 	using RigidObject_hdf5_utilities::output_rigid_circle_to_hdf5_file;
 	output_rigid_circle_to_hdf5_file(md.get_rigid_circle(), rf, rc_grp_id);
 	rf.close_group(rc_grp_id);
@@ -464,9 +465,11 @@ int load_rigid_circle_from_hdf5_file(
 		return 0;
 	hid_t rr_grp_id = rf.open_group(grp_id, "RigidCircle");
 	
-	double K_cont;
-	rf.read_attribute(rr_grp_id, "K_cont", K_cont);
-	md.smooth_contact.set_Kn_cont(K_cont);
+	double Ksn_cont, Kfn_cont;
+	rf.read_attribute(rr_grp_id, "Ksn_cont", Ksn_cont);
+	md.smh_cont_s.set_Kn_cont(Ksn_cont);
+	rf.read_attribute(rr_grp_id, "Kfn_cont", Kfn_cont);
+	md.smh_cont_f.set_Kn_cont(Kfn_cont);
 
 	md.rigid_circle_is_valid = true;
 	using RigidObject_hdf5_utilities::load_rigid_circle_from_hdf5_file;
@@ -557,6 +560,16 @@ int load_chm_mt_model_from_hdf5_file(
 	rf.close_group(th_frame_id);
 	rf.close_group(th_id);
 
+	return 0;
+}
+
+int load_t2d_CHM_s_result_from_hdf5_file(
+	Model_T2D_CHM_mt& md,
+	Step_T2D_CHM_mt& step,
+	const char* hdf5_name,
+	const char* th_name,
+	size_t frame_id)
+{
 	return 0;
 }
 

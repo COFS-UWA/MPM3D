@@ -372,17 +372,18 @@ protected: // rigid object contact
 	void clear_contact_mem();
 	void alloc_contact_mem(size_t num);
 
-	SmoothContact3D smooth_contact;
+	SmoothContact3D smh_cont_s, smh_cont_f;
 	
 public:
 	inline bool has_rigid_circle() const noexcept { return rigid_circle_is_valid; }
 	inline RigidObject::RigidCircle &get_rigid_circle() { return rigid_circle; }
-	inline void init_rigid_circle(double _Kn_cont,
+	inline void init_rigid_circle(double _Ksn_cont, double _Kfn_cont,
 		double x, double y, double r, double density = 1.0)
 	{
 		rigid_circle_is_valid = true;
 		rigid_circle.init(x, y, r, density);
-		smooth_contact.set_Kn_cont(_Kn_cont);
+		smh_cont_s.set_Kn_cont(_Ksn_cont);
+		smh_cont_f.set_Kn_cont(_Kfn_cont);
 	}
 	inline void set_rigid_circle_velocity(
 		double vx, double vy, double v_ang)

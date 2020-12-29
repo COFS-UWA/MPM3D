@@ -40,5 +40,10 @@ void test_t3d_rigid_mesh(int argc, char** argv);
 void test_t3d_me_mt_test_rigid_mesh(int argc, char** argv);
 
 void test_t2d_chm_mt_1d_consolidation(int argc, char** argv);
+void test_t2d_chm_mt_test_rigid_circle(int argc, char** argv);
+
+void test_t2d_chm_mt_pipe_conference_restart1(int argc, char** argv);
+void test_t2d_chm_mt_pipe_conference_restart2(int argc, char** argv);
+void test_t2d_chm_mt_pipe_conference_restart3(int argc, char** argv);
 
 #endif
