@@ -153,7 +153,7 @@ void test_t3d_me_mt_test_rigid_mesh(int argc, char** argv)
 	step.set_step_time(0.5);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(4);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

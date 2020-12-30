@@ -27,6 +27,7 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	rigid_cylinder_is_valid(false),
 	rigid_cone_is_valid(false), 
 	rigid_cube_is_valid(false),
+	rigid_t3d_mesh_is_valid(false),
 	contact_mem(nullptr),
 	pcm(&smooth_contact)
 	//pcm(&rough_contact)

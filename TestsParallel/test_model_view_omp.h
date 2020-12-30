@@ -28,4 +28,6 @@ void test_t2d_chm_mt_test_rigid_circle_result(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_restart1_result(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_restart2_result(int argc, char** argv);
 
+void test_t2d_chm_mt_pipe_conference_den_result(int argc, char** argv);
+
 #endif

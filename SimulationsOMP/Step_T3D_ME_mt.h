@@ -109,9 +109,9 @@ protected:
 	};
 	ThreadData* thread_datas;
 	
-	size_t *valid_elem_id; // elem_num
 	size_t *pcl_in_elems[2]; // pcl_num
 	size_t *prev_pcl_ids[2]; // pcl_num
+	size_t* valid_elem_id; // elem_num
 	size_t *node_has_elems[2]; // elem_num * 4
 	size_t *node_elem_pairs[2]; // elem_num * 4
 	// radix sort

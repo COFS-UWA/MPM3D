@@ -127,12 +127,10 @@ int Step_T3D_ME_mt::init_calculation()
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
 	char* cur_mem = (char*)thread_mem.alloc(
-		sizeof(size_t) * md.elem_num * (1 + 16)
-		+ sizeof(size_t) * (md.pcl_num * 4 + 8)
+		  sizeof(size_t) * (md.pcl_num * 4 + 4)
+		+ sizeof(size_t) * (md.elem_num * 17 + 4)
 		+ Cache_Alignment
 		+ sizeof(size_t) * thread_num * 0x100 * 2);
-	valid_elem_id = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * md.elem_num;
 	pcl_in_elems[0] = ((size_t*)cur_mem) + 1;
 	cur_mem += sizeof(size_t) * (md.pcl_num + 2);
 	pcl_in_elems[1] = ((size_t*)cur_mem) + 1;
@@ -141,6 +139,8 @@ int Step_T3D_ME_mt::init_calculation()
 	cur_mem += sizeof(size_t) * md.pcl_num;
 	prev_pcl_ids[1] = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * md.pcl_num;
+	valid_elem_id = (size_t*)cur_mem;
+	cur_mem += sizeof(size_t) * md.elem_num;
 	node_has_elems[0] = ((size_t*)cur_mem) + 1;
 	cur_mem += sizeof(size_t) * (md.elem_num * 4 + 2);
 	node_has_elems[1] = ((size_t*)cur_mem) + 1;
@@ -155,9 +155,7 @@ int Step_T3D_ME_mt::init_calculation()
 	elem_sum_bin = (size_t*)cur_mem;
 
 	pcl_in_elems[0][-1] = SIZE_MAX;
-	pcl_in_elems[0][md.pcl_num] = SIZE_MAX;
 	pcl_in_elems[1][-1] = SIZE_MAX;
-	pcl_in_elems[1][md.pcl_num] = SIZE_MAX;
 	node_has_elems[0][-1] = SIZE_MAX;
 	node_has_elems[1][-1] = SIZE_MAX;
 
@@ -205,6 +203,8 @@ int Step_T3D_ME_mt::init_calculation()
 		valid_pcl_num += pcl_in_mesh_num;
 	}
 
+	pcl_in_elems[0][prev_valid_pcl_num] = SIZE_MAX;
+	pcl_in_elems[1][prev_valid_pcl_num] = SIZE_MAX;
 	valid_elem_num = 0;
 	return 0;
 }

@@ -19,7 +19,7 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
-	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
@@ -196,9 +196,9 @@ void test_t3d_me_mt_cap_compression_restart2(int argc, char **argv)
 void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t3d_me_mt_cap_compression.h5");
+	rf.open("t3d_me_mt_cap_compression.h5");
 	//rf.open("t3d_me_mt_cap_compression_restart.h5");
-	rf.open("t3d_me_mt_cap_compression_restart2.h5");
+	//rf.open("t3d_me_mt_cap_compression_restart2.h5");
 
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::max_shear_stress);
@@ -212,7 +212,7 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 	//app.set_view_dist_scale(1.1);
 	//app.set_color_map_fld_range(-50.0, 0.0);
 	app.set_color_map_fld_range(0.0, 30.0);
-	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
+	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_me_mt_cap_compression");
 	app.set_gif_name("t3d_me_mt_cap_compression");
 	app.start();

@@ -47,6 +47,10 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_block_sliding(argc, argv);
 	//test_t3d_me_mt_block_sliding_result(argc, argv);
 
+	//test_t3d_rigid_mesh(argc, argv);
+	//test_t3d_me_mt_test_rigid_mesh(argc, argv);
+	//test_t3d_me_mt_test_rigid_mesh_result(argc, argv);
+
 	//test_t3d_me_mt_cylinder_foundation_create_model(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_restart(argc, argv);
@@ -54,14 +58,10 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cylinder_foundation_result(argc, argv);
 
 	//test_t3d_me_mt_cylinder_foundation_create_model_den(argc, argv);
-	//test_t3d_me_mt_cylinder_foundation_den(argc, argv);
+	test_t3d_me_mt_cylinder_foundation_den(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_restart_den(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_restart_den2(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_result_den(argc, argv);
-
-	//test_t3d_rigid_mesh(argc, argv);
-	//test_t3d_me_mt_test_rigid_mesh(argc, argv);
-	//test_t3d_me_mt_test_rigid_mesh_result(argc, argv);
 
 	//test_t2d_chm_mt_1d_consolidation(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
@@ -70,8 +70,11 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
 	
-	test_t2d_chm_mt_pipe_conference_restart1(argc, argv);
+	//test_t2d_chm_mt_pipe_conference_restart1(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_restart1_result(argc, argv);
+
+	//test_t2d_chm_mt_pipe_conference_den(argc, argv);
+	//test_t2d_chm_mt_pipe_conference_den_result(argc, argv);
 
 	//system("pause");
 	return 0;

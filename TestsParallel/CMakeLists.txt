@@ -35,6 +35,7 @@ add_executable(
     test_t2d_chm_mt_test_rigid_circle.cpp
     test_t2d_chm_mt_pipe_conference_restart1.cpp
     test_t2d_chm_mt_pipe_conference_restart2.cpp
+    test_t2d_chm_mt_pipe_conference_den.cpp
     )
 
 target_include_directories(

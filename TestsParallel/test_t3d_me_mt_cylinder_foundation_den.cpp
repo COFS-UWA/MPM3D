@@ -17,15 +17,18 @@ void test_t3d_me_mt_cylinder_foundation_create_model_den(int argc, char** argv)
 	teh_mesh.load_mesh_from_hdf5("../../Asset/cube_block_dense.h5");
 	teh_mesh.init_search_grid(0.05, 0.05, 0.05);
 
-	Model_T3D_ME_mt model;
-	model.init_mesh(teh_mesh);
-	model.init_search_grid(teh_mesh);
-
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(-3.0, 3.0, -3.0, 3.0, -3.5, 0.0), 0.0245, 0.0245, 0.0245);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+
+	Model_T3D_ME_mt model;
+	model.init_mesh(teh_mesh);
+	model.init_search_grid(teh_mesh);
+	teh_mesh.clear();
 	model.init_pcls(pcl_generator, 10.0);
-	size_t pcl_num = model.get_pcl_num();
+	pcl_generator.clear();
+
+	const size_t pcl_num = model.get_pcl_num();
 	std::cout << "pcl_num: " << pcl_num << "\n";
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
@@ -75,20 +78,21 @@ void test_t3d_me_mt_cylinder_foundation_den(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model,
 		"t3d_me_mt_cylinder_foundation_model_den.h5");
+	system("pause");
 
-	QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
-	auto &div_set = md_disp.get_div_set();
-	div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
-	div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
-	md_disp.set_model(model);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(45.0f, 20.0f);
-	md_disp.set_light_dir(45.0f, 20.0f);
-	//md_disp.set_display_bg_mesh(false);
-	md_disp.set_pts_from_vx_bc(0.01);
-	//md_disp.set_pts_from_vy_bc(0.01);
-	//md_disp.set_pts_from_vz_bc(0.01);
-	md_disp.start();
+	//QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	//auto &div_set = md_disp.get_div_set();
+	//div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	//div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	//md_disp.set_model(model);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(45.0f, 20.0f);
+	//md_disp.set_light_dir(45.0f, 20.0f);
+	////md_disp.set_display_bg_mesh(false);
+	//md_disp.set_pts_from_vx_bc(0.01);
+	////md_disp.set_pts_from_vy_bc(0.01);
+	////md_disp.set_pts_from_vz_bc(0.01);
+	//md_disp.start();
 	return;
 
 	ResultFile_hdf5 res_file_hdf5;

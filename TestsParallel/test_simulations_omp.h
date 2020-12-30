@@ -46,4 +46,6 @@ void test_t2d_chm_mt_pipe_conference_restart1(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_restart2(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_restart3(int argc, char** argv);
 
+void test_t2d_chm_mt_pipe_conference_den(int argc, char** argv);
+
 #endif
