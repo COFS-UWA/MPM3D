@@ -31,10 +31,9 @@ public:
 	typedef TriangleMesh_Internal::Element Element;
 	typedef TriangleMesh_Internal::Edge Edge;
 
-protected:
-	SearchingGrid2D<TriangleMesh> search_bg_grid;
+	TriangleMesh() {}
+	~TriangleMesh() { clear(); }
 
-public:
 	inline SearchingGrid2D<TriangleMesh>& get_bg_grid() { return search_bg_grid; }
 	inline double get_bg_grid_xl() { return search_bg_grid.get_x_min(); }
 	inline double get_bg_grid_xu() { return search_bg_grid.get_x_max(); }
@@ -42,6 +41,14 @@ public:
 	inline double get_bg_grid_yu() { return search_bg_grid.get_y_max(); }
 	inline double get_bg_grid_hx() { return search_bg_grid.get_hx(); }
 	inline double get_bg_grid_hy() { return search_bg_grid.get_hy(); }
+
+	void clear()
+	{
+		TriangleMeshTemplate<TriangleMesh_Internal::Node,
+			TriangleMesh_Internal::Element,
+			TriangleMesh_Internal::Edge>::clear();
+		search_bg_grid.clear();
+	}
 
 	int init_search_grid(double _hx, double _hy);
 
@@ -51,6 +58,9 @@ public:
 	{
 		return search_bg_grid.find_in_which_element<Point2D>(pt);
 	}
+
+protected:
+	SearchingGrid2D<TriangleMesh> search_bg_grid;
 };
 
 #endif

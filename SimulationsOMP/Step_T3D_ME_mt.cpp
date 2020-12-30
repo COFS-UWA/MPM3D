@@ -820,18 +820,18 @@ int substep_func_omp_T3D_ME_mt(
 		node_elem_pair0[pos_id] = my_node_elem_pair[ne_id];
 	}
 
-#pragma omp master
-	{
-		node_has_elem0[self.valid_elem_num * 4] = SIZE_MAX;
-		node_has_elem1[self.valid_elem_num * 4] = SIZE_MAX;
-	}
-
 	TIME_POINT(t33);
 	TIME_DURATION(t33, t32, thd.d32[0]);
 #pragma omp barrier
 	TIME_POINT(t34);
 	TIME_DURATION(t34, t33, thd.d33[0]);
 
+#pragma omp master
+	{
+		node_has_elem0[self.valid_elem_num * 4] = SIZE_MAX;
+		node_has_elem1[self.valid_elem_num * 4] = SIZE_MAX;
+	}
+	
 	size_t ve_id0 = Block_Low(my_th_id, thread_num, self.valid_elem_num * 4);
 	size_t ve_id1 = Block_Low(my_th_id + 1, thread_num, self.valid_elem_num * 4);
 	size_t node_num_tmp = self.node_num >> 8;

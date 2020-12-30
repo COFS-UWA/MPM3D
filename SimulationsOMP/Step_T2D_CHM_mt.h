@@ -81,23 +81,32 @@ protected:
 	double* node_de_vol_s; // node_num
 	double* node_de_vol_f; // node_num
 
-	size_t* elem_count_bin;
-	size_t* elem_sum_bin;
-	
-	size_t *prev_pcl_ids[2];
-	size_t *pcl_in_elems[2];
-	size_t* node_has_elems[2];
-	size_t* node_elem_pairs[2];
-	size_t* valid_elem_id;
-
 	size_t elem_num, node_num;
 	double k, miu, Kf;
-
+	
 	double Ksn_cont, Kfn_cont;
 	size_t* contact_substep_id;
 	Position* prev_contact_pos;
 	Force* prev_contact_tan_force;
 
+	RigidObject::RigidCircle* prc;
+
+#ifdef _DEBUG
+	size_t prev_valid_pcl_num_tmp;
+#endif
+	size_t prev_valid_pcl_num, valid_pcl_num;
+	size_t valid_elem_num;
+	Force2D cf_tmp;
+
+	size_t* elem_count_bin;
+	size_t* elem_sum_bin;
+
+	size_t* prev_pcl_ids[2];
+	size_t* pcl_in_elems[2];
+	size_t* valid_elem_id;
+	size_t* node_has_elems[2];
+	size_t* node_elem_pairs[2];
+	
 	union ThreadData
 	{
 		struct
@@ -109,14 +118,6 @@ protected:
 	};
 	ThreadData* thread_datas;
 	
-#ifdef _DEBUG
-	size_t prev_valid_pcl_num_tmp;
-#endif
-	size_t prev_valid_pcl_num, valid_pcl_num;
-	size_t valid_elem_num;
-	RigidObject::RigidCircle* prc;
-	Force2D cf_tmp;
-
 	CacheAlignedMem thread_mem;
 	CacheAlignedMem cal_mem;
 

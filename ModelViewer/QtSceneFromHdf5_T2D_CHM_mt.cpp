@@ -301,7 +301,7 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 		double rr_x, rr_y, rr_r;
 		rf.read_attribute(rb_grp_id, "x", rr_x);
 		rf.read_attribute(rb_grp_id, "y", rr_y);
-		rf.read_attribute(rb_grp_id, "r", rr_r);
+		rf.read_attribute(rb_grp_id, "radius", rr_r);
 		rc_obj.init(rr_x, rr_y, rr_r, light_slate_blue, 3.0f);
 		rf.close_group(rb_grp_id);
 		bbox.envelop(Rect(rr_x - rr_r, rr_x + rr_r,
@@ -429,11 +429,11 @@ void QtSceneFromHdf5_T2D_CHM_mt::update_scene(size_t frame_id)
 	// rigid rect
 	if (rf.has_group(frame_grp_id, "RigidCircle"))
 	{
-		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidRect");
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
 		double rr_x, rr_y, rr_r;
 		rf.read_attribute(rb_grp_id, "x", rr_x);
 		rf.read_attribute(rb_grp_id, "y", rr_y);
-		rf.read_attribute(rb_grp_id, "r", rr_r);
+		rf.read_attribute(rb_grp_id, "radius", rr_r);
 		rc_obj.update(rr_x, rr_y, rr_r);
 		rf.close_group(rb_grp_id);
 	}

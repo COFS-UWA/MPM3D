@@ -67,8 +67,11 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
 
-	test_t2d_chm_mt_test_rigid_circle(argc, argv);
+	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
+	
+	test_t2d_chm_mt_pipe_conference_restart1(argc, argv);
+	//test_t2d_chm_mt_pipe_conference_restart1_result(argc, argv);
 
 	//system("pause");
 	return 0;

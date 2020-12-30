@@ -18,16 +18,18 @@ void test_t2d_chm_mt_test_rigid_circle(int argc, char** argv)
 	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_test_rc_mesh.h5");
 	tri_mesh.init_search_grid(0.5, 0.5);
 
-	Model_T2D_CHM_mt model;
-	model.init_mesh(tri_mesh);
-	model.init_search_grid(tri_mesh, 0.5, 0.5);
-
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
 	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 20.0, 0.0, 15.0), 0.2, 0.2);
 	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
-	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 5.0e6, 5.0e-12, 1.0e-3);
 	
-	size_t pcl_num = model.get_pcl_num();
+	Model_T2D_CHM_mt model;
+	model.init_mesh(tri_mesh);
+	model.init_search_grid(tri_mesh, 0.5, 0.5);
+	tri_mesh.clear();
+	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 5.0e6, 5.0e-12, 1.0e-3);
+	pcl_generator.clear();
+
+	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// elasticity
 	//MatModel::LinearElasticity* mms = model.add_LinearElasticity(pcl_num);
@@ -76,18 +78,18 @@ void test_t2d_chm_mt_test_rigid_circle(int argc, char** argv)
 	ModelData_T2D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T2D_CHM_mt_complete out1("circle_penetration");
+	TimeHistory_T2D_CHM_mt_complete out1("penetration");
 	out1.set_res_file(res_file_hdf5);
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
-
 	TimeHistory_ConsoleProgressBar out_pb;
 
-	Step_T2D_CHM_mt step("rigid_circle");
+	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
 	//step.set_step_time(3.0);
-	step.set_step_time(5.0e-5);
+	step.set_step_time(5.0e-4);
 	step.set_dtime(5.0e-6);
+	//step.set_thread_num(3);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -101,13 +103,12 @@ void test_t2d_chm_mt_test_rigid_circle_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_chm_mt_test_rigid_circle.h5");
 
-	QtApp_Posp_T2D_CHM_mt app(argc, argv,
-		QtApp_Posp_T2D_CHM_mt::Animation);
+	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	app.set_res_file(rf, "penetration", Hdf5Field::p);
 	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(0.0, 10.0);
-	app.set_color_map_geometry(0.6, 0.5, 0.4);
+	app.set_color_map_fld_range(0.0, 20000.0);
+	app.set_color_map_geometry(0.82, 0.5, 0.4);
 	//app.set_png_name("t2d_chm_mt_test_rigid_circle");
 	//app.set_gif_name("t2d_chm_mt_test_rigid_circle");
 	app.start();
