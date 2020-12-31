@@ -1263,7 +1263,7 @@ int Step_T2D_CHM_mt::apply_rigid_circle(
 	double p_x, p_y, p_r, dist;
 	double fs_cont, fsx_cont, fsy_cont;
 	double ff_cont, ffx_cont, ffy_cont;
-	size_t e_id, pcl_ori_id;
+	size_t e_id , pcl_ori_id;
 	Model_T2D_CHM_mt& md = *(Model_T2D_CHM_mt*)model;
 	RigidObject::RigidCircle& rc = md.get_rigid_circle();
 	const Point2D &rc_centre = rc.get_centre();

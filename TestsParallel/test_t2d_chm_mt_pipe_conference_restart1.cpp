@@ -110,11 +110,13 @@ void test_t2d_chm_mt_pipe_conference_restart1_result(int argc, char** argv)
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "penetration", Hdf5Field::s22);
+	//app.set_res_file(rf, "penetration", Hdf5Field::s22);
+	app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
 	app.set_win_size(1200, 950);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
 	//app.set_color_map_fld_range(-30000.0, -10000.0); // s22
-	//app.set_color_map_fld_range(0, 20000.0); // pore pressure
+	app.set_color_map_fld_range(0, 20000.0); // pore pressure
 	app.set_color_map_fld_range(0, 0.4); // mises strain
 	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_mt_pipe_conference1");
