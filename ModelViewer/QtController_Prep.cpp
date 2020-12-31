@@ -3,10 +3,7 @@
 #include "QtController_Prep.h"
 
 QtController_Prep::QtController_Prep() :
-	view(nullptr), scene(nullptr)
-{
-
-}
+	view(nullptr), scene(nullptr) {}
 
 QtController_Prep::QtController_Prep(
 	QtGLView& v, QtSceneFromModel& s)
