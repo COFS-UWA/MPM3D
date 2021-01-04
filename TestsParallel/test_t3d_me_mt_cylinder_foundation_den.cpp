@@ -79,21 +79,21 @@ void test_t3d_me_mt_cylinder_foundation_den(int argc, char** argv)
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model,
 		"t3d_me_mt_cylinder_foundation_model_den.h5");
 
-	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
-	//QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
-	//auto &div_set = md_disp.get_div_set();
-	//div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
-	//div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
-	md_disp.set_model(model);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(45.0f, 20.0f);
-	md_disp.set_light_dir(45.0f, 20.0f);
-	md_disp.set_display_bg_mesh(false);
-	//md_disp.set_pts_from_vx_bc(0.01);
-	//md_disp.set_pts_from_vy_bc(0.01);
-	//md_disp.set_pts_from_vz_bc(0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	////QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	////auto &div_set = md_disp.get_div_set();
+	////div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	////div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	//md_disp.set_model(model);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(45.0f, 20.0f);
+	//md_disp.set_light_dir(45.0f, 20.0f);
+	//md_disp.set_display_bg_mesh(false);
+	////md_disp.set_pts_from_vx_bc(0.01);
+	////md_disp.set_pts_from_vy_bc(0.01);
+	////md_disp.set_pts_from_vz_bc(0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_cylinder_foundation_den.h5");
@@ -110,7 +110,7 @@ void test_t3d_me_mt_cylinder_foundation_den(int argc, char** argv)
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_thread_num(6);
-	step.set_step_time(0.5);
+	step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

@@ -27,8 +27,6 @@ add_executable(
     test_t3d_me_s_1d_compression.cpp
     test_t3d_me_mt_1d_compression.cpp
     test_t3d_me_mt_cap_compression.cpp
-    test_t3d_me_mt_cylinder_foundation.cpp
-    test_t3d_me_mt_cylinder_foundation_den.cpp
     test_t3d_me_mt_block_sliding.cpp
     test_t3d_me_mt_test_rigid_mesh.cpp
     test_t2d_chm_mt_1d_consolidation.cpp
@@ -36,6 +34,9 @@ add_executable(
     test_t2d_chm_mt_pipe_conference_restart1.cpp
     test_t2d_chm_mt_pipe_conference_restart2.cpp
     test_t2d_chm_mt_pipe_conference_den.cpp
+	test_t3d_me_mt_cylinder_foundation.cpp
+    test_t3d_me_mt_cylinder_foundation_den.cpp
+	test_t3d_me_mt_cylinder_foundation_ch_den.cpp
     )
 
 target_include_directories(

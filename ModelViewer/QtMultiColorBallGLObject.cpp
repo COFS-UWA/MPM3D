@@ -5,7 +5,8 @@
 
 QtMultiColorBallGLObject::QtMultiColorBallGLObject(QOpenGLFunctions_3_3_Core& _gl) :
 	gl(_gl), vao(0), vbo_cs(0), veo_cs(0), vbo_pts(0),
-    c_elem_node_num(0), pt_num(0) {}
+    c_elem_node_num(0), pt_num(0),
+    max_pcl_num_per_drawcall(1500000), prev_pt_num(0) {}
 
 QtMultiColorBallGLObject::~QtMultiColorBallGLObject() { clear(); }
 
@@ -35,16 +36,49 @@ void QtMultiColorBallGLObject::clear()
 
 void QtMultiColorBallGLObject::draw(QOpenGLShaderProgram& shader)
 {
-    (void)shader;
+    shader.bind();
 
     gl.glBindVertexArray(vao);
-    gl.glDrawElementsInstanced(
-        GL_TRIANGLES,
-        c_elem_node_num,
-        GL_UNSIGNED_INT,
-        (GLvoid*)0,
-        pt_num
-        );
+
+    if (pt_num > max_pcl_num_per_drawcall)
+    {
+        gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
+        size_t pt_start_id = 0;
+        size_t pt_end_id = pt_start_id + max_pcl_num_per_drawcall;
+        while (pt_end_id < pt_num)
+        {
+            gl.glBufferSubData(GL_ARRAY_BUFFER, 0,
+                max_pcl_num_per_drawcall * sizeof(PointData),
+                (GLvoid*)(pt_data + pt_start_id));
+            gl.glDrawElementsInstanced(
+                GL_TRIANGLES,
+                c_elem_node_num,
+                GL_UNSIGNED_INT,
+                (GLvoid*)0,
+                max_pcl_num_per_drawcall);
+            gl.glFinish();
+            pt_start_id = pt_end_id;
+            pt_end_id += max_pcl_num_per_drawcall;
+        }
+        gl.glBufferSubData(GL_ARRAY_BUFFER, 0,
+            (pt_num - pt_start_id) * sizeof(PointData),
+            (GLvoid*)(pt_data + pt_start_id));
+        gl.glDrawElementsInstanced(
+            GL_TRIANGLES,
+            c_elem_node_num,
+            GL_UNSIGNED_INT,
+            (GLvoid*)0,
+            pt_num - pt_start_id);
+        gl.glFinish();
+    }
+    else
+    {
+        gl.glDrawElementsInstanced(
+            GL_TRIANGLES,
+            c_elem_node_num,
+            GL_UNSIGNED_INT,
+            (GLvoid*)0, pt_num);
+    }
 }
 
 int QtMultiColorBallGLObject::init_gl_buffer(
@@ -71,50 +105,94 @@ int QtMultiColorBallGLObject::init_gl_buffer(
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
     gl.glBufferData(GL_ARRAY_BUFFER,
         pd_num * sizeof(PointData),
-        (GLvoid *)pds,
-        GL_STREAM_DRAW
-        );
+        (GLvoid *)pds, GL_DYNAMIC_DRAW);
 
     // pt_type
     gl.glVertexAttribIPointer(1,
         1, GL_UNSIGNED_INT,
         sizeof(PointData),
-        (GLvoid*)offsetof(PointData, type)
-        );
+        (GLvoid*)offsetof(PointData, type));
     gl.glEnableVertexAttribArray(1);
     gl.glVertexAttribDivisor(1, 1);
     // pt_pos
     gl.glVertexAttribPointer(2,
         3, GL_FLOAT, GL_FALSE,
         sizeof(PointData),
-        (GLvoid *)offsetof(PointData, x)
-        );
+        (GLvoid *)offsetof(PointData, x));
     gl.glEnableVertexAttribArray(2);
     gl.glVertexAttribDivisor(2, 1);
     // pt_radius
     gl.glVertexAttribPointer(3,
         1, GL_FLOAT, GL_FALSE,
         sizeof(PointData),
-        (GLvoid*)offsetof(PointData, radius)
-        );
+        (GLvoid*)offsetof(PointData, radius));
     gl.glEnableVertexAttribArray(3);
     gl.glVertexAttribDivisor(3, 1);
     // point value
     gl.glVertexAttribPointer(4,
         1, GL_FLOAT, GL_FALSE,
         sizeof(PointData),
-        (GLvoid*)offsetof(PointData, fld)
-        );
+        (GLvoid*)offsetof(PointData, fld));
     gl.glEnableVertexAttribArray(4);
     gl.glVertexAttribDivisor(4, 1);
+    return 0;
+}
 
+int QtMultiColorBallGLObject::init_gl_buffer(size_t pd_num)
+{
+    clear();
+
+    gl.glGenVertexArrays(1, &vao);
+    if (vao == 0)
+        return -1;
+    gl.glBindVertexArray(vao);
+
+    int res = init_ball_data();
+    if (res)
+        return res;
+
+    gl.glGenBuffers(1, &vbo_pts);
+    if (vbo_pts == 0)
+        return -1;
+    gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
+    gl.glBufferData(GL_ARRAY_BUFFER,
+        pd_num * sizeof(PointData),
+        nullptr, GL_STREAM_DRAW);
+
+    // pt_type
+    gl.glVertexAttribIPointer(1,
+        1, GL_UNSIGNED_INT,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, type));
+    gl.glEnableVertexAttribArray(1);
+    gl.glVertexAttribDivisor(1, 1);
+    // pt_pos
+    gl.glVertexAttribPointer(2,
+        3, GL_FLOAT, GL_FALSE,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, x));
+    gl.glEnableVertexAttribArray(2);
+    gl.glVertexAttribDivisor(2, 1);
+    // pt_radius
+    gl.glVertexAttribPointer(3,
+        1, GL_FLOAT, GL_FALSE,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, radius));
+    gl.glEnableVertexAttribArray(3);
+    gl.glVertexAttribDivisor(3, 1);
+    // point value
+    gl.glVertexAttribPointer(4,
+        1, GL_FLOAT, GL_FALSE,
+        sizeof(PointData),
+        (GLvoid*)offsetof(PointData, fld));
+    gl.glEnableVertexAttribArray(4);
+    gl.glVertexAttribDivisor(4, 1);
     return 0;
 }
 
 int QtMultiColorBallGLObject::update_gl_buffer(
     PointData* pds,
-    size_t pd_num
-    )
+    size_t pd_num)
 {
     if (!vao || !vbo_pts)
         return -1;
@@ -122,12 +200,36 @@ int QtMultiColorBallGLObject::update_gl_buffer(
     gl.glBindVertexArray(vao);
 
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
-    gl.glBufferData(GL_ARRAY_BUFFER,
-        pd_num * sizeof(PointData),
-        (GLvoid *)pds,
-        GL_STREAM_DRAW
-        );
+    if (pd_num > prev_pt_num)
+    {
+        gl.glBufferData(GL_ARRAY_BUFFER,
+            pd_num * sizeof(PointData),
+            (GLvoid*)pds, GL_DYNAMIC_DRAW);
+        prev_pt_num = pd_num;
+    }
+    else
+    {
+        gl.glBufferSubData(GL_ARRAY_BUFFER,
+            0, pd_num * sizeof(PointData),
+            (GLvoid*)pds);
+    }
+    return 0;
+}
 
+int QtMultiColorBallGLObject::update_gl_buffer(size_t pd_num)
+{
+    if (!vao || !vbo_pts)
+        return -1;
+
+    if (pd_num > prev_pt_num)
+    {
+        prev_pt_num = pd_num;
+        gl.glBindVertexArray(vao);
+        gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
+        gl.glBufferData(GL_ARRAY_BUFFER,
+            pd_num * sizeof(PointData),
+            nullptr, GL_DYNAMIC_DRAW);
+    }
     return 0;
 }
 
@@ -172,7 +274,7 @@ int QtMultiColorBallGLObject::init(
     )
 {
     pt_data_mem.reserve(pcl_num);
-    PointData* pt_data = pt_data_mem.get_mem();
+    pt_data = pt_data_mem.get_mem();
     for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
     {
         PointData& pd = pt_data[pcl_id];
@@ -183,8 +285,16 @@ int QtMultiColorBallGLObject::init(
         pd.radius = GLfloat(pow(3.0 * pcl_vol_data[pcl_id] / (4.0 * 3.14159265359), 0.33333)) * radius_scale;
         pd.fld = GLfloat(pcl_fld_data[pcl_id]);
     }
-    int res = init_gl_buffer(pt_data, pcl_num);
-    return res;
+    if (pcl_num > max_pcl_num_per_drawcall)
+    {
+        init_gl_buffer(max_pcl_num_per_drawcall);
+        pt_num = pcl_num;
+    }
+    else
+    {
+        init_gl_buffer(pt_data, pcl_num);
+    }
+    return 0;
 }
 
 int QtMultiColorBallGLObject::update(
@@ -209,7 +319,15 @@ int QtMultiColorBallGLObject::update(
         pd.radius = GLfloat(pow(3.0 * pcl_vol_data[pcl_id] / (4.0 * 3.14159265359), 0.33333)) * radius_scale;
         pd.fld = GLfloat(pcl_fld_data[pcl_id]);
     }
-    int res = update_gl_buffer(pt_data, pcl_num);
-    return res;
+    if (pcl_num > max_pcl_num_per_drawcall)
+    {
+        update_gl_buffer(max_pcl_num_per_drawcall);
+        pt_num = pcl_num;
+    }
+    else
+    {
+        update_gl_buffer(pt_data, pcl_num);
+    }
+    return 0;
 }
 

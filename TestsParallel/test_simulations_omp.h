@@ -34,7 +34,7 @@ void test_t3d_me_mt_cylinder_foundation_restart2(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_create_model_den(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_den(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_restart_den(int argc, char** argv);
-void test_t3d_me_mt_cylinder_foundation_restart2_den(int argc, char** argv);
+//void test_t3d_me_mt_cylinder_foundation_restart2_den(int argc, char** argv);
 
 void test_t3d_rigid_mesh(int argc, char** argv);
 void test_t3d_me_mt_test_rigid_mesh(int argc, char** argv);
@@ -47,5 +47,10 @@ void test_t2d_chm_mt_pipe_conference_restart2(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_restart3(int argc, char** argv);
 
 void test_t2d_chm_mt_pipe_conference_den(int argc, char** argv);
+
+void test_t3d_me_mt_cylinder_foundation_create_model_ch_den(int argc, char** argv);
+void test_t3d_me_mt_cylinder_foundation_ch_den(int argc, char** argv);
+void test_t3d_me_mt_cylinder_foundation_restart_ch_den(int argc, char** argv);
+void test_t3d_me_mt_cylinder_foundation_restart_ch_den2(int argc, char** argv);
 
 #endif

@@ -29,6 +29,7 @@ protected:
 
 	int init_ball_data();
 	int init_gl_buffer(PointData *pds, size_t pd_num);
+	int init_gl_buffer(size_t pd_num);
 
 public:
 	QtMonoColorBallGLObject(QOpenGLFunctions_3_3_Core& _gl);
@@ -82,7 +83,7 @@ int QtMonoColorBallGLObject::init(
 	}
 	if (pcl_num > max_pcl_num_per_drawcall)
 	{
-		init_gl_buffer(pt_data, max_pcl_num_per_drawcall);
+		init_gl_buffer(max_pcl_num_per_drawcall);
 		pt_num = pcl_num;
 	}
 	else
@@ -119,7 +120,7 @@ int QtMonoColorBallGLObject::init(
 	}
 	if (pcl_num > max_pcl_num_per_drawcall)
 	{
-		init_gl_buffer(pt_data, max_pcl_num_per_drawcall);
+		init_gl_buffer(max_pcl_num_per_drawcall);
 		pt_num = pcl_num;
 	}
 	else
@@ -154,7 +155,7 @@ int QtMonoColorBallGLObject::init(
 	}
 	if (_pt_num > max_pcl_num_per_drawcall)
 	{
-		init_gl_buffer(pt_data, max_pcl_num_per_drawcall);
+		init_gl_buffer(max_pcl_num_per_drawcall);
 		pt_num = _pt_num;
 	}
 	else
@@ -180,7 +181,7 @@ int QtMonoColorBallGLObject::init(
 {
 	clear();
 	color = c;
-	PointData* pt_data = new PointData[pcl_num];
+	pt_data = new PointData[pcl_num];
 	size_t cur_p_id = 0;
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
@@ -194,10 +195,10 @@ int QtMonoColorBallGLObject::init(
 			pd.radius = GLfloat(pow(3.0 * pcl_vol[p_id] / (4.0 * 3.14159265359), 1.0 / 3.0)) * radius_scale;
 		}
 	}
-	if (pcl_num > max_pcl_num_per_drawcall)
+	if (cur_p_id > max_pcl_num_per_drawcall)
 	{
-		init_gl_buffer(pt_data, max_pcl_num_per_drawcall);
-		pt_num = pcl_num;
+		init_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = cur_p_id;
 	}
 	else
 	{

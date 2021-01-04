@@ -176,8 +176,8 @@ int Step_T3D_ME_mt::init_calculation()
 		size_t p_id0 = Block_Low(my_th_id, thread_num, prev_valid_pcl_num);
 		size_t p_id1 = Block_Low(my_th_id + 1, thread_num, prev_valid_pcl_num);
 		size_t pcl_in_mesh_num = 0;
-		size_t* pcl_in_elem0 = pcl_in_elems[0];
-		size_t* prev_pcl_id0 = prev_pcl_ids[0];
+		size_t* pcl_in_elem0 = pcl_in_elems[thd.sorted_pcl_in_elem_id];
+		size_t* prev_pcl_id0 = prev_pcl_ids[thd.sorted_pcl_in_elem_id];
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			ori_p_id = spva0.pcl_index[p_id];

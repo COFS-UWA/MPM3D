@@ -75,11 +75,11 @@ void test_t3d_me_mt_cylinder_foundation(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model, "t3d_me_mt_cylinder_foundation_model.h5");
 
-	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
-	//QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
-	//auto &div_set = md_disp.get_div_set();
-	//div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
-	//div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	auto &div_set = md_disp.get_div_set();
+	div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
 	md_disp.set_view_dir(30.0f, 30.0f);
@@ -207,6 +207,7 @@ void test_t3d_me_mt_cylinder_foundation_restart2(int argc, char** argv)
 	step.solve();
 }
 
+//#include "QtApp_Posp_T3D_ME_mt.h"
 #include "QtApp_Posp_T3D_ME_mt_Div.h"
 #include "test_model_view_omp.h"
 
@@ -220,18 +221,19 @@ void test_t3d_me_mt_cylinder_foundation_result(int argc, char** argv)
 	////app.set_res_file(rf, "penetration", 50, Hdf5Field::max_shear_stress);
 	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
 	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
-	app.set_ani_time(5.0);
-	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
-	app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	app.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
+	app.set_ani_time(5.0);
 	app.set_win_size(1200, 800);
 	app.set_view_dir(0.0f, 10.0f);
 	app.set_light_dir(0.0f, 10.0f);
 	app.set_view_dist_scale(0.8);
 	app.set_display_bg_mesh(false);
+	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-20.0, 0.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	app.set_color_map_fld_range(0.0, 0.03);
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_cylinder_foundation");

@@ -86,8 +86,7 @@ void QtMonoColorBallGLObject::draw(QOpenGLShaderProgram& shader)
 			GL_TRIANGLES,
 			c_elem_node_num,
 			GL_UNSIGNED_INT,
-			(GLvoid*)0,
-			pt_num);
+			(GLvoid*)0, pt_num);
 	}
 }
 
@@ -118,10 +117,10 @@ static const char* get_gl_error_info(GLenum errorId)
 
 int QtMonoColorBallGLObject::init_gl_buffer(
 	PointData *pds,
-	size_t pd_num
-	)
+	size_t pd_num)
 {
 	pt_num = pd_num;
+	
 	gl.glGenVertexArrays(1, &vao);
 	if (vao == 0)
 		return -1;
@@ -137,7 +136,7 @@ int QtMonoColorBallGLObject::init_gl_buffer(
 	gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
 	gl.glBufferData(GL_ARRAY_BUFFER,
 		pd_num * sizeof(PointData),
-		pds, GL_STREAM_DRAW);
+		pds, GL_DYNAMIC_DRAW);
 
 	//for (GLenum err; (err = gl.glGetError()) != GL_NO_ERROR;)
 	//	std::cout << get_gl_error_info(err) << "\n";
@@ -164,6 +163,50 @@ int QtMonoColorBallGLObject::init_gl_buffer(
 		sizeof(PointData),
 		(GLvoid*)offsetof(PointData, radius)
 		);
+	gl.glEnableVertexAttribArray(3);
+	gl.glVertexAttribDivisor(3, 1);
+
+	return 0;
+}
+
+int QtMonoColorBallGLObject::init_gl_buffer(size_t pd_num)
+{
+	gl.glGenVertexArrays(1, &vao);
+	if (vao == 0)
+		return -1;
+	gl.glBindVertexArray(vao);
+
+	int res = init_ball_data();
+	if (res)
+		return res;
+
+	gl.glGenBuffers(1, &vbo_pts);
+	if (vbo_pts == 0)
+		return -1;
+	gl.glBindBuffer(GL_ARRAY_BUFFER, vbo_pts);
+	gl.glBufferData(GL_ARRAY_BUFFER,
+		pd_num * sizeof(PointData),
+		nullptr, GL_DYNAMIC_DRAW);
+
+	// pt_type
+	gl.glVertexAttribIPointer(1,
+		1, GL_UNSIGNED_INT,
+		sizeof(PointData),
+		(GLvoid*)offsetof(PointData, type));
+	gl.glEnableVertexAttribArray(1);
+	gl.glVertexAttribDivisor(1, 1);
+	// pt_pos
+	gl.glVertexAttribPointer(2,
+		3, GL_FLOAT, GL_FALSE,
+		sizeof(PointData),
+		(GLvoid*)offsetof(PointData, x));
+	gl.glEnableVertexAttribArray(2);
+	gl.glVertexAttribDivisor(2, 1);
+	// pt_radius
+	gl.glVertexAttribPointer(3,
+		1, GL_FLOAT, GL_FALSE,
+		sizeof(PointData),
+		(GLvoid*)offsetof(PointData, radius));
 	gl.glEnableVertexAttribArray(3);
 	gl.glVertexAttribDivisor(3, 1);
 
