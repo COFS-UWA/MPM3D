@@ -23,12 +23,17 @@ protected:
 	GLuint vao, vbo_cs, veo_cs, vbo_pts;
 	size_t c_elem_node_num;
 	size_t pt_num;
+	size_t max_pcl_num_per_drawcall;
+	PointData* pt_data;
+	size_t prev_pt_num;
 
 	void clear();
 
 	int init_ball_data();
 	int init_gl_buffer(PointData *pds, size_t pd_num);
 	int update_gl_buffer(PointData *pds, size_t pd_num);
+	int init_gl_buffer(size_t pd_num);
+	int update_gl_buffer(size_t pd_num);
 
 public:
 	QtMultiColorBallGLObject(QOpenGLFunctions_3_3_Core& _gl);
@@ -64,7 +69,7 @@ int QtMultiColorBallGLObject::init(
 	)
 {
 	pt_data_mem.reserve(pcl_num);
-	PointData* pt_data = pt_data_mem.get_mem();
+	pt_data = pt_data_mem.get_mem();
 	size_t cur_p_id = 0;
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -82,8 +87,16 @@ int QtMultiColorBallGLObject::init(
 			pd.fld = GLfloat(pcl_fld_data[pcl_id]);
 		}
 	}
-	int res = init_gl_buffer(pt_data, cur_p_id);
-	return res;
+	if (cur_p_id > max_pcl_num_per_drawcall)
+	{
+		init_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = cur_p_id;
+	}
+	else
+	{
+		init_gl_buffer(pt_data, cur_p_id);
+	}
+	return 0;
 }
 
 template <class DivisionSet>
@@ -99,7 +112,7 @@ int QtMultiColorBallGLObject::update(
 	)
 {
 	pt_data_mem.reserve(pcl_num);
-	PointData* pt_data = pt_data_mem.get_mem();
+	pt_data = pt_data_mem.get_mem();
 	size_t cur_p_id = 0;
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -118,8 +131,16 @@ int QtMultiColorBallGLObject::update(
 			pd.fld = GLfloat(pcl_fld_data[pcl_id]);
 		}
 	}
-	int res = update_gl_buffer(pt_data, cur_p_id);
-	return res;
+	if (cur_p_id > max_pcl_num_per_drawcall)
+	{
+		update_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = cur_p_id;
+	}
+	else
+	{
+		update_gl_buffer(pt_data, cur_p_id);
+	}
+	return 0;
 }
 
 #endif

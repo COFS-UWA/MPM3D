@@ -223,9 +223,9 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 void test_t3d_me_mt_cap_compression_result_div(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t3d_me_mt_cap_compression.h5");
+	rf.open("t3d_me_mt_cap_compression.h5");
 	//rf.open("t3d_me_mt_cap_compression_restart.h5");
-	rf.open("t3d_me_mt_cap_compression_restart2.h5");
+	//rf.open("t3d_me_mt_cap_compression_restart2.h5");
 
 	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::z);
@@ -239,7 +239,7 @@ void test_t3d_me_mt_cap_compression_result_div(int argc, char** argv)
 	app.set_view_dist_scale(1.1);
 	app.set_color_map_fld_range(-50.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
-	//app.set_png_name("t3d_me_mt_cap_compression");
-	//app.set_gif_name("t3d_me_mt_cap_compression");
+	//app.set_png_name("t3d_me_mt_cap_compression_div");
+	//app.set_gif_name("t3d_me_mt_cap_compression_div");
 	app.start();
 }

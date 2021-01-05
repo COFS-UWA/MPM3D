@@ -1,5 +1,7 @@
 #include "ModelViewer_pcp.h"
 
+#include <iostream>
+
 #include "QtSceneFromModel_T3D_ME_mt.h"
 
 QtSceneFromModel_T3D_ME_mt::QtSceneFromModel_T3D_ME_mt(
@@ -191,14 +193,16 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 	init_shaders();
 
 	// init bg_mesh
-	QVector3D gray(0.5f, 0.5f, 0.5f);
-	bg_mesh_obj.init_from_elements(
-		model->get_node_pos(),
-		model->get_node_num(),
-		model->get_elem_node_index(),
-		model->get_elem_num(),
-		gray
-		);
+	if (display_bg_mesh)
+	{
+		QVector3D gray(0.5f, 0.5f, 0.5f);
+		bg_mesh_obj.init_from_elements(
+			model->get_node_pos(),
+			model->get_node_num(),
+			model->get_elem_node_index(),
+			model->get_elem_num(),
+			gray);
+	}
 
 	// init pcls
 	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
@@ -235,7 +239,7 @@ void QtSceneFromModel_T3D_ME_mt::draw()
 
 	if (display_pcls)
 		pcls_obj.draw(shader_balls);
-
+	
 	if (display_pts)
 		pts_obj.draw(shader_balls);
 

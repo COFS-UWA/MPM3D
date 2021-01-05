@@ -377,8 +377,7 @@ int load_search_mesh_from_hdf5_file(
 int output_ori_pcl_data_to_hdf5_file(
 	Model_T3D_ME_mt &md,
 	ResultFile_hdf5 &rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -399,11 +398,8 @@ int output_ori_pcl_data_to_hdf5_file(
 	hid_t pcl_dt_id = get_pcl_dt_id();
 	int res = rf.write_dataset(
 		pcl_data_grp_id,
-		"field",
-		pcl_num,
-		pcl_data,
-		pcl_dt_id
-		);
+		"field", pcl_num,
+		pcl_data, pcl_dt_id);
 	H5Tclose(pcl_dt_id);
 	delete[] pcl_data;
 
