@@ -25,7 +25,7 @@ void test_t2d_chm_mt_pipe_conference_restart1(int argc, char** argv)
 	model.init_mesh(tri_mesh);
 	model.init_search_grid(tri_mesh, 0.05, 0.05);
 	tri_mesh.clear();
-	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e6, 5.0e-12, 1.0e-3);
+	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e6, 5.0e-13, 1.0e-3);
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
@@ -93,8 +93,8 @@ void test_t2d_chm_mt_pipe_conference_restart1(int argc, char** argv)
 	step.set_model(model);
 	step.set_step_time(5.0);
 	//step.set_step_time(5.0e-4);
-	step.set_dtime(2.0e-6);
-	step.set_thread_num(6);
+	step.set_dtime(1.0e-6);
+	step.set_thread_num(20);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
