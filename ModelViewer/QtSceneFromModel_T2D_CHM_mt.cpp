@@ -115,13 +115,23 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 
 	// init pcls
 	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
+	auto *pcl_index = model->get_pcl_index0();
+	auto* pcl_pos = model->get_pcl_pos();
+	const size_t pcl_num = model->get_pcl_num();
+	Model_T2D_CHM_mt::Position *pcl_pos1
+		= (Model_T2D_CHM_mt::Position *)::operator new(sizeof(Model_T2D_CHM_mt::Position) * pcl_num);
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		const size_t ori_p_id = pcl_index[p_id];
+		pcl_pos1[p_id].x = pcl_pos[ori_p_id].x;
+		pcl_pos1[p_id].y = pcl_pos[ori_p_id].y;
+	}
 	pcls_obj.init(
-		model->get_pcl_pos(),
+		pcl_pos1,
 		model->get_pcl_vol(),
 		model->get_pcl_num(),
-		moccasin,
-		0.5f
-		);
+		moccasin, 0.5f);
+	::operator delete ((void *)pcl_pos1);
 
 	// init rigid circle
 	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);

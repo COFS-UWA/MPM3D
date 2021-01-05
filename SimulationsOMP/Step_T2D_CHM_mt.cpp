@@ -222,8 +222,7 @@ int substep_func_omp_T2D_CHM_mt(
 	size_t my_th_id,
 	double dt,
 	double cur_time,
-	size_t substp_id
-	)
+	size_t substp_id)
 {
 	typedef Model_T2D_CHM_mt::ShapeFunc ShapeFunc;
 	typedef Model_T2D_CHM_mt::DShapeFuncAB DShapeFuncAB;

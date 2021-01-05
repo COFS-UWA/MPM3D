@@ -22,15 +22,21 @@ protected:
 	size_t c_elem_node_num;
 	size_t pt_num;
 	QVector3D color;
+	size_t max_pcl_num_per_drawcall;
+	PointData* pt_data;
 
 	void clear();
 
 	int init_ball_data();
-	int init_gl_buffer(PointData* pds, size_t pd_num);
+	int init_gl_buffer(PointData *pds, size_t pd_num);
+	int init_gl_buffer(size_t pd_num);
 
 public:
 	QtMonoColorBallGLObject(QOpenGLFunctions_3_3_Core& _gl);
 	~QtMonoColorBallGLObject();
+
+	inline void set_max_pcl_num_per_drawcall(size_t _num) noexcept { max_pcl_num_per_drawcall = _num; }
+	inline void set_max_gl_buffer_size(size_t _size) noexcept { max_pcl_num_per_drawcall = _size / sizeof(PointData); }
 
 	// Particle3D has member x, y, z and vol
 	template <typename Particle3D>
@@ -64,7 +70,7 @@ int QtMonoColorBallGLObject::init(
 {
 	clear();
 	color = c;
-	PointData* pt_data = new PointData[pcl_num];
+	pt_data = new PointData[pcl_num];
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		const Particle3D &pcl = pcls[p_id];
@@ -75,8 +81,17 @@ int QtMonoColorBallGLObject::init(
 		pd.z = GLfloat(pcl.z);
 		pd.radius = GLfloat(pow(3.0 * pcl.get_vol()/ (4.0 * 3.14159265359), 0.3333333))	* radius_scale;
 	}
-	int res = init_gl_buffer(pt_data, pcl_num);
-	delete[] pt_data;
+	if (pcl_num > max_pcl_num_per_drawcall)
+	{
+		init_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = pcl_num;
+	}
+	else
+	{
+		init_gl_buffer(pt_data, pcl_num);
+		delete[] pt_data;
+		pt_data = nullptr;
+	}
 	return 0;
 }
 
@@ -92,7 +107,7 @@ int QtMonoColorBallGLObject::init(
 {
 	clear();
 	color = c;
-	PointData* pt_data = new PointData[pcl_num];
+	pt_data = new PointData[pcl_num];
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
 		const Particle3D& pcl = pcls[p_id];
@@ -103,8 +118,17 @@ int QtMonoColorBallGLObject::init(
 		pd.z = GLfloat(pcl.z);
 		pd.radius = GLfloat(pow(3.0 * pcl_m[p_id] / pcl_density[p_id] / (4.0 * 3.14159265359), 0.3333333)) * radius_scale;
 	}
-	int res = init_gl_buffer(pt_data, pcl_num);
-	delete[] pt_data;
+	if (pcl_num > max_pcl_num_per_drawcall)
+	{
+		init_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = pcl_num;
+	}
+	else
+	{
+		init_gl_buffer(pt_data, pcl_num);
+		delete[] pt_data;
+		pt_data = nullptr;
+	}
 	return 0;
 }
 
@@ -118,7 +142,7 @@ int QtMonoColorBallGLObject::init(
 {
 	clear();
 	color = c;
-	PointData* pt_data = new PointData[_pt_num];
+	pt_data = new PointData[_pt_num];
 	for (size_t p_id = 0; p_id < _pt_num; ++p_id)
 	{
 		Point3D& pt = pts[p_id];
@@ -129,9 +153,18 @@ int QtMonoColorBallGLObject::init(
 		pd.z = GLfloat(pt.z);
 		pd.radius = pt_radius;
 	}
-	int res = init_gl_buffer(pt_data, _pt_num);
-	delete[] pt_data;
-	return res;
+	if (_pt_num > max_pcl_num_per_drawcall)
+	{
+		init_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = _pt_num;
+	}
+	else
+	{
+		init_gl_buffer(pt_data, _pt_num);
+		delete[] pt_data;
+		pt_data = nullptr;
+	}
+	return 0;
 }
 
 template <typename DivisionSet>
@@ -148,7 +181,7 @@ int QtMonoColorBallGLObject::init(
 {
 	clear();
 	color = c;
-	PointData* pt_data = new PointData[pcl_num];
+	pt_data = new PointData[pcl_num];
 	size_t cur_p_id = 0;
 	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
@@ -162,8 +195,17 @@ int QtMonoColorBallGLObject::init(
 			pd.radius = GLfloat(pow(3.0 * pcl_vol[p_id] / (4.0 * 3.14159265359), 1.0 / 3.0)) * radius_scale;
 		}
 	}
-	int res = init_gl_buffer(pt_data, cur_p_id);
-	delete[] pt_data;
+	if (cur_p_id > max_pcl_num_per_drawcall)
+	{
+		init_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = cur_p_id;
+	}
+	else
+	{
+		init_gl_buffer(pt_data, cur_p_id);
+		delete[] pt_data;
+		pt_data = nullptr;
+	}
 	return 0;
 }
 
