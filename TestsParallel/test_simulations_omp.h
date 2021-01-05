@@ -56,4 +56,7 @@ void test_t3d_me_mt_cylinder_foundation_ch_den(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_restart_ch_den(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_restart_ch_den2(int argc, char** argv);
 
+void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv);
+void test_t3d_me_mt_spudcan_coarse(int argc, char** argv);
+
 #endif

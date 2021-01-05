@@ -32,4 +32,6 @@ void test_t2d_chm_mt_pipe_conference_den_result(int argc, char** argv);
 
 void test_t3d_me_mt_cylinder_foundation_result_ch_den2(int argc, char** argv);
 
+void test_t3d_me_mt_spudcan_coarse_result(int argc, char** argv);
+
 #endif
