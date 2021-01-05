@@ -78,17 +78,61 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T2D_CHM_mt_complete out("consolidation");
-	out.set_output_init_state();
-	out.set_interval_num(100);
 	out.set_res_file(res_file_hdf5);
+	out.set_interval_num(100);
+	out.set_output_init_state();
+	out.set_output_final_state();
 	TimeHistory_ConsoleProgressBar out_pb;
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(15.0);
+	step.set_step_time(10.0);
 	//step.set_step_time(1.0e-3);
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(3);
+	step.add_time_history(out);
+	step.add_time_history(out_pb);
+	step.solve();
+}
+
+void test_t2d_chm_mt_1d_consolidation_restart(int argc, char** argv)
+{
+	Model_T2D_CHM_mt model;
+	Step_T2D_CHM_mt step("step2");
+
+	using Model_T2D_CHM_mt_hdf5_utilities::load_chm_mt_model_from_hdf5_file;
+	load_chm_mt_model_from_hdf5_file(
+		model, step,
+		"t2d_chm_mt_1d_consolidation.h5",
+		"consolidation", 5);
+
+	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
+	//md_disp.set_win_size(1200, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_vx_s_bc(0.01);
+	////md_disp.set_pts_from_vx_f_bc(0.01);
+	////md_disp.set_pts_from_vy_s_bc(0.01);
+	//md_disp.set_pts_from_vy_f_bc(0.01);
+	//md_disp.start();
+	//return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t2d_chm_mt_1d_consolidation2.h5");
+
+	ModelData_T2D_CHM_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T2D_CHM_mt_complete out("consolidation");
+	out.set_res_file(res_file_hdf5);
+	out.set_interval_num(100);
+	out.set_output_init_state();
+	out.set_output_final_state();
+	TimeHistory_ConsoleProgressBar out_pb;
+
+	step.set_model(model);
+	step.set_step_time(10.0);
+	step.set_dtime(1.0e-5);
+	//step.set_thread_num(20);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -113,13 +157,14 @@ void test_t2d_chm_mt_1d_consolidation_static_result(int argc, char** argv)
 void test_t2d_chm_mt_1d_consolidation_ani_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_mt_1d_consolidation.h5");
+	//rf.open("t2d_chm_mt_1d_consolidation.h5");
+	rf.open("t2d_chm_mt_1d_consolidation2.h5");
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv,
 		QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "consolidation", Hdf5Field::p);
 	app.set_win_size(900, 900);
+	app.set_res_file(rf, "consolidation", Hdf5Field::p);
 	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.6, 0.5, 0.4);
 	//app.set_png_name("t2d_chm_mt_1d_consolidation");

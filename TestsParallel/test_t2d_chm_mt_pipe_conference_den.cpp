@@ -63,15 +63,15 @@ void test_t2d_chm_mt_pipe_conference_den(int argc, char** argv)
 	//md_disp.set_win_size(1200, 900);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_vx_s_bc(0.03);
-	////md_disp.set_pts_from_vx_f_bc(0.03);
+	//md_disp.set_pts_from_vx_f_bc(0.03);
 	////md_disp.set_pts_from_vy_s_bc(0.03);
 	////md_disp.set_pts_from_vy_f_bc(0.03);
 	//// all
-	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	//md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//// left
 	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
 	//// middle
-	//md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
+	////md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
 	//// right
 	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
 	//md_disp.start();
@@ -92,10 +92,61 @@ void test_t2d_chm_mt_pipe_conference_den(int argc, char** argv)
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(5.0);
-	//step.set_step_time(5.0e-4);
-	step.set_dtime(1.0e-6);
+	//step.set_step_time(5.0);
+	step.set_step_time(1.0e-5);
+	step.set_dtime(2.0e-6);
 	step.set_thread_num(6);
+	step.add_time_history(out);
+	step.add_time_history(out_pb);
+	step.solve();
+}
+
+void test_t2d_chm_mt_pipe_conference_den_restart(int argc, char** argv)
+{
+	Model_T2D_CHM_mt model;
+	Step_T2D_CHM_mt step("step2");
+
+	using Model_T2D_CHM_mt_hdf5_utilities::load_chm_mt_model_from_hdf5_file;
+	load_chm_mt_model_from_hdf5_file(
+		model, step,
+		"t2d_chm_mt_pipe_conference_den1.h5",
+		"penetration", 5);
+
+	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
+	//md_disp.set_win_size(1200, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_vx_s_bc(0.03);
+	////md_disp.set_pts_from_vx_f_bc(0.03);
+	////md_disp.set_pts_from_vy_s_bc(0.03);
+	//md_disp.set_pts_from_vy_f_bc(0.03);
+	//// all
+	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	//// left
+	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
+	//// middle
+	//md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
+	//// right
+	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
+	//md_disp.start();
+	//return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t2d_chm_mt_pipe_conference_den2.h5");
+
+	ModelData_T2D_CHM_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T2D_CHM_mt_complete out("penetration");
+	out.set_res_file(res_file_hdf5);
+	out.set_interval_num(100);
+	out.set_output_init_state();
+	out.set_output_final_state();
+	TimeHistory_ConsoleProgressBar out_pb;
+
+	step.set_model(model);
+	step.set_step_time(1.0e-5);
+	step.set_dtime(2.0e-6);
+	//step.set_thread_num(20);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -107,18 +158,21 @@ void test_t2d_chm_mt_pipe_conference_den(int argc, char** argv)
 void test_t2d_chm_mt_pipe_conference_den_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_mt_pipe_conference_den1.h5");
+	//rf.open("t2d_chm_mt_pipe_conference_den1.h5");
+	rf.open("t2d_chm_mt_pipe_conference_den2.h5");
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	app.set_win_size(1200, 950);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	//app.set_color_map_fld_range(-30000.0, -10000.0); // s22
+	app.set_res_file(rf, "penetration", Hdf5Field::s22);
+	app.set_color_map_fld_range(-30000.0, -10000.0); // s22
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
 	//app.set_color_map_fld_range(0, 20000.0); // pore pressure
-	app.set_color_map_fld_range(0, 0.4); // mises strain
+	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
+	//app.set_color_map_fld_range(0, 0.4); // mises strain
 	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
-	//app.set_png_name("t2d_chm_mt_pipe_conference1");
-	//app.set_gif_name("t2d_chm_mt_pipe_conference1");
+	//app.set_png_name("t2d_chm_mt_pipe_conference2");
+	//app.set_gif_name("t2d_chm_mt_pipe_conference2");
 	app.start();
 }

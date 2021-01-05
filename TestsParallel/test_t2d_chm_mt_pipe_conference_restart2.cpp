@@ -7,7 +7,6 @@
 #include "TimeHistory_T2D_CHM_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T2D_CHM_mt.h"
-
 #include "test_simulations_omp.h"
 
 void test_t2d_chm_mt_pipe_conference_restart2(int argc, char** argv)
