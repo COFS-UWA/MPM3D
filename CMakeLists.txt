@@ -1,4 +1,3 @@
-# need to include bin folder in system path !!
 cmake_minimum_required(VERSION 3.15.0)
 
 project(SimpleMPM3)

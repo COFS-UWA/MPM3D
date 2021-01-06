@@ -22,10 +22,14 @@ add_library(
     VonMises.h VonMises.cpp
     # Tresca model
     Tresca.h Tresca.cpp
+    # Sand hypoplasticity from umat
+    SandHypoplasticityByUmat.h SandHypoplasticityByUmat.cpp
     # ModelContainer
     MatModelContainer.h MatModelContainer.cpp
     # Map from material model id to pointer
     MatModelIdToPointerMap.h MatModelIdToPointerMap.cpp
+    #
+    MaterialModelInitializer.h MaterialModelInitializer.cpp
     )
 
 set(MATERIALMODELS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

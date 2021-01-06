@@ -1,10 +1,13 @@
 #include "TestsParallel_pcp.h"
 
+#include "MaterialModelInitializer.h"
 #include "test_simulations_omp.h"
 #include "test_model_view_omp.h"
 
 int main(int argc, char *argv[])
 {
+	MatModel::MaterialModelInitializer::init();
+
 	//test_von_mises(argc, argv);
 
 	//test_Step_OMP(argc, argv);
