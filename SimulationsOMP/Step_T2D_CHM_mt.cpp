@@ -1257,7 +1257,8 @@ int Step_T2D_CHM_mt::apply_rigid_circle(
 	const SortedPclVarArrays& cur_spva,
 	Force2D& rc_cf,
 	size_t substp_id,
-	ThreadData& thd) noexcept
+	ThreadData& thd
+	) noexcept
 {
 	double p_x, p_y, p_r, dist;
 	double fs_cont, fsx_cont, fsy_cont;
@@ -1275,7 +1276,7 @@ int Step_T2D_CHM_mt::apply_rigid_circle(
 		const Displacement& p_u_s = cur_spva.pcl_u_s[p_id];
 		p_x = p_p.x + p_u_s.ux;
 		p_y = p_p.y + p_u_s.uy;
-		p_r = 0.5 * sqrt(pcl_vol[p_id] / 3.1415926559);
+		p_r = 0.5 * sqrt(pcl_vol[p_id] / 3.14159265359);
 		if (rc.detect_collision_with_point(
 			p_x, p_y, p_r,
 			dist, lnorm, lcontpos))

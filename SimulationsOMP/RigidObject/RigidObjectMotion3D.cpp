@@ -57,8 +57,7 @@ void RigidObjectMotion3D::set_angle(
 	// in radius
 	double _x_ang,
 	double _y_ang,
-	double _z_ang
-	)
+	double _z_ang)
 {
 	x_ang = _x_ang;
 	trim_to_pi(x_ang);
@@ -75,13 +74,8 @@ void RigidObjectMotion3D::set_angle(
 void RigidObjectMotion3D::set_translation_velocity_bc(
 	double _vx,
 	double _vy,
-	double _vz
-	)
+	double _vz)
 {
-	set_vx_bc(_vx);
-	set_vy_bc(_vy);
-	set_vz_bc(_vz);
-	set_vx_ang_bc(0.0);
-	set_vy_ang_bc(0.0);
-	set_vz_ang_bc(0.0);
+	set_vx_bc(_vx); set_vy_bc(_vy);	set_vz_bc(_vz);
+	set_vx_ang_bc(0.0);	set_vy_ang_bc(0.0);	set_vz_ang_bc(0.0);
 }

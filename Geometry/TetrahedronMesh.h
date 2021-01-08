@@ -49,6 +49,7 @@ public:
 
 	int init_search_grid(double _hx, double _hy, double _hz);
 
+	void rotate_mesh(double dx_ang, double dy_ang, double dz_ang) noexcept;
 	void translate_mesh(double dx, double dy, double dz) noexcept;
 
 	// search using background grid

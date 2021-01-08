@@ -69,8 +69,6 @@ protected:
 	QMatrix4x4 hud_view_mat;
 
 	QVector3D bg_color;
-	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
-	{ bg_color[0] = r; bg_color[1] = g; bg_color[2] = b; }
 
 	void clear();
 
@@ -79,6 +77,10 @@ public:
 	~QtSceneFromHdf5_T2D_CHM_mt();
 	void close_file();
 
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
+	{ bg_color[0] = r; bg_color[1] = g; bg_color[2] = b; }
+	inline void set_char_color(GLfloat r, GLfloat g, GLfloat b)
+	{ color_map_obj.set_char_color(r, g, b); }
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }
 	inline void set_display_rc(bool op = true) { display_rc = op; }

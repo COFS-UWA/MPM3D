@@ -90,6 +90,8 @@ add_executable(
     test_mat_model_utils.cpp
     test_von_mises.cpp
     test_tresca.cpp
+    # sand hypoplasticity
+    test_hypoplasticity_match_Wichtmann.cpp
     )
 
 target_include_directories(

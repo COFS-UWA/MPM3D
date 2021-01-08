@@ -79,7 +79,8 @@ public:
 	inline void set_display_range(double xl, double xu,
 								  double yl, double yu)
 	{ scene.set_display_range(xl, xu, yl, yu); }
-
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b) { scene.set_bg_color(r, g, b); }
+	inline void set_char_color(GLfloat r, GLfloat g, GLfloat b) { scene.set_char_color(r, g, b); }
 	inline void set_display_bg_mesh(bool op = true)
 	{ scene.set_display_bg_mesh(op); }
 	inline void set_display_pcls(bool op = true)

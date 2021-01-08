@@ -71,12 +71,13 @@ namespace MatModel
 	SandHypoplasticityByUmat::~SandHypoplasticityByUmat() {}
 
 	void SandHypoplasticityByUmat::set_param(
-		double _stress[6], double _e,
+		double const _stress[6], double _e,
 		double _fric_ang,
 		double _hs, double _en,
 		double _ed0, double _ec0, double _ei0,
 		double _alpha, double _beta,
-		double _m_R, double _m_T, double _R, double _beta_r, double _chi)
+		double _m_R, double _m_T, double _R, double _beta_r, double _chi,
+		double const _ig_strain[6])
 	{
 		stress[0] = _stress[0]; stress[1] = _stress[1];
 		stress[2] = _stress[2];	stress[3] = _stress[3];
@@ -119,12 +120,18 @@ namespace MatModel
 		props[14] = 0.0;
 
 		// integranular strain
-		statev[0] = 0.0;
-		statev[1] = 0.0;
-		statev[2] = 0.0;
-		statev[3] = 0.0;
-		statev[4] = 0.0;
-		statev[5] = 0.0;
+		if (_ig_strain)
+		{
+			statev[0] = _ig_strain[0]; statev[1] = _ig_strain[1];
+			statev[2] = _ig_strain[2]; statev[3] = _ig_strain[3];
+			statev[4] = _ig_strain[4]; statev[5] = _ig_strain[5];
+		}
+		else
+		{
+			statev[0] = 0.0; statev[1] = 0.0;
+			statev[2] = 0.0; statev[3] = 0.0;
+			statev[4] = 0.0; statev[5] = 0.0;
+		}
 		// void ratio
 		statev[6] = 0.0;
 		statev[7] = 0.0;
@@ -139,15 +146,8 @@ namespace MatModel
 		integrate(dstrain_e);
 	}
 
-	namespace
-	{
-		inline void swap(double& a, double& b)
-		{
-			double tmp = a;
-			a = b;
-			b = tmp;
-		}
-	}
+	inline static void swap(double& a, double& b)
+	{ double tmp = a; a = b; b = tmp; }
 
 	int SandHypoplasticityByUmat_integration_func(MaterialModel* _self, double dstrain[6])
 	{

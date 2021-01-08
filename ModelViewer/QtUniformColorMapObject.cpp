@@ -13,6 +13,7 @@
 
 QtUniformColorMapObject::QtUniformColorMapObject(
 	QOpenGLFunctions_3_3_Core& _gl) : gl(_gl), char_loader(_gl),
+	char_color(1.0f, 1.0f, 1.0f), 
 	// geometry parameters
 	ht_margin_ratio(0.05f), wd_margin_ratio(0.05f),
 	gap_ratio(0.5f), title_ratio(0.7f),
@@ -536,11 +537,9 @@ void QtUniformColorMapObject::draw(
 	QOpenGLShaderProgram& shader_plain2D,
 	QOpenGLShaderProgram& shader_char)
 {
-	QVector3D white(1.0f, 1.0f, 1.0f);
-
 	// draw chars
 	shader_char.bind();
-	shader_char.setUniformValue("g_color", white);
+	shader_char.setUniformValue("g_color", char_color);
 	shader_char.setUniformValue("char_texture", 0);
 
 	gl.glEnable(GL_BLEND);
@@ -564,7 +563,7 @@ void QtUniformColorMapObject::draw(
 	gl.glDisable(GL_BLEND);
 
 	shader_plain2D.bind();
-	shader_plain2D.setUniformValue("g_color", white);
+	shader_plain2D.setUniformValue("g_color", char_color);
 
 	// draw rects
 	gl.glBindVertexArray(tri_vao);

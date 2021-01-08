@@ -19,7 +19,8 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 	tri_mesh.init_search_grid(0.05, 0.05);
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
+	pcl_generator.generate_pcls_at_2nd_gauss(tri_mesh);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	//pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
 	
 	Model_T2D_CHM_mt model;
@@ -40,9 +41,15 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 
 	// tbc
 	IndexArray tbc_pt_array(50);
-	find_2d_pcls<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
+	//find_2d_pcls<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
+	//MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
+	//double ty_mag = 0.02 * -1.0;
+	//for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
+	//	tys_mem.add(ty_mag);
+	//model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tys_mem.get_mem());
+	find_2d_pcls<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, tbc_pt_array, Rect(0.0, 0.2, 0.98, 1.0));
 	MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
-	double ty_mag = 0.02 * -10.0;
+	double ty_mag = 0.05 * -1.0;
 	for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
 		tys_mem.add(ty_mag);
 	model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tys_mem.get_mem());
@@ -86,10 +93,10 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(10.0);
+	step.set_step_time(15.0);
 	//step.set_step_time(1.0e-3);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(5);
+	//step.set_thread_num(2);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -157,17 +164,19 @@ void test_t2d_chm_mt_1d_consolidation_static_result(int argc, char** argv)
 void test_t2d_chm_mt_1d_consolidation_ani_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t2d_chm_mt_1d_consolidation.h5");
-	rf.open("t2d_chm_mt_1d_consolidation2.h5");
+	rf.open("t2d_chm_mt_1d_consolidation.h5");
+	//rf.open("t2d_chm_mt_1d_consolidation2.h5");
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv,
 		QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_win_size(900, 900);
+	app.set_win_size(1200, 950);
+	app.set_bg_color(1.0f, 1.0f, 1.0f);
+	app.set_char_color(0.0f, 0.0f, 0.0f);
 	app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 10.0);
-	app.set_color_map_geometry(0.6, 0.5, 0.4);
-	//app.set_png_name("t2d_chm_mt_1d_consolidation");
+	app.set_color_map_fld_range(0.0, 1.0);
+	app.set_color_map_geometry(0.8, 0.3, 0.6);
+	app.set_png_name("t2d_chm_mt_1d_consolidation");
 	//app.set_gif_name("t2d_chm_mt_1d_consolidation");
 	app.start();
 }
