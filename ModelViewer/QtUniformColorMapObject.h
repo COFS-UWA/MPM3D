@@ -13,6 +13,8 @@ class QtUniformColorMapObject
 protected:
 	QOpenGLFunctions_3_3_Core& gl;
 	
+	QVector3D char_color;
+
 	// geometry parameters
 	GLfloat ht_margin_ratio, wd_margin_ratio;
 	
@@ -139,6 +141,9 @@ public:
 	QtUniformColorMapObject(QOpenGLFunctions_3_3_Core &_gl);
 	~QtUniformColorMapObject();
 	void clear_gl_buffer();
+
+	inline void set_char_color(GLfloat r, GLfloat g, GLfloat b)
+	{ char_color[0] = r; char_color[1] = g; char_color[2] = b; }
 
 	int init(GLfloat _xpos, GLfloat _ypos, GLfloat ht,
 		UniformColorMap& color_map,

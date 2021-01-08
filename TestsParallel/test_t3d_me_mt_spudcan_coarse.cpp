@@ -7,7 +7,7 @@
 #include "ModelData_T3D_ME_mt.h"
 #include "TimeHistory_T3D_ME_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
-#include "QtApp_Prep_T3D_ME_mt.h"
+#include "QtApp_Prep_T3D_ME_mt_Div.h"
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
@@ -107,8 +107,8 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	}
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model.h5",
-		0.0, 0.0, 5.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.1);
+		0.0, 0.0, 0.0, -90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
 	model.set_contact_param(20000.0, 20000.0, 0.1);
 
 	IndexArray vx_bc_pt_array(100);
@@ -131,13 +131,14 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
 	md_disp.set_view_dir(0.0f, 5.0f);
 	md_disp.set_light_dir(10.0f, 5.0f);
 	md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(0.5);
+	md_disp.set_view_dist_scale(0.6);
 	//md_disp.set_pts_from_vx_bc(0.2);
 	//md_disp.set_pts_from_vy_bc(0.2);
 	//md_disp.set_pts_from_vz_bc(0.2);
@@ -150,18 +151,19 @@ void test_t3d_me_mt_spudcan_coarse(int argc, char** argv)
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, "t3d_me_mt_spudcan_coarse_model.h5");
 
-	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
-	md_disp.set_model(model);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(0.0f, 5.0f);
-	md_disp.set_light_dir(10.0f, 5.0f);
-	md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(0.5);
-	//md_disp.set_pts_from_vx_bc(0.2);
-	//md_disp.set_pts_from_vy_bc(0.2);
-	//md_disp.set_pts_from_vz_bc(0.2);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	//md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//md_disp.set_model(model);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(0.0f, 5.0f);
+	//md_disp.set_light_dir(10.0f, 5.0f);
+	//md_disp.set_display_bg_mesh(false);
+	//md_disp.set_view_dist_scale(0.6);
+	////md_disp.set_pts_from_vx_bc(0.2);
+	////md_disp.set_pts_from_vy_bc(0.2);
+	////md_disp.set_pts_from_vz_bc(0.2);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_spudcan_coarse.h5");
@@ -178,8 +180,9 @@ void test_t3d_me_mt_spudcan_coarse(int argc, char** argv)
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_thread_num(6);
-	step.set_step_time(0.5);
+	//step.set_thread_num(6);
+	//step.set_step_time(0.5);
+	step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

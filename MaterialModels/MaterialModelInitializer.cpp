@@ -15,7 +15,7 @@ namespace MatModel
 
 		is_init = true;
 		MatModel::SandHypoplasticityByUmat::init(
-			"../Vendors/ExtMatModels/SandHypoplasticity.dll");
+			"../../Vendors/ExtMatModels/SandHypoplasticity.dll");
 		return 0;
 	}
 

@@ -35,12 +35,14 @@ namespace MatModel
 		SandHypoplasticityByUmat();
 		~SandHypoplasticityByUmat();
 
-		void set_param(double _stress[6], double _e,
+		void set_param(const double _stress[6],
+			double _e,
 			double _fric_ang /* in degree */,
 			double _hs, double _en,
 			double _ed0, double _ec0, double _ei0,
 			double _alpha, double _beta,
-			double _m_R, double _m_T, double _R, double _beta_r, double _chi);
+			double _m_R, double _m_T, double _R, double _beta_r, double _chi,
+			double const _ig_strain[6] = nullptr /* intergranular strain */);
 
 		inline double get_e() const { return e; }
 

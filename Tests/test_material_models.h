@@ -8,5 +8,6 @@ void test_mcc_compression();
 void test_undrained_mcc();
 void test_von_mises();
 void test_tresca();
+void test_hypoplasticity_match_Wichtmann();
 
 #endif

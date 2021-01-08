@@ -21,24 +21,27 @@ int RigidObjectByT3DMesh::init(
 	double dz_ang,
 	double ghx,
 	double ghy,
-	double ghz
-	)
+	double ghz)
 {
 	TetrahedronMesh tmesh;
 	int res = tmesh.load_mesh_from_hdf5(filename);
 	if (res)
 		return res;
 
+	dx_ang = deg_to_rad(dx_ang);
+	dy_ang = deg_to_rad(dy_ang);
+	dz_ang = deg_to_rad(dz_ang);
+	tmesh.rotate_mesh(dx_ang, dy_ang, dz_ang);
+
 	const Point3D& cen = tmesh.get_centre();
 	const double mh_x = cen.x + dx;
 	const double mh_y = cen.y + dy;
 	const double mh_z = cen.z + dz;
-
 	tmesh.translate_mesh(-cen.x, -cen.y, -cen.z);
 	
 	density = _density;
 	// moment of intertia
-	size_t elem_num = tmesh.get_elem_num();
+	const size_t elem_num = tmesh.get_elem_num();
 	auto* nodes = tmesh.get_nodes();
 	auto* elems = tmesh.get_elems();
 	double elem_moi_data[6];
@@ -61,11 +64,6 @@ int RigidObjectByT3DMesh::init(
 	}
 	RigidObjectMotion3D::init(mh_x, mh_y, mh_z,
 		tmesh.get_vol() * density, moi_data);
-
-	dx_ang = deg_to_rad(dx_ang);
-	dy_ang = deg_to_rad(dy_ang);
-	dz_ang = deg_to_rad(dz_ang);
-	RigidObjectMotion3D::set_angle(dx_ang, dy_ang, dz_ang);
 	
 	RigidMeshT3D::init_from_mesh(tmesh, ghx, ghy, ghz);
 	return 0;

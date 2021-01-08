@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 	//test_mcc_compression();
 	//test_undrained_mcc();
 	//test_von_mises();
+	test_hypoplasticity_match_Wichtmann();
 
 	//test_solve_functions();
 
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_1d_compression_horizontal(argc, argv);
 	//test_t2d_me_s_1d_compression_horizontal_result(argc, argv);
 
-	test_t2d_chm_s_1d_consolidation(argc, argv);
+	//test_t2d_chm_s_1d_consolidation(argc, argv);
 	//test_t2d_chm_s_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_s_1d_consolidation_ani_result(argc, argv);
 
@@ -171,6 +172,6 @@ int main(int argc, char *argv[])
 	//test_t2d_me_s_shallow_foundation(argc, argv);
 	//test_t2d_me_s_shallow_foundation_result(argc, argv);
 	
-	//system("pause");
+	system("pause");
 	return 0;
 }

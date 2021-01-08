@@ -116,5 +116,7 @@ if __name__ == "__main__":
     # print(keyword_props)
     # file.close()
     
-    nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_coarse.inp", "Part-1")
-    output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_coarse.h5")
+    nodes, elems = get_mesh_from_inp("../Asset/spudcan_model.inp", "Part-1")
+    output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_model.h5")
+    # nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_coarse.inp", "Part-1")
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_coarse.h5")
