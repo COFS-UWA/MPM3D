@@ -14,7 +14,7 @@ QtSceneFromHdf5_T2D_CHM_mt::QtSceneFromHdf5_T2D_CHM_mt(
 	display_rc(true), has_rc_obj(false), rc_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
-	bg_color(0.2f, 0.3f, 0.3f) {}
+	bg_color(0.2f, 0.3f, 0.3f), need_mat_model_data(false) {}
 
 QtSceneFromHdf5_T2D_CHM_mt::~QtSceneFromHdf5_T2D_CHM_mt()
 {
@@ -241,7 +241,8 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 		return res;
 
 	// init particle data
-	res = data_loader.load_frame_data(frame_id);
+	need_mat_model_data = pfld->need_mat_model_data();
+	res = data_loader.load_frame_data(frame_id, need_mat_model_data);
 	if (res) return res;
 
 	size_t pcl_num = data_loader.get_pcl_num();
@@ -397,7 +398,7 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 
 void QtSceneFromHdf5_T2D_CHM_mt::update_scene(size_t frame_id)
 {
-	data_loader.load_frame_data(frame_id);
+	data_loader.load_frame_data(frame_id, need_mat_model_data);
 
 	size_t pcl_num = data_loader.get_pcl_num();
 	pcl_fld_mem.reserve(pcl_num * 4);

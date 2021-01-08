@@ -1115,6 +1115,7 @@ int substep_func_omp_T2D_CHM_mt(
 	double p_x, p_y, e_density_f;
 	size_t p_e_id, pcl_in_mesh_num = 0;
 	e_id = SIZE_MAX;
+	thd.sorted_pcl_in_elem_id ^= 1;
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		if (e_id != pcl_in_elem0[p_id])
@@ -1188,8 +1189,8 @@ int substep_func_omp_T2D_CHM_mt(
 		}
 		if (p_e_id != SIZE_MAX) // in mesh
 			++pcl_in_mesh_num;
-		pcl_in_elem0[p_id] = p_e_id;
-		prev_pcl_id0[p_id] = p_id;
+		pcl_in_elem1[p_id] = p_e_id;
+		prev_pcl_id1[p_id] = p_id;
 		assert(p_e_id < self.elem_num || p_e_id == SIZE_MAX);
 		
 		// update n
@@ -1287,12 +1288,10 @@ int Step_T2D_CHM_mt::apply_rigid_circle(
 			ffx_cont = ff_cont * lnorm.x;
 			ffy_cont = ff_cont * lnorm.y;
 			// apply contact force to rigid body
-			rc_cf.add_force(
-				p_x, p_y,
+			rc_cf.add_force(p_x, p_y,
 				-(fsx_cont + ffx_cont),
 				-(fsy_cont + ffy_cont),
-				rc_centre.x, rc_centre.y
-				);
+				rc_centre.x, rc_centre.y);
 			// apply contact force to mesh
 			const ShapeFunc &p_N = cur_spva.pcl_N[p_id];
 			e_id = pcl_in_elem[p_id];

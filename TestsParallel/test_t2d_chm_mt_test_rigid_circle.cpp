@@ -86,10 +86,10 @@ void test_t2d_chm_mt_test_rigid_circle(int argc, char** argv)
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	//step.set_step_time(3.0);
-	step.set_step_time(5.0e-4);
+	step.set_step_time(3.0);
+	//step.set_step_time(5.0e-4);
 	step.set_dtime(5.0e-6);
-	//step.set_thread_num(3);
+	step.set_thread_num(7);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -105,9 +105,11 @@ void test_t2d_chm_mt_test_rigid_circle_result(int argc, char** argv)
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "penetration", Hdf5Field::p);
 	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(0.0, 20000.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
+	app.set_color_map_fld_range(0.0, 0.14);
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_color_map_fld_range(0.0, 20000.0);
 	app.set_color_map_geometry(0.82, 0.5, 0.4);
 	//app.set_png_name("t2d_chm_mt_test_rigid_circle");
 	//app.set_gif_name("t2d_chm_mt_test_rigid_circle");

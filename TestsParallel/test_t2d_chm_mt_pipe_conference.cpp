@@ -25,7 +25,7 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	model.init_mesh(tri_mesh);
 	model.init_search_grid(tri_mesh, 0.05, 0.05);
 	tri_mesh.clear();
-	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e6, 5.0e-13, 1.0e-3);
+	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 1.0e7, 1.0e-12, 1.0e-3);
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
@@ -45,7 +45,7 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	}
 
 	model.init_rigid_circle(1.0e5, 1.0e3, 0.0, 0.5, 0.5);
-	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
+	model.set_rigid_circle_velocity(0.0, -0.5, 0.0);
 
 	IndexArray left_right_bc_pt_array(100);
 	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, -3.5);
@@ -91,10 +91,10 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(5.0);
+	step.set_step_time(1.0);
 	//step.set_step_time(5.0e-4);
-	step.set_dtime(1.0e-6);
-	step.set_thread_num(20);
+	step.set_dtime(2.0e-6);
+	step.set_thread_num(7);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -110,14 +110,16 @@ void test_t2d_chm_mt_pipe_conference_result(int argc, char** argv)
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	//app.set_res_file(rf, "penetration", Hdf5Field::s22);
-	app.set_res_file(rf, "penetration", Hdf5Field::p);
-	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
 	app.set_win_size(1200, 950);
 	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	//app.set_color_map_fld_range(-30000.0, -10000.0); // s22
-	app.set_color_map_fld_range(0, 20000.0); // pore pressure
-	app.set_color_map_fld_range(0, 0.4); // mises strain
+	//app.set_res_file(rf, "penetration", Hdf5Field::s22);
+	//app.set_color_map_fld_range(-10000.0, 10000.0); // s22
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_color_map_fld_range(0, 20000.0); // pore pressure
+	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
+	//app.set_color_map_fld_range(0, 0.1); // mises strain
+	app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
+	app.set_color_map_fld_range(0, 100.0); 
 	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_mt_pipe_conference1");
 	//app.set_gif_name("t2d_chm_mt_pipe_conference1");

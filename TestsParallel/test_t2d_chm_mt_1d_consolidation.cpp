@@ -157,15 +157,17 @@ void test_t2d_chm_mt_1d_consolidation_static_result(int argc, char** argv)
 void test_t2d_chm_mt_1d_consolidation_ani_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t2d_chm_mt_1d_consolidation.h5");
-	rf.open("t2d_chm_mt_1d_consolidation2.h5");
+	rf.open("t2d_chm_mt_1d_consolidation.h5");
+	//rf.open("t2d_chm_mt_1d_consolidation2.h5");
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv,
 		QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(900, 900);
-	app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 10.0);
+	//app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	//app.set_color_map_fld_range(0.0, 10.0);
+	app.set_res_file(rf, "consolidation", Hdf5Field::mises_strain_2d);
+	app.set_color_map_fld_range(0.0, 0.01);
 	app.set_color_map_geometry(0.6, 0.5, 0.4);
 	//app.set_png_name("t2d_chm_mt_1d_consolidation");
 	//app.set_gif_name("t2d_chm_mt_1d_consolidation");

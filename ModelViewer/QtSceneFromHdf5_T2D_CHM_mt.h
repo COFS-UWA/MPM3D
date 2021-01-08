@@ -21,6 +21,7 @@ protected:
 	struct PointData { GLfloat x, y, va; };
 
 	// hdf5 result file data infos
+	bool need_mat_model_data;
 	ResultFile_hdf5* res_file;
 	Hdf5DataLoader data_loader;
 	Hdf5FieldExtraction_x x_fld;
