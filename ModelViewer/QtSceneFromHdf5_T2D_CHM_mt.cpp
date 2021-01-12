@@ -14,7 +14,8 @@ QtSceneFromHdf5_T2D_CHM_mt::QtSceneFromHdf5_T2D_CHM_mt(
 	display_rc(true), has_rc_obj(false), rc_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
-	bg_color(0.2f, 0.3f, 0.3f), need_mat_model_data(false) {}
+	bg_color(0.2f, 0.3f, 0.3f), need_mat_model_data(false),
+	pcl_is_mono_color(false) {}
 
 QtSceneFromHdf5_T2D_CHM_mt::~QtSceneFromHdf5_T2D_CHM_mt()
 {
@@ -212,8 +213,7 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 		node_num,
 		elems_data,
 		elem_num,
-		gray
-		);
+		gray);
 	// get bounding box
 	if (display_whole_model)
 	{
@@ -243,7 +243,8 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	// init particle data
 	need_mat_model_data = pfld->need_mat_model_data();
 	res = data_loader.load_frame_data(frame_id, need_mat_model_data);
-	if (res) return res;
+	if (res)
+		return res;
 
 	size_t pcl_num = data_loader.get_pcl_num();
 	pcl_fld_mem.reserve(pcl_num * 4);
@@ -265,13 +266,15 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 		pcl_y_data,
 		pcl_vol_data,
 		pcl_fld_data,
-		0.5
-	);
+		0.5);
 	
 	// color map texture
 	size_t color_map_texture_size;
-	unsigned char* color_map_texture_data
-		= color_map.gen_1Dtexture(20, color_map_texture_size);
+	unsigned char* color_map_texture_data;
+	if (pcl_is_mono_color)
+		color_map_texture_data = color_map1.gen_1Dtexture(1, color_map_texture_size);
+	else
+		color_map_texture_data = color_map.gen_1Dtexture(20, color_map_texture_size);
 	if (!color_map_texture_data || !color_map_texture_size)
 		return -2;
 	gl.glGenTextures(1, &color_map_texture);
@@ -293,7 +296,6 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	// rigid rect
 	if (rf.has_group(frame_grp_id, "RigidCircle"))
 	{
 		has_rc_obj = true;
@@ -321,9 +323,9 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	}
 
 	// viewport
-	double xlen = bbox.xu - bbox.xl;
-	double ylen = bbox.yu - bbox.yl;
-	double padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
+	const double xlen = bbox.xu - bbox.xl;
+	const double ylen = bbox.yu - bbox.yl;
+	const double padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
 	bbox.xl -= padding;
 	bbox.xu += padding;
 	bbox.yl -= padding;
@@ -334,34 +336,28 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	// shader_plain2D
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_plain2D.vert"
-	);
+		"../../Asset/shader_plain2D.vert");
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_plain2D.frag"
-	);
+		"../../Asset/shader_plain2D.frag");
 	shader_plain2D.link();
 
 	// shader_circles
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_circles.vert"
-		);
+		"../../Asset/shader_circles.vert");
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_circles.frag"
-		);
+		"../../Asset/shader_circles.frag");
 	shader_circles.link();
 
 	// shader for displaying character
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_char.vert"
-	);
+		"../../Asset/shader_char.vert");
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_char.frag"
-	);
+		"../../Asset/shader_char.frag");
 	shader_char.link();
 
 	// view matrix
@@ -372,8 +368,7 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 		GLfloat(bbox.xu),
 		GLfloat(bbox.yl),
 		GLfloat(bbox.yu),
-		-1.0f, 1.0f
-		);
+		-1.0f, 1.0f);
 	// hud view matrix
 	hud_view_mat.setToIdentity();
 	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
@@ -420,8 +415,7 @@ void QtSceneFromHdf5_T2D_CHM_mt::update_scene(size_t frame_id)
 		pcl_y_data,
 		pcl_vol_data,
 		pcl_fld_data,
-		0.5
-		);
+		0.5);
 	
 	ResultFile_hdf5& rf = *res_file;
 	char frame_name[50];

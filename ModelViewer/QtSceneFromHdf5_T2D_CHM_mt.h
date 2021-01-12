@@ -9,6 +9,7 @@
 #include "Hdf5Field.h"
 #include "QtTriangleMeshGLObject.h"
 #include "UniformColorMap_Abaqus.h"
+#include "UniformColorMap_Mono.h"
 #include "QtMultiColorCircleGLObject.h"
 #include "QtRigidCircleObject.h"
 #include "QtUniformColorMapObject.h"
@@ -44,7 +45,9 @@ protected:
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 
+	bool pcl_is_mono_color;
 	UniformColorMap_Abaqus color_map;
+	UniformColorMap_Mono color_map1;
 	GLuint color_map_texture;
 	QtMultiColorCircleGLObject pcls_obj;
 	
@@ -101,6 +104,8 @@ public:
 		has_color_map = true;
 		cm_xpos = xpos;	cm_ypos = ypos; cm_ht = ht;
 	}
+	inline void set_mono_color_pcl(bool _op = true) noexcept
+	{ pcl_is_mono_color = _op; }
 
 	size_t get_frame_num();
 	double get_frame_time(size_t frame_id);

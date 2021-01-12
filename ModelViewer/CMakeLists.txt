@@ -24,6 +24,7 @@ add_library(
     # color map
     UniformColorMap.h UniformColorMap.cpp
     UniformColorMap_Abaqus.h UniformColorMap_Abaqus.cpp
+    UniformColorMap_Mono.h UniformColorMap_Mono.cpp
     # display chars
     QtCharBitmapLoader.h QtCharBitmapLoader.cpp
     QtUniformColorMapObject.h QtUniformColorMapObject.cpp

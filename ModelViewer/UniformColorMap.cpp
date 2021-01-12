@@ -24,10 +24,9 @@ UniformColorMap::UniformColorMap() :
 UniformColorMap::~UniformColorMap() { clear(); }
 
 int UniformColorMap::set_color(
-	unsigned char color_datas[][3],
+	const unsigned char color_datas[][3],
 	size_t color_data_num,
-	bool apply_ob_color
-	)
+	bool apply_ob_color)
 {
 	clear();
 
@@ -51,7 +50,6 @@ int UniformColorMap::set_color(
 	}
 
 	inv_len = (lb_value - ub_value) / float(color_num-1);
-
 	return 0;
 }
 

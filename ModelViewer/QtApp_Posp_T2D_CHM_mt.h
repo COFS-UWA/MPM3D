@@ -92,6 +92,8 @@ public:
 	{ scene.set_color_map_fld_range(min, max); }
 	inline void set_color_map_geometry(float xpos, float ypos, float ht)
 	{ scene.set_color_map_geometry(xpos, ypos, ht); }
+	inline void set_mono_color_pcl(bool _op = true) noexcept
+	{ scene.set_mono_color_pcl(_op); }
 
 	inline void set_png_name(const char* name)
 	{
