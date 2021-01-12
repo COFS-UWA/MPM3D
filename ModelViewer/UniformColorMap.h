@@ -29,7 +29,7 @@ public:
 	~UniformColorMap();
 
 	int set_color(
-		unsigned char color_datas[][3],
+		const unsigned char color_datas[][3],
 		size_t color_data_num,
 		bool apply_ob_color = true
 		);

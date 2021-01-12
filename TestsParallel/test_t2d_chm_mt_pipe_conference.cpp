@@ -126,7 +126,8 @@ void test_t2d_chm_mt_pipe_conference_result(int argc, char** argv)
 	app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
 	app.set_color_map_fld_range(0.0, 0.4);
 
-	app.set_color_map_geometry(1.8f, 0.5f, 0.45f);
+	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
+	app.set_mono_color_pcl();
 	//app.set_png_name("t2d_chm_mt_pipe_conference1");
 	//app.set_gif_name("t2d_chm_mt_pipe_conference1");
 	app.start();
