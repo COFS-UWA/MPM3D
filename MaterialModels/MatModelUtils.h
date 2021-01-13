@@ -1,6 +1,8 @@
 #ifndef __Mat_Model_Utils_h__
 #define __Mat_Model_Utils_h__
 
+#include "MaterialModel.h"
+
 namespace MatModel
 {
 	namespace MatModel_Internal
@@ -337,6 +339,13 @@ namespace MatModel
 #undef mat_prod
 		}
 	}
+
+	bool integrate_drained_triaxial_test(
+		MaterialModel& model,
+		double de,
+		double dstrain[6],
+		double tol = 1.0e-3,
+		size_t max_iter_num = 100);
 }
 
 #endif

@@ -6,8 +6,6 @@
 
 int main(int argc, char *argv[])
 {
-	//MatModel::MaterialModelInitializer::init();
-
 	//test_von_mises(argc, argv);
 
 	//test_Step_OMP(argc, argv);
@@ -70,7 +68,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cylinder_foundation_ch_den(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_result_ch_den2(argc, argv);
 
-	test_t2d_chm_mt_1d_consolidation(argc, argv);
+	//test_t2d_chm_mt_1d_consolidation(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_restart(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
@@ -89,6 +87,11 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_spudcan_coarse(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_result(argc, argv);
 
-	system("pause");
+	MatModel::MaterialModelInitializer::init();
+	//test_sand_hypoplasticity_integration();
+	//test_sand_hypoplasticity_Herleand_Gudehus_1999();
+	test_sand_hypoplasticity_Wichtmann_2019();
+
+	//system("pause");
 	return 0;
 }

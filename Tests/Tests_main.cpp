@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
 	//test_mcc_compression();
 	//test_undrained_mcc();
 	//test_von_mises();
-	test_hypoplasticity_match_Wichtmann();
 
 	//test_solve_functions();
 

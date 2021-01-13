@@ -58,23 +58,23 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	model.init_fixed_vy_s_bc(bottom_bc_pt_array.get_num(), bottom_bc_pt_array.get_mem());
 	model.init_fixed_vy_f_bc(bottom_bc_pt_array.get_num(), bottom_bc_pt_array.get_mem());
 	
-	QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
-	md_disp.set_win_size(1200, 900);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_vx_s_bc(0.03);
-	//md_disp.set_pts_from_vx_f_bc(0.03);
-	//md_disp.set_pts_from_vy_s_bc(0.03);
-	//md_disp.set_pts_from_vy_f_bc(0.03);
-	// all
-	//md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
-	// left
-	//md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
-	// middle
-	md_disp.set_display_range(-1.6, 1.6, -0.9, 1.1);
-	// right
-	//md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
+	//md_disp.set_win_size(1200, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_vx_s_bc(0.03);
+	////md_disp.set_pts_from_vx_f_bc(0.03);
+	////md_disp.set_pts_from_vy_s_bc(0.03);
+	////md_disp.set_pts_from_vy_f_bc(0.03);
+	//// all
+	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	//// left
+	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
+	//// middle
+	//md_disp.set_display_range(-1.6, 1.6, -0.9, 1.1);
+	//// right
+	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_chm_mt_pipe_conference1.h5");

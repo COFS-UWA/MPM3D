@@ -122,15 +122,21 @@ namespace MatModel
 		// integranular strain
 		if (_ig_strain)
 		{
-			statev[0] = _ig_strain[0]; statev[1] = _ig_strain[1];
-			statev[2] = _ig_strain[2]; statev[3] = _ig_strain[3];
-			statev[4] = _ig_strain[4]; statev[5] = _ig_strain[5];
+			statev[0] = _ig_strain[0];
+			statev[1] = _ig_strain[1];
+			statev[2] = _ig_strain[2];
+			statev[3] = _ig_strain[3];
+			statev[4] = _ig_strain[4];
+			statev[5] = _ig_strain[5];
 		}
 		else
 		{
-			statev[0] = 0.0; statev[1] = 0.0;
-			statev[2] = 0.0; statev[3] = 0.0;
-			statev[4] = 0.0; statev[5] = 0.0;
+			statev[0] = 0.0;
+			statev[1] = 0.0;
+			statev[2] = 0.0;
+			statev[3] = 0.0;
+			statev[4] = 0.0;
+			statev[5] = 0.0;
 		}
 		// void ratio
 		statev[6] = 0.0;
@@ -149,7 +155,9 @@ namespace MatModel
 	inline static void swap(double& a, double& b)
 	{ double tmp = a; a = b; b = tmp; }
 
-	int SandHypoplasticityByUmat_integration_func(MaterialModel* _self, double dstrain[6])
+	int SandHypoplasticityByUmat_integration_func(
+		MaterialModel* _self,
+		double dstrain[6])
 	{
 		SandHypoplasticityByUmat& self = *static_cast<SandHypoplasticityByUmat*>(_self);
 
@@ -166,6 +174,7 @@ namespace MatModel
 		dstrain[5] *= 2.0;
 		swap(dstrain[4], dstrain[5]);
 
+		// integrate the model
 		double ddsdde[6][6];
 		(*dll_inte_func)(
 			self.stress_umat,
@@ -203,8 +212,10 @@ namespace MatModel
 			swap(self.Dep_mat[4][i], self.Dep_mat[5][i]);
 		for (size_t i = 0; i < 6; ++i)
 			swap(self.Dep_mat[i][4], self.Dep_mat[i][5]);
+		for (size_t i = 0; i < 6; ++i)
+			for (size_t j = 3; j < 6; ++j)
+				self.Dep_mat[i][j] *= 2.0;
 
 		return 0;
 	}
-
 }
