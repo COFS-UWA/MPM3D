@@ -16,6 +16,8 @@ namespace Model_T2D_CHM_mt_hdf5_utilities
 
 int substep_func_omp_T2D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
+int substep_func_omp_T2D_CHM_mt2(void* _self, size_t my_th_id,
+	double dt, double cur_time, size_t substp_id);
 
 class Step_T2D_CHM_mt : public Step_OMP
 {
@@ -132,6 +134,8 @@ protected:
 public:
 	int init_calculation() override;
 	friend int substep_func_omp_T2D_CHM_mt(void* _self,
+		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+	friend int substep_func_omp_T2D_CHM_mt2(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 	int finalize_calculation() override;
 

@@ -90,10 +90,11 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 	out.set_output_init_state();
 	out.set_output_final_state();
 	TimeHistory_ConsoleProgressBar out_pb;
+	out_pb.set_interval_num(1000);
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(15.0);
+	step.set_step_time(1.0);
 	//step.set_step_time(1.0e-3);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(2);
@@ -173,10 +174,10 @@ void test_t2d_chm_mt_1d_consolidation_ani_result(int argc, char** argv)
 	app.set_win_size(1200, 950);
 	app.set_bg_color(1.0f, 1.0f, 1.0f);
 	app.set_char_color(0.0f, 0.0f, 0.0f);
-	//app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	//app.set_color_map_fld_range(0.0, 10.0);
-	app.set_res_file(rf, "consolidation", Hdf5Field::mises_strain_2d);
-	app.set_color_map_fld_range(0.0, 0.01);
+	app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	app.set_color_map_fld_range(0.0, 1.0);
+	//app.set_res_file(rf, "consolidation", Hdf5Field::mises_strain_2d);
+	//app.set_color_map_fld_range(0.0, 0.01);
 	app.set_color_map_geometry(0.8, 0.3, 0.6);
 	//app.set_png_name("t2d_chm_mt_1d_consolidation");
 	//app.set_gif_name("t2d_chm_mt_1d_consolidation");

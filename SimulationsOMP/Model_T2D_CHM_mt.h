@@ -14,6 +14,8 @@ class Model_T2D_CHM_mt;
 class Step_T2D_CHM_mt;
 int substep_func_omp_T2D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
+int substep_func_omp_T2D_CHM_mt2(void* _self, size_t my_th_id,
+	double dt, double cur_time, size_t substp_id);
 
 class ResultFile_hdf5;
 namespace Model_T2D_CHM_mt_hdf5_utilities
@@ -42,6 +44,8 @@ struct Model_T2D_CHM_mt : public Model,
 	friend class Step_T2D_CHM_mt;
 	friend int substep_func_omp_T2D_CHM_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+	friend int substep_func_omp_T2D_CHM_mt2(void* _self, size_t my_th_id,
+		double dt, double cur_time, size_t substp_id);
 
 public:
 	struct ShapeFunc { double N1, N2, N3; };
@@ -281,7 +285,7 @@ protected:
 		double pcl_y,
 		size_t elem_id,
 		ShapeFunc& p_N
-	) noexcept
+		) noexcept
 	{
 		DShapeFuncAB& e_N_ab = elem_N_ab[elem_id];
 		DShapeFuncC& e_N_c = elem_N_c[elem_id];

@@ -29,7 +29,7 @@ add_library(
     # 2D CHM MPM
     Model_T2D_CHM_mt.h Model_T2D_CHM_mt.cpp
     Model_T2D_CHM_mt_hdf5_utilities.h Model_T2D_CHM_mt_hdf5_utilities.cpp
-    Step_T2D_CHM_mt.h Step_T2D_CHM_mt.cpp
+    Step_T2D_CHM_mt.h Step_T2D_CHM_mt.cpp Step_T2D_CHM_mt2.cpp
     ModelData_T2D_CHM_mt.h ModelData_T2D_CHM_mt.cpp
     TimeHistory_T2D_CHM_mt_complete.h TimeHistory_T2D_CHM_mt_complete.cpp
     )

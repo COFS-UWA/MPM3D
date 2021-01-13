@@ -12,49 +12,54 @@
 TimeHistory_ConsoleProgressBar::TimeHistory_ConsoleProgressBar() :
 	TimeHistory("ConsoleProgressBar", "ConsoleProgressBar", &time_history_output_func_console_progress_bar),
 	width (DEFAULT_WIDTH), width_div_100(DEFAULT_WINDTH_DIV_100),
-	prev_pos(0), cur_pos(0)
+	cur_pos(0), remaining_time_is_init(false)
 {
 	interval_num = 100;
 	need_output_init_state = true;
+	need_output_final_state = true;
 }
 
-TimeHistory_ConsoleProgressBar::~TimeHistory_ConsoleProgressBar() {}
+TimeHistory_ConsoleProgressBar::~TimeHistory_ConsoleProgressBar()
+{
+	remaining_time_is_init = false;
+}
 
 #define PADDING_STR "##################################################" \
 					"##################################################" \
 					"##################################################" \
 					"##################################################"
-void TimeHistory_ConsoleProgressBar::print_progress(void)
+void TimeHistory_ConsoleProgressBar::print_progress()
 {
-	cur_pos = (size_t)(100.0 * (step->get_current_time() + step->get_dtime() * 0.001)/ step->get_step_time());
+	const double stp_cur_time = step->get_current_time();
+	const double stp_time = step->get_step_time();
+	cur_pos = (size_t)(100.0 * (stp_cur_time / stp_time + 0.001));
 	cur_pos = cur_pos > 100 ? 100 : cur_pos;
-	if (cur_pos == prev_pos) return;
-	prev_pos = cur_pos;
 	int lpad = (int)(cur_pos * width_div_100);
 	int rpad = width - lpad;
-	if (cur_pos)
+	if (remaining_time_is_init && stp_cur_time != 0.0)
 	{
 		std::chrono::system_clock::time_point cur_time = std::chrono::system_clock::now();
 		std::chrono::milliseconds elapsed_time
 			= std::chrono::duration_cast<std::chrono::milliseconds>(cur_time - start_time);
-		size_t remaining_time = elapsed_time.count() * (100 - cur_pos) / cur_pos;
-		size_t hr = remaining_time / 3600000;
+		size_t remaining_time = elapsed_time.count() * (stp_time - stp_cur_time) / stp_cur_time;
+		const size_t hr = remaining_time / 3600000;
 		remaining_time -= 3600000 * hr;
-		size_t min = remaining_time / 60000;
+		const size_t min = remaining_time / 60000;
 		remaining_time -= 60000 * min;
-		double sec = double(remaining_time) / 1000.0;
+		const double sec = double(remaining_time) / 1000.0;
 		printf("\r%3zd%% [%.*s%*s] %zuh %zum %.2lfs left...  ", cur_pos, lpad, PADDING_STR, rpad, "", hr, min, sec);
 	}
 	else
+	{
 		printf("\r%3zd%% [%.*s%*s] estimating time...", cur_pos, lpad, PADDING_STR, rpad, "");
+		remaining_time_is_init = true;
+	}
 	fflush(stdout);
 }
 
-int TimeHistory_ConsoleProgressBar::init_per_step(void)
+int TimeHistory_ConsoleProgressBar::init_per_step()
 {
-	prev_pos = 101; // in order to print 0%
 	start_time = std::chrono::system_clock::now();
-	print_progress();
 	return 0;
 }
 
@@ -66,7 +71,7 @@ int time_history_output_func_console_progress_bar(TimeHistory &_self)
 	return 0;
 }
 
-void TimeHistory_ConsoleProgressBar::finalize_per_step(void)
+void TimeHistory_ConsoleProgressBar::finalize_per_step()
 {
 	end_time = std::chrono::system_clock::now();
 	std::chrono::milliseconds elapsed_time

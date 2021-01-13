@@ -14,9 +14,10 @@ class TimeHistory_ConsoleProgressBar : public TimeHistory
 {
 protected:
 	int width; // width must <= 200
-	size_t prev_pos, cur_pos;
+	size_t cur_pos;
 	float width_div_100;
-	
+	bool remaining_time_is_init;
+
 	std::chrono::system_clock::time_point start_time;
 	std::chrono::system_clock::time_point end_time;
 	
@@ -32,6 +33,7 @@ public:
 	void finalize_per_step() override;
 
 	void set_output_init_state(bool _need = true) noexcept override {}
+	void set_output_final_state(bool _need = true) noexcept override {}
 
 	inline void set_width(int wd) noexcept
 	{

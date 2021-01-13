@@ -88,6 +88,7 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	out.set_output_init_state();
 	out.set_output_final_state();
 	TimeHistory_ConsoleProgressBar out_pb;
+	out_pb.set_interval_num(5000);
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
