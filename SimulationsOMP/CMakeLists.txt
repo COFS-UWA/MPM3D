@@ -32,6 +32,9 @@ add_library(
     Step_T2D_CHM_mt.h Step_T2D_CHM_mt.cpp Step_T2D_CHM_mt2.cpp
     ModelData_T2D_CHM_mt.h ModelData_T2D_CHM_mt.cpp
     TimeHistory_T2D_CHM_mt_complete.h TimeHistory_T2D_CHM_mt_complete.cpp
+    # 3D ME MPM
+    Model_T3D_CHM_mt.h Model_T3D_CHM_mt.cpp
+    Step_T3D_CHM_mt.h Step_T3D_CHM_mt.cpp
     )
 
 add_subdirectory(RigidObject/)

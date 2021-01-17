@@ -120,6 +120,33 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 		
+		// sand hypoplasticity
+		mm_num = mc.get_num_SandHypoplasticityByUmat();
+		if (mm_num)
+		{
+			rf.write_attribute(mc_grp_id, "SandHypoplasticityByUmat_num", mm_num);
+
+			SandHypoplasticityByUmatStateData* mm_data
+				= new SandHypoplasticityByUmatStateData[mm_num];
+			mm_id = 0;
+			for (MatModel::SandHypoplasticityByUmat* iter = mc.first_SandHypoplasticityByUmat();
+				mc.is_not_end_SandHypoplasticityByUmat(iter);
+				iter = mc.next_SandHypoplasticityByUmat(iter))
+			{
+				mm_data[mm_id].from_mm(*iter);
+				++mm_id;
+			}
+			hid_t shp_dt_id = get_sand_hypoplasticity_by_umat_hdf5_dt_id();
+			rf.write_dataset(
+				mc_grp_id,
+				"SandHypoplasticityByUmat",
+				mm_num,
+				mm_data,
+				shp_dt_id);
+			H5Tclose(shp_dt_id);
+			delete[] mm_data;
+		}
+		
 		return 0;
 	}
 
@@ -261,6 +288,32 @@ namespace Model_hdf5_utilities
 			{
 				TrescaStateData& mmd = mm_data[mm_id];
 				MatModel::Tresca& mm = mms[mm_id];
+				mmd.to_mm(mm);
+			}
+			delete[] mm_data;
+		}
+		
+		// Sand Hypoplasticity by umat
+		if (rf.has_dataset(mc_grp_id, "SandHypoplasticityByUmat"))
+		{
+			rf.read_attribute(mc_grp_id, "SandHypoplasticityByUmat_num", mm_num);
+
+			SandHypoplasticityByUmatStateData* mm_data
+				= new SandHypoplasticityByUmatStateData[mm_num];
+			hid_t shp_dt_id = get_sand_hypoplasticity_by_umat_hdf5_dt_id();
+			rf.read_dataset(
+				mc_grp_id,
+				"SandHypoplasticityByUmat",
+				mm_num,
+				mm_data,
+				shp_dt_id);
+			H5Tclose(shp_dt_id);
+			MatModel::SandHypoplasticityByUmat* mms
+				= mc.add_SandHypoplasticityByUmat(mm_num);
+			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
+			{
+				SandHypoplasticityByUmatStateData& mmd = mm_data[mm_id];
+				MatModel::SandHypoplasticityByUmat& mm = mms[mm_id];
 				mmd.to_mm(mm);
 			}
 			delete[] mm_data;

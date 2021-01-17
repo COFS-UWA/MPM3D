@@ -70,24 +70,15 @@ void test_sand_hypoplasticity_Wichtmann_2019()
 {
 	AnalysisType tp = AnalysisType::TriaxialDrained;
 	double de = -0.25;
-	constexpr size_t inc_num = 1000;
+	// need high inc_num to be accurate
+	constexpr size_t inc_num = 250000;
 	constexpr size_t out_num = 100;
-	const double ini_stress[6] = {
-		-100.0e3,
-		-100.0e3,
-		-100.0e3,
-		0.0, 0.0, 0.0
-	};
+	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	constexpr double R = 1.0e-4;
-	const double ig_strain[6] = {
-		-R/sqrt(3.0),
-		-R/sqrt(3.0),
-		-R/sqrt(3.0),
-		0.0, 0.0, 0.0
-	};
+	const double ig_strain[6] = { -R/sqrt(3.0), -R/sqrt(3.0), -R/sqrt(3.0), 0.0, 0.0, 0.0 };
 
 	MatModel::SandHypoplasticityByUmat shp;
-	shp.set_param(ini_stress, 0.817, //0.87,
+	shp.set_param(ini_stress, 0.817,
 		33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
 		2.2, 1.1, R, 0.1, 5.5, ig_strain);
 	std::fstream res_file;

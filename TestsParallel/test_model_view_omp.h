@@ -13,6 +13,7 @@ void test_t3d_me_s_1d_compression_result(int argc, char** argv);
 
 void test_t3d_me_mt_cap_compression_result(int argc, char** argv);
 void test_t3d_me_mt_cap_compression_result_div(int argc, char** argv);
+void test_t3d_me_mt_triaxial_compression_result(int argc, char** argv);
 
 void test_t3d_me_mt_block_sliding_result(int argc, char** argv);
 

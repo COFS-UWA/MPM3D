@@ -77,78 +77,75 @@ namespace MatModel
 		double _ed0, double _ec0, double _ei0,
 		double _alpha, double _beta,
 		double _m_R, double _m_T, double _R, double _beta_r, double _chi,
-		double const _ig_strain[6])
+		double const _ig_strain[6],
+		double _Kw, double _pore_pressure)
 	{
-		stress[0] = _stress[0]; stress[1] = _stress[1];
-		stress[2] = _stress[2];	stress[3] = _stress[3];
-		stress[4] = _stress[4];	stress[5] = _stress[5];
+		stress[0] = _stress[0];
+		stress[1] = _stress[1];
+		stress[2] = _stress[2];
+		stress[3] = _stress[3];
+		stress[4] = _stress[4];
+		stress[5] = _stress[5];
 
-		stress_umat[0] = _stress[0];
-		stress_umat[1] = _stress[1];
-		stress_umat[2] = _stress[2];
-		stress_umat[3] = _stress[3];
-		stress_umat[4] = _stress[5]; // s31
-		stress_umat[5] = _stress[4]; // s23
-
-		// material properties
-		// initial void ratio
-		e = _e;
-		props[15] = _e;
-
-		//hypoplasticity parameters
-		props[0] = _fric_ang;
-		props[2] = _hs;
-		props[3] = _en;
-		props[4] = _ed0;
-		props[5] = _ec0;
-		props[6] = _ei0;
-		props[7] = _alpha;
-		props[8] = _beta;
-
-		// intergranular parameters
-		props[9] = _m_R;
-		props[10] = _m_T;
+		// material properties: props[16]
+		// --- hypoplasticity parameters ---
+		friction_angle = _fric_ang; // 0
+		pore_pressure_on_stress = 0.0; // 1
+		hs = _hs; // 2
+		en = _en; // 3
+		ed0 = _ed0; // 4
+		ec0 = _ec0; // 5
+		ei0 = _ei0; // 6
+		alpha = _alpha; // 7
+		beta = _beta; // 8
+		// --- intergranular parameters ---
+		m_R = _m_R; // 9
+		m_T = _m_T; // 10
 		// maximum intergranular strain
-		props[11] = _R;
-		props[12] = _beta_r;
-		props[13] = _chi;
+		R = _R; // 11
+		beta_r = _beta_r; // 12
+		chi = _chi; // 13
+		// --- bulk modulus of pore fluid ---
+		Kw = _Kw; // 14
+		// --- initial void ratio ---
+		init_e = _e; // 15
 
-		// pore fluid parameters
-		// initial hydrostatic pore pressure
-		props[1] = 0.0;
-		// bulk modulus of pore fluid
-		props[14] = 0.0;
-
-		// integranular strain
+		// state variables: statev[13]
+		// --- integranular strain ---
 		if (_ig_strain)
 		{
-			statev[0] = _ig_strain[0];
-			statev[1] = _ig_strain[1];
-			statev[2] = _ig_strain[2];
-			statev[3] = _ig_strain[3];
-			statev[4] = _ig_strain[4];
-			statev[5] = _ig_strain[5];
+			statev[0] = _ig_strain[0]; // 0
+			statev[1] = _ig_strain[1]; // 1
+			statev[2] = _ig_strain[2]; // 2
+			statev[3] = _ig_strain[3]; // 3
+			statev[4] = _ig_strain[4]; // 4
+			statev[5] = _ig_strain[5]; // 5
 		}
 		else
 		{
-			statev[0] = 0.0;
-			statev[1] = 0.0;
-			statev[2] = 0.0;
-			statev[3] = 0.0;
-			statev[4] = 0.0;
-			statev[5] = 0.0;
+			statev[0] = 0.0; // 0
+			statev[1] = 0.0; // 1
+			statev[2] = 0.0; // 2
+			statev[3] = 0.0; // 3
+			statev[4] = 0.0; // 4
+			statev[5] = 0.0; // 5
 		}
 		// void ratio
-		statev[6] = 0.0;
-		statev[7] = 0.0;
-		statev[8] = 0.0;
-		statev[9] = 0.0;
-		statev[10] = 0.0;
-		statev[11] = 0.0;
-		// substep size for integration
-		statev[12] = 1.0;
+		e = _e; // 6
+		// e = 0.0;
+		// pore pressure
+		negative_pore_pressure = -_pore_pressure; // 7
 
-		// get initial stiffness matrix
+		mean_stress = 0.0; // 8
+		func_eval_num = 0.0; // 9
+		Matsuka_Nakai_friction_angle = 0.0; // 10
+		intergranular_strain_norm_len = 0.0; // 11
+
+		// substep size for integration
+		integration_time_step = 1.0; // 12
+
+		// get initial stiffness matrix Dep
+		// dstrain_e = { 0, 0, 0, 0, 0, 0 }
 		integrate(dstrain_e);
 	}
 
@@ -175,36 +172,40 @@ namespace MatModel
 		swap(dstrain[4], dstrain[5]);
 
 		// integrate the model
+		double stress_umat[6] = {
+			self.stress[0],
+			self.stress[1],
+			self.stress[2],
+			self.stress[3],
+			self.stress[5],
+			self.stress[4]
+		};
 		double ddsdde[6][6];
+		swap(self.statev[4], self.statev[5]);
 		(*dll_inte_func)(
-			self.stress_umat,
+			stress_umat,
 			ddsdde,
 			self.statev,
 			dstrain,
 			self.props);
 
-		self.delta[0] = self.statev[0];
-		self.delta[1] = self.statev[1];
-		self.delta[2] = self.statev[2];
-		self.delta[3] = self.statev[3];
-		self.delta[4] = self.statev[4];
-		self.delta[5] = self.statev[5];
-		self.e = self.statev[6];
+		swap(self.statev[4], self.statev[5]);
 
-		self.dstress[0] = self.stress_umat[0] - self.stress[0];
-		self.dstress[1] = self.stress_umat[1] - self.stress[1];
-		self.dstress[2] = self.stress_umat[2] - self.stress[2];
-		self.dstress[3] = self.stress_umat[3] - self.stress[3];
-		self.dstress[4] = self.stress_umat[5] - self.stress[4];
-		self.dstress[5] = self.stress_umat[4] - self.stress[5];
+		self.dstress[0] = stress_umat[0] - self.stress[0];
+		self.dstress[1] = stress_umat[1] - self.stress[1];
+		self.dstress[2] = stress_umat[2] - self.stress[2];
+		self.dstress[3] = stress_umat[3] - self.stress[3];
+		self.dstress[4] = stress_umat[5] - self.stress[4];
+		self.dstress[5] = stress_umat[4] - self.stress[5];
 
-		self.stress[0] = self.stress_umat[0];
-		self.stress[1] = self.stress_umat[1];
-		self.stress[2] = self.stress_umat[2];
-		self.stress[3] = self.stress_umat[3];
-		self.stress[4] = self.stress_umat[5];
-		self.stress[5] = self.stress_umat[4];
+		self.stress[0] = stress_umat[0];
+		self.stress[1] = stress_umat[1];
+		self.stress[2] = stress_umat[2];
+		self.stress[3] = stress_umat[3];
+		self.stress[4] = stress_umat[5];
+		self.stress[5] = stress_umat[4];
 
+		// cal Dep
 		for (size_t i = 0; i < 6; ++i)
 			for (size_t j = 0; j < 6; j++)
 				self.Dep_mat[i][j] = ddsdde[j][i];
@@ -214,7 +215,7 @@ namespace MatModel
 			swap(self.Dep_mat[i][4], self.Dep_mat[i][5]);
 		for (size_t i = 0; i < 6; ++i)
 			for (size_t j = 3; j < 6; ++j)
-				self.Dep_mat[i][j] *= 2.0;
+				self.Dep_mat[i][j] *= 2.0; // ????
 
 		return 0;
 	}

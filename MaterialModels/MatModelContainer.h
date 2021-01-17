@@ -9,6 +9,7 @@
 #include "UndrainedModifiedCamClay.h"
 #include "VonMises.h"
 #include "Tresca.h"
+#include "SandHypoplasticityByUmat.h"
 
 namespace MatModel
 {
@@ -87,6 +88,7 @@ public:                                          \
 		__Add_Mat_Model_to_Model_Container__(UndrainedModifiedCamClay);
 		__Add_Mat_Model_to_Model_Container__(VonMises);
 		__Add_Mat_Model_to_Model_Container__(Tresca);
+		__Add_Mat_Model_to_Model_Container__(SandHypoplasticityByUmat);
 	};
 
 #undef __Add_Mat_Model_to_Model_Container__

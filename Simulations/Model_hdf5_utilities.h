@@ -492,12 +492,128 @@ namespace Model_hdf5_utilities
 		return res;
 	}
 
+	// SandHypoplasticityByUmat
+	struct SandHypoplasticityByUmatStateData
+	{
+		unsigned long long id;
+		double friction_angle;
+		double apparent_coehsion;
+		double hs, en;
+		double ed0, ec0, ei0;
+		double alpha, beta;
+		double m_R, m_T, R, beta_r, chi;
+		union
+		{
+			struct
+			{
+				double delta11; // 0
+				double delta22; // 1
+				double delta33; // 2
+				double delta12; // 3
+				double delta31; // 4
+				double delta23; // 5
+			};
+			double delta[6];
+		};
+		double e;
+		union
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
+		double pore_pressure, Kw;
+		double integration_time_step;
+
+		inline void from_mm(MatModel::SandHypoplasticityByUmat&mm)
+		{
+			id = mm.get_id();
+			friction_angle = mm.get_friction_angle();
+			apparent_coehsion = mm.get_apparent_cohesion();
+			hs = mm.get_hs();
+			en = mm.get_en();
+			ed0 = mm.get_ed0();
+			ec0 = mm.get_ec0();
+			ei0 = mm.get_ei0();
+			alpha = mm.get_alpha();
+			beta = mm.get_beta();
+			m_R = mm.get_m_R();
+			m_T = mm.get_m_T();
+			R = mm.get_R();
+			beta_r = mm.get_beta_r();
+			chi = mm.get_chi();
+			const double* mm_delta = mm.get_delta();
+			delta[0] = mm_delta[0];
+			delta[1] = mm_delta[1];
+			delta[2] = mm_delta[2];
+			delta[3] = mm_delta[3];
+			delta[4] = mm_delta[4];
+			delta[5] = mm_delta[5];
+			e = mm.get_e();
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
+			pore_pressure = mm.get_pore_pressure();
+			Kw = mm.get_Kw();
+			integration_time_step = mm.get_integration_step_ratio();
+		}
+
+		inline void to_mm(MatModel::SandHypoplasticityByUmat &mm)
+		{
+			mm.set_id(id);
+			mm.set_apparent_cohesion(apparent_coehsion);
+			mm.set_integration_step_ratio(integration_time_step);
+			mm.set_param(stress, e, friction_angle, hs, en,
+				ed0, ec0, ei0, alpha, beta, m_R, m_T, R, beta_r, chi,
+				delta, Kw, pore_pressure);
+		}
+	};
+
+	inline hid_t get_sand_hypoplasticity_by_umat_hdf5_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(SandHypoplasticityByUmatStateData));
+		H5Tinsert(res, "id", HOFFSET(SandHypoplasticityByUmatStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "friction_angle", HOFFSET(SandHypoplasticityByUmatStateData, friction_angle), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "apparent_coehsion", HOFFSET(SandHypoplasticityByUmatStateData, apparent_coehsion), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "hs", HOFFSET(SandHypoplasticityByUmatStateData, hs), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "en", HOFFSET(SandHypoplasticityByUmatStateData, en), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ed0", HOFFSET(SandHypoplasticityByUmatStateData, ed0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ec0", HOFFSET(SandHypoplasticityByUmatStateData, ec0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ei0", HOFFSET(SandHypoplasticityByUmatStateData, ei0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "alpha", HOFFSET(SandHypoplasticityByUmatStateData, alpha), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "beta", HOFFSET(SandHypoplasticityByUmatStateData, beta), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "m_R", HOFFSET(SandHypoplasticityByUmatStateData, m_R), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "m_T", HOFFSET(SandHypoplasticityByUmatStateData, m_T), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "R", HOFFSET(SandHypoplasticityByUmatStateData, R), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "beta_r", HOFFSET(SandHypoplasticityByUmatStateData, beta_r), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "chi", HOFFSET(SandHypoplasticityByUmatStateData, chi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "delta11", HOFFSET(SandHypoplasticityByUmatStateData, delta11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "delta22", HOFFSET(SandHypoplasticityByUmatStateData, delta22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "delta33", HOFFSET(SandHypoplasticityByUmatStateData, delta33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "delta12", HOFFSET(SandHypoplasticityByUmatStateData, delta12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "delta31", HOFFSET(SandHypoplasticityByUmatStateData, delta31), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "delta23", HOFFSET(SandHypoplasticityByUmatStateData, delta23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e", HOFFSET(SandHypoplasticityByUmatStateData, e), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(SandHypoplasticityByUmatStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(SandHypoplasticityByUmatStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(SandHypoplasticityByUmatStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(SandHypoplasticityByUmatStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(SandHypoplasticityByUmatStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(SandHypoplasticityByUmatStateData, s31), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "pore_pressure", HOFFSET(SandHypoplasticityByUmatStateData, pore_pressure), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "Kw", HOFFSET(SandHypoplasticityByUmatStateData, Kw), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "integration_time_step", HOFFSET(SandHypoplasticityByUmatStateData, integration_time_step), H5T_NATIVE_DOUBLE);
+		return res;
+	}
+
 	// material model container
 	int output_material_model_container_to_hdf5_file(
 		MatModel::MatModelContainer &mc, ResultFile_hdf5 &rf, hid_t mc_grp_id);
 	int load_material_model_container_from_hdf5_file(
 		MatModel::MatModelContainer &mc, ResultFile_hdf5 &rf, hid_t mc_grp_id);
-
 };
 
 #endif

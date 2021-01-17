@@ -8,7 +8,7 @@
 #include "SearchingGrid3D.hpp"
 #include "Model_T3D_ME_mt.h"
 
-static std::fstream res_file_md_t3d_me_mt;
+//static std::fstream res_file_md_t3d_me_mt;
 
 Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	ori_pcl_num(0), pcl_num(0),
@@ -33,7 +33,7 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	//pcm(&rough_contact)
 	//pcm(&fric_contact)
 {
-	res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
+	//res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }
 
 Model_T3D_ME_mt::~Model_T3D_ME_mt()
@@ -88,10 +88,7 @@ void Model_T3D_ME_mt::clear_mesh()
 	node_num = 0;
 }
 
-void Model_T3D_ME_mt::alloc_mesh(
-	size_t n_num,
-	size_t e_num
-	)
+void Model_T3D_ME_mt::alloc_mesh(size_t n_num, size_t e_num)
 {
 	clear_mesh();
 
@@ -606,8 +603,7 @@ int Model_T3D_ME_mt::init_pcls(size_t num, double m, double density)
 
 int Model_T3D_ME_mt::init_pcls(
 	ParticleGenerator3D<TetrahedronMesh>& pg,
-	double density
-	)
+	double density)
 {
 	int res = init_pcls(pg.get_num(), density, density);
 	if (res)

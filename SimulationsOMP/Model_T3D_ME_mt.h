@@ -210,8 +210,6 @@ public:
 	inline MatModel::MaterialModel** get_mat_models() noexcept { return pcl_mat_model; }
 	Cube get_mesh_bbox();
 
-	inline const NodeHasVBC* get_has_vbcs() const noexcept { return node_has_vbc; }
-
 	inline double get_bg_grid_xl() const noexcept { return grid_xl; }
 	inline double get_bg_grid_yl() const noexcept { return grid_yl; }
 	inline double get_bg_grid_zl() const noexcept { return grid_zl; }
@@ -265,8 +263,8 @@ public:
 		ShapeFunc& p_N
 		) noexcept
 	{
-		DShapeFuncABC& e_dN_abc = elem_dN_abc[elem_id];
-		DShapeFuncD& e_dN_d = elem_dN_d[elem_id];
+		const DShapeFuncABC& e_dN_abc = elem_dN_abc[elem_id];
+		const DShapeFuncD& e_dN_d = elem_dN_d[elem_id];
 		p_N.N1 = e_dN_abc.a1 * pcl_x + e_dN_abc.b1 * pcl_y + e_dN_abc.c1 * pcl_z + e_dN_d.d1;
 		p_N.N2 = e_dN_abc.a2 * pcl_x + e_dN_abc.b2 * pcl_y + e_dN_abc.c2 * pcl_z + e_dN_d.d2;
 		p_N.N3 = e_dN_abc.a3 * pcl_x + e_dN_abc.b3 * pcl_y + e_dN_abc.c3 * pcl_z + e_dN_d.d3;
@@ -281,10 +279,10 @@ public:
 		double pcl_z,
 		size_t elem_id,
 		ShapeFunc& p_N
-	) noexcept
+		) noexcept
 	{
-		DShapeFuncABC& e_dN_abc = elem_dN_abc[elem_id];
-		DShapeFuncD& e_dN_d = elem_dN_d[elem_id];
+		const DShapeFuncABC& e_dN_abc = elem_dN_abc[elem_id];
+		const DShapeFuncD& e_dN_d = elem_dN_d[elem_id];
 		p_N.N1 = e_dN_abc.a1 * pcl_x + e_dN_abc.b1 * pcl_y + e_dN_abc.c1 * pcl_z + e_dN_d.d1;
 		p_N.N2 = e_dN_abc.a2 * pcl_x + e_dN_abc.b2 * pcl_y + e_dN_abc.c2 * pcl_z + e_dN_d.d2;
 		p_N.N3 = e_dN_abc.a3 * pcl_x + e_dN_abc.b3 * pcl_y + e_dN_abc.c3 * pcl_z + e_dN_d.d3;
@@ -419,9 +417,7 @@ public:
 	}
 	inline void set_rigid_cylinder_velocity(
 		double vx, double vy, double vz)
-	{
-		rigid_cylinder.set_vbc(vx, vy, vz);
-	}
+	{ rigid_cylinder.set_vbc(vx, vy, vz); }
 	// cone
 	bool has_rigid_cone() const noexcept { return rigid_cone_is_valid; }
 	RigidCone& get_rigid_cone() { return rigid_cone; }
