@@ -165,6 +165,7 @@ void test_t3d_me_mt_cylinder_foundation_ch_den(int argc, char** argv)
 	out1.set_output_init_state();
 	out1.set_interval_num(50);
 	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(5000);
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);

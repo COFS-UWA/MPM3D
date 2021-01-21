@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
 	
 	//test_t2d_chm_mt_pipe_conference(argc, argv);
-	test_t2d_chm_mt_pipe_conference_result(argc, argv);
+	//test_t2d_chm_mt_pipe_conference_result(argc, argv);
 
 	//test_t2d_chm_mt_pipe_conference_den(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_den_restart(argc, argv);
@@ -95,6 +95,9 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
-	system("pause");
+	test_t3d_chm_mt_1d_consolidation(argc, argv);
+	//test_t3d_chm_mt_1d_consolidation_result(argc, argv);
+
+	//system("pause");
 	return 0;
 }

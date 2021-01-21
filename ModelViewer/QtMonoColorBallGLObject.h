@@ -46,6 +46,10 @@ public:
 	int init(const Particle3D* pcls, const double* pcl_m, const double* pcl_density,
 		size_t pcl_num, QVector3D& c, float radius_scale);
 
+	template <typename Particle3D>
+	int init(const Particle3D* pcls, const double* pcl_vol,
+		size_t pcl_num, QVector3D& c, float radius_scale);
+
 	template <typename DivisionSet>
 	int init(const double *pcl_x, const double *pcl_y,
 			 const double *pcl_z, const double* pcl_vol,
@@ -132,13 +136,47 @@ int QtMonoColorBallGLObject::init(
 	return 0;
 }
 
+template <typename Particle3D>
+int QtMonoColorBallGLObject::init(
+	const Particle3D* pcls,
+	const double* pcl_vol,
+	size_t pcl_num,
+	QVector3D& c,
+	float radius_scale)
+{
+	clear();
+	color = c;
+	pt_data = new PointData[pcl_num];
+	for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+	{
+		const Particle3D& pcl = pcls[p_id];
+		PointData& pd = pt_data[p_id];
+		pd.type = 0; // mono color
+		pd.x = GLfloat(pcl.x);
+		pd.y = GLfloat(pcl.y);
+		pd.z = GLfloat(pcl.z);
+		pd.radius = GLfloat(pow(3.0 * pcl_vol[p_id] / (4.0 * 3.14159265359), 0.3333333)) * radius_scale;
+	}
+	if (pcl_num > max_pcl_num_per_drawcall)
+	{
+		init_gl_buffer(max_pcl_num_per_drawcall);
+		pt_num = pcl_num;
+	}
+	else
+	{
+		init_gl_buffer(pt_data, pcl_num);
+		delete[] pt_data;
+		pt_data = nullptr;
+	}
+	return 0;
+}
+
 template <typename Point3D>
 int QtMonoColorBallGLObject::init(
 	Point3D* pts,
 	size_t _pt_num,
 	float pt_radius,
-	QVector3D& c
-)
+	QVector3D& c)
 {
 	clear();
 	color = c;

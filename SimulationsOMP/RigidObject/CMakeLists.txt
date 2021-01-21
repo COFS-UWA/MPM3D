@@ -5,6 +5,7 @@ target_sources(
     RigidCircle.h RigidCircle.cpp
     # 3D contact
     ContactModel3D.h ContactModel3D.cpp
+    NoContact3D.h NoContact3D.cpp
     SmoothContact3D.h SmoothContact3D.cpp
     RoughContact3D.h RoughContact3D.cpp
     FrictionalContact3D.h FrictionalContact3D.cpp

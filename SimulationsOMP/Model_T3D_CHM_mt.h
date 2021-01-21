@@ -17,8 +17,7 @@ class Model_T3D_CHM_mt;
 class Step_T3D_CHM_mt;
 int substep_func_omp_T3D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
-int substep_func_omp_T3D_CHM_mt2(void* _self, size_t my_th_id,
-	double dt, double cur_time, size_t substp_id);
+int substep_func_omp_T3D_CHM_mt2(void* _self, size_t my_th_id, double dt, double cur_time, size_t substp_id);
 
 class ResultFile_hdf5;
 namespace Model_T3D_CHM_mt_hdf5_utilities
@@ -35,10 +34,9 @@ namespace Model_T3D_CHM_mt_hdf5_utilities
 	int load_pcl_data_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_material_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_material_model_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int output_rigid_circle_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_rigid_circle_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	int load_chm_mt_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
-	int load_background_mesh_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_t3d_rigid_mesh_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_t3d_rigid_mesh_state_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_t3d_rigid_mesh_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
 
 struct Model_T3D_CHM_mt : public Model,
@@ -47,8 +45,8 @@ struct Model_T3D_CHM_mt : public Model,
 	friend class Step_T3D_CHM_mt;
 	friend int substep_func_omp_T3D_CHM_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
-	friend int substep_func_omp_T3D_CHM_mt2(void* _self, size_t my_th_id,
-		double dt, double cur_time, size_t substp_id);
+	friend int substep_func_omp_T3D_CHM_mt2(void* _self,
+		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 
 public:
 	struct ShapeFunc { double N1, N2, N3, N4; };
@@ -225,8 +223,8 @@ public:
 	inline MatModel::MaterialModel **get_mat_models() noexcept { return pcl_mat_model; }
 	Cube get_mesh_bbox();
 
-	inline const NodeHasVBC *get_has_vbc_s() const noexcept { return node_has_vbc_s; }
-	inline const NodeHasVBC* get_has_vbc_f() const noexcept { return node_has_vbc_f; }
+	inline const NodeHasVBC *get_node_has_vbc_s() const noexcept { return node_has_vbc_s; }
+	inline const NodeHasVBC* get_node_has_vbc_f() const noexcept { return node_has_vbc_f; }
 
 	inline double get_bg_grid_xl() const noexcept { return grid_xl; }
 	inline double get_bg_grid_yl() const noexcept { return grid_yl; }
@@ -407,10 +405,13 @@ public:
 	}
 
 protected:
-	size_t* contact_substep_id; // ori_pcl_num
-	Position* prev_contact_pos; // ori_pcl_num
-	Force* prev_contact_tan_force; // ori_pcl_num
-	
+	size_t* contact_substep_id_s; // ori_pcl_num
+	Position* prev_contact_pos_s; // ori_pcl_num
+	Force* prev_contact_tan_force_s; // ori_pcl_num
+	size_t* contact_substep_id_f; // ori_pcl_num
+	Position* prev_contact_pos_f; // ori_pcl_num
+	Force* prev_contact_tan_force_f; // ori_pcl_num
+
 	bool rigid_cylinder_is_valid;
 	bool rigid_t3d_mesh_is_valid;
 	RigidCylinder rigid_cylinder;
@@ -418,7 +419,7 @@ protected:
 	
 	// ad hoc design for output
 	double Kn_cont, Kt_cont, fric_ratio;
-	ContactModel3D* pcm;
+	ContactModel3D *pcm_s, *pcm_f;
 	SmoothContact3D smooth_contact;
 	RoughContact3D rough_contact;
 	FrictionalContact3D fric_contact;
@@ -483,10 +484,9 @@ protected:
 	friend int Model_T3D_CHM_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T3D_CHM_mt_hdf5_utilities::output_rigid_circle_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T3D_CHM_mt_hdf5_utilities::load_rigid_circle_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
-	friend int Model_T3D_CHM_mt_hdf5_utilities::load_chm_mt_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
-	friend int Model_T3D_CHM_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_CHM_mt_hdf5_utilities::output_t3d_rigid_mesh_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_CHM_mt_hdf5_utilities::output_t3d_rigid_mesh_state_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_CHM_mt_hdf5_utilities::load_t3d_rigid_mesh_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 };
 
 #endif

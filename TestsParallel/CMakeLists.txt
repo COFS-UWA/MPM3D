@@ -40,6 +40,7 @@ add_executable(
     test_t3d_me_mt_cylinder_foundation_den.cpp
 	test_t3d_me_mt_cylinder_foundation_ch_den.cpp
     test_t3d_me_mt_spudcan_coarse.cpp
+    test_t3d_chm_mt_1d_consolidation.cpp
     )
 
 target_include_directories(
