@@ -17,8 +17,8 @@ static std::fstream res_file_t2d_me_mt;
 
 Step_T3D_CHM_mt::Step_T3D_CHM_mt(const char* _name) : 
 	Step_OMP(_name, "Step_T3D_CHM_mt",
-		&substep_func_omp_T3D_CHM_mt
-		//&substep_func_omp_T3D_CHM_mt2
+		//&substep_func_omp_T3D_CHM_mt
+		&substep_func_omp_T3D_CHM_mt2
 	) {}
 
 Step_T3D_CHM_mt::~Step_T3D_CHM_mt() {}

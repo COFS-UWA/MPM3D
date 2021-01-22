@@ -36,7 +36,7 @@ int substep_func_omp_T3D_CHM_mt2(
 	typedef Step_T3D_CHM_mt::ThreadData ThreadData;
 
 	Step_T3D_CHM_mt& self = *(Step_T3D_CHM_mt*)(_self);
-	
+
 	if (self.valid_pcl_num == 0)
 	{
 #pragma omp master
@@ -45,8 +45,8 @@ int substep_func_omp_T3D_CHM_mt2(
 #pragma omp barrier
 		return 0;
 	}
-	
-	Model_T3D_CHM_mt& md = *(Model_T3D_CHM_mt *)(self.model);
+
+	Model_T3D_CHM_mt& md = *(Model_T3D_CHM_mt*)(self.model);
 
 	const double* const pcl_m_s = self.pcl_m_s;
 	const double* const pcl_density_s = self.pcl_density_s;
@@ -57,10 +57,10 @@ int substep_func_omp_T3D_CHM_mt2(
 	const Position* const pcl_pos = self.pcl_pos;
 	double* const pcl_vol = self.pcl_vol;
 	MatModel::MaterialModel** const pcl_mat_model = self.pcl_mat_model;
-	
+
 	const size_t thread_num = self.thread_num;
-	ThreadData &thd = self.thread_datas[my_th_id];
-	SortedPclVarArrays &spva0 = self.sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
+	ThreadData& thd = self.thread_datas[my_th_id];
+	SortedPclVarArrays& spva0 = self.sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
 	thd.sorted_pcl_var_id ^= 1;
 	SortedPclVarArrays& spva1 = self.sorted_pcl_var_arrays[thd.sorted_pcl_var_id];
 	// 0
@@ -72,7 +72,7 @@ int substep_func_omp_T3D_CHM_mt2(
 	Velocity* const pcl_v_s0 = spva0.pcl_v_s;
 	Velocity* const pcl_v_f0 = spva0.pcl_v_f;
 	Stress* const pcl_stress0 = spva0.pcl_stress;
-	double *const pcl_p0 = spva0.pcl_p;
+	double* const pcl_p0 = spva0.pcl_p;
 	Strain* const pcl_strain0 = spva0.pcl_strain;
 	Strain* const pcl_estrain0 = spva0.pcl_estrain;
 	Strain* const pcl_pstrain0 = spva0.pcl_pstrain;
@@ -103,8 +103,8 @@ int substep_func_omp_T3D_CHM_mt2(
 	double* const elem_pcl_m_f = self.elem_pcl_m_f;
 	StrainInc* const elem_de = self.elem_de;
 	double* const elem_p = self.elem_p;
-	double *const elem_n2_miu_div_k_vol = self.elem_n2_miu_div_k_vol;
-	Force *const elem_seep_force = self.elem_seep_force;
+	//double* const elem_n2_miu_div_k_vol = self.elem_n2_miu_div_k_vol;
+	//Force* const elem_seep_force = self.elem_seep_force;
 	double* const elem_m_de_vol_s = self.elem_m_de_vol_s;
 	double* const elem_m_de_vol_f = self.elem_m_de_vol_f;
 
@@ -112,7 +112,7 @@ int substep_func_omp_T3D_CHM_mt2(
 	ElemNodeVM* const elem_node_vm_f = self.elem_node_vm_f;
 	Force* const elem_node_force_s = self.elem_node_force_s;
 	Force* const elem_node_force_f = self.elem_node_force_f;
-	
+
 	Acceleration* const node_a_s = self.node_a_s;
 	Acceleration* const node_a_f = self.node_a_f;
 	Velocity* const node_v_s = self.node_v_s;
@@ -123,7 +123,7 @@ int substep_func_omp_T3D_CHM_mt2(
 	double* const node_am_f = self.node_am_f;
 	double* const node_de_vol_s = self.node_de_vol_s;
 	double* const node_de_vol_f = self.node_de_vol_f;
-	
+
 	union
 	{
 		struct
@@ -158,7 +158,7 @@ int substep_func_omp_T3D_CHM_mt2(
 	node_has_elem1 = self.node_has_elems[1];
 	node_elem_pair0 = self.node_elem_pairs[0];
 	node_elem_pair1 = self.node_elem_pairs[1];
-	
+
 	size_t p_id, bin_id, th_id, pos_id;
 	size_t digit_disp, elem_num_tmp, * other_cbin;
 	size_t p_id0 = Block_Low(my_th_id, thread_num, self.prev_valid_pcl_num);
@@ -181,7 +181,7 @@ int substep_func_omp_T3D_CHM_mt2(
 		{
 			++my_cbin[data_digit(pcl_in_elem0[p_id], digit_disp)];
 			assert(pcl_in_elem0[p_id] < self.elem_num ||
-				   pcl_in_elem0[p_id] == SIZE_MAX);
+				pcl_in_elem0[p_id] == SIZE_MAX);
 		}
 
 		my_sbin[0] = my_cbin[0];
@@ -212,7 +212,7 @@ int substep_func_omp_T3D_CHM_mt2(
 			pcl_in_elem1[pos_id] = pcl_in_elem0[p_id];
 			prev_pcl_id1[pos_id] = prev_pcl_id0[p_id];
 			assert((pcl_in_elem0[p_id] < self.elem_num ||
-					pcl_in_elem0[p_id] == SIZE_MAX) &&
+				pcl_in_elem0[p_id] == SIZE_MAX) &&
 				(prev_pcl_id0[p_id] < self.prev_valid_pcl_num));
 		}
 
@@ -221,7 +221,7 @@ int substep_func_omp_T3D_CHM_mt2(
 		thd.sorted_pcl_in_elem_id ^= 1;
 #pragma omp barrier
 	}
-		
+
 	// update p_id0, p_id1
 	size_t e_id;
 	p_id0 = Block_Low(my_th_id, thread_num, self.valid_pcl_num);
@@ -284,6 +284,19 @@ int substep_func_omp_T3D_CHM_mt2(
 	double e_s23 = 0.0;
 	double e_s31 = 0.0;
 	double e_p = 0.0;
+	double e_fx_seep, e_fy_seep, e_fz_seep;
+	double en1_fx_seep = 0.0;
+	double en1_fy_seep = 0.0;
+	double en1_fz_seep = 0.0;
+	double en2_fx_seep = 0.0;
+	double en2_fy_seep = 0.0;
+	double en2_fz_seep = 0.0;
+	double en3_fx_seep = 0.0;
+	double en3_fy_seep = 0.0;
+	double en3_fz_seep = 0.0;
+	double en4_fx_seep = 0.0;
+	double en4_fy_seep = 0.0;
+	double en4_fz_seep = 0.0;
 	double en1_fx_s = 0.0;
 	double en1_fy_s = 0.0;
 	double en1_fz_s = 0.0;
@@ -317,7 +330,7 @@ int substep_func_omp_T3D_CHM_mt2(
 	{
 		prev_p_id = prev_pcl_id0[p_id];
 		assert(prev_p_id < self.prev_valid_pcl_num);
-		
+
 		// ori_p_id
 		ori_p_id = pcl_index1[prev_p_id];
 		assert(ori_p_id < md.ori_pcl_num);
@@ -368,8 +381,8 @@ int substep_func_omp_T3D_CHM_mt2(
 		p_N0.N3 = p_N1.N3;
 		p_N0.N4 = p_N1.N4;
 		// solid velocity
-		Velocity &p_v_s1 = pcl_v_s1[prev_p_id];
-		Velocity &p_v_s0 = pcl_v_s0[p_id];
+		Velocity& p_v_s1 = pcl_v_s1[prev_p_id];
+		Velocity& p_v_s0 = pcl_v_s0[p_id];
 		p_v_s0.vx = p_v_s1.vx;
 		p_v_s0.vy = p_v_s1.vy;
 		p_v_s0.vz = p_v_s1.vz;
@@ -432,12 +445,30 @@ int substep_func_omp_T3D_CHM_mt2(
 		p_u_f0.uy = p_u_f1.uy;
 		p_u_f0.uz = p_u_f1.uz;
 
+		// seepage force
+		const double f_seep_tmp = md.miu / md.k * p_n * p_n * p_vol;
+		e_fx_seep = (p_v_f0.vx - p_v_s0.vx) * f_seep_tmp;
+		en1_fx_seep += p_N0.N1 * e_fx_seep;
+		en2_fx_seep += p_N0.N2 * e_fx_seep;
+		en3_fx_seep += p_N0.N3 * e_fx_seep;
+		en4_fx_seep += p_N0.N4 * e_fx_seep;
+		e_fy_seep = (p_v_f0.vy - p_v_s0.vy) * f_seep_tmp;
+		en1_fy_seep += p_N0.N1 * e_fy_seep;
+		en2_fy_seep += p_N0.N2 * e_fy_seep;
+		en3_fy_seep += p_N0.N3 * e_fy_seep;
+		en4_fy_seep += p_N0.N4 * e_fy_seep;
+		e_fz_seep = (p_v_f0.vz - p_v_s0.vz) * f_seep_tmp;
+		en1_fz_seep += p_N0.N1 * e_fz_seep;
+		en2_fz_seep += p_N0.N2 * e_fz_seep;
+		en3_fz_seep += p_N0.N3 * e_fz_seep;
+		en4_fz_seep += p_N0.N4 * e_fz_seep;
+
 		// solid external load
-		const Force &p_bf_s = self.pcl_bf_s[ori_p_id];
+		const Force& p_bf_s = self.pcl_bf_s[ori_p_id];
 		one_fourth_bfx_s = one_fourth * p_bf_s.fx;
 		one_fourth_bfy_s = one_fourth * p_bf_s.fy;
 		one_fourth_bfz_s = one_fourth * p_bf_s.fz;
-		const Force &p_t = self.pcl_t[ori_p_id];
+		const Force& p_t = self.pcl_t[ori_p_id];
 		en1_fx_s += one_fourth_bfx_s + p_N0.N1 * p_t.fx;
 		en1_fy_s += one_fourth_bfy_s + p_N0.N1 * p_t.fy;
 		en1_fz_s += one_fourth_bfz_s + p_N0.N1 * p_t.fz;
@@ -492,7 +523,7 @@ int substep_func_omp_T3D_CHM_mt2(
 			en4_v_s.vmx = en4_vmx_s;
 			en4_v_s.vmy = en4_vmy_s;
 			en4_v_s.vmz = en4_vmz_s;
-			
+
 			// v_f
 			ElemNodeVM& en1_v_f = elem_node_vm_f[e_id * 4];
 			en1_v_f.vm = en1_vm_f;
@@ -520,7 +551,7 @@ int substep_func_omp_T3D_CHM_mt2(
 			e_n = 1.0 - e_n / e_p_vol;
 			elem_pcl_n[e_id] = e_n;
 			elem_density_f[e_id] = e_p_m_f / e_p_vol_f;
-			
+
 			e_s11 /= e_p_vol;
 			e_s22 /= e_p_vol;
 			e_s33 /= e_p_vol;
@@ -530,73 +561,110 @@ int substep_func_omp_T3D_CHM_mt2(
 			e_p /= e_p_vol;
 			elem_p[e_id] = e_p;
 			if (e_p_vol > elem_vol[e_id])
+			{
+				const double vol_ratio = elem_vol[e_id] / e_p_vol;
+				en1_fx_seep *= vol_ratio;
+				en2_fx_seep *= vol_ratio;
+				en3_fx_seep *= vol_ratio;
+				en4_fx_seep *= vol_ratio;
+				en1_fy_seep *= vol_ratio;
+				en2_fy_seep *= vol_ratio;
+				en3_fy_seep *= vol_ratio;
+				en4_fy_seep *= vol_ratio;
+				en1_fz_seep *= vol_ratio;
+				en2_fz_seep *= vol_ratio;
+				en3_fz_seep *= vol_ratio;
+				en4_fz_seep *= vol_ratio;
 				e_p_vol = elem_vol[e_id];
-			// for seepage force
-			elem_n2_miu_div_k_vol[e_id] = one_fourth * one_fourth * e_n * e_n * md.miu / md.k * e_p_vol;
+			}
 
 			const DShapeFuncABC& e_dN = elem_N_abc[e_id];
 			// node 1
 			Force& en1_f_s = elem_node_force_s[e_id * 4];
+			en1_fx_s += en1_fx_seep;
 			en1_fx_s -= (e_dN.dN1_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN1_dy * e_s12 + e_dN.dN1_dz * e_s31) * e_p_vol;
 			en1_f_s.fx = en1_fx_s;
+			en1_fy_s += en1_fy_seep;
 			en1_fy_s -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN1_dz * e_s23) * e_p_vol;
 			en1_f_s.fy = en1_fy_s;
+			en1_fz_s += en1_fz_seep;
 			en1_fz_s -= (e_dN.dN1_dx * e_s31 + e_dN.dN1_dy * e_s23 + e_dN.dN1_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 			en1_f_s.fz = en1_fz_s;
 			// node 2
 			Force& en2_f_s = elem_node_force_s[e_id * 4 + 1];
+			en2_fx_s += en2_fx_seep;
 			en2_fx_s -= (e_dN.dN2_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN2_dy * e_s12 + e_dN.dN2_dz * e_s31) * e_p_vol;
 			en2_f_s.fx = en2_fx_s;
+			en2_fy_s += en2_fy_seep;
 			en2_fy_s -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN2_dz * e_s23) * e_p_vol;
 			en2_f_s.fy = en2_fy_s;
+			en2_fz_s += en2_fz_seep;
 			en2_fz_s -= (e_dN.dN2_dx * e_s31 + e_dN.dN2_dy * e_s23 + e_dN.dN2_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 			en2_f_s.fz = en2_fz_s;
 			// node 3
 			Force& en3_f_s = elem_node_force_s[e_id * 4 + 2];
+			en3_fx_s += en3_fx_seep;
 			en3_fx_s -= (e_dN.dN3_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN3_dy * e_s12 + e_dN.dN3_dz * e_s31) * e_p_vol;
 			en3_f_s.fx = en3_fx_s;
+			en3_fy_s += en3_fy_seep;
 			en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN3_dz * e_s23) * e_p_vol;
 			en3_f_s.fy = en3_fy_s;
+			en3_fz_s += en3_fz_seep;
 			en3_fz_s -= (e_dN.dN3_dx * e_s31 + e_dN.dN3_dy * e_s23 + e_dN.dN3_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 			en3_f_s.fz = en3_fz_s;
 			// node 4
 			Force& en4_f_s = elem_node_force_s[e_id * 4 + 3];
+			en4_fx_s += en4_fx_seep;
 			en4_fx_s -= (e_dN.dN4_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN4_dy * e_s12 + e_dN.dN4_dz * e_s31) * e_p_vol;
 			en4_f_s.fx = en4_fx_s;
+			en4_fy_s += en4_fy_seep;
 			en4_fy_s -= (e_dN.dN4_dx * e_s12 + e_dN.dN4_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN4_dz * e_s23) * e_p_vol;
 			en4_f_s.fy = en4_fy_s;
+			en4_fz_s += en4_fz_seep;
 			en4_fz_s -= (e_dN.dN4_dx * e_s31 + e_dN.dN4_dy * e_s23 + e_dN.dN4_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 			en4_f_s.fz = en4_fz_s;
 			// node 1
 			Force& en1_f_f = elem_node_force_f[e_id * 4];
+			en1_fx_f -= en1_fx_seep;
 			en1_fx_f -= e_dN.dN1_dx * e_n * -e_p * e_p_vol;
 			en1_f_f.fx = en1_fx_f;
+			en1_fy_f -= en1_fy_seep;
 			en1_fy_f -= e_dN.dN1_dy * e_n * -e_p * e_p_vol;
 			en1_f_f.fy = en1_fy_f;
+			en1_fz_f -= en1_fz_seep;
 			en1_fz_f -= e_dN.dN1_dz * e_n * -e_p * e_p_vol;
 			en1_f_f.fz = en1_fz_f;
 			// node 2
 			Force& en2_f_f = elem_node_force_f[e_id * 4 + 1];
+			en2_fx_f -= en2_fx_seep;
 			en2_fx_f -= e_dN.dN2_dx * e_n * -e_p * e_p_vol;
 			en2_f_f.fx = en2_fx_f;
+			en2_fy_f -= en2_fy_seep;
 			en2_fy_f -= e_dN.dN2_dy * e_n * -e_p * e_p_vol;
 			en2_f_f.fy = en2_fy_f;
+			en2_fz_f -= en2_fz_seep;
 			en2_fz_f -= e_dN.dN2_dz * e_n * -e_p * e_p_vol;
 			en2_f_f.fz = en2_fz_f;
 			// node 3
 			Force& en3_f_f = elem_node_force_f[e_id * 4 + 2];
+			en3_fx_f -= en3_fx_seep;
 			en3_fx_f -= e_dN.dN3_dx * e_n * -e_p * e_p_vol;
 			en3_f_f.fx = en3_fx_f;
+			en3_fy_f -= en3_fy_seep;
 			en3_fy_f -= e_dN.dN3_dy * e_n * -e_p * e_p_vol;
 			en3_f_f.fy = en3_fy_f;
+			en3_fz_f -= en3_fz_seep;
 			en3_fz_f -= e_dN.dN3_dz * e_n * -e_p * e_p_vol;
 			en3_f_f.fz = en3_fz_f;
 			// node 4
 			Force& en4_f_f = elem_node_force_f[e_id * 4 + 3];
+			en4_fx_f -= en4_fx_seep;
 			en4_fx_f -= e_dN.dN4_dx * e_n * -e_p * e_p_vol;
 			en4_f_f.fx = en4_fx_f;
+			en4_fy_f -= en4_fy_seep;
 			en4_fy_f -= e_dN.dN4_dy * e_n * -e_p * e_p_vol;
 			en4_f_f.fy = en4_fy_f;
+			en4_fz_f -= en4_fz_seep;
 			en4_fz_f -= e_dN.dN4_dz * e_n * -e_p * e_p_vol;
 			en4_f_f.fz = en4_fz_f;
 
@@ -660,6 +728,18 @@ int substep_func_omp_T3D_CHM_mt2(
 			en4_vmx_f = 0.0;
 			en4_vmy_f = 0.0;
 			en4_vmz_f = 0.0;
+			en1_fx_seep = 0.0;
+			en1_fy_seep = 0.0;
+			en1_fz_seep = 0.0;
+			en2_fx_seep = 0.0;
+			en2_fy_seep = 0.0;
+			en2_fz_seep = 0.0;
+			en3_fx_seep = 0.0;
+			en3_fy_seep = 0.0;
+			en3_fz_seep = 0.0;
+			en4_fx_seep = 0.0;
+			en4_fy_seep = 0.0;
+			en4_fz_seep = 0.0;
 			en1_fx_s = 0.0;
 			en1_fy_s = 0.0;
 			en1_fz_s = 0.0;
@@ -689,7 +769,7 @@ int substep_func_omp_T3D_CHM_mt2(
 
 #pragma omp critical
 	self.valid_elem_num += my_valid_elem_num;
-	
+
 	if (md.has_rigid_cylinder())
 	{
 		Force3D rc_force;
@@ -703,7 +783,7 @@ int substep_func_omp_T3D_CHM_mt2(
 #pragma omp critical
 		self.cf_tmp.combine(rc_force);
 	}
-	
+
 	if (md.has_t3d_rigid_mesh())
 	{
 		Force3D rc_force;
@@ -776,7 +856,7 @@ int substep_func_omp_T3D_CHM_mt2(
 		node_has_elem0[self.valid_elem_num * 4] = SIZE_MAX;
 		node_has_elem1[self.valid_elem_num * 4] = SIZE_MAX;
 	}
-	
+
 	size_t ve_id0 = Block_Low(my_th_id, thread_num, self.valid_elem_num * 4);
 	size_t ve_id1 = Block_Low(my_th_id + 1, thread_num, self.valid_elem_num * 4);
 	size_t node_num_tmp = self.node_num >> 8;
@@ -836,8 +916,8 @@ int substep_func_omp_T3D_CHM_mt2(
 	while (ve_id1 != SIZE_MAX && n_id == node_has_elem0[--ve_id1]);
 	++ve_id1;
 	assert(ve_id1 <= self.valid_elem_num * 4);
-	
-	// cal node velocity
+
+	// update node variables
 	size_t bc_mask;
 	double n_vm_s = 0.0;
 	double n_vmx_s = 0.0;
@@ -847,12 +927,32 @@ int substep_func_omp_T3D_CHM_mt2(
 	double n_vmx_f = 0.0;
 	double n_vmy_f = 0.0;
 	double n_vmz_f = 0.0;
+	double n_am_s = 0.0;
+	double n_am_f = 0.0;
+	double n_fx_s = 0.0;
+	double n_fy_s = 0.0;
+	double n_fz_s = 0.0;
+	double n_fx_f = 0.0;
+	double n_fy_f = 0.0;
+	double n_fz_f = 0.0;
 	n_id = node_has_elem0[ve_id0];
 	assert(n_id < self.node_num);
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
 		ne_id = node_elem_pair0[ve_id];
 		assert(ne_id < self.elem_num * 4);
+
+		e_id = ne_id / 4;
+		n_am_s += elem_pcl_m_s[e_id];
+		n_am_f += elem_pcl_m_f[e_id];
+		const Force& nf_s = elem_node_force_s[ne_id];
+		n_fx_s += nf_s.fx;
+		n_fy_s += nf_s.fy;
+		n_fz_s += nf_s.fz;
+		const Force& nf_f = elem_node_force_f[ne_id];
+		n_fx_f += nf_f.fx;
+		n_fy_f += nf_f.fy;
+		n_fz_f += nf_f.fz;
 
 		ElemNodeVM& nvm_s = elem_node_vm_s[ne_id];
 		n_vm_s += nvm_s.vm;
@@ -868,103 +968,6 @@ int substep_func_omp_T3D_CHM_mt2(
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
 			// solid
-			Velocity& n_v_s = node_v_s[n_id];
-			n_v_s.vx = n_vmx_s / n_vm_s;
-			n_v_s.vy = n_vmy_s / n_vm_s;
-			n_v_s.vz = n_vmz_s / n_vm_s;
-			NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
-			n_v_s.ivx &= SIZE_MAX + size_t(n_has_vbc_s.has_vx_bc);
-			n_v_s.ivy &= SIZE_MAX + size_t(n_has_vbc_s.has_vy_bc);
-			n_v_s.ivz &= SIZE_MAX + size_t(n_has_vbc_s.has_vz_bc);
-			// fluid
-			Velocity& n_v_f = node_v_f[n_id];
-			n_v_f.vx = n_vmx_f / n_vm_f;
-			n_v_f.vy = n_vmy_f / n_vm_f;
-			n_v_f.vz = n_vmz_f / n_vm_f;
-			NodeHasVBC& n_has_vbc_f = node_has_vbc_f[n_id];
-			n_v_f.ivx &= SIZE_MAX + size_t(n_has_vbc_f.has_vx_bc);
-			n_v_f.ivy &= SIZE_MAX + size_t(n_has_vbc_f.has_vy_bc);
-			n_v_f.ivz &= SIZE_MAX + size_t(n_has_vbc_f.has_vz_bc);
-
-			n_id = node_has_elem0[ve_id + 1];
-			assert(n_id < self.node_num || n_id == SIZE_MAX);
-
-			n_vm_s = 0.0;
-			n_vmx_s = 0.0;
-			n_vmy_s = 0.0;
-			n_vmz_s = 0.0;
-			n_vm_f = 0.0;
-			n_vmx_f = 0.0;
-			n_vmy_f = 0.0;
-			n_vmz_f = 0.0;
-		}
-	}
-
-#pragma omp barrier
-
-	for (ve_id = 0; ve_id < my_valid_elem_num; ++ve_id)
-	{
-		e_id = my_valid_elem_id[ve_id];
-		assert(e_id < self.elem_num);
-		const ElemNodeIndex& eni = elem_node_id[e_id];
-		const Velocity& n1_v_s = node_v_s[eni.n1];
-		const Velocity& n2_v_s = node_v_s[eni.n2];
-		const Velocity& n3_v_s = node_v_s[eni.n3];
-		const Velocity& n4_v_s = node_v_s[eni.n4];
-		const Velocity& n1_v_f = node_v_f[eni.n1];
-		const Velocity& n2_v_f = node_v_f[eni.n2];
-		const Velocity& n3_v_f = node_v_f[eni.n3];
-		const Velocity& n4_v_f = node_v_f[eni.n4];
-		Force& e_s_f = elem_seep_force[e_id];
-		e_s_f.fx = elem_n2_miu_div_k_vol[e_id]
-			* (n1_v_f.vx + n2_v_f.vx + n3_v_f.vx + n4_v_f.vx
-			 - n1_v_s.vx - n2_v_s.vx - n3_v_s.vx - n4_v_s.vx);
-		e_s_f.fy = elem_n2_miu_div_k_vol[e_id]
-			* (n1_v_f.vy + n2_v_f.vy + n3_v_f.vy + n4_v_f.vy
-			 - n1_v_s.vy - n2_v_s.vy - n3_v_s.vy - n4_v_s.vy);
-		e_s_f.fz = elem_n2_miu_div_k_vol[e_id]
-			* (n1_v_f.vz + n2_v_f.vz + n3_v_f.vz + n4_v_f.vz
-			 - n1_v_s.vz - n2_v_s.vz - n3_v_s.vz - n4_v_s.vz);
-	}
-
-#pragma omp barrier
-
-	// update node variables
-	double n_am_s = 0.0;
-	double n_am_f = 0.0;
-	double n_fx_s = 0.0;
-	double n_fy_s = 0.0;
-	double n_fz_s = 0.0;
-	double n_fx_f = 0.0;
-	double n_fy_f = 0.0;
-	double n_fz_f = 0.0;
-	n_id = node_has_elem0[ve_id0];
-	assert(n_id < self.node_num);
-	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
-	{
-		ne_id = node_elem_pair0[ve_id];
-		assert(ne_id < self.elem_num * 4);
-		e_id = ne_id / 4;
-		n_am_s += elem_pcl_m_s[e_id];
-		n_am_f += elem_pcl_m_f[e_id];
-		const Force &nf_s = elem_node_force_s[ne_id];
-		n_fx_s += nf_s.fx;
-		n_fy_s += nf_s.fy;
-		n_fz_s += nf_s.fz;
-		const Force& nf_f = elem_node_force_f[ne_id];
-		n_fx_f += nf_f.fx;
-		n_fy_f += nf_f.fy;
-		n_fz_f += nf_f.fz;
-		const Force& e_s_f = elem_seep_force[e_id];
-		n_fx_s += e_s_f.fx;
-		n_fy_s += e_s_f.fy;
-		n_fz_s += e_s_f.fz;
-		n_fx_f -= e_s_f.fx;
-		n_fy_f -= e_s_f.fy;
-		n_fz_f -= e_s_f.fz;
-		if (n_id != node_has_elem0[ve_id + 1])
-		{
-			// solid
 			n_am_s *= one_fourth;
 			node_am_s[n_id] = n_am_s;
 			Acceleration& n_a_s = node_a_s[n_id];
@@ -972,9 +975,9 @@ int substep_func_omp_T3D_CHM_mt2(
 			n_a_s.ay = n_fy_s / n_am_s;
 			n_a_s.az = n_fz_s / n_am_s;
 			Velocity& n_v_s = node_v_s[n_id];
-			n_v_s.vx += n_a_s.ax * dt;
-			n_v_s.vy += n_a_s.ay * dt;
-			n_v_s.vz += n_a_s.az * dt;
+			n_v_s.vx = n_vmx_s / n_vm_s + n_a_s.ax * dt;
+			n_v_s.vy = n_vmy_s / n_vm_s + n_a_s.ay * dt;
+			n_v_s.vz = n_vmz_s / n_vm_s + n_a_s.az * dt;
 			NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
 			bc_mask = SIZE_MAX + size_t(n_has_vbc_s.has_vx_bc);
 			n_a_s.iax &= bc_mask;
@@ -993,9 +996,9 @@ int substep_func_omp_T3D_CHM_mt2(
 			n_a_f.ay = n_fy_f / n_am_f;
 			n_a_f.az = n_fz_f / n_am_f;
 			Velocity& n_v_f = node_v_f[n_id];
-			n_v_f.vx += n_a_f.ax * dt;
-			n_v_f.vy += n_a_f.ay * dt;
-			n_v_f.vz += n_a_f.az * dt;
+			n_v_f.vx = n_vmx_f / n_vm_f + n_a_f.ax * dt;
+			n_v_f.vy = n_vmy_f / n_vm_f + n_a_f.ay * dt;
+			n_v_f.vz = n_vmz_f / n_vm_f + n_a_f.az * dt;
 			NodeHasVBC& n_has_vbc_f = node_has_vbc_f[n_id];
 			bc_mask = SIZE_MAX + size_t(n_has_vbc_f.has_vx_bc);
 			n_a_f.iax &= bc_mask;
@@ -1006,7 +1009,7 @@ int substep_func_omp_T3D_CHM_mt2(
 			bc_mask = SIZE_MAX + size_t(n_has_vbc_f.has_vz_bc);
 			n_a_f.iaz &= bc_mask;
 			n_v_f.ivz &= bc_mask;
-			
+
 			n_id = node_has_elem0[ve_id + 1];
 			assert(n_id < self.node_num || n_id == SIZE_MAX);
 
@@ -1018,6 +1021,14 @@ int substep_func_omp_T3D_CHM_mt2(
 			n_fx_f = 0.0;
 			n_fy_f = 0.0;
 			n_fz_f = 0.0;
+			n_vm_s = 0.0;
+			n_vmx_s = 0.0;
+			n_vmy_s = 0.0;
+			n_vmz_s = 0.0;
+			n_vm_f = 0.0;
+			n_vmx_f = 0.0;
+			n_vmy_f = 0.0;
+			n_vmz_f = 0.0;
 		}
 	}
 
@@ -1033,7 +1044,7 @@ int substep_func_omp_T3D_CHM_mt2(
 
 		if (md.has_t3d_rigid_mesh())
 		{
-			RigidObjectByT3DMesh &rb = md.get_t3d_rigid_mesh();
+			RigidObjectByT3DMesh& rb = md.get_t3d_rigid_mesh();
 			rb.set_cont_force(self.cf_tmp);
 			rb.update_motion(dt);
 			self.cf_tmp.reset();
@@ -1045,7 +1056,7 @@ int substep_func_omp_T3D_CHM_mt2(
 		self.prev_valid_pcl_num = self.valid_pcl_num;
 		self.valid_pcl_num = 0;
 	}
-	
+
 #pragma omp barrier
 
 	// cal element strain and "enhancement"
@@ -1066,11 +1077,11 @@ int substep_func_omp_T3D_CHM_mt2(
 		e_de.de22 = (e_dN.dN1_dy * n1_v_s.vy + e_dN.dN2_dy * n2_v_s.vy + e_dN.dN3_dy * n3_v_s.vy + e_dN.dN4_dy * n4_v_s.vy) * dt;
 		e_de.de33 = (e_dN.dN1_dz * n1_v_s.vz + e_dN.dN2_dz * n2_v_s.vz + e_dN.dN3_dz * n3_v_s.vz + e_dN.dN4_dz * n4_v_s.vz) * dt;
 		e_de.de12 = (e_dN.dN1_dx * n1_v_s.vy + e_dN.dN2_dx * n2_v_s.vy + e_dN.dN3_dx * n3_v_s.vy + e_dN.dN4_dx * n4_v_s.vy
-				   + e_dN.dN1_dy * n1_v_s.vx + e_dN.dN2_dy * n2_v_s.vx + e_dN.dN3_dy * n3_v_s.vx + e_dN.dN4_dy * n4_v_s.vx) * dt * 0.5;
+			+ e_dN.dN1_dy * n1_v_s.vx + e_dN.dN2_dy * n2_v_s.vx + e_dN.dN3_dy * n3_v_s.vx + e_dN.dN4_dy * n4_v_s.vx) * dt * 0.5;
 		e_de.de23 = (e_dN.dN1_dy * n1_v_s.vz + e_dN.dN2_dy * n2_v_s.vz + e_dN.dN3_dy * n3_v_s.vz + e_dN.dN4_dy * n4_v_s.vz
-				   + e_dN.dN1_dz * n1_v_s.vy + e_dN.dN2_dz * n2_v_s.vy + e_dN.dN3_dz * n3_v_s.vy + e_dN.dN4_dz * n4_v_s.vy) * dt * 0.5;
+			+ e_dN.dN1_dz * n1_v_s.vy + e_dN.dN2_dz * n2_v_s.vy + e_dN.dN3_dz * n3_v_s.vy + e_dN.dN4_dz * n4_v_s.vy) * dt * 0.5;
 		e_de.de31 = (e_dN.dN1_dz * n1_v_s.vx + e_dN.dN2_dz * n2_v_s.vx + e_dN.dN3_dz * n3_v_s.vx + e_dN.dN4_dz * n4_v_s.vx
-				   + e_dN.dN1_dx * n1_v_s.vz + e_dN.dN2_dx * n2_v_s.vz + e_dN.dN3_dx * n3_v_s.vz + e_dN.dN4_dx * n4_v_s.vz) * dt * 0.5;
+			+ e_dN.dN1_dx * n1_v_s.vz + e_dN.dN2_dx * n2_v_s.vz + e_dN.dN3_dx * n3_v_s.vz + e_dN.dN4_dx * n4_v_s.vz) * dt * 0.5;
 		e_de_vol_s = e_de.de11 + e_de.de22 + e_de.de33;
 		elem_m_de_vol_s[e_id] = elem_pcl_m_s[e_id] * e_de_vol_s;
 		const Velocity& n1_v_f = node_v_f[eni.n1];
@@ -1078,8 +1089,9 @@ int substep_func_omp_T3D_CHM_mt2(
 		const Velocity& n3_v_f = node_v_f[eni.n3];
 		const Velocity& n4_v_f = node_v_f[eni.n4];
 		e_de_vol_f = (1.0 - elem_pcl_n[e_id]) / elem_pcl_n[e_id] * -e_de_vol_s
-			-(e_dN.dN1_dx * n1_v_f.vx + e_dN.dN2_dx * n2_v_f.vx + e_dN.dN3_dx * n3_v_f.vx + e_dN.dN4_dx * n4_v_f.vx
-			+ e_dN.dN1_dy * n1_v_f.vy + e_dN.dN2_dy * n2_v_f.vy + e_dN.dN3_dy * n3_v_f.vy + e_dN.dN4_dy * n4_v_f.vy) * dt;
+			- (e_dN.dN1_dx * n1_v_f.vx + e_dN.dN2_dx * n2_v_f.vx + e_dN.dN3_dx * n3_v_f.vx + e_dN.dN4_dx * n4_v_f.vx
+				+ e_dN.dN1_dy * n1_v_f.vy + e_dN.dN2_dy * n2_v_f.vy + e_dN.dN3_dy * n3_v_f.vy + e_dN.dN4_dy * n4_v_f.vy
+				+ e_dN.dN1_dz * n1_v_f.vz + e_dN.dN2_dz * n2_v_f.vz + e_dN.dN3_dz * n3_v_f.vz + e_dN.dN4_dz * n4_v_f.vz) * dt;
 		elem_m_de_vol_f[e_id] = elem_pcl_m_f[e_id] * e_de_vol_f;
 		e_de_vol_s *= one_third;
 		e_de.de11 -= e_de_vol_s;
@@ -1112,12 +1124,12 @@ int substep_func_omp_T3D_CHM_mt2(
 
 #pragma omp barrier
 
-	const Acceleration* pn1_a_s, *pn2_a_s, *pn3_a_s, *pn4_a_s;
-	const Acceleration* pn1_a_f, *pn2_a_f, *pn3_a_f, *pn4_a_f;
-	const Velocity* pn1_v_s, *pn2_v_s, *pn3_v_s, *pn4_v_s;
-	const Velocity* pn1_v_f, *pn2_v_f, *pn3_v_f, *pn4_v_f;
+	const Acceleration* pn1_a_s, * pn2_a_s, * pn3_a_s, * pn4_a_s;
+	const Acceleration* pn1_a_f, * pn2_a_f, * pn3_a_f, * pn4_a_f;
+	const Velocity* pn1_v_s, * pn2_v_s, * pn3_v_s, * pn4_v_s;
+	const Velocity* pn1_v_f, * pn2_v_f, * pn3_v_f, * pn4_v_f;
 	StrainInc* pe_de;
-	const double *estrain, *pstrain, *dstress;
+	const double* estrain, * pstrain, * dstress;
 	double p_x, p_y, p_z, e_density_f;
 	size_t p_e_id, pcl_in_mesh_num = 0;
 	e_id = SIZE_MAX;
@@ -1148,15 +1160,15 @@ int substep_func_omp_T3D_CHM_mt2(
 			pn4_v_f = node_v_f + eni.n4;
 
 			e_de_vol_s = (node_de_vol_s[eni.n1]
-						+ node_de_vol_s[eni.n2]
-						+ node_de_vol_s[eni.n3]
-						+ node_de_vol_s[eni.n4]) * one_fourth;
+				+ node_de_vol_s[eni.n2]
+				+ node_de_vol_s[eni.n3]
+				+ node_de_vol_s[eni.n4]) * one_fourth;
 			e_n = (e_de_vol_s + elem_pcl_n[e_id]) / (1.0 + e_de_vol_s);
 
 			e_de_vol_f = (node_de_vol_f[eni.n1]
-						+ node_de_vol_f[eni.n2]
-						+ node_de_vol_f[eni.n3]
-						+ node_de_vol_f[eni.n4]) * one_fourth;
+				+ node_de_vol_f[eni.n2]
+				+ node_de_vol_f[eni.n3]
+				+ node_de_vol_f[eni.n4]) * one_fourth;
 			e_density_f = elem_density_f[e_id] / (1.0 - e_de_vol_f);
 			e_p = elem_p[e_id] + self.Kf * e_de_vol_f;
 
@@ -1212,7 +1224,7 @@ int substep_func_omp_T3D_CHM_mt2(
 		pcl_in_elem1[p_id] = p_e_id;
 		prev_pcl_id1[p_id] = p_id;
 		assert(p_e_id < self.elem_num || p_e_id == SIZE_MAX);
-		
+
 		// update n
 		pcl_n0[p_id] = e_n;
 		// update density
