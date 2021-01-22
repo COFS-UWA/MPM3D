@@ -424,7 +424,8 @@ void Model_T3D_CHM_mt::alloc_pcls(size_t num, size_t ori_num)
 	pcl_num = num;
 }
 
-int Model_T3D_CHM_mt::init_pcls(size_t num,
+int Model_T3D_CHM_mt::init_pcls(
+	size_t num,
 	double n,
 	double m_s,
 	double density_s,

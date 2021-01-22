@@ -113,7 +113,6 @@ public:
 	
 	struct ElemNodeIndex { size_t n1, n2, n3, n4; };
 	struct ElemNodeVM { double vm, vmx, vmy, vmz; };
-	struct ElemNodeForce { double fx, fy, fz; };
 
 	struct NodeHasVBC { bool has_vx_bc, has_vy_bc, has_vz_bc; };
 
@@ -156,8 +155,6 @@ protected:
 	DShapeFuncABC* elem_N_abc; // elem_num
 	DShapeFuncD* elem_N_d; // elem_num
 	double* elem_vol; // elem_num
-	// node data
-	Position* node_pos; // node_num
 
 	// element calculation data
 	double *elem_density_f; // elem_num
@@ -172,11 +169,13 @@ protected:
 	double *elem_m_de_vol_f; // elem_num
 
 	// element-node data
-	ElemNodeVM* elem_node_vm_s; // elem_num * 3
-	ElemNodeVM* elem_node_vm_f; // elem_num * 3
-	Force* elem_node_force_s; // elem_num * 3
-	Force* elem_node_force_f; // elem_num * 3
+	ElemNodeVM* elem_node_vm_s; // elem_num * 4
+	ElemNodeVM* elem_node_vm_f; // elem_num * 4
+	Force* elem_node_force_s; // elem_num * 4
+	Force* elem_node_force_f; // elem_num * 4
 	
+	// node data
+	Position* node_pos; // node_num
 	Acceleration *node_a_s; // node_num
 	Acceleration *node_a_f; // node_num
 	Velocity *node_v_s; // node_num
@@ -368,8 +367,7 @@ public:
 		const size_t z_id = (pcl_z - grid_zl) / grid_hz;
 		const size_t g_id = grid_xy_num * z_id + grid_x_num * y_id + x_id;
 		const size_t elem_end_id = grid_elem_list[g_id + 1];
-		for (size_t el_id = grid_elem_list[g_id];
-			el_id < elem_end_id; ++el_id)
+		for (size_t el_id = grid_elem_list[g_id]; el_id < elem_end_id; ++el_id)
 		{
 			const size_t elem_id = grid_elem_list_id_array[el_id];
 			if (is_in_element(pcl_x, pcl_y, pcl_z, elem_id, p_N))

@@ -24,7 +24,7 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
 	model.init_pcls(pcl_generator, 0.3, 20.0, 10.0, 10000.0, 1.0e-4, 1.0);
-	size_t pcl_num = model.get_pcl_num();
+	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
@@ -112,7 +112,7 @@ void test_t3d_chm_mt_1d_consolidation_result(int argc, char **argv)
 	app.set_res_file(rf, "consolidation", Hdf5Field::p);
 	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
-	//app.set_png_name("t3d_chm_s_1d_consolidation");
-	//app.set_gif_name("t3d_chm_s_1d_consolidation");
+	//app.set_png_name("t3d_chm_mt_1d_consolidation");
+	app.set_gif_name("t3d_chm_mt_1d_consolidation");
 	app.start();
 }
