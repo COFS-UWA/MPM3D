@@ -14,8 +14,7 @@ using namespace Model_hdf5_utilities;
 int output_background_mesh_to_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -37,12 +36,12 @@ int output_background_mesh_to_hdf5_file(
 
 	// node coordinates
 	NodeData *nodes_data = new NodeData[node_num];
-	Model_T2D_ME_mt::NodePos *node_pos = md.node_pos;
+	Model_T2D_ME_mt::Position *node_pos = md.node_pos;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
 		NodeData &node_data = nodes_data[n_id];
 		node_data.id = n_id;
-		Model_T2D_ME_mt::NodePos &np = node_pos[n_id];
+		Model_T2D_ME_mt::Position &np = node_pos[n_id];
 		node_data.x = np.x;
 		node_data.y = np.y;
 	}
@@ -52,34 +51,33 @@ int output_background_mesh_to_hdf5_file(
 		"NodeData",
 		node_num,
 		nodes_data,
-		nd_dt_id
-		);
+		nd_dt_id);
 	H5Tclose(nd_dt_id);
 	delete[] nodes_data;
 
 	// element indices
 	ElementData *elems_data = new ElementData[elem_num];
-	Model_T2D_ME_mt::ElemNodeIndex *e_node_index = md.elem_node_id;
-	double* e_area = md.elem_area;
-	Model_T2D_ME_mt::ElemShapeFuncAB* e_sf_ab = md.elem_sf_ab;
-	Model_T2D_ME_mt::ElemShapeFuncC* e_sf_c = md.elem_sf_c;
+	const Model_T2D_ME_mt::ElemNodeIndex *e_node_index = md.elem_node_id;
+	const double* e_area = md.elem_area;
+	const Model_T2D_ME_mt::ShapeFuncAB* e_dN_ab = md.elem_dN_ab;
+	const Model_T2D_ME_mt::ShapeFuncC* e_dN_c = md.elem_dN_c;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		ElementData &elem_data = elems_data[e_id];
 		elem_data.id = e_id;
-		Model_T2D_ME_mt::ElemNodeIndex &eni = e_node_index[e_id];
+		const Model_T2D_ME_mt::ElemNodeIndex &eni = e_node_index[e_id];
 		elem_data.n1 = eni.n1;
 		elem_data.n2 = eni.n2;
 		elem_data.n3 = eni.n3;
 		elem_data.area = e_area[e_id];
-		Model_T2D_ME_mt::ElemShapeFuncAB& esfab = e_sf_ab[e_id];
+		const Model_T2D_ME_mt::ShapeFuncAB& esfab = e_dN_ab[e_id];
 		elem_data.a1 = esfab.a1;
 		elem_data.b1 = esfab.b1;
 		elem_data.a2 = esfab.a2;
 		elem_data.b2 = esfab.b2;
 		elem_data.a3 = esfab.a3;
 		elem_data.b3 = esfab.b3;
-		Model_T2D_ME_mt::ElemShapeFuncC& esfc = e_sf_c[e_id];
+		const Model_T2D_ME_mt::ShapeFuncC& esfc = e_dN_c[e_id];
 		elem_data.c1 = esfc.c1;
 		elem_data.c2 = esfc.c2;
 		elem_data.c3 = esfc.c3;
@@ -90,8 +88,7 @@ int output_background_mesh_to_hdf5_file(
 		"ElementData",
 		elem_num,
 		elems_data,
-		ed_dt_id
-		);
+		ed_dt_id);
 	H5Tclose(ed_dt_id);
 	delete[] elems_data;
 
@@ -104,8 +101,7 @@ int output_background_mesh_to_hdf5_file(
 int load_background_mesh_from_hdf5_file(
 	Model_T2D_ME_mt &md,
 	ResultFile_hdf5 &rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -125,13 +121,12 @@ int load_background_mesh_from_hdf5_file(
 		"NodeData",
 		node_num,
 		nodes_data,
-		nd_dt_id
-		);
+		nd_dt_id);
 	H5Tclose(nd_dt_id);
-	Model_T2D_ME_mt::NodePos *node_pos = md.node_pos;
+	Model_T2D_ME_mt::Position *node_pos = md.node_pos;
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{
-		Model_T2D_ME_mt::NodePos& np = node_pos[n_id];
+		Model_T2D_ME_mt::Position &np = node_pos[n_id];
 		NodeData &node_data = nodes_data[n_id];
 		np.x = node_data.x;
 		np.y = node_data.y;
@@ -146,12 +141,11 @@ int load_background_mesh_from_hdf5_file(
 		"ElementData",
 		elem_num,
 		elems_data,
-		ed_dt_id
-		);
+		ed_dt_id);
 	H5Tclose(ed_dt_id);
 	Model_T2D_ME_mt::ElemNodeIndex* e_node_id = md.elem_node_id;
-	Model_T2D_ME_mt::ElemShapeFuncAB* e_sf_ab = md.elem_sf_ab;
-	Model_T2D_ME_mt::ElemShapeFuncC* e_sf_c = md.elem_sf_c;
+	Model_T2D_ME_mt::ShapeFuncAB* e_dN_ab = md.elem_dN_ab;
+	Model_T2D_ME_mt::ShapeFuncC* e_dN_c = md.elem_dN_c;
 	for (size_t e_id = 0; e_id < elem_num; ++e_id)
 	{
 		ElementData &elem_data = elems_data[e_id];
@@ -159,14 +153,14 @@ int load_background_mesh_from_hdf5_file(
 		eni.n1 = elem_data.n1;
 		eni.n2 = elem_data.n2;
 		eni.n3 = elem_data.n3;
-		Model_T2D_ME_mt::ElemShapeFuncAB &esfab = e_sf_ab[e_id];
+		Model_T2D_ME_mt::ShapeFuncAB &esfab = e_dN_ab[e_id];
 		esfab.a1 = elem_data.a1;
 		esfab.a2 = elem_data.a2;
 		esfab.a3 = elem_data.a3;
 		esfab.b1 = elem_data.b1;
 		esfab.b2 = elem_data.b2;
 		esfab.b3 = elem_data.b3;
-		Model_T2D_ME_mt::ElemShapeFuncC& esfc = e_sf_c[e_id];
+		Model_T2D_ME_mt::ShapeFuncC& esfc = e_dN_c[e_id];
 		esfc.c1 = elem_data.c1;
 		esfc.c2 = elem_data.c2;
 		esfc.c3 = elem_data.c3;
@@ -187,8 +181,7 @@ int load_background_mesh_from_hdf5_file(
 int output_boundary_condition_to_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0 || md.pcl_num == 0)
 		return -1;
@@ -217,8 +210,7 @@ int output_boundary_condition_to_hdf5_file(
 int load_boundary_condition_from_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -249,8 +241,7 @@ int load_boundary_condition_from_hdf5_file(
 int output_ori_pcl_data_to_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -275,8 +266,7 @@ int output_ori_pcl_data_to_hdf5_file(
 		"field",
 		pcl_num,
 		pcl_data,
-		pcl_dt_id
-	);
+		pcl_dt_id);
 	H5Tclose(pcl_dt_id);
 	delete[] pcl_data;
 
@@ -288,8 +278,7 @@ int output_pcl_data_to_hdf5_file(
 	Model_T2D_ME_mt& md,
 	Step_T2D_ME_mt& stp,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -304,14 +293,12 @@ int output_pcl_data_to_hdf5_file(
 	int res = 0;
 	if (pcl_num)
 	{
-		size_t sorted_var_id = stp.get_pcl_sorted_var_id();
-		const size_t* new_to_prev_pcl_map = stp.get_new_to_prev_pcl_map();
+		size_t sorted_pcl_var_id = stp.get_sorted_pcl_var_id();
 		ParticleData* pcl_data = new ParticleData[pcl_num];
-		size_t p_id;
-		for (p_id = 0; p_id < pcl_num; ++p_id)
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 		{
 			ParticleData& pd = pcl_data[p_id];
-			pd.from_pcl(md, p_id, sorted_var_id, new_to_prev_pcl_map);
+			pd.from_pcl(stp, sorted_pcl_var_id, p_id);
 		}
 		hid_t pcl_dt_id = get_pcl_dt_id();
 		res = rf.write_dataset(
@@ -319,8 +306,7 @@ int output_pcl_data_to_hdf5_file(
 			"field",
 			pcl_num,
 			pcl_data,
-			pcl_dt_id
-			);
+			pcl_dt_id);
 		H5Tclose(pcl_dt_id);
 		delete[] pcl_data;
 	}
@@ -332,8 +318,7 @@ int output_pcl_data_to_hdf5_file(
 int load_pcl_data_from_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -355,8 +340,7 @@ int load_pcl_data_from_hdf5_file(
 			"field",
 			pcl_num,
 			pcls_data,
-			pcl_dt_id
-		);
+			pcl_dt_id);
 		H5Tclose(pcl_dt_id);
 
 		if (res)
@@ -391,8 +375,7 @@ int load_pcl_data_from_hdf5_file(
 int output_material_model_to_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -405,8 +388,7 @@ int output_material_model_to_hdf5_file(
 int load_material_model_from_hdf5_file(
 	Model_T2D_ME_mt &md,
 	ResultFile_hdf5 &rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -415,56 +397,6 @@ int load_material_model_from_hdf5_file(
 	rf.close_group(mc_grp_id);
 	return 0;
 }
-
-//int output_rigid_circle_to_hdf5_file(
-//	Model_T2D_ME_mt& md,
-//	ResultFile_hdf5& rf,
-//	hid_t grp_id
-//	)
-//{
-//	if (grp_id < 0)
-//		return -1;
-//
-//	if (!md.rigid_circle_is_valid())
-//		return 0;
-//
-//	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCircle");
-//
-//	rf.write_attribute(rc_grp_id, "K_cont", md.K_cont);
-//
-//	using Model_hdf5_utilities::output_rigid_circle_to_hdf5_file;
-//	output_rigid_circle_to_hdf5_file(md.rigid_circle, rf, rc_grp_id);
-//
-//	rf.close_group(rc_grp_id);
-//	return 0;
-//}
-
-//int load_rigid_circle_from_hdf5_file(
-//	Model_T2D_ME_mt& md,
-//	ResultFile_hdf5& rf,
-//	hid_t grp_id
-//	)
-//{
-//	if (grp_id < 0)
-//		return -1;
-//	
-//	if (!rf.has_group(grp_id, "RigidCircle"))
-//		return 0;
-//
-//	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCircle");
-//
-//	double K_cont;
-//	rf.read_attribute(rc_grp_id, "K_cont", K_cont);
-//	md.K_cont = K_cont;
-//
-//	using Model_hdf5_utilities::load_rigid_circle_from_hdf5_file;
-//	load_rigid_circle_from_hdf5_file(md.rigid_circle, rf, rc_grp_id);
-//
-//	md.rigid_circle_is_init = true;
-//	
-//	rf.close_group(rc_grp_id);
-//	return 0;
-//}
 
 int output_rigid_rect_to_hdf5_file(
 	Model_T2D_ME_mt& md,
@@ -498,9 +430,9 @@ int output_rigid_rect_to_hdf5_file(
 	rf.write_attribute(rr_grp_id, "y", rr.get_y());
 	rf.write_attribute(rr_grp_id, "angle", rr.get_ang());
 
-	rf.write_attribute(rr_grp_id, "fx_contact", stp.get_rr_fx_contact());
-	rf.write_attribute(rr_grp_id, "fy_contact", stp.get_rr_fy_contact());
-	rf.write_attribute(rr_grp_id, "m_contact", stp.get_rr_m_contact());
+	rf.write_attribute(rr_grp_id, "fx_contact", rr.get_fx_contact());
+	rf.write_attribute(rr_grp_id, "fy_contact", rr.get_fy_contact());
+	rf.write_attribute(rr_grp_id, "m_contact", rr.get_m_contact());
 	rf.write_attribute(rr_grp_id, "fx_external", rr.get_fx_external());
 	rf.write_attribute(rr_grp_id, "fy_external", rr.get_fy_external());
 	rf.write_attribute(rr_grp_id, "m_external", rr.get_m_external());
@@ -525,8 +457,7 @@ int output_rigid_rect_to_hdf5_file(
 int output_rigid_rect_to_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -549,8 +480,7 @@ int output_rigid_rect_to_hdf5_file(
 int load_rigid_rect_from_hdf5_file(
 	Model_T2D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -576,8 +506,7 @@ int load_rigid_rect_from_hdf5_file(
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T2D_ME_mt &md,
-	ResultFile_hdf5 &rf
-	)
+	ResultFile_hdf5 &rf)
 {
 	hid_t md_grp_id = rf.get_model_data_grp_id();
 	// background mesh
@@ -599,8 +528,7 @@ int time_history_complete_output_to_hdf5_file(
 	Model_T2D_ME_mt &md,
 	Step_T2D_ME_mt &stp,
 	ResultFile_hdf5 &rf,
-	hid_t frame_grp_id
-	)
+	hid_t frame_grp_id)
 {
 	// particle data
 	output_pcl_data_to_hdf5_file(md, stp, rf, frame_grp_id);
@@ -618,8 +546,7 @@ int load_me_mt_model_from_hdf5_file(
 	Step_T2D_ME_mt& step,
 	const char* hdf5_name,
 	const char* th_name,
-	size_t frame_id
-	)
+	size_t frame_id)
 {
 	ResultFile_hdf5 rf;
 	rf.open(hdf5_name);

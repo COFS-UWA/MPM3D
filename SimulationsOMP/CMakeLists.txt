@@ -9,9 +9,9 @@ add_library(
     SimulationsOMP_pcp.h SimulationsOMP_pcp.cpp
     SimulationsOMPUtils.h
     ParticleVariablesGetter.h ParticleVariablesGetter.cpp
-    # 2D ME MPM multi-thread version
+    # OpenMP multi-thread version
     Step_OMP.h Step_OMP.cpp
-    ## deformation calculation
+    # 2D ME MPM
     Model_T2D_ME_mt.h Model_T2D_ME_mt.cpp
     Model_T2D_ME_mt_hdf5_utilities.h Model_T2D_ME_mt_hdf5_utilities.cpp
     ModelData_T2D_ME_mt.h ModelData_T2D_ME_mt.cpp
@@ -38,6 +38,11 @@ add_library(
     Model_T3D_CHM_mt_hdf5_utilities.h Model_T3D_CHM_mt_hdf5_utilities.cpp
     ModelData_T3D_CHM_mt.h ModelData_T3D_CHM_mt.cpp
     TimeHistory_T3D_CHM_mt_complete.h TimeHistory_T3D_CHM_mt_complete.cpp
+    # Parallelism using TBB
+    Step_TBB.h Step_TBB.cpp
+    # 2D ME MPM
+    Step_T2D_ME_TBB_task.h Step_T2D_ME_TBB_task.cpp
+    Step_T2D_ME_TBB.h Step_T2D_ME_TBB.cpp
     )
 
 add_subdirectory(RigidObject/)
@@ -59,6 +64,8 @@ target_include_directories(
     ${HDF5_INCLUDE_DIR}
     )
 
+find_package(TBB CONFIG REQUIRED)
+
 target_link_libraries(
     SimulationsOMP PUBLIC
     # Internal dependencies
@@ -68,6 +75,7 @@ target_link_libraries(
     Simulations
     # External dependencies
     ${HDF5_LIBRARIES}
+    TBB::tbb
     )
 
 find_package(OpenMP)

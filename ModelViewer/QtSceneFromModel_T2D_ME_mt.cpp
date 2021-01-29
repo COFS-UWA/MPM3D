@@ -214,10 +214,10 @@ int QtSceneFromModel_T2D_ME_mt::set_pts_from_pcl_id(
 	pt_radius = radius;
 	pts_mem.reserve(id_num);
 	pts = pts_mem.get_mem();
-	const PclPos *pcl_pos = model->get_pcl_pos();
+	const Position *pcl_pos = model->get_pcl_pos();
 	for (size_t p_id = 0; p_id < id_num; ++p_id)
 	{
-		const PclPos& pp = pcl_pos[ids[p_id]];
+		const Position &pp = pcl_pos[ids[p_id]];
 		PointData& pd = pts[p_id];
 		pd.x = GLfloat(pp.x);
 		pd.y = GLfloat(pp.y);
@@ -235,10 +235,10 @@ int QtSceneFromModel_T2D_ME_mt::set_pts_from_node_id(
 	pt_radius = radius;
 	pts_mem.reserve(id_num);
 	pts = pts_mem.get_mem();
-	const NodePos* node_pos = model->get_node_pos();
+	const Position *node_pos = model->get_node_pos();
 	for (size_t p_id = 0; p_id < id_num; ++p_id)
 	{
-		const NodePos& np = node_pos[ids[p_id]];
+		const Position &np = node_pos[ids[p_id]];
 		PointData& pd = pts[p_id];
 		pd.x = GLfloat(np.x);
 		pd.y = GLfloat(np.y);

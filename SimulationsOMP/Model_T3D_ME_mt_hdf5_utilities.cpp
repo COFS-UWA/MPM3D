@@ -437,8 +437,7 @@ int output_pcl_data_to_hdf5_file(
 			"field",
 			pcl_num,
 			pcl_data,
-			pcl_dt_id
-			);
+			pcl_dt_id);
 		H5Tclose(pcl_dt_id);
 		delete[] pcl_data;
 	}

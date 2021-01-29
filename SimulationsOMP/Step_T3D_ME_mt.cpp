@@ -126,7 +126,7 @@ int Step_T3D_ME_mt::init_calculation()
 
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
-	char* cur_mem = (char*)thread_mem.alloc(
+	char* cur_mem = (char*)cal_mem.alloc(
 		  sizeof(size_t) * (md.pcl_num * 4 + 4)
 		+ sizeof(size_t) * (md.elem_num * 17 + 4)
 		+ Cache_Alignment

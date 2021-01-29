@@ -9,6 +9,7 @@ class Model_T2D_ME_mt;
 class Step_T2D_ME_mt;
 namespace Model_T2D_ME_mt_hdf5_utilities
 {
+	struct ParticleData;
 	int load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 }
 
@@ -17,101 +18,95 @@ int substep_func_omp_T2D_ME_mt(void* _self, size_t my_th_id,
 
 class Step_T2D_ME_mt : public Step_OMP
 {
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 protected:
-	typedef Model_T2D_ME_mt::PclBodyForce PclBodyForce;
-	typedef Model_T2D_ME_mt::PclTraction PclTraction;
-	typedef Model_T2D_ME_mt::PclPos PclPos;
-	typedef Model_T2D_ME_mt::PclSortedVarArray PclSortedVarArray;
-	typedef Model_T2D_ME_mt::PclDisp PclDisp;
-	typedef Model_T2D_ME_mt::PclV PclV;
-	typedef Model_T2D_ME_mt::PclShapeFunc PclShapeFunc;
-	typedef Model_T2D_ME_mt::PclStress PclStress;
+	typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+	typedef Model_T2D_ME_mt::Force Force;
+	typedef Model_T2D_ME_mt::Acceleration Acceleration;
+	typedef Model_T2D_ME_mt::Velocity Velocity;
+	typedef Model_T2D_ME_mt::Displacement Displacement;
+	typedef Model_T2D_ME_mt::Position Position;
+	typedef Model_T2D_ME_mt::Stress Stress;
+	typedef Model_T2D_ME_mt::Strain Strain;
+	typedef Model_T2D_ME_mt::StrainInc StrainInc;
 	typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
-	typedef Model_T2D_ME_mt::ElemShapeFuncAB ElemShapeFuncAB;
-	typedef Model_T2D_ME_mt::ElemShapeFuncC ElemShapeFuncC;
-	typedef Model_T2D_ME_mt::ElemStrainInc ElemStrainInc;
-	typedef Model_T2D_ME_mt::ElemStress ElemStress;
+	typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
+	typedef Model_T2D_ME_mt::ShapeFuncAB ShapeFuncAB;
+	typedef Model_T2D_ME_mt::ShapeFuncC ShapeFuncC;
 	typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
-	typedef Model_T2D_ME_mt::ElemNodeForce ElemNodeForce;
-	typedef Model_T2D_ME_mt::NodeA NodeA;
-	typedef Model_T2D_ME_mt::NodeV NodeV;
 	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
-	typedef Model_T2D_ME_mt::NodePos NodePos;
+
+	double* pcl_m;
+	Force* pcl_bf;
+	Force* pcl_t;
+	Position* pcl_pos;
+	double* pcl_vol;
+	MatModel::MaterialModel** pcl_mat_model;
+	SortedPclVarArrays sorted_pcl_var_arrays[2];
 
 	size_t elem_num;
 	size_t node_num;
-
-	double* pcl_m;
-	PclBodyForce* pcl_bf;
-	PclTraction* pcl_t;
-	PclPos* pcl_pos;
-	double* pcl_vol;
-	MatModel::MaterialModel** pcl_mat_model;
-
-	PclSortedVarArray pcl_sorted_var_array[2];
-
+	
 	ElemNodeIndex* elem_node_id;
+	ShapeFuncAB* elem_dN_ab;
+	ShapeFuncC* elem_dN_c;
 	double* elem_area;
-	ElemShapeFuncAB* elem_sf_ab;
-	ElemShapeFuncC* elem_sf_c;
 
-	double* elem_density;
 	double* elem_pcl_m;
-	double* elem_pcl_vol;
-	ElemStrainInc* elem_de;
-	ElemStress* elem_stress;
+	double* elem_density;
+	StrainInc* elem_de;
 	double* elem_m_de_vol;
 
 	ElemNodeVM* elem_node_vm;
-	ElemNodeForce* elem_node_force;
+	Force* elem_node_force;
 
-	size_t* elem_id_array;
-	size_t* node_elem_id_array;
-	size_t* node_elem_list;
-	NodeA *node_a;
-	NodeV *node_v;
+	Acceleration *node_a;
+	Velocity *node_v;
 	NodeHasVBC* node_has_vbc;
-	double *node_am; // node_num
-	double *node_de_vol; // node_num
+	double *node_am;
+	double *node_de_vol;
 
-protected:
-	// task division
-	CacheAlignedMem task_range_mem;
-	union PclRange
+	// thread-wise data
+	union ThreadData
 	{
-		size_t id;
+		struct
+		{
+			size_t sorted_pcl_var_id;
+			size_t sorted_pcl_in_elem_id;
+		};
 		char padding[Cache_Alignment];
+		ThreadData() {}
+		~ThreadData() {}
 	};
-	PclRange* pcl_range;
-	size_t *elem_range;
-	size_t *node_range;
-	size_t* node_elem_range;
+	ThreadData* thread_datas;
 
+	size_t* pcl_in_elems[2]; // pcl_num
+	size_t* prev_pcl_ids[2]; // pcl_num
+	size_t* valid_elem_id; // elem_num
+	size_t* node_has_elems[2]; // elem_num * 4
+	size_t* node_elem_pairs[2]; // elem_num * 4
 	// radix sort
-	CacheAlignedMem elem_bin_mem;
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
-	
-	CacheAlignedMem radix_sort_var_mem;
-	size_t *new_to_prev_pcl_maps[2];
-	size_t *pcl_in_elem_arrays[2];
 
-	size_t pcl_sorted_var_id;
-	size_t radix_sort_var_id;
-	size_t pcl_num;
-	size_t new_pcl_num;
+	RigidRect* prr;
 	
-	double K_cont;
-	double rr_fx_cont, rr_fy_cont, rr_m_cont;
-	struct ContPos { double x, y; };
-	CacheAlignedMem contact_mem;
-	size_t* contact_state;
-	ContPos *contact_pos;
+	size_t prev_valid_pcl_num, valid_pcl_num;
+#ifdef _DEBUG
+	size_t prev_valid_pcl_num_tmp;
+#endif
+	size_t valid_elem_num;
+	Force2D cf_tmp;
 
-	int apply_rigid_rect_avg(size_t my_th_id, double dt,
-		size_t* pcl_in_elem_array, PclSortedVarArray& cur_pscv,
-		RigidRectForce& rr_force);
+	CacheAlignedMem thread_mem;
+	CacheAlignedMem cal_mem;
+
+	int apply_rigid_rect(
+		size_t p_id0, size_t p_id1,
+		size_t* pcl_in_elem,
+		SortedPclVarArrays& cur_spva,
+		Force2D& rc_cf,
+		size_t substp_id,
+		ThreadData& thd) noexcept;
 
 public:
 	int init_calculation() override;
@@ -123,12 +118,12 @@ public:
 	Step_T2D_ME_mt(const char* _name);
 	~Step_T2D_ME_mt();
 
-	inline size_t get_pcl_num() const noexcept { return pcl_num; }
-	inline size_t get_pcl_sorted_var_id() const noexcept { return pcl_sorted_var_id; }
-	inline const size_t *get_new_to_prev_pcl_map() const noexcept { return new_to_prev_pcl_maps[radix_sort_var_id]; }
-	inline double get_rr_fx_contact() const noexcept { return rr_fx_cont; }
-	inline double get_rr_fy_contact() const noexcept { return rr_fy_cont; }
-	inline double get_rr_m_contact() const noexcept { return rr_m_cont; }
+	inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
+	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
+	inline size_t* get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
+
+	friend struct Model_T2D_ME_mt_hdf5_utilities::ParticleData;
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 };
 
 #endif
