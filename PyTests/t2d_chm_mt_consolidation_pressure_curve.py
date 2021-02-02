@@ -50,7 +50,7 @@ miu = 1.0 # dynamic viscosity
 Es = (1 - niu) / (1 + niu) / (1 - 2.0*niu) * E # Es = (1-v) / (1 + v) / (1-2v) * E
 Cv = kv * Es / miu
 con_res = OneDConsolidation(Cv, Es, u0, H)
-time = 15.0 # time of consolidation
+time = 10.0 # time of consolidation
 data_num = 100
 t_list = np.zeros(data_num + 2)
 u_list = np.zeros(data_num + 2)

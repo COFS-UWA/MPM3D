@@ -36,7 +36,7 @@ int Step_T3D_ME_mt::init_calculation()
 	res_file_t3d_me_mt.open("t3d_stp_mt.txt", std::ios::out | std::ios::binary);
 #endif
 
-	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt*)model;
+	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt *)model;
 
 	omp_set_num_threads(thread_num);
 
@@ -126,7 +126,7 @@ int Step_T3D_ME_mt::init_calculation()
 
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
-	char* cur_mem = (char*)thread_mem.alloc(
+	char* cur_mem = (char*)cal_mem.alloc(
 		  sizeof(size_t) * (md.pcl_num * 4 + 4)
 		+ sizeof(size_t) * (md.elem_num * 17 + 4)
 		+ Cache_Alignment
@@ -223,8 +223,7 @@ int substep_func_omp_T3D_ME_mt(
 	size_t my_th_id,
 	double dt,
 	double cur_time,
-	size_t substp_id
-)
+	size_t substp_id)
 {
 	typedef Model_T3D_ME_mt::Force Force;
 	typedef Model_T3D_ME_mt::Position Position;

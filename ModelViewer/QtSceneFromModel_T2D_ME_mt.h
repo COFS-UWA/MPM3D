@@ -59,8 +59,7 @@ protected:
 	}
 
 public:
-	typedef Model_T2D_ME_mt::PclPos PclPos;
-	typedef Model_T2D_ME_mt::NodePos NodePos;
+	typedef Model_T2D_ME_mt::Position Position;
 	typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
 
 	QtSceneFromModel_T2D_ME_mt(QOpenGLFunctions_3_3_Core &_gl);

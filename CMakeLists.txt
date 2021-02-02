@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15.0)
 
+# vcpkg
+set(VCPKG_ROOT "D:/Softwares/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+set(CMAKE_TOOLCHAIN_FILE ${VCPKG_ROOT} CACHE STRING "")
+
 project(SimpleMPM3)
 
 # Pathes of external dependencies (user defined part)

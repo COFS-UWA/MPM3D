@@ -162,9 +162,7 @@ protected:
 	DShapeFuncABC* elem_dN_abc; // elem_num
 	DShapeFuncD* elem_dN_d; // elem_num
 	double* elem_vol; // elem_num
-	// node data
-	Position* node_pos; // node_num
-
+	
 	// element calculation data
 	double* elem_pcl_m; // elem_num
 	double* elem_density; // elem_num
@@ -176,6 +174,7 @@ protected:
 	ElemNodeForce* elem_node_force; // elem_num * 4
 
 	// node calculation data
+	Position* node_pos; // node_num
 	Acceleration* node_a; // node_num
 	Velocity* node_v; // node_num
 	NodeHasVBC* node_has_vbc; // node_num

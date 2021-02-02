@@ -25,7 +25,7 @@ public:
 		const Vector3D& norm,
 		const Point3D& cont_pos,
 		double pcl_len,
-		ParticleVariablesGetter& pv,
+		ParticleVariablesGetter& pv_getter,
 		// out
 		size_t& cont_substp_id,
 		Point3D& prev_cont_pos,

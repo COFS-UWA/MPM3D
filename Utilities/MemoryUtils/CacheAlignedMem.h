@@ -74,12 +74,14 @@ public:
 
 	inline void *alloc(size_t mem_size)
 	{
+		free();
 		mem_head = new char[mem_size + Cache_Alignment];
 		return Cache_Aligned_Address(mem_head);
 	}
 
 	inline void* alloc(size_t mem_size, size_t offset)
 	{
+		free();
 		mem_head = new char[mem_size + Cache_Alignment];
 		return Cache_Offset_Address(mem_head, offset & Cache_Mask);
 	}
@@ -87,6 +89,7 @@ public:
 	template <typename Item>
 	inline Item* alloc(size_t num)
 	{
+		free();
 		mem_head = new char[sizeof(Item) * num + Cache_Alignment];
 		return Cache_Aligned_Address(mem_head);
 	}
@@ -94,6 +97,7 @@ public:
 	template <typename Item>
 	inline Item *alloc(size_t num, size_t offset)
 	{
+		free();
 		mem_head = new char[sizeof(Item) * num + Cache_Alignment];
 		return Cache_Offset_Address(mem_head, offset & Cache_Mask);
 	}

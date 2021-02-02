@@ -26,8 +26,7 @@ struct ParticleData
 	void from_pcl(
 		Model_T3D_ME_mt& md,
 		size_t sorted_var_id,
-		size_t pcl_offset
-		)
+		size_t pcl_offset)
 	{
 		typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 		SortedPclVarArrays& spva = md.sorted_pcl_var_arrays[sorted_var_id];
@@ -87,8 +86,7 @@ struct ParticleData
 	void from_pcl(
 		Step_T3D_ME_mt &stp,
 		size_t sorted_var_id,
-		size_t pcl_offset
-		)
+		size_t pcl_offset)
 	{
 		typedef Step_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 		sorted_var_id ^= 1;

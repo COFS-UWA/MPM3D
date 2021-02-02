@@ -49,7 +49,7 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 	//model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tys_mem.get_mem());
 	find_2d_pcls<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, tbc_pt_array, Rect(0.0, 0.2, 0.98, 1.0));
 	MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
-	double ty_mag = 0.05 * -1.0;
+	double ty_mag = 0.05 * -10.0;
 	for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
 		tys_mem.add(ty_mag);
 	model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tys_mem.get_mem());
@@ -175,7 +175,7 @@ void test_t2d_chm_mt_1d_consolidation_ani_result(int argc, char** argv)
 	app.set_bg_color(1.0f, 1.0f, 1.0f);
 	app.set_char_color(0.0f, 0.0f, 0.0f);
 	app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 1.0);
+	app.set_color_map_fld_range(0.0, 10.0);
 	//app.set_res_file(rf, "consolidation", Hdf5Field::mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
 	app.set_color_map_geometry(0.8, 0.3, 0.6);

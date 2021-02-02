@@ -644,7 +644,7 @@ int load_chm_mt_model_from_hdf5_file(
 	return 0;
 }
 
-int load_t2d_CHM_s_result_from_hdf5_file(
+int load_t2d_CHM_mt_result_from_hdf5_file(
 	Model_T2D_CHM_mt& md,
 	Step_T2D_CHM_mt& step,
 	const char* hdf5_name,

@@ -353,22 +353,19 @@ int load_search_mesh_from_hdf5_file(
 		search_mesh_grp_id,
 		"grid_elem_list",
 		grid_elem_list_len,
-		md.grid_elem_list
-		);
+		md.grid_elem_list);
 
 	size_t grid_elem_list_id_len;
 	rf.read_attribute(
 		search_mesh_grp_id,
 		"grid_elem_list_id_len",
-		grid_elem_list_id_len
-		);
+		grid_elem_list_id_len);
 	md.grid_elem_list_id_array = new size_t[grid_elem_list_id_len];
 	rf.read_dataset(
 		search_mesh_grp_id,
 		"grid_elem_list_id",
 		grid_elem_list_id_len,
-		md.grid_elem_list_id_array
-		);
+		md.grid_elem_list_id_array);
 
 	rf.close_group(search_mesh_grp_id);
 	return 0;
@@ -440,8 +437,7 @@ int output_pcl_data_to_hdf5_file(
 			"field",
 			pcl_num,
 			pcl_data,
-			pcl_dt_id
-			);
+			pcl_dt_id);
 		H5Tclose(pcl_dt_id);
 		delete[] pcl_data;
 	}
@@ -736,8 +732,7 @@ int output_t3d_rigid_mesh_state_to_hdf5_file(
 int load_t3d_rigid_mesh_from_hdf5_file(
 	Model_T3D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -764,8 +759,7 @@ int load_t3d_rigid_mesh_from_hdf5_file(
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T3D_ME_mt &md,
-	ResultFile_hdf5 &rf
-	)
+	ResultFile_hdf5 &rf)
 {
 	hid_t md_grp_id = rf.get_model_data_grp_id();
 	// background mesh
@@ -793,8 +787,7 @@ int time_history_complete_output_to_hdf5_file(
 	Model_T3D_ME_mt &md,
 	Step_T3D_ME_mt &stp,
 	ResultFile_hdf5 &rf,
-	hid_t frame_grp_id
-	)
+	hid_t frame_grp_id)
 {
 	// particle data
 	output_pcl_data_to_hdf5_file(md, stp, rf, frame_grp_id);
@@ -811,8 +804,7 @@ int time_history_complete_output_to_hdf5_file(
 // load model data from hdf5
 int load_me_mt_model_from_hdf5_file(
 	Model_T3D_ME_mt &md,
-	const char* hdf5_name
-	)
+	const char* hdf5_name)
 {
 	ResultFile_hdf5 rf;
 	rf.open(hdf5_name);
@@ -849,8 +841,7 @@ int load_me_mt_model_from_hdf5_file(
 	Step_T3D_ME_mt& step,
 	const char* hdf5_name,
 	const char* th_name,
-	size_t frame_id
-	)
+	size_t frame_id)
 {
 	ResultFile_hdf5 rf;
 	rf.open(hdf5_name);

@@ -21,138 +21,133 @@ struct ParticleData
 	double ee11, ee22, ee12;
 	double pe11, pe22, pe12;
 	size_t mat_id; // material model id
+	size_t elem_id;
 
 	void from_pcl(
 		Model_T2D_ME_mt& md,
 		size_t pcl_offset,
-		size_t pcl_sorted_var_id
-		)
+		size_t pcl_sorted_var_id)
 	{
-		Model_T2D_ME_mt::PclSortedVarArray& psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id];
-		id = psva.pcl_index[pcl_offset];
-		Model_T2D_ME_mt::PclPos& pcl_pos = md.pcl_pos[id];
-		Model_T2D_ME_mt::PclDisp& pcl_disp = psva.pcl_disp[pcl_offset];
+		Model_T2D_ME_mt::SortedPclVarArrays &spva
+			= md.sorted_pcl_var_arrays[pcl_sorted_var_id];
+		id = spva.pcl_index[pcl_offset];
+		Model_T2D_ME_mt::Position& pcl_pos = md.pcl_pos[id];
+		Model_T2D_ME_mt::Displacement& pcl_disp = spva.pcl_disp[pcl_offset];
 		x = pcl_pos.x + pcl_disp.ux;
 		y = pcl_pos.y + pcl_disp.uy;
-		Model_T2D_ME_mt::PclBodyForce& pcl_bf = md.pcl_bf[id];
-		bfx = pcl_bf.bfx;
-		bfy = pcl_bf.bfy;
-		Model_T2D_ME_mt::PclTraction& pcl_t = md.pcl_t[id];
-		tx = pcl_t.tx;
-		ty = pcl_t.ty;
+		Model_T2D_ME_mt::Force& pcl_bf = md.pcl_bf[id];
+		bfx = pcl_bf.fx;
+		bfy = pcl_bf.fy;
+		Model_T2D_ME_mt::Force & pcl_t = md.pcl_t[id];
+		tx = pcl_t.fx;
+		ty = pcl_t.fy;
 		m = md.pcl_m[id];
-		density = psva.pcl_density[pcl_offset];
+		density = spva.pcl_density[pcl_offset];
 		vol = m / density;
-		Model_T2D_ME_mt::PclV& pcl_v = psva.pcl_v[pcl_offset];
+		Model_T2D_ME_mt::Velocity &pcl_v = spva.pcl_v[pcl_offset];
 		vx = pcl_v.vx;
 		vy = pcl_v.vy;
-		Model_T2D_ME_mt::PclStress& pcl_stress = psva.pcl_stress[pcl_offset];
+		Model_T2D_ME_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
 		s11 = pcl_stress.s11;
 		s22 = pcl_stress.s22;
 		s12 = pcl_stress.s12;
-		Model_T2D_ME_mt::PclStrain& pcl_e = psva.pcl_strain[pcl_offset];
+		Model_T2D_ME_mt::Strain& pcl_e = spva.pcl_strain[pcl_offset];
 		e11 = pcl_e.e11;
 		e22 = pcl_e.e22;
 		e12 = pcl_e.e12;
-		Model_T2D_ME_mt::PclStrain& pcl_ee = psva.pcl_estrain[pcl_offset];
+		Model_T2D_ME_mt::Strain& pcl_ee = spva.pcl_estrain[pcl_offset];
 		ee11 = pcl_ee.e11;
 		ee22 = pcl_ee.e22;
 		ee12 = pcl_ee.e12;
-		Model_T2D_ME_mt::PclStrain& pcl_pe = psva.pcl_pstrain[pcl_offset];
+		Model_T2D_ME_mt::Strain& pcl_pe = spva.pcl_pstrain[pcl_offset];
 		pe11 = pcl_pe.e11;
 		pe22 = pcl_pe.e22;
 		pe12 = pcl_pe.e12;
 		mat_id = md.pcl_mat_model[id]->get_id();
+		elem_id = SIZE_MAX;
 	}
 	
 	void from_pcl(
-		Model_T2D_ME_mt &md,
-		size_t pcl_offset,
-		size_t pcl_sorted_var_id,
-		const size_t *new_to_ori_pcl_map
-		)
+		Step_T2D_ME_mt& stp,
+		size_t sorted_var_id,
+		size_t pcl_offset)
 	{
-		Model_T2D_ME_mt::PclSortedVarArray &psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id ^ 1];
-		size_t ori_pcl_id = new_to_ori_pcl_map[pcl_offset];
-		id = psva.pcl_index[ori_pcl_id];
-		Model_T2D_ME_mt::PclPos& pcl_pos = md.pcl_pos[id];
-		Model_T2D_ME_mt::PclDisp& pcl_disp = psva.pcl_disp[ori_pcl_id];
+		typedef Step_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+		sorted_var_id ^= 1;
+		SortedPclVarArrays& spva = stp.sorted_pcl_var_arrays[sorted_var_id];
+		id = spva.pcl_index[pcl_offset];
+		Model_T2D_ME_mt::Position &pcl_pos = stp.pcl_pos[id];
+		Model_T2D_ME_mt::Displacement& pcl_disp = spva.pcl_disp[pcl_offset];
 		x = pcl_pos.x + pcl_disp.ux;
 		y = pcl_pos.y + pcl_disp.uy;
-		Model_T2D_ME_mt::PclBodyForce& pcl_bf = md.pcl_bf[id];
-		bfx = pcl_bf.bfx;
-		bfy = pcl_bf.bfy;
-		Model_T2D_ME_mt::PclTraction& pcl_t = md.pcl_t[id];
-		tx = pcl_t.tx;
-		ty = pcl_t.ty;
-		m = md.pcl_m[id];
-		density = psva.pcl_density[ori_pcl_id];
+		Model_T2D_ME_mt::Force& pcl_bf = stp.pcl_bf[id];
+		bfx = pcl_bf.fx;
+		bfy = pcl_bf.fy;
+		Model_T2D_ME_mt::Force &pcl_t = stp.pcl_t[id];
+		tx = pcl_t.fx;
+		ty = pcl_t.fy;
+		m = stp.pcl_m[id];
+		density = spva.pcl_density[pcl_offset];
 		vol = m / density;
-		Model_T2D_ME_mt::PclV& pcl_v = psva.pcl_v[ori_pcl_id];
+		Model_T2D_ME_mt::Velocity &pcl_v = spva.pcl_v[pcl_offset];
 		vx = pcl_v.vx;
 		vy = pcl_v.vy;
-		Model_T2D_ME_mt::PclStress& pcl_stress = psva.pcl_stress[ori_pcl_id];
+		Model_T2D_ME_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
 		s11 = pcl_stress.s11;
 		s22 = pcl_stress.s22;
 		s12 = pcl_stress.s12;
-		Model_T2D_ME_mt::PclStrain& pcl_e = psva.pcl_strain[ori_pcl_id];
+		Model_T2D_ME_mt::Strain& pcl_e = spva.pcl_strain[pcl_offset];
 		e11 = pcl_e.e11;
 		e22 = pcl_e.e22;
 		e12 = pcl_e.e12;
-		Model_T2D_ME_mt::PclStrain& pcl_ee = psva.pcl_estrain[ori_pcl_id];
+		Model_T2D_ME_mt::Strain& pcl_ee = spva.pcl_estrain[pcl_offset];
 		ee11 = pcl_ee.e11;
 		ee22 = pcl_ee.e22;
 		ee12 = pcl_ee.e12;
-		Model_T2D_ME_mt::PclStrain& pcl_pe = psva.pcl_pstrain[ori_pcl_id];
+		Model_T2D_ME_mt::Strain& pcl_pe = spva.pcl_pstrain[pcl_offset];
 		pe11 = pcl_pe.e11;
 		pe22 = pcl_pe.e22;
 		pe12 = pcl_pe.e12;
-		mat_id = md.pcl_mat_model[id]->get_id();
+		mat_id = stp.pcl_mat_model[id]->get_id();
+		elem_id = stp.get_pcl_in_elem()[pcl_offset];
 	}
 
 	void to_pcl(
 		Model_T2D_ME_mt &md,
 		size_t pcl_offset,
 		size_t pcl_sorted_var_id,
-		MatModel::MaterialModel &mm
-		)
+		MatModel::MaterialModel &mm)
 	{
-		Model_T2D_ME_mt::PclSortedVarArray& psva
-			= md.pcl_sorted_var_array[pcl_sorted_var_id];
-		psva.pcl_index[pcl_offset] = id;
-		Model_T2D_ME_mt::PclPos &pcl_pos = md.pcl_pos[id];
+		Model_T2D_ME_mt::SortedPclVarArrays& spva
+			= md.sorted_pcl_var_arrays[pcl_sorted_var_id];
+		spva.pcl_index[pcl_offset] = id;
+		Model_T2D_ME_mt::Position &pcl_pos = md.pcl_pos[id];
 		pcl_pos.x = x;
 		pcl_pos.y = y;
-		Model_T2D_ME_mt::PclBodyForce& pcl_bf = md.pcl_bf[id];
-		pcl_bf.bfx = bfx;
-		pcl_bf.bfy = bfy;
-		Model_T2D_ME_mt::PclTraction& pcl_t = md.pcl_t[id];
-		pcl_t.tx = tx;
-		pcl_t.ty = ty;
+		Model_T2D_ME_mt::Force &pcl_bf = md.pcl_bf[id];
+		pcl_bf.fx = bfx;
+		pcl_bf.fy = bfy;
+		Model_T2D_ME_mt::Force &pcl_t = md.pcl_t[id];
+		pcl_t.fx = tx;
+		pcl_t.fy = ty;
 		md.pcl_m[id] = m;
-		psva.pcl_density[pcl_offset] = density;
-		Model_T2D_ME_mt::PclV &pcl_v = psva.pcl_v[pcl_offset];
+		spva.pcl_density[pcl_offset] = density;
+		Model_T2D_ME_mt::Velocity &pcl_v = spva.pcl_v[pcl_offset];
 		pcl_v.vx = vx;
 		pcl_v.vy = vy;
-		Model_T2D_ME_mt::PclStress& pcl_stress
-			= psva.pcl_stress[pcl_offset];
+		Model_T2D_ME_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
 		pcl_stress.s11 = s11;
 		pcl_stress.s22 = s22;
 		pcl_stress.s12 = s12;
-		Model_T2D_ME_mt::PclStrain& pcl_strain
-			= psva.pcl_strain[pcl_offset];
+		Model_T2D_ME_mt::Strain& pcl_strain = spva.pcl_strain[pcl_offset];
 		pcl_strain.e11 = e11;
 		pcl_strain.e22 = e22;
 		pcl_strain.e12 = e12;
-		Model_T2D_ME_mt::PclStrain& pcl_estrain
-			= psva.pcl_estrain[pcl_offset];
+		Model_T2D_ME_mt::Strain& pcl_estrain = spva.pcl_estrain[pcl_offset];
 		pcl_estrain.e11 = ee11;
 		pcl_estrain.e22 = ee22;
 		pcl_estrain.e12 = ee12;
-		Model_T2D_ME_mt::PclStrain& pcl_pstrain
-			= psva.pcl_pstrain[pcl_offset];
+		Model_T2D_ME_mt::Strain& pcl_pstrain = spva.pcl_pstrain[pcl_offset];
 		pcl_pstrain.e11 = pe11;
 		pcl_pstrain.e22 = pe22;
 		pcl_pstrain.e12 = pe12;
@@ -188,6 +183,7 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "pe22", HOFFSET(ParticleData, pe22), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "pe12", HOFFSET(ParticleData, pe12), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
+	H5Tinsert(res, "elem_id", HOFFSET(ParticleData, elem_id), H5T_NATIVE_ULLONG);
 	return res;
 }
 

@@ -12,7 +12,7 @@
 #include "QtApp_Prep_T2D_ME_mt.h"
 #include "test_simulations_omp.h"
 
-void test_t2d_me_mt_test2(int argc, char** argv)
+void test_t2d_me_mt_1d_compression(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
 	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
@@ -45,7 +45,7 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	}
 
 	IndexArray tbc_pt_array(50);
-	find_2d_pcls<Model_T2D_ME_mt, Model_T2D_ME_mt::PclPos>(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
+	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
 	MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
 	double ty_mag = 0.02 * -10.0;
 	for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
@@ -66,9 +66,9 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
 	//md_disp.start();
 	//return;
 
@@ -83,23 +83,22 @@ void test_t2d_me_mt_test2(int argc, char** argv)
 	out.set_interval_num(100);
 	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
+	out_pb.set_interval_num(500);
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
+	step.set_thread_num(5);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
-	step.set_thread_num(4);
-	//step.init_calculation();
-	//step.finalize_calculation();
 	step.solve();
 }
 
 #include "QtApp_Posp_T2D_ME_mt.h"
 #include "test_model_view_omp.h"
 
-void test_t2d_me_mt_test2_result(int argc, char** argv)
+void test_t2d_me_mt_1d_compression_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_mt_test2.h5");

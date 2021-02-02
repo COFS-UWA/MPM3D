@@ -28,9 +28,10 @@ Model_T3D_CHM_mt::Model_T3D_CHM_mt() :
 	rigid_cylinder_is_valid(false),
 	rigid_t3d_mesh_is_valid(false),
 	contact_mem(nullptr),
-	pcm(&smooth_contact)
-	//pcm(&rough_contact)
-	//pcm(&fric_contact)
+	pcm_s(&smooth_contact),
+	//pcm_s(&rough_contact),
+	//pcm_s(&fric_contact),
+	pcm_f(&smooth_contact)
 {
 
 }
@@ -90,14 +91,14 @@ void Model_T3D_CHM_mt::clear_mesh()
 }
 
 void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
-{ // ?????????
+{
 	node_num = n_num;
 	elem_num = e_num;
 
 	size_t mem_len = (sizeof(ElemNodeIndex)
 		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
 		+ sizeof(double) * 9 + sizeof(StrainInc)
-		+ sizeof(ElemNodeVM) * 6 + sizeof(Force) * 7) * e_num
+		+ sizeof(ElemNodeVM) * 8 + sizeof(Force) * 9) * e_num
 		+ (sizeof(Position) + sizeof(Acceleration) * 2
 		+ sizeof(Velocity) * 2 + sizeof(NodeHasVBC) * 2
 		+ sizeof(double) * 4) * n_num;
@@ -133,13 +134,13 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 	elem_m_de_vol_f = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
 	elem_node_vm_s = (ElemNodeVM*)cur_mem;
-	cur_mem += sizeof(ElemNodeVM) * elem_num * 3;
+	cur_mem += sizeof(ElemNodeVM) * elem_num * 4;
 	elem_node_vm_f = (ElemNodeVM*)cur_mem;
-	cur_mem += sizeof(ElemNodeVM) * elem_num * 3;
+	cur_mem += sizeof(ElemNodeVM) * elem_num * 4;
 	elem_node_force_s = (Force*)cur_mem;
-	cur_mem += sizeof(Force) * elem_num * 3;
+	cur_mem += sizeof(Force) * elem_num * 4;
 	elem_node_force_f = (Force*)cur_mem;
-	cur_mem += sizeof(Force) * elem_num * 3;
+	cur_mem += sizeof(Force) * elem_num * 4;
 
 	node_pos = (Position*)cur_mem;
 	cur_mem += sizeof(Position) * node_num;
@@ -423,7 +424,8 @@ void Model_T3D_CHM_mt::alloc_pcls(size_t num, size_t ori_num)
 	pcl_num = num;
 }
 
-int Model_T3D_CHM_mt::init_pcls(size_t num,
+int Model_T3D_CHM_mt::init_pcls(
+	size_t num,
 	double n,
 	double m_s,
 	double density_s,
@@ -448,44 +450,63 @@ int Model_T3D_CHM_mt::init_pcls(size_t num,
 		Force &bf_s = pcl_bf_s[p_id];
 		bf_s.fx = 0.0;
 		bf_s.fy = 0.0;
+		bf_s.fz = 0.0;
 		Force &bf_f = pcl_bf_f[p_id];
 		bf_f.fx = 0.0;
 		bf_f.fy = 0.0;
+		bf_f.fz = 0.0;
 		Force &t = pcl_t[p_id];
 		t.fx = 0.0;
 		t.fy = 0.0;
+		t.fz = 0.0;
 		spva.pcl_index[p_id] = p_id;
 		spva.pcl_n[p_id] = n;
 		spva.pcl_density_f[p_id] = density_f;
 		Displacement& u_s = spva.pcl_u_s[p_id];
 		u_s.ux = 0.0;
 		u_s.uy = 0.0;
+		u_s.uz = 0.0;
 		Displacement &u_f = spva.pcl_u_f[p_id];
 		u_f.ux = 0.0;
 		u_f.uy = 0.0;
+		u_f.uz = 0.0;
 		Velocity& v_s = spva.pcl_v_s[p_id];
 		v_s.vx = 0.0;
 		v_s.vy = 0.0;
+		v_s.vz = 0.0;
 		Velocity& v_f = spva.pcl_v_f[p_id];
 		v_f.vx = 0.0;
 		v_f.vy = 0.0;
+		v_f.vz = 0.0;
 		Stress& p_s = spva.pcl_stress[p_id];
 		p_s.s11 = 0.0;
 		p_s.s22 = 0.0;
+		p_s.s33 = 0.0;
 		p_s.s12 = 0.0;
+		p_s.s23 = 0.0;
+		p_s.s31 = 0.0;
 		spva.pcl_p[p_id] = 0.0;
 		Strain& p_e = spva.pcl_strain[p_id];
 		p_e.e11 = 0.0;
 		p_e.e22 = 0.0;
+		p_e.e33 = 0.0;
 		p_e.e12 = 0.0;
+		p_e.e23 = 0.0;
+		p_e.e31 = 0.0;
 		Strain& p_ee = spva.pcl_estrain[p_id];
 		p_ee.e11 = 0.0;
 		p_ee.e22 = 0.0;
+		p_ee.e33 = 0.0;
 		p_ee.e12 = 0.0;
+		p_ee.e23 = 0.0;
+		p_ee.e31 = 0.0;
 		Strain& p_pe = spva.pcl_pstrain[p_id];
 		p_pe.e11 = 0.0;
 		p_pe.e22 = 0.0;
+		p_pe.e33 = 0.0;
 		p_pe.e12 = 0.0;
+		p_pe.e23 = 0.0;
+		p_pe.e31 = 0.0;
 		pcl_mat_model[p_id] = nullptr;
 	}
 
@@ -613,15 +634,19 @@ int Model_T3D_CHM_mt::init_pcls(
 		Position &p_p = pcl_pos[p_id];
 		p_p.x = pg_pcl->x;
 		p_p.y = pg_pcl->y;
+		p_p.z = pg_pcl->z;
 		pcl_vol[p_id] = pg_pcl->vol;
 		pcl_vol_s[p_id] = pg_pcl->vol * (1.0 - spva.pcl_n[p_id]);
 		pcl_m_s[p_id] *= pcl_vol_s[p_id];
 		Force &bf_s = pcl_bf_s[p_id];
 		bf_s.fx *= pcl_vol_s[p_id];
 		bf_s.fy *= pcl_vol_s[p_id];
+		bf_s.fz *= pcl_vol_s[p_id];
+		const double pcl_vol_f = pcl_vol[p_id] * spva.pcl_n[p_id];
 		Force& bf_f = pcl_bf_f[p_id];
-		bf_f.fx *= pcl_vol_s[p_id];
-		bf_f.fy *= pcl_vol_s[p_id];
+		bf_f.fx *= pcl_vol_f;
+		bf_f.fy *= pcl_vol_f;
+		bf_f.fz *= pcl_vol_f;
 		pg_pcl = pg.next(pg_pcl);
 	}
 	return 0;
@@ -931,11 +956,17 @@ void Model_T3D_CHM_mt::alloc_contact_mem(size_t num)
 	if (num == 0)
 		return;
 
-	contact_mem = new char[(sizeof(size_t) + sizeof(Position) + sizeof(Force)) * num];
+	contact_mem = new char[(sizeof(size_t) + sizeof(Position) + sizeof(Force)) * num * 2];
 	char* cur_mem = contact_mem;
-	contact_substep_id = (size_t*)cur_mem;
+	contact_substep_id_s = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * num;
-	prev_contact_pos = (Position*)cur_mem;
+	prev_contact_pos_s = (Position*)cur_mem;
 	cur_mem += sizeof(Position) * num;
-	prev_contact_tan_force = (Force*)cur_mem;
+	prev_contact_tan_force_s = (Force *)cur_mem;
+	cur_mem += sizeof(Force) * num;
+	contact_substep_id_f = (size_t*)cur_mem;
+	cur_mem += sizeof(size_t) * num;
+	prev_contact_pos_f = (Position*)cur_mem;
+	cur_mem += sizeof(Position) * num;
+	prev_contact_tan_force_f = (Force*)cur_mem;
 }

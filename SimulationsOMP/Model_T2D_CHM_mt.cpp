@@ -552,9 +552,10 @@ int Model_T2D_CHM_mt::init_pcls(
 		Force &bf_s = pcl_bf_s[p_id];
 		bf_s.fx *= pcl_vol_s[p_id];
 		bf_s.fy *= pcl_vol_s[p_id];
+		const double pcl_vol_f = pg_pcl->area * spva.pcl_n[p_id];
 		Force& bf_f = pcl_bf_f[p_id];
-		bf_f.fx *= pcl_vol_s[p_id];
-		bf_f.fy *= pcl_vol_s[p_id];
+		bf_f.fx *= pcl_vol_f;
+		bf_f.fy *= pcl_vol_f;
 		pg_pcl = pg.next(pg_pcl);
 	}
 	return 0;

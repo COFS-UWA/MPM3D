@@ -20,8 +20,8 @@ add_executable(
     test_von_mises.cpp
     test_Step_OMP.cpp
     test_t2d_me_mt_test1.cpp
-    test_t2d_me_mt_test2.cpp
     test_t2d_me_s_test2.cpp
+    test_t2d_me_mt_1d_compression.cpp
     test_t2d_me_mt_cap_compression.cpp
 	#test_t2d_me_mt_pipe_conference.cpp
     test_t2d_me_mt_strip_footing_smaller.cpp
@@ -41,6 +41,7 @@ add_executable(
     test_t3d_me_mt_cylinder_foundation_den.cpp
 	test_t3d_me_mt_cylinder_foundation_ch_den.cpp
     test_t3d_me_mt_spudcan_coarse.cpp
+    test_t3d_chm_mt_1d_consolidation.cpp
     )
 
 target_include_directories(

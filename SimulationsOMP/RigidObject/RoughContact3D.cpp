@@ -13,12 +13,11 @@ void RoughContact3D::cal_contact_force(
 	const Vector3D& norm,
 	const Point3D& cont_pos,
 	double pcl_len,
-	ParticleVariablesGetter& pv,
+	ParticleVariablesGetter& pv_getter,
 	size_t& cont_substp_id,
 	Point3D& prev_cont_pos,
 	Vector3D& prev_cont_tan_force,
-	Vector3D& cont_force
-	)
+	Vector3D& cont_force)
 {
 	const double pcl_area = pcl_len * pcl_len;
 	// normal force
