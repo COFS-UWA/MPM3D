@@ -32,7 +32,7 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 		mms[p_id] = &les[p_id];
 	}
 
-	model.init_rigid_rect(10000.0, 0.1, 1.03, 0.3, 0.06);
+	model.init_rigid_rect(200.0, 0.1, 1.03, 0.3, 0.06);
 	model.set_rigid_rect_velocity(0.0, -0.05, 0.0);
 
 	// vx bc

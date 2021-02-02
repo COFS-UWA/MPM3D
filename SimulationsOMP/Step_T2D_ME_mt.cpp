@@ -995,7 +995,8 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 			//	prev_contact_tan_force[ori_p_id].vec,
 			//	lcont_f.vec
 			//);
-			const double f_cont = K_cont * 2.0 * p_r * dist;
+			//const double f_cont = K_cont * 2.0 * p_r * dist;
+			const double f_cont = K_cont * dist;
 			lcont_f.fx = f_cont * lnorm.x;
 			lcont_f.fy = f_cont * lnorm.y;
 			prr->get_global_vector(lcont_f.vec, gcont_f.vec);

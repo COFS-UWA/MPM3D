@@ -49,7 +49,7 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 		mms[p_id] = &tes[p_id];
 	}
 
-	model.init_rigid_rect(200.0, 0.0, 0.1, 1.0, 0.2);
+	//model.init_rigid_rect(200.0, 0.0, 0.1, 1.0, 0.2);
 	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
 
 	// vx bc
