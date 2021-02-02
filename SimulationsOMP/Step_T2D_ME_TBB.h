@@ -3,6 +3,8 @@
 
 #include "CacheAlignedMem.h"
 #include "Model_T2D_ME_mt.h"
+#include "SortTask.h"
+#include "Step_T2D_ME_TBB_task.h"
 #include "Step_TBB.h"
 
 class Step_T2D_ME_TBB;
@@ -15,7 +17,9 @@ int cal_substep_func_T2D_ME_TBB(void* _self);
 
 class Step_T2D_ME_TBB : public Step_TBB
 {
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+	friend class Step_T2D_ME_TBB_task::CalData_T2D_ME_TBB;
+	friend class Step_T2D_ME_TBB_task::MapPclToBgMeshTask;
+
 protected:
 	typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Model_T2D_ME_mt::Force Force;
@@ -32,37 +36,27 @@ protected:
 	typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
+	typedef Step_T2D_ME_TBB_task::Range Range;
 
-	size_t elem_num;
-	size_t node_num;
+	size_t sorted_pcl_var_id;
+	size_t prev_valid_pcl_num, valid_pcl_num;
+#ifdef _DEBUG
+	size_t prev_valid_pcl_num_tmp;
+#endif
+	size_t valid_elem_num;
+	Force2D cf_tmp;
+	
+	size_t pcl_num_per_map_pcl_to_bg_mesh_task;
+	size_t pcl_num_per_map_bg_mesh_to_pcl_task;
 
-	double* pcl_m;
-	Force *pcl_bf;
-	Force *pcl_t;
-	Position *pcl_pos;
-	double* pcl_vol;
-	MatModel::MaterialModel** pcl_mat_model;
-
-	SortedPclVarArrays pcl_sorted_var_arrays[2];
-
-	ElemNodeIndex* elem_node_id;
-	ShapeFuncAB* elem_dN_ab;
-	ShapeFuncC* elem_dN_c;
-	double* elem_area;
-
-	double* elem_pcl_m;
-	double* elem_density;
-	StrainInc* elem_de;
-	double* elem_m_de_vol;
-
-	ElemNodeVM* elem_node_vm;
-	Force* elem_node_force;
-
-	Acceleration *node_a;
-	Velocity *node_v;
-	NodeHasVBC* node_has_vbc;
-	double* node_am;
-	double* node_de_vol;
+	SortUtils::SortMem pcl_sort_mem;
+	SortUtils::SortMem node_sort_mem;
+	
+	// thread wise data
+	Range **pcl_ranges;
+	Range **node_ranges;
+	Range **elem_ranges;
+	size_t** valid_elem_arrays; // thread_num
 
 	//int apply_rigid_rect(
 	//	size_t p_id0, size_t p_id1,
@@ -72,7 +66,6 @@ protected:
 	//	size_t substp_id,
 	//	ThreadData& thd) noexcept;
 
-public:
 	int init_calculation() override;
 	friend int cal_substep_func_T2D_ME_TBB(void* _self);
 	int finalize_calculation() override;
@@ -84,6 +77,8 @@ public:
 	//inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
 	//inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
 	//inline size_t* get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
+
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 };
 
 #endif

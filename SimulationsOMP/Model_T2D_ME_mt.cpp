@@ -251,12 +251,9 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 	if (num == 0)
 		return;
 
-	size_t mem_len;
-	char* cur_mem;
-
 	ori_pcl_num = num;
 	pcl_num = ori_pcl_num;
-	mem_len = (sizeof(double) + sizeof(Force) * 2
+	size_t mem_len = (sizeof(double) + sizeof(Force) * 2
 			 + sizeof(Position) + sizeof(double)
 			 + sizeof(MatModel::MaterialModel *)
 			+ (sizeof(size_t) + sizeof(double)
@@ -266,7 +263,7 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 			) * num;
 	pcl_mem_raw = new char[mem_len];
 
-	cur_mem = pcl_mem_raw;
+	char *cur_mem = pcl_mem_raw;
 	pcl_m = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
 	pcl_bf = (Force *)(cur_mem);
@@ -351,6 +348,9 @@ int Model_T2D_ME_mt::init_pcls(size_t num, double m, double density)
 		p_t.fy = 0.0;
 		spva0.pcl_index[p_id] = p_id;
 		spva0.pcl_density[p_id] = density;
+		Displacement& p_disp = spva0.pcl_disp[p_id];
+		p_disp.ux = 0.0;
+		p_disp.uy = 0.0;
 		Velocity& p_v = spva0.pcl_v[p_id];
 		p_v.vx = 0.0;
 		p_v.vy = 0.0;
@@ -555,8 +555,7 @@ void Model_T2D_ME_mt::init_tys(
 
 void Model_T2D_ME_mt::init_fixed_vx_bc(
 	size_t bc_num,
-	const size_t* bcs
-	)
+	const size_t* bcs)
 {
 	for (size_t bc_id = 0; bc_id < bc_num; ++bc_id)
 	{
@@ -567,8 +566,7 @@ void Model_T2D_ME_mt::init_fixed_vx_bc(
 
 void Model_T2D_ME_mt::init_fixed_vy_bc(
 	size_t bc_num,
-	const size_t* bcs
-	)
+	const size_t* bcs)
 {
 	for (size_t bc_id = 0; bc_id < bc_num; ++bc_id)
 	{

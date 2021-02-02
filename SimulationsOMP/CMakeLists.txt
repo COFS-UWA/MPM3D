@@ -40,6 +40,8 @@ add_library(
     TimeHistory_T3D_CHM_mt_complete.h TimeHistory_T3D_CHM_mt_complete.cpp
     # Parallelism using TBB
     Step_TBB.h Step_TBB.cpp
+    SortUtils.h SortUtils.cpp
+    SortTask.h SortTask.cpp
     # 2D ME MPM
     Step_T2D_ME_TBB_task.h Step_T2D_ME_TBB_task.cpp
     Step_T2D_ME_TBB.h Step_T2D_ME_TBB.cpp

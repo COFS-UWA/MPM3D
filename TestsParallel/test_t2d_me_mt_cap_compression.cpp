@@ -32,7 +32,7 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 		mms[p_id] = &les[p_id];
 	}
 
-	model.init_rigid_rect(500.0, 0.1, 1.03, 0.3, 0.06);
+	model.init_rigid_rect(10000.0, 0.1, 1.03, 0.3, 0.06);
 	model.set_rigid_rect_velocity(0.0, -0.05, 0.0);
 
 	// vx bc
@@ -61,8 +61,9 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T2D_ME_mt_complete out("loading");
-	out.set_output_init_state();
 	out.set_interval_num(100);
+	out.set_output_init_state();
+	out.set_output_final_state();
 	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
 
@@ -70,9 +71,9 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
+	step.set_thread_num(4);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
-	step.set_thread_num(3);
 	step.solve();
 }
 

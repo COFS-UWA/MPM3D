@@ -65,6 +65,10 @@ protected:
 	double *node_am;
 	double *node_de_vol;
 
+	// rigid object
+	double K_cont;
+	RigidRect* prr;
+	
 	// thread-wise data
 	union ThreadData
 	{
@@ -82,14 +86,12 @@ protected:
 	size_t* pcl_in_elems[2]; // pcl_num
 	size_t* prev_pcl_ids[2]; // pcl_num
 	size_t* valid_elem_id; // elem_num
-	size_t* node_has_elems[2]; // elem_num * 4
-	size_t* node_elem_pairs[2]; // elem_num * 4
+	size_t* node_has_elems[2]; // elem_num * 3
+	size_t* node_elem_pairs[2]; // elem_num * 3
 	// radix sort
 	size_t* elem_count_bin;
 	size_t* elem_sum_bin;
 
-	RigidRect* prr;
-	
 	size_t prev_valid_pcl_num, valid_pcl_num;
 #ifdef _DEBUG
 	size_t prev_valid_pcl_num_tmp;
@@ -108,7 +110,6 @@ protected:
 		size_t substp_id,
 		ThreadData& thd) noexcept;
 
-public:
 	int init_calculation() override;
 	friend int substep_func_omp_T2D_ME_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);

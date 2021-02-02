@@ -20,8 +20,8 @@ add_executable(
     test_von_mises.cpp
     test_Step_OMP.cpp
     test_t2d_me_mt_test1.cpp
-    test_t2d_me_mt_test2.cpp
     test_t2d_me_s_test2.cpp
+    test_t2d_me_mt_1d_compression.cpp
     test_t2d_me_mt_cap_compression.cpp
     test_t2d_me_mt_strip_footing_smaller.cpp
     test_t2d_me_mt_strip_footing.cpp

@@ -183,6 +183,16 @@ public: // helper function for calculation
 		m_con = 0.0;
 	}
 
+	inline void set_cont_force(
+		double _fx,
+		double _fy,
+		double _m) noexcept
+	{
+		fx_con = _fx;
+		fy_con = _fy;
+		m_con = _m;
+	}
+
 	inline void add_f_contact(
 		double _x, double _y,
 		double fx, double fy
@@ -205,8 +215,7 @@ public: // helper function for calculation
 	// return false if point is outside rect
 	inline bool detect_collision_with_point(
 		double _x, double _y, double pcl_vol,
-		double& overlap_dist, double& norm_x, double& norm_y
-		)
+		double& overlap_dist, double& norm_x, double& norm_y)
 	{
 		Point2D lp;
 		Vector2D ix(cos_ang, sin_ang), iy(-sin_ang, cos_ang);
@@ -243,12 +252,60 @@ public: // helper function for calculation
 
 		Vector2D norm;
 		vector_from_local_to_global_coordinate(
-			ix, iy,
-			edge_normals[norm_id], norm
-			);
+			ix, iy,	edge_normals[norm_id], norm);
 		norm_x = norm.x;
 		norm_y = norm.y;
 		return true;
+	}
+
+	inline bool detect_collision_with_point(
+		double p_x, double p_y, double p_r,
+		double& overlap_dist,
+		Vector2D &lnorm, Point2D &lcont_pos)
+	{
+		const Vector2D ix(cos_ang, sin_ang), iy(-sin_ang, cos_ang);
+		point_from_global_to_local_coordinate(centre,
+			ix, iy, Point2D(p_x, p_y), lcont_pos);
+		
+		// need rotation when change coordinate
+		const double bbox_hhx = hhx + p_r;
+		const double bbox_hhy = hhy + p_r;
+		if (lcont_pos.x < -bbox_hhx || lcont_pos.x > bbox_hhx ||
+			lcont_pos.y < -bbox_hhy || lcont_pos.y > bbox_hhy)
+			return false;
+
+		double dist_tmp;
+		overlap_dist = lcont_pos.x + bbox_hhx;
+		size_t norm_id = 0;
+		dist_tmp = bbox_hhx - lcont_pos.x;
+		if (overlap_dist > dist_tmp)
+		{
+			overlap_dist = dist_tmp;
+			norm_id = 1;
+		}
+		dist_tmp = lcont_pos.y + bbox_hhy;
+		if (overlap_dist > dist_tmp)
+		{
+			overlap_dist = dist_tmp;
+			norm_id = 2;
+		}
+		dist_tmp = bbox_hhy - lcont_pos.y;
+		if (overlap_dist > dist_tmp)
+		{
+			overlap_dist = dist_tmp;
+			norm_id = 3;
+		}
+
+		const Vector2D& en = edge_normals[norm_id];
+		lnorm.x = en.x;
+		lnorm.y = en.y;
+		return true;
+	}
+
+	void get_global_vector(const Vector2D &lnorm, Vector2D &gnorm)
+	{
+		Vector2D ix(cos_ang, sin_ang), iy(-sin_ang, cos_ang);
+		vector_from_local_to_global_coordinate(ix, iy, lnorm, gnorm);
 	}
 
 	// update rigid circle motion and position

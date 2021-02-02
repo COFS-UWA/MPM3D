@@ -16,6 +16,14 @@ class Model_T2D_ME_mt;
 class Step_T2D_ME_mt;
 int substep_func_omp_T2D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
+class Step_T2D_ME_TBB;
+int cal_substep_func_T2D_ME_TBB(void* _self);
+
+namespace Step_T2D_ME_TBB_task
+{
+	class CalData_T2D_ME_TBB;
+	class MapPclToBgMeshTask;
+}
 
 class ResultFile_hdf5;
 namespace Model_T2D_ME_mt_hdf5_utilities
@@ -40,7 +48,12 @@ struct Model_T2D_ME_mt : public Model,
 	friend class Step_T2D_ME_mt;
 	friend int substep_func_omp_T2D_ME_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
-
+	
+	friend class Step_T2D_ME_TBB;
+	friend int cal_substep_func_T2D_ME_TBB(void* _self);
+	friend class Step_T2D_ME_TBB_task::CalData_T2D_ME_TBB;
+	friend class Step_T2D_ME_TBB_task::MapPclToBgMeshTask;
+	
 public:
 	struct ShapeFunc { double N1, N2, N3; };
 	struct ShapeFuncAB
@@ -276,7 +289,7 @@ public:
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu)
-			return elem_num;
+			return SIZE_MAX;
 		const size_t x_id = (pcl_x - grid_xl) / grid_hx;
 		const size_t y_id = (pcl_y - grid_yl) / grid_hy;
 		const size_t g_id = grid_x_num * y_id + x_id;
@@ -287,7 +300,7 @@ public:
 			if (is_in_element(pcl_x, pcl_y, elem_id, pcl_N))
 				return elem_id;
 		}
-		return elem_num;
+		return SIZE_MAX;
 	}
 
 	inline size_t find_pcl_in_which_elem_tol(
@@ -298,7 +311,7 @@ public:
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu)
-			return elem_num;
+			return SIZE_MAX;
 		const size_t x_id = (pcl_x - grid_xl) / grid_hx;
 		const size_t y_id = (pcl_y - grid_yl) / grid_hy;
 		const size_t g_id = grid_x_num * y_id + x_id;
@@ -309,7 +322,7 @@ public:
 			if (is_in_element_tol(pcl_x, pcl_y, elem_id, pcl_N))
 				return elem_id;
 		}
-		return elem_num;
+		return SIZE_MAX;
 	}
 
 protected: // rigid object contact
