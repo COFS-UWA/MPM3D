@@ -16,8 +16,8 @@ static std::fstream res_file_t2d_me_mt;
 
 Step_T2D_CHM_mt::Step_T2D_CHM_mt(const char* _name) : 
 	Step_OMP(_name, "Step_T2D_CHM_mt",
-		//&substep_func_omp_T2D_CHM_mt
-		&substep_func_omp_T2D_CHM_mt2
+		&substep_func_omp_T2D_CHM_mt
+		//&substep_func_omp_T2D_CHM_mt2
 	) {}
 
 Step_T2D_CHM_mt::~Step_T2D_CHM_mt() {}
@@ -1078,6 +1078,7 @@ int substep_func_omp_T2D_CHM_mt(
 		e_de_vol_s *= one_third;
 		e_de.de11 -= e_de_vol_s;
 		e_de.de22 -= e_de_vol_s;
+		//elem_p[e_id] += self.Kf * e_de_vol_f;
 	}
 
 #pragma omp barrier
@@ -1148,6 +1149,7 @@ int substep_func_omp_T2D_CHM_mt(
 				+ node_de_vol_f[eni.n2] + node_de_vol_f[eni.n3]);
 			e_density_f = elem_density_f[e_id] / (1.0 - e_de_vol_f);
 			e_p = elem_p[e_id] + self.Kf * e_de_vol_f;
+			//e_p = elem_p[e_id];
 
 			pe_de = elem_de + e_id;
 			e_de_vol_s *= one_third;

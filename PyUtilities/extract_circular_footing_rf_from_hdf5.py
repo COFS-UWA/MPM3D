@@ -3,7 +3,7 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_cylinder_foundation.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_cylinder_foundation_ch_den_v0.02.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']
@@ -41,9 +41,9 @@ plt.xlim(0.0)
 plt.ylim(rb_z[0], rb_z[-1])
 
 # smooth
-smooth_ana_bc = 0.5 * 0.5 * math.pi * 5.14 * 1.11 * 5.0
+smooth_ana_bc = 0.5 * 0.5 * math.pi * 5.71 * 5.0
 # rough
-rough_ana_bc = 0.5 * 0.5 * math.pi * 5.14 * 1.2 * 5.0
+rough_ana_bc = 0.5 * 0.5 * math.pi * 6.05 * 5.0
 
 y_range = [rb_z[0], rb_z[-1]]
 line2, = plot1.plot([smooth_ana_bc, smooth_ana_bc], y_range, 'r--')

@@ -49,7 +49,7 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 		mms[p_id] = &tes[p_id];
 	}
 
-	//model.init_rigid_rect(200.0, 0.0, 0.1, 1.0, 0.2);
+	model.init_rigid_rect(200.0, 0.0, 0.1, 1.0, 0.2);
 	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
 
 	// vx bc
@@ -66,9 +66,9 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1500, 950);
 	//md_disp.set_model(model);
-	//md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
+	////md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
 	//md_disp.start();
 	//return;
 
@@ -83,12 +83,13 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	out1.set_interval_num(100);
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
+	out_pb.set_interval_num(2000);
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_step_time(10.0); // 10.0
 	step.set_dtime(5.0e-6);
-	step.set_thread_num(6);
+	step.set_thread_num(20);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();

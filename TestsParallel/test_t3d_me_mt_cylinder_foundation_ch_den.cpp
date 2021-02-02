@@ -139,6 +139,8 @@ void test_t3d_me_mt_cylinder_foundation_ch_den(int argc, char** argv)
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model,
 		"t3d_me_mt_cylinder_foundation_model_ch_den.h5");
 
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.02);
+
 	////QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	//md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -161,16 +163,17 @@ void test_t3d_me_mt_cylinder_foundation_ch_den(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T3D_ME_mt_complete out1("penetration");
-	out1.set_res_file(res_file_hdf5);
-	out1.set_output_init_state();
 	out1.set_interval_num(50);
+	out1.set_output_init_state();
+	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(5000);
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_thread_num(6);
-	step.set_step_time(0.5);
+	step.set_thread_num(30);
+	//step.set_step_time(0.35); // 0.035
+	step.set_step_time(1.5); // 1.75
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
@@ -278,7 +281,7 @@ void test_t3d_me_mt_cylinder_foundation_restart_ch_den2(int argc, char** argv)
 void test_t3d_me_mt_cylinder_foundation_result_ch_den2(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_cylinder_foundation_ch_den.h5");
+	rf.open("t3d_me_mt_cylinder_foundation_ch_den_v0.02.h5");
 
 	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
 	////app.set_res_file(rf, "penetration", 50, Hdf5Field::s33);
