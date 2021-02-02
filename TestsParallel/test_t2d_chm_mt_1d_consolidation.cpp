@@ -97,7 +97,7 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 	step.set_step_time(15.0);
 	//step.set_step_time(1.0e-3);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(2);
+	step.set_thread_num(2);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();

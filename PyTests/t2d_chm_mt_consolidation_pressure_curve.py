@@ -28,7 +28,7 @@ for t_id in range(output_num):
     pcl_dset = frame_grp['ParticleData']['field']
     for p_id in range(len(pcl_dset)):
         pcl_fld = pcl_dset[p_id]
-        if pcl_fld['id'] == 0: # at bottom
+        if pcl_fld['id'] == 117: # at bottom
             if not is_init:
                 pcl_y = pcl_fld['y']
                 is_init = True
@@ -40,7 +40,7 @@ hdf5_file.close()
 line1, = plot1.plot(out_time, pcl_var)
 
 # analytical solution
-u0 = 10.0
+u0 = 1.0
 H = 1.0
 E = 1000.0
 niu = 0.0 # possion ratio
@@ -64,9 +64,11 @@ for i in range(data_num):
     t_list[i + 2] += t_list[1]
 
 line2, = plot1.plot(t_list, u_list, 'r--')
-# with open("consolidation_disp_ana_SE.csv", "w") as out_file:
-    # for i in range(len(t_list)):
-        # out_file.write("%f, %f\n" % (t_list[i], u_list[i]))
+with open("consolidation_disp_ana_SE.csv", "w") as out_file:
+    for i in range(len(out_time)):
+        out_file.write("%f, %f\n" % (out_time[i], pcl_var[i]))
+    for i in range(len(t_list)):
+        out_file.write("%f, %f\n" % (t_list[i], u_list[i]))
 
 plt.legend(handles=[line1, line2], labels=['MPM', 'Analytical Solution'])
 plt.show()
