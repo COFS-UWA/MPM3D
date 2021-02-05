@@ -38,7 +38,7 @@ namespace Step_T2D_ME_Task
 		double* const elem_m_de_vol;
 
 		size_t *const valid_elems;
-		size_t* const tmp_valid_elems;
+		size_t *const tmp_valid_elems;
 
 		// elem node data
 		Model_T2D_ME_mt::ElemNodeVM* const elem_node_vm;
@@ -63,10 +63,12 @@ namespace Step_T2D_ME_Task
 		const size_t ori_pcl_num;
 		const size_t elem_num;
 		const size_t node_num;
+		size_t prev_valid_pcl_num;
 #endif
 		size_t valid_pcl_num;
 		size_t valid_elem_num;
 		size_t sorted_pcl_var_id;
+		double dt;
 
 		TaskData(Step_T2D_ME_TBB& _stp,
 			size_t _pcl_num_per_map_pcl_to_mesh_task,
@@ -89,10 +91,16 @@ namespace Step_T2D_ME_Task
 		typedef Model_T2D_ME_mt::ShapeFuncAB ShapeFuncAB;
 		typedef Model_T2D_ME_mt::ShapeFuncC ShapeFuncC;
 		typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
-		size_t start_id, end_id;
+		size_t p_id0, p_id1;
 		TaskData& td;
 	public:
-		MapPclToBgMeshTask(size_t _start_id, size_t _end_id, TaskData &_td);
+		MapPclToBgMeshTask(
+			size_t start_id,
+			size_t end_id,
+			TaskData& _td) :
+			p_id0(start_id),
+			p_id1(end_id),
+			td(_td) {}
 		~MapPclToBgMeshTask() {}
 		tbb::task* execute() override;
 	};
@@ -100,42 +108,42 @@ namespace Step_T2D_ME_Task
 	class UpdateAccelerationAndVelocityTask : public tbb::task
 	{
 	protected:
-		size_t start_id, end_id;
+		typedef Model_T2D_ME_mt::Force Force;
+		typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
+		typedef Model_T2D_ME_mt::Acceleration Acceleration;
+		typedef Model_T2D_ME_mt::Velocity Velocity;
+		typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
+		size_t ve_id0, ve_id1;
 		TaskData& td;
 	public:
 		UpdateAccelerationAndVelocityTask(
-			size_t _start_id,
-			size_t _end_id,
+			size_t start_id,
+			size_t end_id,
 			TaskData& _td) :
-			start_id(_start_id),
-			end_id(_end_id),
+			ve_id0(start_id),
+			ve_id1(end_id),
 			td(_td) {}
 		~UpdateAccelerationAndVelocityTask() {}
 		tbb::task* execute() override;
 	};
 
-	//class ContactWithRigidObejctTask : public tbb::task
-	//{
-	//protected:
-	
-	//public:
-	//	ContactWithRigidObejctTask();
-	//	~ContactWithRigidObejctTask();
-	//	tbb::task* execute() override;
-	//};
-
 	class CalElemDeAndMapToNode : public tbb::task
 	{
 	protected:
-		size_t start_id, end_id;
+		typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T2D_ME_mt::Velocity Velocity;
+		typedef Model_T2D_ME_mt::ShapeFuncAB ShapeFuncAB;
+		typedef Model_T2D_ME_mt::StrainInc StrainInc;
+
+		size_t ve_id0, ve_id1;
 		TaskData& td;
 	public:
 		CalElemDeAndMapToNode(
-			size_t _start_id,
-			size_t _end_id,
+			size_t start_id,
+			size_t end_id,
 			TaskData& _td) :
-			start_id(_start_id),
-			end_id(_end_id),
+			ve_id0(start_id),
+			ve_id1(end_id),
 			td(_td) {}
 		~CalElemDeAndMapToNode() {}
 		tbb::task* execute() override;
@@ -144,15 +152,15 @@ namespace Step_T2D_ME_Task
 	class CalNodeDe : public tbb::task
 	{
 	protected:
-		size_t start_id, end_id;
+		size_t ve_id0, ve_id1;
 		TaskData& td;
 	public:
 		CalNodeDe(
-			size_t _start_id,
-			size_t _end_id,
+			size_t start_id,
+			size_t end_id,
 			TaskData& _td) :
-			start_id(_start_id),
-			end_id(_end_id),
+			ve_id0(start_id),
+			ve_id1(end_id),
 			td(_td) {}
 		~CalNodeDe() {}
 		tbb::task* execute() override;
@@ -161,15 +169,23 @@ namespace Step_T2D_ME_Task
 	class MapBgMeshToPclTask : public tbb::task
 	{
 	protected:
-		size_t start_id, end_id;
+		typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T2D_ME_mt::Acceleration Acceleration;
+		typedef Model_T2D_ME_mt::Velocity Velocity;
+		typedef Model_T2D_ME_mt::Displacement Displacement;
+		typedef Model_T2D_ME_mt::Stress Stress;
+		typedef Model_T2D_ME_mt::Strain Strain;
+		typedef Model_T2D_ME_mt::StrainInc StrainInc;
+		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
+		size_t p_id0, p_id1;
 		TaskData& td;
 	public:
 		MapBgMeshToPclTask(
-			size_t _start_id,
-			size_t _end_id,
+			size_t start_id,
+			size_t end_id,
 			TaskData& _td) :
-			start_id(_start_id),
-			end_id(_end_id),
+			p_id0(start_id),
+			p_id1(end_id),
 			td(_td) {}
 		~MapBgMeshToPclTask() {}
 		tbb::task* execute() override;
@@ -184,6 +200,16 @@ namespace Step_T2D_ME_Task
 		~Step_T2D_ME_Task() {}
 		tbb::task *execute() override;
 	};
+
+	//class ContactWithRigidObejctTask : public tbb::task
+	//{
+	//protected:
+
+	//public:
+	//	ContactWithRigidObejctTask();
+	//	~ContactWithRigidObejctTask();
+	//	tbb::task* execute() override;
+	//};
 }
 
 #endif

@@ -18,7 +18,13 @@ static std::fstream res_file_t2d_me_tbb;
 
 Step_T2D_ME_TBB::Step_T2D_ME_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T2D_ME_TBB", &cal_substep_func_T2D_ME_TBB),
-	task_data(*this) {}
+	task_data(*this, 
+		1, // pcl_num_per_map_pcl_to_mesh_task
+		1, // node_num_per_update_a_and_v_task
+		1, // elem_num_per_cal_elem_de_task
+		1, // node_num_per_cal_node_de_task
+		1  // pcl_num_per_task_map_mesh_to_pcl
+		) {}
 
 Step_T2D_ME_TBB::~Step_T2D_ME_TBB() {}
 
@@ -48,12 +54,16 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 {
 	Step_T2D_ME_TBB& stp = *(Step_T2D_ME_TBB*)(_self);
 	Step_T2D_ME_Task::TaskData& td = stp.task_data;
+	td.dt = stp.dtime;
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
 			Step_T2D_ME_Task::Step_T2D_ME_Task(td));
 	if (td.valid_pcl_num == 0)
+	{
 		stp.exit_calculation();
+		return 0;
+	}
 	stp.continue_calculation();
-	td.sorted_pcl_var_id ^= 0;
+	td.sorted_pcl_var_id ^= 1;
 	return 0;
 }
