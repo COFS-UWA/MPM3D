@@ -3,8 +3,6 @@
 #include <assert.h>
 #include "tbb/task_arena.h"
 
-#include "SortParticleTask.h"
-#include "SortTriMeshNodeTask.hpp"
 #include "Step_T2D_ME_Task.h"
 #include "Step_T2D_ME_TBB.h"
 
@@ -21,8 +19,6 @@ namespace Step_T2D_ME_Task
 		size_t _pcl_num_per_task_map_mesh_to_pcl) :
 		stp(_stp),
 		md(*(Model_T2D_ME_mt*)(stp.model)),
-		pcl_sort_mem(stp.pcl_sort_mem),
-		node_sort_mem(stp.node_sort_mem),
 		pcl_m(md.pcl_m),
 		pcl_bf(md.pcl_bf),
 		pcl_t(md.pcl_t),
@@ -37,8 +33,6 @@ namespace Step_T2D_ME_Task
 		elem_density(md.elem_density),
 		elem_de(md.elem_de),
 		elem_m_de_vol(md.elem_m_de_vol),
-		valid_elems(stp.valid_elems),
-		tmp_valid_elems(stp.tmp_valid_elems),
 		elem_node_vm(md.elem_node_vm),
 		elem_node_force(md.elem_node_force),
 		node_a(md.node_a),
@@ -566,8 +560,8 @@ namespace Step_T2D_ME_Task
 		spawn_and_wait_for_all(*new(allocate_child())
 			SortUtils::SortParticleTask(
 				td.pcl_sort_mem,
-				td.valid_pcl_num,
-				td.pcl_digit_num));
+				td.pcl_digit_num,
+				td.valid_pcl_num));
 		if (td.valid_pcl_num == 0)
 			return nullptr;
 
@@ -577,14 +571,17 @@ namespace Step_T2D_ME_Task
 				 / td.pcl_num_per_map_pcl_to_mesh_task;
 		set_ref_count(2 + task_num);
 		spawn(*new(allocate_child())
-			SortUtils::SortTriMeshNodeTask<Model_T2D_ME_mt::ElemNodeIndex>(
+			SortUtils::SortTriMeshNodeTask(
+#ifdef _DEBUG
 				td.elem_num,
+#endif
 				td.pcl_sort_mem.out_keys,
 				td.valid_pcl_num,
 				td.node_digit_num,
 				td.pcl_sort_mem,
 				td.tmp_valid_elems,
-				td.valid_elems));
+				td.valid_elems,
+				));
 		// map pcl to bg mesh
 		start_id = 0;
 		for (task_id = 1; task_id < task_num; ++task_id)

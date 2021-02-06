@@ -2,7 +2,8 @@
 #define __Step_T2D_ME_Task_h__
 
 #include "tbb/task.h"
-#include "SortTask.h"
+#include "SortParticleTask.h"
+#include "SortTriMeshNodeTask.h"
 #include "Model_T2D_ME_mt.h"
 
 class Step_T2D_ME_TBB;
@@ -13,8 +14,9 @@ namespace Step_T2D_ME_Task
 	{
 		Step_T2D_ME_TBB& stp;
 		Model_T2D_ME_mt& md;
-		SortUtils::SortMem &pcl_sort_mem;
-		SortUtils::SortMem &node_sort_mem;
+
+		SortUtils::SortParticleMem pcl_sort_mem;
+		SortUtils::SortTriMeshNodeMem node_sort_mem;
 
 		// pcl data
 		const double* const pcl_m;
@@ -65,6 +67,7 @@ namespace Step_T2D_ME_Task
 		const size_t node_num;
 		size_t prev_valid_pcl_num;
 #endif
+
 		size_t valid_pcl_num;
 		size_t valid_elem_num;
 		size_t sorted_pcl_var_id;

@@ -5,6 +5,18 @@
 
 namespace SortUtils
 {
+	inline size_t max_digit_num(size_t data_num) noexcept
+	{
+		size_t max_num = 1 << 8;
+		size_t digit_num = 1;
+		while (data_num > max_num)
+		{
+			max_num <<= 8;
+			++digit_num;
+		}
+		return digit_num;
+	}
+	
 	namespace Internal
 	{
 		constexpr size_t radix_bucket_num = 0x100; // 256

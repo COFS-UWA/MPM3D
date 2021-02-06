@@ -38,13 +38,8 @@ protected:
 	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
 
 	Step_T2D_ME_Task::TaskData task_data;
-
-	SortUtils::SortMem pcl_sort_mem;
-	SortUtils::SortMem node_sort_mem;
 	
-	size_t* valid_elems;
-	size_t* tmp_valid_elems;
-	CacheAlignedMem valid_elem_mem;
+	CacheAlignedMem cal_mem;
 
 	//int apply_rigid_rect(
 	//	size_t p_id0, size_t p_id1,
