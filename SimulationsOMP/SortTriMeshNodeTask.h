@@ -31,8 +31,11 @@ namespace SortUtils
 			SortMem _sort_mem;
 		};
 
-		size_t* tmp_valid_elems;
+		size_t *tmp_valid_elems;
 		size_t *valid_elems;
+
+		size_t node_digit_num;
+		size_t valid_elem_num;
 
 		SortTriMeshNodeMem() {}
 		~SortTriMeshNodeMem() { clear(); }
@@ -55,22 +58,24 @@ namespace SortUtils
 		//  cur_to_prev_pcl
 		//  valid_elems
 		inline size_t get_shared_memory_size(
-			size_t thread_num, size_t elem_num,
-			size_t node_digit_num) noexcept
+			size_t thread_num,
+			size_t elem_num,
+			size_t node_num) noexcept
 		{
+			const size_t _node_digit_num = max_digit_num(node_num);
 			max_block_num = thread_num * max_block_num_div_thread_num;
 			const size_t three_elem_num = elem_num * 3;
 			size_t block_num = (three_elem_num + parallel_divide_min_pcl_num_per_block - 1)
 							  / parallel_divide_min_pcl_num_per_block;
 			if (block_num > max_block_num)
 				block_num = max_block_num;
-			return Cache_Alignment * (node_digit_num * 2 + 1)
-				+ sizeof(size_t) * three_elem_num * node_digit_num * 2
-				+ sizeof(size_t) * elem_num
-				+ sizeof(SortBin) * (1 + thread_num) * block_num;
+			return sizeof(size_t) * elem_num
+				+ sizeof(size_t) * three_elem_num * _node_digit_num * 2
+				+ sizeof(SortBin) * (1 + thread_num) * block_num
+				+ Cache_Alignment * (_node_digit_num * 2 + 1);
 		}
 		void init(void* shared_mem, size_t thread_num,
-				  size_t elem_num, size_t node_digit_num);
+				  size_t elem_num, size_t node_num);
 	protected:
 		CacheAlignedMem self_mem;
 		inline void clear() noexcept { self_mem.free(); }
@@ -92,7 +97,7 @@ namespace SortUtils
 				dst(_dst), src(_src), len(_len) {}
 			~CopyMemTask() {}
 			tbb::task* execute() override
-			{ memcpy(dst, src, len); }
+			{ memcpy(dst, src, len); return nullptr; }
 		};
 		
 		struct ElemNodeIndex { size_t n1, n2, n3; };
@@ -232,9 +237,7 @@ namespace SortUtils
 		const size_t *const pcl_in_elem;
 		const size_t pcl_num;
 		const Internal::ElemNodeIndex *const elem_node_ids;
-		const size_t node_digit_num;
 		SortTriMeshNodeMem& sort_mem;
-		size_t& valid_elem_num;
 	public:
 		SortTriMeshNodeTask(
 #ifdef _DEBUG
@@ -243,18 +246,14 @@ namespace SortUtils
 			const size_t *p_in_e,
 			const size_t p_num,
 			const void *en_ids,
-			const size_t n_dgt_num,
-			SortTriMeshNodeMem& sm,
-			size_t &ve_num) :
+			SortTriMeshNodeMem& sm) :
 #ifdef _DEBUG
 			elem_num(e_num),
 #endif
 			pcl_in_elem(p_in_e),
 			pcl_num(p_num),
 			elem_node_ids((const Internal::ElemNodeIndex *)en_ids),
-			node_digit_num(n_dgt_num),
-			sort_mem(sm),
-			valid_elem_num(ve_num) {}
+			sort_mem(sm) {}
 		~SortTriMeshNodeTask() {}
 		tbb::task* execute() override;
 	};

@@ -39,8 +39,8 @@ namespace SortUtils
 							in_key + child_start_id,
 							in_val + child_start_id,
 							child_end_id - child_start_id,
-							th_bins[blk_id - 1],
-							digit_pos));
+							digit_pos,
+							th_bins[blk_id - 1]));
 					child_start_id = child_end_id;
 				}
 				// last child
@@ -51,8 +51,8 @@ namespace SortUtils
 						in_key + child_start_id,
 						in_val + child_start_id,
 						data_num - child_start_id,
-						th_bins[block_num - 1],
-						digit_pos));
+						digit_pos,
+						th_bins[block_num - 1]));
 
 				if (digit_pos) // not the last digit
 				{
@@ -116,8 +116,8 @@ namespace SortUtils
 					out_key, out_val,
 					in_key, in_key,
 					data_num,
-					th_bin,
-					digit_pos);
+					digit_pos,
+					th_bin);
 				if (digit_pos) // not the last digit
 				{
 					size_t* const c_bin = th_bin.count_bin;

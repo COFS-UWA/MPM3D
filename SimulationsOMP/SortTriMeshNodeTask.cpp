@@ -11,9 +11,10 @@ namespace SortUtils
 		void* shared_mem,
 		size_t thread_num,
 		size_t elem_num,
-		size_t node_digit_num)
+		size_t node_num)
 	{
 		clear();
+		node_digit_num = max_digit_num(node_num);
 		max_block_num = thread_num * max_block_num_div_thread_num;
 		const size_t three_elem_num = elem_num * 3;
 		size_t block_num = (three_elem_num + parallel_divide_min_pcl_num_per_block - 1)
@@ -21,10 +22,10 @@ namespace SortUtils
 		if (block_num > max_block_num)
 			block_num = max_block_num;
 		char* cur_mem = (char*)self_mem.alloc(
-				sizeof(size_t *) * (node_digit_num * 4 + 2)
-			+ sizeof(SortBin*) * thread_num
-			+ sizeof(size_t) * (three_elem_num * 2 + 2)
+			  sizeof(size_t *) * (node_digit_num * 4 + 2)
+			+ sizeof(SortBin *) * thread_num
 			+ sizeof(size_t) * elem_num
+			+ sizeof(size_t) * (three_elem_num * 2 + 2)
 			+ Cache_Alignment * 3);
 		//
 		node_has_elem_arrays = (size_t **)cur_mem; // node_digit_num + 1 
@@ -38,17 +39,20 @@ namespace SortUtils
 		thread_bins = (SortBin**)cur_mem;
 		cur_mem = cache_aligned(cur_mem + sizeof(SortBin*) * thread_num);
 		//
+		valid_elems = (size_t*)cur_mem;
+		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * elem_num);
+		//
 		node_has_elem = ((size_t *)cur_mem) + 1;
 		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * (three_elem_num + 2));
 		node_elem_pair = (size_t *)cur_mem;
-		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * elem_num);
 		node_has_elem_arrays[0] = node_has_elem;
 		node_elem_pair_arrays[0] = node_elem_pair;
 		node_elem_pair[-1] = SIZE_MAX;
 		node_elem_pair[three_elem_num] = SIZE_MAX;
-		valid_elems = (size_t *)cur_mem;
 		
 		cur_mem = (char*)cache_aligned(shared_mem);
+		tmp_valid_elems = (size_t*)cur_mem;
+		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * elem_num);
 		// key and value memory
 		size_t i;
 		for (i = 0; i < node_digit_num; ++i)
@@ -73,9 +77,6 @@ namespace SortUtils
 		}
 		ori_node_has_elem = node_has_elem_arrays[node_digit_num];
 		ori_node_elem_pair = node_elem_pair_arrays[node_digit_num];
-		tmp_valid_elems = (size_t*)cur_mem;
-		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * elem_num);
-
 		// sort bin memory
 		root_bin = (SortBin*)cur_mem;
 		const size_t sort_bin_size = sizeof(SortBin) * block_num;
@@ -159,10 +160,10 @@ namespace SortUtils
 	tbb::task* SortTriMeshNodeTask::execute()
 	{
 		SortBin* const rt_bins = sort_mem.root_bin;
+		size_t* const valid_elems = sort_mem.valid_elems;
 		size_t* const in_node_has_elem = sort_mem.ori_node_has_elem;
 		size_t* const in_node_elem_pair = sort_mem.ori_node_elem_pair;
-		size_t* const valid_elems = sort_mem.valid_elems;
-		const size_t node_digit_pos = node_digit_num - 1;
+		const size_t node_digit_pos = sort_mem.node_digit_num - 1;
 		if (pcl_num > serial_sort_min_pcl_num)
 		{
 			size_t* const out_node_has_elem = sort_mem.node_has_elem_arrays[node_digit_pos];
@@ -170,9 +171,9 @@ namespace SortUtils
 			size_t bin_id;
 			if (pcl_num > parallel_divide_min_pcl_num_per_block)
 			{
+				size_t* const tmp_valid_elems = sort_mem.tmp_valid_elems;
 				size_t* const tmp_node_has_elem = sort_mem.tmp_node_has_elem_arrays[node_digit_pos];
 				size_t* const tmp_node_elem_pair = sort_mem.tmp_node_elem_pair_arrays[node_digit_pos];
-				size_t* const tmp_valid_elems = sort_mem.tmp_valid_elems;
 				size_t blk_num = (pcl_num + SortTriMeshNodeMem::parallel_divide_min_pcl_num_per_block - 1)
 								/ SortTriMeshNodeMem::parallel_divide_min_pcl_num_per_block;
 				if (blk_num > sort_mem.max_block_num)
@@ -240,7 +241,7 @@ namespace SortUtils
 								sizeof(size_t) * ve_num));
 						start_id += ve_num;
 					}
-					valid_elem_num = start_id;
+					sort_mem.valid_elem_num = start_id;
 
 					// sort nodes
 					start_id = 0;
@@ -294,25 +295,24 @@ namespace SortUtils
 								sizeof(size_t) * ve_num));
 						start_id += ve_num;
 					}
-					valid_elem_num = start_id;
+					sort_mem.valid_elem_num = start_id;
 
 					// sort nodes
 					start_id = 0;
 					for (bin_id = 0; bin_id < Internal::radix_bucket_num; ++bin_id)
 					{
-						size_t child_start_id = 0;
 						for (blk_id = 0; blk_id < blk_num; ++blk_id)
 						{
 							SortBin& blk_bin = rt_bins[blk_id];
 							const size_t blk_data_off = blk_bin.sum_bin[bin_id];
 							const size_t blk_data_num = blk_bin.count_bin[bin_id];
-							memcpy(out_node_has_elem + start_id + child_start_id,
+							memcpy(out_node_has_elem + start_id,
 								tmp_node_has_elem + blk_data_off,
 								blk_data_num * sizeof(size_t));
-							memcpy(out_node_elem_pair + start_id + child_start_id,
+							memcpy(out_node_elem_pair + start_id,
 								tmp_node_elem_pair + blk_data_off,
 								blk_data_num * sizeof(size_t));
-							child_start_id += blk_data_num;
+							start_id += blk_data_num;
 						}
 					}
 					wait_for_all();
@@ -321,7 +321,8 @@ namespace SortUtils
 			else // divide serially and sort parallely
 			{
 				SortBin& rt_bin = rt_bins[0];
-				Internal::count_sort_tri_mesh_node(
+				sort_mem.valid_elem_num
+					= Internal::count_sort_tri_mesh_node(
 #ifdef _DEBUG
 					elem_num,
 #endif
@@ -337,8 +338,6 @@ namespace SortUtils
 					out_node_elem_pair);
 				size_t* const c_bin = rt_bin.count_bin;
 				size_t* const s_bin = rt_bin.sum_bin;
-				valid_elem_num = s_bin[Internal::radix_bucket_num - 1]
-							+ c_bin[Internal::radix_bucket_num - 1];
 				if (node_digit_pos) // not the last digit
 				{
 					set_ref_count(Internal::radix_bucket_num + 1);
@@ -385,6 +384,7 @@ namespace SortUtils
 #endif
 				}
 			}
+			sort_mem.valid_elem_num = ve_num;
 			Internal::serial_sort(
 				sort_mem.node_has_elem,
 				sort_mem.node_elem_pair,
@@ -395,9 +395,8 @@ namespace SortUtils
 				rt_bins[0],
 				sort_mem.tmp_node_has_elem_arrays[0],
 				sort_mem.tmp_node_elem_pair_arrays[0]);
-			valid_elem_num = ve_num;
 		}
-		sort_mem.node_has_elem[valid_elem_num * 3] = SIZE_MAX;
+		sort_mem.node_has_elem[sort_mem.valid_elem_num * 3] = SIZE_MAX;
 		return nullptr;
 	}
 }
