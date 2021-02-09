@@ -87,62 +87,64 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	constexpr double coarse_depth = 12.5;
 	constexpr double width = 40.0;
 	constexpr double coarse_width = 25.0;
+	constexpr double sml_pcl_size = 0.2;
+	constexpr double lgr_pcl_size = 0.4;
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	// dense area
 	pcl_generator.generate_pcls_grid(
 		Cube(-0.5 * coarse_width, 0.5 * coarse_width,
 			-0.5 * coarse_width, 0.5 * coarse_width,
 			-coarse_depth, 0.0),
-		0.24, 0.24, 0.24);
+			sml_pcl_size, sml_pcl_size, sml_pcl_size);
 	// peripheral coarse area
 	// 4 edges
 	pcl_generator.generate_pcls_grid(
 		Cube(-0.5 * width, -0.5 * coarse_width,
 			-0.5 * coarse_width, 0.5 * coarse_width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+			lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.generate_pcls_grid(
 		Cube(0.5 * coarse_width, 0.5 * width,
 			-0.5 * coarse_width, 0.5 * coarse_width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+			lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.generate_pcls_grid(
 		Cube(-0.5 * coarse_width, 0.5 * coarse_width,
 			-0.5 * width, -0.5 * coarse_width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+			lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.generate_pcls_grid(
 		Cube(-0.5 * coarse_width, 0.5 * coarse_width,
 			0.5 * coarse_width, 0.5 * width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+			lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	// 4 corners
 	pcl_generator.generate_pcls_grid(
 		Cube(-0.5 * width, -0.5 * coarse_width,
 			-0.5 * width, -0.5 * coarse_width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.generate_pcls_grid(
 		Cube(0.5 * coarse_width, 0.5 * width,
 			-0.5 * width, -0.5 * coarse_width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.generate_pcls_grid(
 		Cube(0.5 * coarse_width, 0.5 * width,
 			0.5 * coarse_width, 0.5 * width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.generate_pcls_grid(
 		Cube(-0.5 * width, -0.5 * coarse_width,
 			0.5 * coarse_width, 0.5 * width,
 			-coarse_depth, 0.0),
-		0.5, 0.5, 0.5);
+		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	// bottom
 	pcl_generator.generate_pcls_grid(
 		Cube(-0.5 * width, 0.5 * width,
 			-0.5 * width, 0.5 * width,
 			-depth, -coarse_depth),
-		0.5, 0.5, 0.5);
+		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
@@ -171,7 +173,7 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	}
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model.h5",
-		0.0, 0.0, 0.0, -90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0);
 	model.set_contact_param(20000.0, 20000.0, 0.1);
 
@@ -202,7 +204,7 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	md_disp.set_view_dir(0.0f, 5.0f);
 	md_disp.set_light_dir(10.0f, 5.0f);
 	md_disp.set_display_bg_mesh(false);
-	md_disp.set_view_dist_scale(0.6);
+	md_disp.set_view_dist_scale(0.4);
 	//md_disp.set_pts_from_vx_bc(0.2);
 	md_disp.set_pts_from_vy_bc(0.2);
 	//md_disp.set_pts_from_vz_bc(0.2);
