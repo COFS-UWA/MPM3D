@@ -5,6 +5,18 @@
 
 namespace SortUtils
 {
+	inline size_t max_digit_num(size_t data_num) noexcept
+	{
+		size_t max_num = 1 << 8;
+		size_t digit_num = 1;
+		while (data_num > max_num)
+		{
+			max_num <<= 8;
+			++digit_num;
+		}
+		return digit_num;
+	}
+	
 	namespace Internal
 	{
 		constexpr size_t radix_bucket_num = 0x100; // 256
@@ -24,8 +36,8 @@ namespace SortUtils
 			const size_t* const in_key,
 			const size_t* const in_val,
 			const size_t data_num,
-			SortBin& bin,
-			const unsigned char digit_pos)
+			const size_t digit_pos,
+			SortBin& bin)
 		{
 #define __Cal_Key_Digit__(data, digit_pos) (((data) >> ((digit_pos) * 8)) & (0xFF))
 			size_t* const c_bin = bin.count_bin;
@@ -54,8 +66,8 @@ namespace SortUtils
 			const size_t*const in_key;
 			const size_t*const in_val;
 			const size_t data_num;
+			const size_t digit_pos;
 			SortBin& bin;
-			const unsigned char digit_pos;
 
 		public:
 			CountSortTask(
@@ -64,8 +76,8 @@ namespace SortUtils
 				const size_t *_in_key,
 				const size_t *_in_val,
 				const size_t _data_num,
-				SortBin& _bin,
-				const unsigned char _digit_pos);
+				const size_t _digit_pos,
+				SortBin& _bin);
 			~CountSortTask();
 			tbb::task* execute() override;
 		};
@@ -76,7 +88,7 @@ namespace SortUtils
 			const size_t* in_key,
 			const size_t *in_val,
 			const size_t data_num,
-			const unsigned char digit_pos,
+			const size_t digit_pos,
 			SortBin& bin,
 			size_t *const mid_key,
 			size_t *const mid_val)
@@ -98,7 +110,8 @@ namespace SortUtils
 						key1, val1,
 						key0, val0,
 						data_num,
-						bin, d_id);
+						d_id,
+						bin);
 					__Swap_Pointer__(key0, key1);
 					__Swap_Pointer__(val0, val1);
 #undef __Swap_Pointer__
@@ -108,8 +121,8 @@ namespace SortUtils
 					out_val,
 					key0, val0,
 					data_num,
-					bin,
-					digit_pos);
+					digit_pos,
+					bin);
 			}
 			else if (data_num > 2) // insertion sort
 			{

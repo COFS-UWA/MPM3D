@@ -4,7 +4,7 @@
 #include "CacheAlignedMem.h"
 #include "Model_T2D_ME_mt.h"
 #include "SortTask.h"
-#include "Step_T2D_ME_TBB_task.h"
+#include "Step_T2D_ME_Task.h"
 #include "Step_TBB.h"
 
 class Step_T2D_ME_TBB;
@@ -17,8 +17,8 @@ int cal_substep_func_T2D_ME_TBB(void* _self);
 
 class Step_T2D_ME_TBB : public Step_TBB
 {
-	friend class Step_T2D_ME_TBB_task::CalData_T2D_ME_TBB;
-	friend class Step_T2D_ME_TBB_task::MapPclToBgMeshTask;
+	friend class Step_T2D_ME_Task::TaskData;
+	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
 
 protected:
 	typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
@@ -36,27 +36,10 @@ protected:
 	typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
-	typedef Step_T2D_ME_TBB_task::Range Range;
 
-	size_t sorted_pcl_var_id;
-	size_t prev_valid_pcl_num, valid_pcl_num;
-#ifdef _DEBUG
-	size_t prev_valid_pcl_num_tmp;
-#endif
-	size_t valid_elem_num;
-	Force2D cf_tmp;
+	Step_T2D_ME_Task::TaskData task_data;
 	
-	size_t pcl_num_per_map_pcl_to_bg_mesh_task;
-	size_t pcl_num_per_map_bg_mesh_to_pcl_task;
-
-	SortUtils::SortMem pcl_sort_mem;
-	SortUtils::SortMem node_sort_mem;
-	
-	// thread wise data
-	Range **pcl_ranges;
-	Range **node_ranges;
-	Range **elem_ranges;
-	size_t** valid_elem_arrays; // thread_num
+	CacheAlignedMem cal_mem;
 
 	//int apply_rigid_rect(
 	//	size_t p_id0, size_t p_id1,

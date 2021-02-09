@@ -42,8 +42,10 @@ add_library(
     Step_TBB.h Step_TBB.cpp
     SortUtils.h SortUtils.cpp
     SortTask.h SortTask.cpp
+    SortTriMeshNodeTask.h SortTriMeshNodeTask.cpp
+    SortParticleTask.h SortParticleTask.cpp
     # 2D ME MPM
-    Step_T2D_ME_TBB_task.h Step_T2D_ME_TBB_task.cpp
+    Step_T2D_ME_Task.h Step_T2D_ME_Task.cpp
     Step_T2D_ME_TBB.h Step_T2D_ME_TBB.cpp
     )
 

@@ -19,9 +19,9 @@ int substep_func_omp_T2D_ME_mt(void* _self, size_t my_th_id,
 class Step_T2D_ME_TBB;
 int cal_substep_func_T2D_ME_TBB(void* _self);
 
-namespace Step_T2D_ME_TBB_task
+namespace Step_T2D_ME_Task
 {
-	class CalData_T2D_ME_TBB;
+	class TaskData;
 	class MapPclToBgMeshTask;
 }
 
@@ -51,8 +51,8 @@ struct Model_T2D_ME_mt : public Model,
 	
 	friend class Step_T2D_ME_TBB;
 	friend int cal_substep_func_T2D_ME_TBB(void* _self);
-	friend class Step_T2D_ME_TBB_task::CalData_T2D_ME_TBB;
-	friend class Step_T2D_ME_TBB_task::MapPclToBgMeshTask;
+	friend class Step_T2D_ME_Task::TaskData;
+	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
 	
 public:
 	struct ShapeFunc { double N1, N2, N3; };
@@ -167,6 +167,14 @@ protected:
 	size_t tx_num, ty_num;
 	TractionBCAtPcl* txs, * tys;
 
+	// background grid for mesh
+	double grid_xl, grid_yl;
+	double grid_xu, grid_yu;
+	double grid_hx, grid_hy;
+	size_t grid_x_num, grid_y_num;
+	size_t* grid_elem_list_id_array;
+	size_t* grid_elem_list;
+
 public:
 	Model_T2D_ME_mt();
 	~Model_T2D_ME_mt();
@@ -219,13 +227,12 @@ public:
 	void init_fixed_vx_bc(size_t vx_bc_num, const size_t *vx_bcs);
 	void init_fixed_vy_bc(size_t vy_bc_num, const size_t* vy_bcs);
 
-protected:
 	inline bool is_in_element(
 		double pcl_x,
 		double pcl_y,
 		size_t elem_id,
-		ShapeFunc &pcl_N
-		) noexcept
+		ShapeFunc& pcl_N
+	) const noexcept
 	{
 		const ShapeFuncAB& e_dN_ab = elem_dN_ab[elem_id];
 		const ShapeFuncC& e_dN_c = elem_dN_c[elem_id];
@@ -236,13 +243,13 @@ protected:
 			&& pcl_N.N2 >= 0.0 && pcl_N.N2 <= 1.0
 			&& pcl_N.N3 >= 0.0 && pcl_N.N3 <= 1.0;
 	}
-	
+
 	inline bool is_in_element_tol(
 		double pcl_x,
 		double pcl_y,
 		size_t elem_id,
 		ShapeFunc& p_N
-		) noexcept
+	) const noexcept
 	{
 		const ShapeFuncAB& e_dN_ab = elem_dN_ab[elem_id];
 		const ShapeFuncC& e_dN_c = elem_dN_c[elem_id];
@@ -271,21 +278,12 @@ protected:
 		return false;
 #undef in_elem_N_tol
 	}
-	
-	// background grid for mesh
-	double grid_xl, grid_yl;
-	double grid_xu, grid_yu;
-	double grid_hx, grid_hy;
-	size_t grid_x_num, grid_y_num;
-	size_t* grid_elem_list_id_array;
-	size_t* grid_elem_list;
 
-public:
 	inline size_t find_pcl_in_which_elem(
 		double pcl_x,
 		double pcl_y,
 		ShapeFunc& pcl_N
-		) noexcept
+		) const noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu)
@@ -307,7 +305,7 @@ public:
 		double pcl_x,
 		double pcl_y,
 		ShapeFunc& pcl_N
-		) noexcept
+		) const noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu)

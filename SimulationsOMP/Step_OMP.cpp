@@ -107,8 +107,7 @@ int substep_func_omp_default(
 	size_t my_th_id,
 	double dt,
 	double cur_time,
-	size_t substp_id
-	)
+	size_t substp_id)
 {
 	Step_OMP& self = *(Step_OMP*)_self;
 
