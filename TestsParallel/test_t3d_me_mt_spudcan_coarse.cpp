@@ -7,9 +7,73 @@
 #include "ModelData_T3D_ME_mt.h"
 #include "TimeHistory_T3D_ME_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
+#include "QtApp_Prep_T3D_ME_mt.h"
 #include "QtApp_Prep_T3D_ME_mt_Div.h"
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
+
+void test_t3d_me_mt_test_spudcan_model(int argc, char** argv)
+{
+	TetrahedronMesh teh_mesh;
+	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_coarse.h5");
+	constexpr double width = 10.0;
+	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
+	pcl_generator.generate_pcls_grid(
+		Cube(-0.5 * width, 0.5 * width,
+			-0.5 * width, 0.5 * width,
+			-0.24, 0.0),
+		0.24, 0.24, 0.24);
+	
+	Model_T3D_ME_mt model;
+	model.init_mesh(teh_mesh);
+	teh_mesh.clear();
+	model.init_pcls(pcl_generator, 10.0);
+	pcl_generator.clear();
+	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model.h5",
+		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+
+	auto& rb = model.get_t3d_rigid_mesh();
+	Point3D pt;
+	double pt_r, dist;
+	Vector3D norm;
+	Point3D ct_pos;
+	// 1
+	pt.x = 3.0;
+	pt.y = 3.0;
+	pt.z = 1.1;
+	pt_r = 0.05;
+	rb.detect_collision_with_point(
+		pt.x, pt.y, pt.z, pt_r,
+		dist, norm, ct_pos);
+	std::cout << "dist: " << dist
+		<< ", norm: (" << norm.x
+		<< ", " << norm.y
+		<< ", " << norm.z << ")\n";
+	// 2
+	pt.x = 0.1;
+	pt.y = 0.0;
+	pt.z = 0.0;
+	pt_r = 0.05;
+	rb.detect_collision_with_point(
+		pt.x, pt.y, pt.z, pt_r,
+		dist, norm, ct_pos);
+	std::cout << "dist: " << dist
+		<< ", norm: (" << norm.x
+		<< ", " << norm.y
+		<< ", " << norm.z << ")\n";
+	
+	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	md_disp.set_model(model);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(0.0f, 5.0f);
+	md_disp.set_light_dir(10.0f, 5.0f);
+	md_disp.set_display_bg_mesh(false);
+	md_disp.set_view_dist_scale(0.5);
+	//md_disp.set_pts_from_vx_bc(0.2);
+	//md_disp.set_pts_from_vy_bc(0.2);
+	//md_disp.set_pts_from_vz_bc(0.2);
+	md_disp.start();
+}
 
 void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 {

@@ -320,8 +320,8 @@ inline void rotate_axses_by_angle(
 	Vector3D& iz
 ) noexcept
 {
-	double theta, Kx, Ky, Kz;
-	theta = ang.norm();
+	double Kx, Ky, Kz;
+	const double theta = ang.norm();
 	if (theta != 0.0)
 	{
 		Kx = ang.x / theta;
@@ -336,20 +336,19 @@ inline void rotate_axses_by_angle(
 	}
 
 	// quaternion
-	double q0, q1, q2, q3;
-	q0 = cos(0.5 * theta);
-	q1 = Kx * sin(0.5 * theta);
-	q2 = Ky * sin(0.5 * theta);
-	q3 = Kz * sin(0.5 * theta);
+	const double q0 = cos(0.5 * theta);
+	const double q1 = Kx * sin(0.5 * theta);
+	const double q2 = Ky * sin(0.5 * theta);
+	const double q3 = Kz * sin(0.5 * theta);
 
 	ix.x = 1.0 - 2.0 * (q2 * q2 + q3 * q3);
-	ix.y = 2.0 * (q1 * q2 + q0 * q3);
-	ix.z = 2.0 * (q1 * q3 - q0 * q2);
-	iy.x = 2.0 * (q1 * q2 - q0 * q3);
+	ix.y = 2.0 * (q1 * q2 - q0 * q3);
+	ix.z = 2.0 * (q1 * q3 + q0 * q2);
+	iy.x = 2.0 * (q1 * q2 + q0 * q3);
 	iy.y = 1.0 - 2.0 * (q3 * q3 + q1 * q1);
-	iy.z = 2.0 * (q2 * q3 + q0 * q1);
-	iz.x = 2.0 * (q1 * q3 + q0 * q2);
-	iz.y = 2.0 * (q2 * q3 - q0 * q1);
+	iy.z = 2.0 * (q2 * q3 - q0 * q1);
+	iz.x = 2.0 * (q1 * q3 - q0 * q2);
+	iz.y = 2.0 * (q2 * q3 + q0 * q1);
 	iz.z = 1.0 - 2.0 * (q1 * q1 + q2 * q2);
 }
 

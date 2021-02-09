@@ -21,8 +21,7 @@ int RigidMeshT3D::init_from_mesh(
 	TetrahedronMesh& tmesh,
 	double ghx,
 	double ghy,
-	double ghz
-	)
+	double ghz)
 {
 	clear();
 
