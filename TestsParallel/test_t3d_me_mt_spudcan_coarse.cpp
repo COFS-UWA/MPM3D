@@ -108,7 +108,7 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model.h5",
 		0.0, 0.0, 0.0, -90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0);
 	model.set_contact_param(20000.0, 20000.0, 0.1);
 
 	IndexArray vx_bc_pt_array(100);
@@ -140,7 +140,7 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.6);
 	//md_disp.set_pts_from_vx_bc(0.2);
-	//md_disp.set_pts_from_vy_bc(0.2);
+	md_disp.set_pts_from_vy_bc(0.2);
 	//md_disp.set_pts_from_vz_bc(0.2);
 	md_disp.start();
 }
@@ -172,17 +172,18 @@ void test_t3d_me_mt_spudcan_coarse(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T3D_ME_mt_complete out1("penetration");
+	out1.set_interval_num(50);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
-	out1.set_interval_num(100);
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	//step.set_thread_num(6);
-	//step.set_step_time(0.5);
-	step.set_step_time(1.0e-5);
+	step.set_thread_num(20);
+	step.set_step_time(1.5);
+	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -252,13 +253,13 @@ void test_t3d_me_mt_spudcan_coarse_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
 	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
-	app.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	app.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 800);
 	app.set_view_dir(0.0f, 10.0f);
 	app.set_light_dir(0.0f, 10.0f);
-	app.set_view_dist_scale(0.8);
+	app.set_view_dist_scale(0.4);
 	app.set_display_bg_mesh(false);
 	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-20.0, 0.0);
