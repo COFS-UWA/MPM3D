@@ -89,6 +89,7 @@ protected:
 		{
 			size_t sorted_pcl_var_id;
 			size_t sorted_pcl_in_elem_id;
+			double max_pcl_vol;
 			PclVar_T3D_ME_mt pcl_var_getter;
 #ifdef _DEBUG
 			// time profiling

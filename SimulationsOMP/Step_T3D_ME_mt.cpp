@@ -23,6 +23,7 @@ static std::fstream res_file_t3d_me_mt;
 
 #define one_third (1.0/3.0)
 #define one_fourth (0.25)
+#define MAX_PCL_RADIUX_SCALE (5.0)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
 Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) :
@@ -169,6 +170,7 @@ int Step_T3D_ME_mt::init_calculation()
 		new (&thd) ThreadData;
 		thd.sorted_pcl_var_id = 1;
 		thd.sorted_pcl_in_elem_id = 0;
+		thd.max_pcl_vol = 0.0;
 		PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
 		pv_getter.pmodel = &md;
 
@@ -181,6 +183,9 @@ int Step_T3D_ME_mt::init_calculation()
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			ori_p_id = spva0.pcl_index[p_id];
+			const double p_vol = pcl_m[ori_p_id] / spva0.pcl_density[p_id];
+			if (thd.max_pcl_vol < p_vol)
+				thd.max_pcl_vol = p_vol;
 			Position& p_p = pcl_pos[ori_p_id];
 			Displacement& p_d = spva0.pcl_disp[p_id];
 			p_p.x += p_d.ux;
@@ -203,6 +208,18 @@ int Step_T3D_ME_mt::init_calculation()
 		valid_pcl_num += pcl_in_mesh_num;
 	}
 
+	if (md.has_t3d_rigid_mesh())
+	{
+		double max_pcl_radius = thread_datas[0].max_pcl_vol;
+		for (size_t th_id = 1; th_id < thread_num; ++th_id)
+		{
+			if (max_pcl_radius < thread_datas[th_id].max_pcl_vol)
+				max_pcl_radius = thread_datas[th_id].max_pcl_vol;
+		}
+		max_pcl_radius = 0.5 * pow(max_pcl_radius, one_third) * MAX_PCL_RADIUX_SCALE;
+		prmesh->init_max_dist(max_pcl_radius);
+	}
+	
 	pcl_in_elems[0][prev_valid_pcl_num] = SIZE_MAX;
 	pcl_in_elems[1][prev_valid_pcl_num] = SIZE_MAX;
 	valid_elem_num = 0;

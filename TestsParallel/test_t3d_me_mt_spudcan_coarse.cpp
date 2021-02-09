@@ -33,6 +33,8 @@ void test_t3d_me_mt_test_spudcan_model(int argc, char** argv)
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 
 	auto& rb = model.get_t3d_rigid_mesh();
+	rb.init_max_dist(0.1);
+
 	Point3D pt;
 	double pt_r, dist;
 	Vector3D norm;
@@ -145,7 +147,7 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 			-0.5 * width, 0.5 * width,
 			-depth, -coarse_depth),
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
-	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
 	Model_T3D_ME_mt model;
@@ -197,18 +199,18 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	md_disp.set_model(model);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(0.0f, 5.0f);
-	md_disp.set_light_dir(10.0f, 5.0f);
-	md_disp.set_display_bg_mesh(false);
-	md_disp.set_view_dist_scale(0.4);
-	//md_disp.set_pts_from_vx_bc(0.2);
-	md_disp.set_pts_from_vy_bc(0.2);
-	//md_disp.set_pts_from_vz_bc(0.2);
-	md_disp.start();
+	//QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	//md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//md_disp.set_model(model);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(0.0f, 5.0f);
+	//md_disp.set_light_dir(10.0f, 5.0f);
+	//md_disp.set_display_bg_mesh(false);
+	//md_disp.set_view_dist_scale(0.4);
+	////md_disp.set_pts_from_vx_bc(0.2);
+	//md_disp.set_pts_from_vy_bc(0.2);
+	////md_disp.set_pts_from_vz_bc(0.2);
+	//md_disp.start();
 }
 
 void test_t3d_me_mt_spudcan_coarse(int argc, char** argv)
@@ -248,7 +250,7 @@ void test_t3d_me_mt_spudcan_coarse(int argc, char** argv)
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_thread_num(20);
-	step.set_step_time(1.5);
+	step.set_step_time(1.2);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);

@@ -154,8 +154,7 @@ void ParticleGenerator3D<TetrahedronMesh>::generate_pcls_grid(
 	Cube &range,
 	double pcl_dx,
 	double pcl_dy,
-	double pcl_dz
-	)
+	double pcl_dz)
 {
 	double x_len, y_len, z_len;
 	double start_x, start_y, start_z;

@@ -119,6 +119,7 @@ protected:
 		{
 			size_t sorted_pcl_var_id;
 			size_t sorted_pcl_in_elem_id;
+			double max_pcl_vol;
 		};
 		char padding[Cache_Alignment * 2];
 	};

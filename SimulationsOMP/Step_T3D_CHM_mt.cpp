@@ -182,6 +182,7 @@ int Step_T3D_CHM_mt::init_calculation()
 		new (&thd) ThreadData;
 		thd.sorted_pcl_var_id = 1;
 		thd.sorted_pcl_in_elem_id = 0;
+		thd.max_pcl_vol = 0.0;
 		//PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
 		//pv_getter.pmodel = &md;
 
@@ -194,6 +195,10 @@ int Step_T3D_CHM_mt::init_calculation()
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			ori_p_id = spva0.pcl_index[p_id];
+			const double p_vol = pcl_m_s[ori_p_id]
+				/ (pcl_density_s[ori_p_id] * (1.0 - spva0.pcl_n[p_id]));
+			if (thd.max_pcl_vol < p_vol)
+				thd.max_pcl_vol = p_vol;
 			Position& p_p = pcl_pos[ori_p_id];
 			Displacement& p_u_s = spva0.pcl_u_s[p_id];
 			p_p.x += p_u_s.ux;
@@ -214,6 +219,18 @@ int Step_T3D_CHM_mt::init_calculation()
 
 #pragma omp critical
 		valid_pcl_num += pcl_in_mesh_num;
+	}
+
+	if (md.has_t3d_rigid_mesh())
+	{
+		double max_pcl_radius = thread_datas[0].max_pcl_vol;
+		for (size_t th_id = 1; th_id < thread_num; ++th_id)
+		{
+			if (max_pcl_radius < thread_datas[th_id].max_pcl_vol)
+				max_pcl_radius = thread_datas[th_id].max_pcl_vol;
+		}
+		max_pcl_radius = 0.5 * pow(max_pcl_radius, one_third) * 4.0;
+		prm->init_max_dist(max_pcl_radius);
 	}
 
 	pcl_in_elems[0][prev_valid_pcl_num] = SIZE_MAX;
@@ -380,7 +397,7 @@ int substep_func_omp_T3D_CHM_mt(
 	node_elem_pair1 = self.node_elem_pairs[1];
 	
 	size_t p_id, bin_id, th_id, pos_id;
-	size_t digit_disp, elem_num_tmp, * other_cbin;
+	size_t digit_disp, elem_num_tmp, *other_cbin;
 	size_t p_id0 = Block_Low(my_th_id, thread_num, self.prev_valid_pcl_num);
 	size_t p_id1 = Block_Low(my_th_id + 1, thread_num, self.prev_valid_pcl_num);
 	size_t* const elem_count_bin = self.elem_count_bin;
