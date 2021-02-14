@@ -21,7 +21,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self);
 
 namespace Step_T2D_ME_Task
 {
-	class TaskData;
+	class CalData;
 	class MapPclToBgMeshTask;
 }
 
@@ -51,7 +51,7 @@ struct Model_T2D_ME_mt : public Model,
 	
 	friend class Step_T2D_ME_TBB;
 	friend int cal_substep_func_T2D_ME_TBB(void* _self);
-	friend class Step_T2D_ME_Task::TaskData;
+	friend class Step_T2D_ME_Task::CalData;
 	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
 	
 public:

@@ -18,8 +18,10 @@ int Step_TBB::solve()
 
 	step_time_minus_tol = step_time - time_tol;
 
-	init_calculation();
-	init_time_history();
+	if (init_calculation())
+		return -1;
+	if (init_time_history())
+		return -2;
 	next_output_time_minus_tol = next_output_time - time_tol;
 
 	// new time should <= step time

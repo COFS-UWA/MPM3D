@@ -10,7 +10,7 @@ class Step_T2D_ME_TBB;
 
 namespace Step_T2D_ME_Task
 {
-	struct TaskData
+	struct CalData
 	{
 		Model_T2D_ME_mt *pmodel;
 
@@ -45,37 +45,61 @@ namespace Step_T2D_ME_Task
 		Model_T2D_ME_mt::NodeHasVBC* node_has_vbc;
 		double* node_am;
 		double* node_de_vol;
+		
+		const size_t pcl_num_per_init_pcl_task;
+		const size_t pcl_num_per_map_pcl_to_mesh_task;
+		const size_t elem_num_per_update_a_and_v_task;
+		const size_t elem_num_per_cal_elem_de_task;
+		const size_t elem_num_per_cal_node_de_task;
+		const size_t pcl_num_per_map_mesh_to_pcl_task;
 
+		size_t thread_num;
+		
+		// cal data
+		SortUtils::SortParticleMem pcl_sort_mem;
+		SortUtils::SortTriMeshNodeMem node_sort_mem;
+		
 #ifdef _DEBUG
-		size_t ori_pcl_num;
 		size_t elem_num;
 		size_t node_num;
 		size_t prev_valid_pcl_num;
+		size_t ori_pcl_num;
 #endif
-
-		const size_t pcl_num_per_map_pcl_to_mesh_task;
-		const size_t node_num_per_update_a_and_v_task;
-		const size_t elem_num_per_cal_elem_de_task;
-		const size_t node_num_per_cal_node_de_task;
-		const size_t pcl_num_per_task_map_mesh_to_pcl;
-
-		// cal data
+		
+		size_t init_pcl_task_num;
+		size_t map_pcl_to_mesh_task_num;
+		size_t update_a_and_v_task_num;
+		size_t cal_elem_de_task_num;
+		size_t cal_node_de_task_num;
+		size_t map_mesh_to_pcl_task_num;
 		size_t sorted_pcl_var_id;
 		double dt;
-		SortUtils::SortParticleMem pcl_sort_mem;
-		SortUtils::SortTriMeshNodeMem node_sort_mem;
 
-		TaskData(
+		CalData(
+			size_t _pcl_num_per_init_pcl_task,
 			size_t _pcl_num_per_map_pcl_to_mesh_task,
-			size_t _node_num_per_update_a_and_v_task,
+			size_t _elem_num_per_update_a_and_v_task,
 			size_t _elem_num_per_cal_elem_de_task,
-			size_t _node_num_per_cal_node_de_task,
+			size_t _elem_num_per_cal_node_de_task,
 			size_t _pcl_num_per_task_map_mesh_to_pcl);
-		~TaskData() {}
+		~CalData() {}
 		void set_model(Model_T2D_ME_mt& md) noexcept;
 	};
 	
-	class MapPclToBgMeshTask : public tbb::task
+	class InitPcl
+	{
+	protected:
+		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
+		typedef Model_T2D_ME_mt::Displacement Displacement;
+		typedef Model_T2D_ME_mt::Position Position;
+		CalData& cd;
+	public:
+		InitPcl(CalData& _cd) : cd(_cd) {}
+		~InitPcl() {}
+		void work(size_t wk_id) const;
+	};
+	
+	class MapPclToBgMesh
 	{
 	protected:
 		typedef Model_T2D_ME_mt::Force Force;
@@ -87,21 +111,14 @@ namespace Step_T2D_ME_Task
 		typedef Model_T2D_ME_mt::ShapeFuncAB ShapeFuncAB;
 		typedef Model_T2D_ME_mt::ShapeFuncC ShapeFuncC;
 		typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
-		size_t p_id0, p_id1;
-		TaskData& td;
+		CalData& cd;
 	public:
-		MapPclToBgMeshTask(
-			size_t start_id,
-			size_t end_id,
-			TaskData& _td) :
-			p_id0(start_id),
-			p_id1(end_id),
-			td(_td) {}
-		~MapPclToBgMeshTask() {}
-		tbb::task* execute() override;
+		MapPclToBgMesh(CalData &_cd) : cd(_cd) {}
+		~MapPclToBgMesh() {}
+		void work(size_t wk_id) const;
 	};
 
-	class UpdateAccelerationAndVelocityTask : public tbb::task
+	class UpdateAccelerationAndVelocity
 	{
 	protected:
 		typedef Model_T2D_ME_mt::Force Force;
@@ -109,60 +126,38 @@ namespace Step_T2D_ME_Task
 		typedef Model_T2D_ME_mt::Acceleration Acceleration;
 		typedef Model_T2D_ME_mt::Velocity Velocity;
 		typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
-		size_t ve_id0, ve_id1;
-		TaskData& td;
+		CalData& cd;
 	public:
-		UpdateAccelerationAndVelocityTask(
-			size_t start_id,
-			size_t end_id,
-			TaskData& _td) :
-			ve_id0(start_id),
-			ve_id1(end_id),
-			td(_td) {}
-		~UpdateAccelerationAndVelocityTask() {}
-		tbb::task* execute() override;
+		UpdateAccelerationAndVelocity(CalData& _cd) : cd(_cd) {}
+		~UpdateAccelerationAndVelocity() {}
+		void work(size_t wk_id) const;
 	};
 
-	class CalElemDeAndMapToNode : public tbb::task
+	class CalElemDeAndMapToNode
 	{
 	protected:
 		typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
 		typedef Model_T2D_ME_mt::Velocity Velocity;
 		typedef Model_T2D_ME_mt::ShapeFuncAB ShapeFuncAB;
 		typedef Model_T2D_ME_mt::StrainInc StrainInc;
-
-		size_t ve_id0, ve_id1;
-		TaskData& td;
+		CalData& cd;
 	public:
-		CalElemDeAndMapToNode(
-			size_t start_id,
-			size_t end_id,
-			TaskData& _td) :
-			ve_id0(start_id),
-			ve_id1(end_id),
-			td(_td) {}
+		CalElemDeAndMapToNode(CalData &_cd) : cd(_cd) {}
 		~CalElemDeAndMapToNode() {}
-		tbb::task* execute() override;
+		void work(size_t wk_id) const;
 	};
 
-	class CalNodeDe : public tbb::task
+	class CalNodeDe
 	{
 	protected:
-		size_t ve_id0, ve_id1;
-		TaskData& td;
+		CalData& cd;
 	public:
-		CalNodeDe(
-			size_t start_id,
-			size_t end_id,
-			TaskData& _td) :
-			ve_id0(start_id),
-			ve_id1(end_id),
-			td(_td) {}
+		CalNodeDe(CalData& _cd) : cd(_cd) {}
 		~CalNodeDe() {}
-		tbb::task* execute() override;
+		void work(size_t wk_id) const;
 	};
 
-	class MapBgMeshToPclTask : public tbb::task
+	class MapBgMeshToPcl
 	{
 	protected:
 		typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
@@ -174,58 +169,11 @@ namespace Step_T2D_ME_Task
 		typedef Model_T2D_ME_mt::Strain Strain;
 		typedef Model_T2D_ME_mt::StrainInc StrainInc;
 		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
-		size_t p_id0, p_id1;
-		TaskData& td;
+		CalData& cd;
 	public:
-		MapBgMeshToPclTask(
-			size_t start_id,
-			size_t end_id,
-			TaskData& _td) :
-			p_id0(start_id),
-			p_id1(end_id),
-			td(_td) {}
-		~MapBgMeshToPclTask() {}
-		tbb::task* execute() override;
-	};
-
-	class Step_T2D_ME_Task : public tbb::task
-	{
-	protected:
-		TaskData &td;
-	public:
-		Step_T2D_ME_Task(TaskData& _td) : td(_td) {}
-		~Step_T2D_ME_Task() {}
-		tbb::task *execute() override;
-	};
-
-	class InitPclTask : public tbb::task
-	{
-	protected:
-		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
-		typedef Model_T2D_ME_mt::Displacement Displacement;
-		typedef Model_T2D_ME_mt::Position Position;
-		size_t p_id0, p_id1;
-		TaskData& td;
-	public:
-		InitPclTask(
-			size_t start_id,
-			size_t end_id,
-			TaskData& _td) :
-			p_id0(start_id),
-			p_id1(end_id),
-			td(_td) {}
-		~InitPclTask() {}
-		tbb::task* execute() override;
-	};
-
-	class InitTask : public tbb::task
-	{
-	protected:
-		TaskData& td;
-	public:
-		InitTask(TaskData& _td) : td(_td) {}
-		~InitTask() {}
-		tbb::task* execute() override;
+		MapBgMeshToPcl(CalData& _cd) : cd(_cd) {}
+		~MapBgMeshToPcl() {}
+		void work(size_t wk_id) const;
 	};
 
 	//class ContactWithRigidObejctTask : public tbb::task
@@ -235,7 +183,7 @@ namespace Step_T2D_ME_Task
 	//public:
 	//	ContactWithRigidObejctTask();
 	//	~ContactWithRigidObejctTask();
-	//	tbb::task* execute() override;
+	//	void work(size_t wk_id) const;
 	//};
 }
 

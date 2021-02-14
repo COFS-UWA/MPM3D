@@ -17,7 +17,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self);
 
 class Step_T2D_ME_TBB : public Step_TBB
 {
-	friend class Step_T2D_ME_Task::TaskData;
+	friend class Step_T2D_ME_Task::CalData;
 	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
 
 protected:
@@ -37,8 +37,14 @@ protected:
 	typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
 
-	Step_T2D_ME_Task::TaskData task_data;
-	
+	Step_T2D_ME_Task::CalData cal_data;
+	Step_T2D_ME_Task::InitPcl init_pcl;
+	Step_T2D_ME_Task::MapPclToBgMesh map_pcl_to_mesh;
+	Step_T2D_ME_Task::UpdateAccelerationAndVelocity update_a_and_v;
+	Step_T2D_ME_Task::CalElemDeAndMapToNode cal_elem_de;
+	Step_T2D_ME_Task::CalNodeDe cal_node_de;
+	Step_T2D_ME_Task::MapBgMeshToPcl map_mesh_to_pcl;
+
 	CacheAlignedMem cal_mem;
 
 	//int apply_rigid_rect(

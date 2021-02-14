@@ -14,6 +14,7 @@ namespace SortUtils
 		size_t ori_pcl_num)
 	{
 		clear();
+		valid_pcl_num = pcl_num;
 		pcl_digit_num = max_digit_num(ori_pcl_num);
 		max_block_num = thread_num * max_block_num_div_thread_num;
 		size_t block_num = (pcl_num + parallel_divide_min_pcl_num_per_block - 1)

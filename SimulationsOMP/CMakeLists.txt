@@ -39,6 +39,7 @@ add_library(
     ModelData_T3D_CHM_mt.h ModelData_T3D_CHM_mt.cpp
     TimeHistory_T3D_CHM_mt_complete.h TimeHistory_T3D_CHM_mt_complete.cpp
     # Parallelism using TBB
+    DivideTask.hpp
     Step_TBB.h Step_TBB.cpp
     SortUtils.h SortUtils.cpp
     SortTask.h SortTask.cpp
