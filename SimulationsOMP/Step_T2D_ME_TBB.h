@@ -1,9 +1,8 @@
 #ifndef __Step_T2D_ME_TBB_h__
 #define __Step_T2D_ME_TBB_h__
 
-#include "CacheAlignedMem.h"
 #include "Model_T2D_ME_mt.h"
-#include "SortTask.h"
+//#include "SortTask.h"
 #include "Step_T2D_ME_Task.h"
 #include "Step_TBB.h"
 
@@ -17,10 +16,10 @@ int cal_substep_func_T2D_ME_TBB(void* _self);
 
 class Step_T2D_ME_TBB : public Step_TBB
 {
+protected:
 	friend class Step_T2D_ME_Task::CalData;
 	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
 
-protected:
 	typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Model_T2D_ME_mt::Force Force;
 	typedef Model_T2D_ME_mt::Acceleration Acceleration;
@@ -44,8 +43,8 @@ protected:
 	Step_T2D_ME_Task::CalElemDeAndMapToNode cal_elem_de;
 	Step_T2D_ME_Task::CalNodeDe cal_node_de;
 	Step_T2D_ME_Task::MapBgMeshToPcl map_mesh_to_pcl;
-
-	CacheAlignedMem cal_mem;
+	
+	tbb::task_scheduler_init sche_init;
 
 	//int apply_rigid_rect(
 	//	size_t p_id0, size_t p_id1,

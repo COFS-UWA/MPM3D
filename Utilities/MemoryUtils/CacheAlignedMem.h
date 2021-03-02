@@ -91,7 +91,7 @@ public:
 	{
 		free();
 		mem_head = new char[sizeof(Item) * num + Cache_Alignment];
-		return Cache_Aligned_Address(mem_head);
+		return (Item *)Cache_Aligned_Address(mem_head);
 	}
 
 	template <typename Item>

@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
 	
 	//test_t2d_chm_mt_pipe_conference(argc, argv);
-	//test_t2d_chm_mt_pipe_conference_result(argc, argv);
+	test_t2d_chm_mt_pipe_conference_result(argc, argv);
 
 	//test_t2d_chm_mt_pipe_conference_den(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_den_restart(argc, argv);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
 	//test_t3d_me_mt_test_spudcan_model(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_model(argc, argv);
-	test_t3d_me_mt_spudcan_coarse(argc, argv);
+	//test_t3d_me_mt_spudcan_coarse(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_result(argc, argv);
 
 	//MatModel::MaterialModelInitializer::init();
@@ -100,6 +100,6 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);
 	//test_t3d_chm_mt_1d_consolidation_result(argc, argv);
 
-	system("pause");
+	//system("pause");
 	return 0;
 }

@@ -12,7 +12,8 @@ QtSceneFromModel_T2D_CHM_mt::QtSceneFromModel_T2D_CHM_mt(
 	display_pts(true), pts_obj(_gl),
 	display_rigid_circle(true), rc_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
-	bg_color(0.2f, 0.3f, 0.3f) {}
+	bg_color(0.2f, 0.3f, 0.3f),
+	pcl_color(1.0f, 0.8941f, 0.7098f) {}
 
 QtSceneFromModel_T2D_CHM_mt::~QtSceneFromModel_T2D_CHM_mt() {}
 
@@ -87,8 +88,7 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 	// viewport
 	set_viewport(wd, ht, 
 		display_bbox.xu - display_bbox.xl,
-		display_bbox.yu - display_bbox.yl
-		);
+		display_bbox.yu - display_bbox.yl);
 
 	// view matrix
 	view_mat.setToIdentity();
@@ -97,8 +97,7 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 		display_bbox.xu,
 		display_bbox.yl,
 		display_bbox.yu,
-		-1.0f, 1.0f
-		);
+		-1.0f, 1.0f);
 	shader_plain2D.bind();
 	shader_plain2D.setUniformValue("view_mat", view_mat);
 	shader_circles.bind();
@@ -114,7 +113,6 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 		gray);
 
 	// init pcls
-	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
 	auto *pcl_index = model->get_pcl_index0();
 	auto* pcl_pos = model->get_pcl_pos();
 	const size_t pcl_num = model->get_pcl_num();
@@ -130,7 +128,7 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 		pcl_pos1,
 		model->get_pcl_vol(),
 		model->get_pcl_num(),
-		moccasin, 0.5f);
+		pcl_color, 0.5f);
 	::operator delete ((void *)pcl_pos1);
 
 	// init rigid circle
@@ -143,8 +141,7 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 			rc.get_y(),
 			rc.get_radius(),
 			light_slate_blue,
-			3.0f
-			);
+			3.0f);
 	}
 
 	// init pts
