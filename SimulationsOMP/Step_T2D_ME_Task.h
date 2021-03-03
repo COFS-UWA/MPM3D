@@ -12,12 +12,12 @@ namespace Step_T2D_ME_Task
 {
 	using MSDRadixSortUtils::block_low;
 
-	constexpr size_t pcl_num_per_init_pcl_task = 2;
-	constexpr size_t pcl_num_per_map_pcl_to_mesh_task = 2;
-	constexpr size_t elem_num_per_update_a_and_v_task = 2;
-	constexpr size_t elem_num_per_cal_elem_de_task = 2;
-	constexpr size_t elem_num_per_cal_node_de_task = 2;
-	constexpr size_t pcl_num_per_map_mesh_to_pcl_task = 2;
+	constexpr size_t pcl_num_per_init_pcl_task = 100;
+	constexpr size_t pcl_num_per_map_pcl_to_mesh_task = 100;
+	constexpr size_t elem_num_per_update_a_and_v_task = 20;
+	constexpr size_t elem_num_per_cal_elem_de_task = 20;
+	constexpr size_t elem_num_per_cal_node_de_task = 20;
+	constexpr size_t pcl_num_per_map_mesh_to_pcl_task = 100;
 
 	struct CalData
 	{
@@ -88,8 +88,11 @@ namespace Step_T2D_ME_Task
 	public:
 		InitPcl(CalData& _cd) : cd(_cd) {}
 		~InitPcl() {}
-		inline void cal_task_num(size_t pcl_num) noexcept
-		{ task_num = (pcl_num + pcl_num_per_init_pcl_task - 1) / pcl_num_per_init_pcl_task; }
+		inline void init() noexcept
+		{
+			task_num = (cd.prev_valid_pcl_num + pcl_num_per_init_pcl_task - 1)
+					/ pcl_num_per_init_pcl_task;
+		}
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id, size_t &pcl_in_mesh_num) const;
 	};
@@ -138,16 +141,21 @@ namespace Step_T2D_ME_Task
 		const size_t* cur_to_prev_pcl;
 		
 	public:
-		MapPclToBgMesh(CalData &_cd) : cd(_cd),
-			pcl_m(cd.pcl_m), pcl_bf(cd.pcl_bf),
-			pcl_t(cd.pcl_t), pcl_vol(cd.pcl_vol),
-			elem_dN_ab(cd.elem_dN_ab),
-			elem_area(cd.elem_area),
-			elem_pcl_m(cd.elem_pcl_m),
-			elem_density(cd.elem_density),
-			elem_node_vm(cd.elem_node_vm),
-			elem_node_force(cd.elem_node_force) {}
+		MapPclToBgMesh(CalData &_cd) : cd(_cd) {}
 		~MapPclToBgMesh() {}
+		inline void init() noexcept
+		{
+			pcl_m = cd.pcl_m;
+			pcl_bf = cd.pcl_bf;
+			pcl_t = cd.pcl_t;
+			pcl_vol = cd.pcl_vol;
+			elem_dN_ab = cd.elem_dN_ab;
+			elem_area = cd.elem_area;
+			elem_pcl_m = cd.elem_pcl_m;
+			elem_density = cd.elem_density;
+			elem_node_vm = cd.elem_node_vm;
+			elem_node_force = cd.elem_node_force;
+		}
 		inline void update() noexcept
 		{
 			const auto& spva0 = cd.spvas[cd.sorted_pcl_var_id];
@@ -185,6 +193,7 @@ namespace Step_T2D_ME_Task
 		typedef Model_T2D_ME_mt::Acceleration Acceleration;
 		typedef Model_T2D_ME_mt::Velocity Velocity;
 		typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
+
 		CalData& cd;
 		const double* elem_pcl_m;
 		const Force* elem_node_force;
@@ -193,7 +202,6 @@ namespace Step_T2D_ME_Task
 		double *node_am;
 		Velocity *node_v;
 		NodeHasVBC *node_has_vbc;
-		
 		const size_t* node_has_elem;
 		const size_t* node_elem_pair;
 		
@@ -201,20 +209,22 @@ namespace Step_T2D_ME_Task
 		size_t task_num;
 
 	public:
-		UpdateAccelerationAndVelocity(CalData& _cd) : cd(_cd),
-			elem_pcl_m(cd.elem_pcl_m),
-			elem_node_force(cd.elem_node_force),
-			elem_node_vm(cd.elem_node_vm),
-			node_a(cd.node_a),
-			node_am(cd.node_am),
-			node_v(cd.node_v),
-			node_has_vbc(cd.node_has_vbc),
-			node_has_elem(cd.node_sort_mem.res_keys),
-			node_elem_pair(cd.node_sort_mem.res_vals) {}
+		UpdateAccelerationAndVelocity(CalData& _cd) : cd(_cd) {}
 		~UpdateAccelerationAndVelocity() {}
+		inline void init() noexcept
+		{
+			elem_pcl_m = cd.elem_pcl_m;
+			elem_node_force = cd.elem_node_force;
+			elem_node_vm = cd.elem_node_vm;
+			node_a = cd.node_a;
+			node_am = cd.node_am;
+			node_v = cd.node_v;
+			node_has_vbc = cd.node_has_vbc;
+			node_has_elem = cd.node_sort_mem.res_keys;
+			node_elem_pair = cd.node_sort_mem.res_vals;
+		}
 		inline void update() noexcept
 		{
-
 			three_valid_elem_num = cd.valid_elem_num * 3;
 			task_num = (three_valid_elem_num + elem_num_per_update_a_and_v_task - 1)
 				/ elem_num_per_update_a_and_v_task;
@@ -244,15 +254,18 @@ namespace Step_T2D_ME_Task
 		size_t task_num;
 
 	public:
-		CalElemDeAndMapToNode(CalData &_cd) : cd(_cd),
-			elem_node_id(cd.elem_node_id),
-			elem_pcl_m(cd.elem_pcl_m),
-			elem_dN_ab(cd.elem_dN_ab),
-			node_v(cd.node_v),
-			elem_de(cd.elem_de),
-			elem_m_de_vol(cd.elem_m_de_vol),
-			valid_elems(cd.node_sort_mem.res_elems) {}
+		CalElemDeAndMapToNode(CalData &_cd) : cd(_cd) {}
 		~CalElemDeAndMapToNode() {}
+		inline void init() noexcept
+		{
+			elem_node_id = cd.elem_node_id;
+			elem_pcl_m = cd.elem_pcl_m;
+			elem_dN_ab = cd.elem_dN_ab;
+			node_v = cd.node_v;
+			elem_de = cd.elem_de;
+			elem_m_de_vol = cd.elem_m_de_vol;
+			valid_elems = cd.node_sort_mem.res_elems;
+		}
 		inline void update() noexcept
 		{
 			valid_elem_num = cd.valid_elem_num;
@@ -277,13 +290,16 @@ namespace Step_T2D_ME_Task
 		size_t task_num;
 
 	public:
-		CalNodeDe(CalData& _cd) : cd(_cd),
-			node_has_elem(cd.node_sort_mem.res_keys),
-			node_elem_pair(cd.node_sort_mem.res_vals),
-			elem_m_de_vol(cd.elem_m_de_vol),
-			node_am(cd.node_am),
-			node_de_vol(cd.node_de_vol) {}
+		CalNodeDe(CalData &_cd) : cd(_cd) {}
 		~CalNodeDe() {}
+		inline void init() noexcept
+		{
+			node_has_elem = cd.node_sort_mem.res_keys;
+			node_elem_pair = cd.node_sort_mem.res_vals;
+			elem_m_de_vol = cd.elem_m_de_vol;
+			node_am = cd.node_am;
+			node_de_vol = cd.node_de_vol;
+		}
 		inline void update() noexcept
 		{
 			three_valid_elem_num = cd.valid_elem_num * 3;
@@ -338,16 +354,19 @@ namespace Step_T2D_ME_Task
 		size_t* new_cur_to_prev_pcl;
 
 	public:
-		MapBgMeshToPcl(CalData& _cd) : cd(_cd),
-			elem_node_id(cd.elem_node_id),
-			node_a(cd.node_a),
-			node_v(cd.node_v),
-			elem_density(cd.elem_density),
-			elem_de(cd.elem_de),
-			node_de_vol(cd.node_de_vol),
-			pcl_pos(cd.pcl_pos),
-			pcl_mat_model(cd.pcl_mat_model) {}
+		MapBgMeshToPcl(CalData& _cd) : cd(_cd) {}
 		~MapBgMeshToPcl() {}
+		inline void init() noexcept
+		{
+			elem_node_id = cd.elem_node_id;
+			node_a = cd.node_a;
+			node_v = cd.node_v;
+			elem_density = cd.elem_density;
+			elem_de = cd.elem_de;
+			node_de_vol = cd.node_de_vol;
+			pcl_pos = cd.pcl_pos;
+			pcl_mat_model = cd.pcl_mat_model;
+		}
 		inline void update() noexcept
 		{
 			const auto& spva0 = cd.spvas[cd.sorted_pcl_var_id];

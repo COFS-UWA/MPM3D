@@ -25,24 +25,24 @@ void test_t2d_me_tbb_1d_compression(int argc, char** argv)
 	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	model.init_pcls(pcl_generator, 10.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	//MatModel::LinearElasticity *les = model.add_LinearElasticity(model.get_pcl_num());
-	//for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
-	//{
-	//	les[p_id].set_param(1000.0, 0.0);
-	//	mms[p_id] = &les[p_id];
-	//}
+	MatModel::LinearElasticity *les = model.add_LinearElasticity(model.get_pcl_num());
+	for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	{
+		les[p_id].set_param(1000.0, 0.0);
+		mms[p_id] = &les[p_id];
+	}
 	//MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
 	//for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	//{
 	//	vms[p_id].set_param(1000.0, 0.0, 1.0);
 	//	mms[p_id] = &vms[p_id];
 	//}
-	MatModel::Tresca *tes = model.add_Tresca(model.get_pcl_num());
-	for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
-	{
-		tes[p_id].set_param(1000.0, 0.0, 2.5);
-		mms[p_id] = &tes[p_id];
-	}
+	//MatModel::Tresca *tes = model.add_Tresca(model.get_pcl_num());
+	//for (uint32_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	//{
+	//	tes[p_id].set_param(1000.0, 0.0, 2.5);
+	//	mms[p_id] = &tes[p_id];
+	//}
 
 	IndexArray tbc_pt_array(50);
 	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
@@ -73,23 +73,22 @@ void test_t2d_me_tbb_1d_compression(int argc, char** argv)
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_me_mt_test2.h5");
+	res_file_hdf5.create("t2d_me_tbb_1d_compression.h5");
 
 	ModelData_T2D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T2D_ME_TBB_complete out("loading");
 	out.set_output_init_state();
-	out.set_interval_num(100);
+	out.set_interval_num(50);
 	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
-	out_pb.set_interval_num(500);
 
 	Step_T2D_ME_TBB step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0e-5);
+	step.set_step_time(1.0); // 1.0
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(5);
+	step.set_thread_num(2);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -101,7 +100,7 @@ void test_t2d_me_tbb_1d_compression(int argc, char** argv)
 void test_t2d_me_tbb_1d_compression_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_mt_test2.h5");
+	rf.open("t2d_me_tbb_1d_compression.h5");
 
 	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
 	app.set_ani_time(5.0);
@@ -109,7 +108,7 @@ void test_t2d_me_tbb_1d_compression_result(int argc, char** argv)
 	app.set_win_size(900, 900);
 	app.set_color_map_fld_range(-20.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
-	//app.set_png_name("t2d_me_mt_test2");
-	//app.set_gif_name("t2d_me_mt_test2");
+	//app.set_png_name("t2d_me_tbb_1d_compression");
+	//app.set_gif_name("t2d_me_tbb_1d_compression");
 	app.start();
 }

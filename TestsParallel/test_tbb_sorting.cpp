@@ -40,7 +40,7 @@ void test_sort_pcl_task()
 
 	tbb::task_scheduler_init init(thread_num);
 	radix_bin_blocks.init(thread_num, 2);
-	pcl_sort_mem.init(pcl_num, radix_bin_blocks);
+	pcl_sort_mem.init(pcl_num, pcl_num, radix_bin_blocks);
 
 	ori_keys = pcl_sort_mem.ori_keys;
 	ori_vals = pcl_sort_mem.ori_vals;

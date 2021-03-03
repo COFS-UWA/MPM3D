@@ -1,14 +1,11 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <fstream>
+#include <iostream>
 
 #include "DivideTask.hpp"
 #include "MergeTask.hpp"
 #include "Step_T2D_ME_TBB.h"
-
-#define one_third (1.0/3.0)
-#define N_min (1.0e-8)
-#define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
 #ifdef _DEBUG
 static std::fstream res_file_t2d_me_tbb;
@@ -43,10 +40,16 @@ int Step_T2D_ME_TBB::init_calculation()
 	cal_data.sorted_pcl_var_id = 0;
 	cal_data.prev_valid_pcl_num = md.pcl_num;
 	cal_data.thread_bin_blocks_mem.init(thread_num, 2);
-	cal_data.pcl_sort_mem.init(md.pcl_num, cal_data.thread_bin_blocks_mem);
+	cal_data.pcl_sort_mem.init(md.pcl_num, md.elem_num, cal_data.thread_bin_blocks_mem);
 	cal_data.node_sort_mem.init(md.elem_num, md.node_num, cal_data.thread_bin_blocks_mem);
+	
+	init_pcl.init();
+	map_pcl_to_mesh.init();
+	update_a_and_v.init();
+	cal_elem_de.init();
+	cal_node_de.init();
+	map_mesh_to_pcl.init();
 
-	init_pcl.cal_task_num(cal_data.prev_valid_pcl_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
 			MergeTask<Step_T2D_ME_Task::InitPcl, size_t, 8>(
@@ -101,7 +104,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 			0, map_pcl_to_mesh.get_task_num(), map_pcl_to_mesh));
 	tbb::task::spawn_root_and_wait(tk_list);
 	node_sort_mem.res_keys[cd.valid_elem_num * 3] = SIZE_MAX;
-
+	
 	// update nodal a and v
 	auto &update_a_and_v = self.update_a_and_v;
 	update_a_and_v.update();

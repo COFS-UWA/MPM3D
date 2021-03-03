@@ -25,7 +25,7 @@ struct SortParticleMem : public MSDRadixSortUtils::SortMem
 	const size_t *get_prev_res_keys() const 
 	{ return ori_keys == res_keys ? radix_vals0 : res_keys; }
 
-	void init(size_t pcl_num, RadixBinBlockMemArray& rbbs);
+	void init(size_t pcl_num, size_t elem_num, RadixBinBlockMemArray& rbbs);
 
 protected:
 	CacheAlignedMem data_mem;

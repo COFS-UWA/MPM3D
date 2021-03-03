@@ -143,12 +143,12 @@ namespace Step_T2D_ME_Task
 		{
 			// pcl index
 			const size_t prev_p_id = cur_to_prev_pcl[p_id];
-			const size_t ori_p_id = pcl_index1[prev_p_id];
-			pcl_index0[p_id] = ori_p_id;
-#ifdef _DEBUG
 			assert(prev_p_id < cd.prev_valid_pcl_num);
+			const size_t ori_p_id = pcl_index1[prev_p_id];
+#ifdef _DEBUG
 			assert(ori_p_id < cd.ori_pcl_num);
 #endif
+			pcl_index0[p_id] = ori_p_id;
 
 			// map pcl mass
 			const double p_m = pcl_m[ori_p_id];

@@ -5,6 +5,7 @@
 
 void SortParticleMem::init(
 	size_t pcl_num,
+	size_t elem_num,
 	RadixBinBlockMemArray &rbbs)
 {
 	set_radix_bin_block(rbbs);
@@ -22,5 +23,5 @@ void SortParticleMem::init(
 	radix_keys0[pcl_num] = SIZE_MAX;
 	radix_keys1[-1] = SIZE_MAX;
 	radix_keys1[pcl_num] = SIZE_MAX;
-	set_digit_num(pcl_num);
+	set_digit_num(elem_num);
 }
