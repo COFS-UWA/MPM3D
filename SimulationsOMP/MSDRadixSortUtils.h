@@ -12,9 +12,9 @@ namespace MSDRadixSortUtils
 	constexpr size_t radix_bin_num = 1 << radix_digit_num;
 
 	constexpr size_t max_block_num_per_thread = 2;
-	constexpr size_t min_data_num_per_block = 5;
-	constexpr size_t serial_sort_max_data_num = 1;
-	constexpr size_t insertion_sort_max_data_num = 1;
+	constexpr size_t min_data_num_per_block = 50;
+	constexpr size_t serial_sort_max_data_num = 20;
+	constexpr size_t insertion_sort_max_data_num = 10;
 
 	inline size_t max_digit_num(size_t max_data) noexcept
 	{
@@ -67,6 +67,7 @@ namespace MSDRadixSortUtils
 		{
 			if (free_blocks == nullptr)
 				alloc_block_mem();
+			assert(free_blocks);
 			RadixBin* block_tmp = free_blocks;
 			free_blocks = *(RadixBin**)free_blocks;
 			return block_tmp;
@@ -84,11 +85,11 @@ namespace MSDRadixSortUtils
 	protected:
 		size_t thread_num;
 		CacheAlignedMem mem;
-		void clear();
 	public:
 		RadixBinBlockMemArray() {}
 		~RadixBinBlockMemArray() { clear(); }
 		void init(size_t _thread_num, size_t block_per_page = 2);
+		void clear();
 		inline RadixBinBlockMem* get_array() noexcept
 		{ return (RadixBinBlockMem *)mem.aligned_address(); }
 		inline size_t get_max_block_num() const noexcept

@@ -2,12 +2,8 @@
 
 #include <fstream>
 
-#include "tbb/task_scheduler_init.h"
-#include "tbb/task.h"
-
 #include "DivideTask.hpp"
 #include "MergeTask.hpp"
-#include "Step_T2D_ME_Task.h"
 #include "Step_T2D_ME_TBB.h"
 
 #define one_third (1.0/3.0)
@@ -25,7 +21,8 @@ Step_T2D_ME_TBB::Step_T2D_ME_TBB(const char* _name) :
 	update_a_and_v(cal_data),
 	cal_elem_de(cal_data),
 	cal_node_de(cal_data),
-	map_mesh_to_pcl(cal_data) {}
+	map_mesh_to_pcl(cal_data),
+	sche_init(tbb::task_scheduler_init::deferred) {}
 
 Step_T2D_ME_TBB::~Step_T2D_ME_TBB() {}
 
@@ -45,6 +42,9 @@ int Step_T2D_ME_TBB::init_calculation()
 	cal_data.thread_num = thread_num;
 	cal_data.sorted_pcl_var_id = 0;
 	cal_data.prev_valid_pcl_num = md.pcl_num;
+	cal_data.thread_bin_blocks_mem.init(thread_num, 2);
+	cal_data.pcl_sort_mem.init(md.pcl_num, cal_data.thread_bin_blocks_mem);
+	cal_data.node_sort_mem.init(md.elem_num, md.node_num, cal_data.thread_bin_blocks_mem);
 
 	init_pcl.cal_task_num(cal_data.prev_valid_pcl_num);
 	tbb::task::spawn_root_and_wait(
@@ -57,7 +57,7 @@ int Step_T2D_ME_TBB::init_calculation()
 
 int Step_T2D_ME_TBB::finalize_calculation()
 {
-	Model_T2D_ME_mt& md = *(Model_T2D_ME_mt*)model;
+	Model_T2D_ME_mt& md = *(Model_T2D_ME_mt *)model;
 	md.pcl_num = cal_data.prev_valid_pcl_num;
 	sche_init.terminate();
 	return 0;
@@ -77,18 +77,18 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 	cd.sorted_pcl_var_id ^= 1;
 
 	// sort pcl id
+	auto& pcl_sort_mem = cd.pcl_sort_mem;
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root()) 
-			SortParticleTask(cd.pcl_sort_mem, cd.prev_valid_pcl_num));
+			SortParticleTask(pcl_sort_mem, cd.prev_valid_pcl_num));
+	pcl_sort_mem.res_keys[cd.prev_valid_pcl_num] = SIZE_MAX;
 
 	tbb::task_list tk_list;
 	// sort node
+	auto &node_sort_mem = cd.node_sort_mem;
 	tk_list.push_back(*new(tbb::task::allocate_root())
 		SortTriMeshNodeTask(
-			cd.node_sort_mem,
-#ifdef _DEBUG
-			cd.elem_num,
-#endif
+			node_sort_mem,
 			cd.valid_pcl_num,
 			cd.pcl_sort_mem.res_keys,
 			cd.elem_node_id,
@@ -100,6 +100,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 		DivideTask<Step_T2D_ME_Task::MapPclToBgMesh, 8>(
 			0, map_pcl_to_mesh.get_task_num(), map_pcl_to_mesh));
 	tbb::task::spawn_root_and_wait(tk_list);
+	node_sort_mem.res_keys[cd.valid_elem_num * 3] = SIZE_MAX;
 
 	// update nodal a and v
 	auto &update_a_and_v = self.update_a_and_v;

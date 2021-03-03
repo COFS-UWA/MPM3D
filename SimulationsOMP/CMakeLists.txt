@@ -50,6 +50,7 @@ add_library(
     # 2D ME MPM
     Step_T2D_ME_Task.h Step_T2D_ME_Task.cpp
     Step_T2D_ME_TBB.h Step_T2D_ME_TBB.cpp
+    TimeHistory_T2D_ME_TBB_complete.h TimeHistory_T2D_ME_TBB_complete.cpp
     )
 
 add_subdirectory(RigidObject/)

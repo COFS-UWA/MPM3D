@@ -7,6 +7,7 @@ void SortParticleMem::init(
 	size_t pcl_num,
 	RadixBinBlockMemArray &rbbs)
 {
+	set_radix_bin_block(rbbs);
 	char *cur_mem = data_mem.alloc<char>(
 		  (pcl_num * 4 + 4) * sizeof(size_t)
 		+ MSDRadixSortUtils::cache_line_size * 3);
@@ -21,6 +22,5 @@ void SortParticleMem::init(
 	radix_keys0[pcl_num] = SIZE_MAX;
 	radix_keys1[-1] = SIZE_MAX;
 	radix_keys1[pcl_num] = SIZE_MAX;
-	set_digit_num(pcl_num - 1);
-	set_radix_bin_block(rbbs);
+	set_digit_num(pcl_num);
 }

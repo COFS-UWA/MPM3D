@@ -22,6 +22,8 @@ struct SortParticleMem : public MSDRadixSortUtils::SortMem
 			radix_vals1 = ori_vals;
 		}
 	}
+	const size_t *get_prev_res_keys() const 
+	{ return ori_keys == res_keys ? radix_vals0 : res_keys; }
 
 	void init(size_t pcl_num, RadixBinBlockMemArray& rbbs);
 
@@ -29,6 +31,9 @@ protected:
 	CacheAlignedMem data_mem;
 };
 
+// Assumption:
+//     pcl_id < pcl_num (maximum pcl_id == pcl_num - 1)
+//     => pcl_num <= SIZE_MAX, max(pcl_id) <= SIZE_MAX - 1
 class SortParticleTask : public MSDRadixSortTask
 {
 public:

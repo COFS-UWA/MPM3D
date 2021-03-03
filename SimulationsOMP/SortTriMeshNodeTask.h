@@ -29,14 +29,14 @@ protected:
 };
 
 // Assumption:
-// pcl_num > 0
-// pcl_in_elem was sorted in accending order
+//     pcl_num > 0
+//     pcl_in_elem has been sorted in accending order
 class SortTriMeshNodeTask : public MSDRadixSortTask
 {
 protected:
-	static constexpr size_t min_pcl_num_per_block = 2;
-	static constexpr size_t serial_sort_max_data_num = 3;
-	static constexpr size_t insertion_sort_max_data_num = 1;
+	static constexpr size_t min_pcl_num_per_block = 50;
+	static constexpr size_t serial_sort_max_data_num = 50;
+	static constexpr size_t insertion_sort_max_data_num = 20;
 
 	using ValidElemBlock = SortTriMeshNodeMem::ValidElemBlock;
 	struct ElemNodeIndex { size_t n1, n2, n3; };
@@ -106,9 +106,6 @@ protected:
 		void operator() (size_t blk_id);
 	};
 
-#ifdef _DEBUG
-	const size_t elem_num;
-#endif
 	const size_t pcl_num;
 	const size_t* const pcl_in_elems;
 	const ElemNodeIndex *const elem_node_ids;
@@ -117,17 +114,11 @@ protected:
 public:
 	SortTriMeshNodeTask(
 		SortTriMeshNodeMem& _snm,
-#ifdef _DEBUG
-		const size_t e_num,
-#endif
 		const size_t p_num,
 		const size_t *p_in_e,
 		const void *en_ids,
 		size_t &ve_num) :
 		MSDRadixSortTask(_snm, 0, 0, _snm.digit_num - 1),
-#ifdef _DEBUG
-		elem_num(e_num),
-#endif
 		pcl_num(p_num),
 		pcl_in_elems(p_in_e),
 		elem_node_ids((const ElemNodeIndex *)en_ids),

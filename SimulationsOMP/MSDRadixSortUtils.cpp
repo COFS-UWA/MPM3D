@@ -1,7 +1,6 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <assert.h>
-
 #include "MSDRadixSortUtils.h"
 
 namespace MSDRadixSortUtils
@@ -60,8 +59,10 @@ namespace MSDRadixSortUtils
 
 		char* const new_page = new char[cache_line_size + sizeof(char*)
 			+ sizeof(RadixBin) * bin_num_per_block * block_num_per_page];
+		// add to mem page list
 		*(char**)new_page = pages_mem;
 		pages_mem = new_page;
+		// add to block list
 		RadixBin* new_block = (RadixBin*)(Cache_Aligned_Address(new_page + sizeof(char*)));
 		for (size_t blk_id = 0; blk_id < block_num_per_page; ++blk_id)
 		{

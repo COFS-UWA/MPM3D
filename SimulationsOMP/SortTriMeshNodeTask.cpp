@@ -11,6 +11,7 @@ void SortTriMeshNodeMem::init(
 	size_t node_num,
 	RadixBinBlockMemArray& rbbs)
 {
+	set_radix_bin_block(rbbs);
 	const size_t three_elem_num = elem_num * 3;
 	char *cur_mem = data_mem.alloc<char>(
 		  max_block_num * sizeof(ValidElemBlock)
@@ -34,8 +35,7 @@ void SortTriMeshNodeMem::init(
 	radix_keys0[three_elem_num] = SIZE_MAX;
 	radix_keys1[-1] = SIZE_MAX;
 	radix_keys1[three_elem_num] = SIZE_MAX;
-	set_digit_num(node_num - 1);
-	set_radix_bin_block(rbbs);
+	set_digit_num(node_num);
 }
 
 void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id)
@@ -53,20 +53,20 @@ void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id)
 	e_id = pcl_in_elems[p_id1];
 	while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
 	++p_id1;
-	assert(p_id1 < pcl_num);
+	assert(p_id1 <= pcl_num);
 
 	RadixBin& bin = radix_bin_block[blk_id];
 	ValidElemBlock& ve_blk = valid_elem_blocks[blk_id];
 	memset(&bin, 0, sizeof(RadixBin));
 	e_id = pcl_in_elems[p_id0];
-	size_t* const elems = ori_elems + e_id;
+	size_t* const o_elems = ori_elems + e_id;
 	ve_blk.ori_offset = e_id;
 	ve_blk.num = 0;
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		if (e_id != pcl_in_elems[p_id + 1])
 		{
-			ori_elems[ve_blk.num++] = e_id;
+			o_elems[ve_blk.num++] = e_id;
 			const ElemNodeIndex& eni = elem_node_ids[e_id];
 			++bin.bin[digit(eni.n1, node_digit_pos)];
 			++bin.bin[digit(eni.n2, node_digit_pos)];
@@ -132,7 +132,7 @@ tbb::task* SortTriMeshNodeTask::execute()
 	MSDRadixSortUtils::RadixBin bin;
 	size_t i, j, e_id, pos_id;
 	// scan in parallel
-	if (data_num > serial_sort_max_data_num)
+	if (pcl_num > serial_sort_max_data_num)
 	{
 		size_t* out_node_has_elem = snm.radix_keys[radix_id ^ 1];
 		size_t* out_node_elem_pair = snm.radix_vals[radix_id ^ 1];

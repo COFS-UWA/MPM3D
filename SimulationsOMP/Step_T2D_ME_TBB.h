@@ -1,15 +1,22 @@
 #ifndef __Step_T2D_ME_TBB_h__
 #define __Step_T2D_ME_TBB_h__
 
+#include "tbb/task_scheduler_init.h"
+
 #include "Model_T2D_ME_mt.h"
-//#include "SortTask.h"
 #include "Step_T2D_ME_Task.h"
 #include "Step_TBB.h"
 
 class Step_T2D_ME_TBB;
 namespace Model_T2D_ME_mt_hdf5_utilities
 {
-	int load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+	struct ParticleData;
+	int output_pcl_data_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp,
+		ResultFile_hdf5& rf, hid_t grp_id);
+	int time_history_complete_output_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp,
+		ResultFile_hdf5& rf, hid_t frame_grp_id);
 }
 
 int cal_substep_func_T2D_ME_TBB(void* _self);
@@ -17,9 +24,6 @@ int cal_substep_func_T2D_ME_TBB(void* _self);
 class Step_T2D_ME_TBB : public Step_TBB
 {
 protected:
-	friend class Step_T2D_ME_Task::CalData;
-	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
-
 	typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Model_T2D_ME_mt::Force Force;
 	typedef Model_T2D_ME_mt::Acceleration Acceleration;
@@ -62,11 +66,11 @@ public:
 	Step_T2D_ME_TBB(const char* _name);
 	~Step_T2D_ME_TBB();
 
-	//inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
-	//inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
-	//inline size_t* get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
-
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+	friend struct Model_T2D_ME_mt_hdf5_utilities::ParticleData;
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_pcl_data_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::time_history_complete_output_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 };
 
 #endif

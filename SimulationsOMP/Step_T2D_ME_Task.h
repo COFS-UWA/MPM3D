@@ -3,6 +3,7 @@
 
 #include "tbb/task.h"
 #include "tbb/task_scheduler_init.h"
+#include "MSDRadixSortUtils.h"
 #include "SortParticleTask.h"
 #include "SortTriMeshNodeTask.h"
 #include "Model_T2D_ME_mt.h"
@@ -44,6 +45,7 @@ namespace Step_T2D_ME_Task
 		double* elem_m_de_vol;
 		
 		// elem node data
+		MSDRadixSortUtils::RadixBinBlockMemArray thread_bin_blocks_mem;
 		Model_T2D_ME_mt::ElemNodeVM* elem_node_vm;
 		Model_T2D_ME_mt::Force* elem_node_force;
 
