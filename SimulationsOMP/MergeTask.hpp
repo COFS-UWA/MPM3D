@@ -31,7 +31,9 @@ namespace MergeTaskUtils
 	{
 	public:
 		inline static void merge(Result& res0, const Result* res)
-		{ res0 += res[0]; }
+		{
+			res0 += res[0];
+		}
 	};
 
 	template <class Result, size_t div_num>
@@ -40,8 +42,10 @@ namespace MergeTaskUtils
 	public:
 		Result res[div_num - 1];
 		Result& parent_res;
-		MergeResultTask(Result &pres) : parent_res(pres)
-		{ assert(div_num > 2); }
+		MergeResultTask(Result& pres) : parent_res(pres)
+		{
+			assert(div_num > 2);
+		}
 		~MergeResultTask() {}
 		tbb::task* execute() override
 		{
@@ -73,7 +77,7 @@ namespace MergeTaskUtils
 		Result& parent_res;
 		const size_t res_num_min_1;
 		MergeResultTask2(Result& pres, size_t re_num) :
-			parent_res(pres), res_num_min_1(re_num-1)
+			parent_res(pres), res_num_min_1(re_num - 1)
 		{
 			assert(res_num_min_1);
 			assert(res_num_min_1 < div_num);
@@ -92,10 +96,11 @@ namespace MergeTaskUtils
 	{
 	protected:
 		const size_t tk_id;
-		Work &work;
+		size_t padding;
+		Work& work;
 		Result& res;
 	public:
-		WorkTask(size_t id, Work& wk, Result &re) :
+		WorkTask(size_t id, Work& wk, Result& re) :
 			tk_id(id), work(wk), res(re) {}
 		~WorkTask() {}
 		tbb::task* execute() override
@@ -110,7 +115,7 @@ namespace MergeTaskUtils
 	{
 	public:
 		using ConTask = MergeResultTask<Result, div_num>;
-		inline static void spawn(ConTask &c, Work& work, size_t start_id)
+		inline static void spawn(ConTask& c, Work& work, size_t start_id)
 		{
 			assert(div_id < div_num);
 			c.spawn(*new(c.allocate_child())
@@ -125,7 +130,7 @@ namespace MergeTaskUtils
 	{
 	public:
 		using ConTask = MergeResultTask<Result, div_num>;
-		inline static void spawn(ConTask &c, Work& work, size_t start_id)
+		inline static void spawn(ConTask& c, Work& work, size_t start_id)
 		{
 			assert(1 < div_num);
 			c.spawn(*new(c.allocate_child())
@@ -139,23 +144,29 @@ namespace MergeTaskUtils
 	{
 	protected:
 		using ConTask = MergeTaskUtils::MergeResultTask<Result, div_num>;
+
 		const size_t tk_id0;
-		Work &work;
-		Result &res;
+		size_t padding;
+		Work& work;
+		Result& res;
+
 	public:
 		MergeTask2(size_t start_id,
-			Work& wk, Result &re) :
+			Work& wk, Result& re) :
 			tk_id0(start_id),
 			work(wk), res(re)
-		{ assert(div_num > 1); }
+		{
+			assert(div_num > 1);
+		}
 		~MergeTask2() {}
 		tbb::task* execute() override
 		{
-			ConTask &c = *new(allocate_continuation()) ConTask(res);
-			c.set_ref_count(div_num - 1);
+			ConTask& c = *new(allocate_continuation()) ConTask(res);
+			c.set_ref_count(div_num);
 			SpawnChildWorker<Work, Result, div_num, div_num - 1>::spawn(c, work, tk_id0);
-			work(tk_id0 + div_num - 1, res);
-			return nullptr;
+			recycle_as_child_of(c);
+			new (this) WorkTask<Work, Result>(tk_id0 + div_num - 1, work, res);
+			return this;
 		}
 	};
 
@@ -187,17 +198,19 @@ protected:
 
 	size_t tk_id0, tk_id1;
 	Work& work;
-	Result &res;
+	Result& res;
 
 public:
 	MergeTask(
 		size_t start_id,
 		size_t end_id,
-		Work &wk, Result &re) :
+		Work& wk, Result& re) :
 		tk_id0(start_id),
 		tk_id1(end_id),
 		work(wk), res(re)
-	{ assert(div_num > 2); }
+	{
+		assert(div_num > 2);
+	}
 	~MergeTask() {}
 	tbb::task* execute() override
 	{
@@ -205,7 +218,7 @@ public:
 		const size_t tk_num = tk_id1 - tk_id0;
 		if (tk_num > (div_num * div_num))
 		{
-			ConTask&c = *new(allocate_continuation()) ConTask(res);
+			ConTask& c = *new(allocate_continuation()) ConTask(res);
 			c.set_ref_count(div_num);
 			MergeTaskUtils::SpawnChildren<Work, Result, div_num, div_num - 1>::spawn(c, work, tk_id0, tk_id0, tk_num);
 			recycle_as_child_of(c);
@@ -230,21 +243,23 @@ public:
 		else if (tk_num == div_num)
 		{
 			ConTask& c = *new(allocate_continuation()) ConTask(res);
-			c.set_ref_count(div_num - 1);
+			c.set_ref_count(div_num);
 			MergeTaskUtils::SpawnChildWorker<Work, Result, div_num, div_num - 1>::spawn(c, work, tk_id0);
-			work(tk_id0 + div_num - 1, res);
-			return nullptr;
+			recycle_as_child_of(c);
+			new (this) MergeTaskUtils::WorkTask<Work, Result>(tk_id0 + div_num - 1, work, res);
+			return this;
 		}
 		else if (tk_num > 1)
 		{
-			ConTask2 &c = *new(allocate_continuation()) ConTask2(res, tk_num);
-			c.set_ref_count(tk_num - 1);
+			ConTask2& c = *new(allocate_continuation()) ConTask2(res, tk_num);
+			c.set_ref_count(tk_num);
 			for (div_id = 0; div_id < tk_num - 1; ++div_id)
 				c.spawn(*new(c.allocate_child())
 					MergeTaskUtils::WorkTask<Work, Result>(
 						tk_id0 + div_id, work, c.res[div_id]));
-			work(tk_id1 - 1, res);
-			return nullptr;
+			recycle_as_child_of(c);
+			new (this) MergeTaskUtils::WorkTask<Work, Result>(tk_id1 - 1, work, res);
+			return this;
 		}
 		else if (tk_num == 1)
 			work(tk_id1 - 1, res);
@@ -285,10 +300,10 @@ class MergeTask<Work, Result, 2> : public tbb::task
 protected:
 	using ConTask = MergeTaskUtils::MergeResultTask<Result, 2>;
 	size_t tk_id0, tk_id1;
-	Work &work;
-	Result &res;
+	Work& work;
+	Result& res;
 public:
-	MergeTask(size_t start_id, size_t end_id, Work& wk, Result &re) :
+	MergeTask(size_t start_id, size_t end_id, Work& wk, Result& re) :
 		tk_id0(start_id), tk_id1(end_id), work(wk), res(re) {}
 	~MergeTask() {}
 	tbb::task* execute() override
@@ -308,13 +323,14 @@ public:
 		}
 		else if (tk_num == 2)
 		{
-			ConTask &c = *new(allocate_continuation()) ConTask(res);
-			c.set_ref_count(1);
+			ConTask& c = *new(allocate_continuation()) ConTask(res);
+			c.set_ref_count(2);
 			c.spawn(*new(c.allocate_child())
 				MergeTaskUtils::WorkTask<Work, size_t>(
 					tk_id0, work, c.res));
-			work(tk_id0 + 1, res);
-			return nullptr;
+			recycle_as_child_of(c);
+			new (this) MergeTaskUtils::WorkTask<Work, Result>(tk_id0 + 1, work, res);
+			return this;
 		}
 		else if (tk_num == 1)
 			work(tk_id0, res);

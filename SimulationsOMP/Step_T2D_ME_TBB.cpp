@@ -10,6 +10,7 @@
 #ifdef _DEBUG
 static std::fstream res_file_t2d_me_tbb;
 #endif
+extern std::atomic<size_t> sum;
 
 Step_T2D_ME_TBB::Step_T2D_ME_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T2D_ME_TBB", &cal_substep_func_T2D_ME_TBB),
@@ -76,6 +77,18 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 		return 0;
 	}
 
+	if (cd.valid_pcl_num != 500)
+	{
+		size_t stp_id = self.substep_index;
+		//for (size_t i = 0; i < cd.prev_valid_pcl_num; i++)
+		//{
+		//	std::cout << cd.pcl_sort_mem.res_keys[i] << ", ";
+		//	if (i % 20 == 19)
+		//		std::cout << "\n";
+		//}
+		self.exit_calculation();
+	}
+
 	cd.dt = self.dtime;
 	cd.sorted_pcl_var_id ^= 1;
 
@@ -93,7 +106,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 		SortTriMeshNodeTask(
 			node_sort_mem,
 			cd.valid_pcl_num,
-			cd.pcl_sort_mem.res_keys,
+			pcl_sort_mem.res_keys,
 			cd.elem_node_id,
 			cd.valid_elem_num));
 	// map pcl to bg mesh
@@ -130,6 +143,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 				0, cal_node_de.get_task_num(), cal_node_de));
 
 	// map bg mesh back to pcl
+	sum.store(0);
 	cd.prev_valid_pcl_num = cd.valid_pcl_num;
 	auto& map_mesh_to_pcl = self.map_mesh_to_pcl;
 	map_mesh_to_pcl.update();
@@ -138,6 +152,12 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 			MergeTask<Step_T2D_ME_Task::MapBgMeshToPcl, size_t, 8>(
 				0, map_mesh_to_pcl.get_task_num(),
 				map_mesh_to_pcl, cd.valid_pcl_num));
+	
+	if (cd.valid_pcl_num != 500)
+	{
+		size_t fefe = sum.load();
+		size_t stp_id = self.substep_index;
+	}
 
 	self.continue_calculation();
 	return 0;

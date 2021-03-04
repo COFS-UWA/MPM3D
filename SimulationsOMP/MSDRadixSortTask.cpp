@@ -7,7 +7,7 @@
 
 namespace MSDRadixSortUtils
 {
-	void ScanAndFormBin::operator() (size_t blk_id)
+	void ScanAndFormBin::operator() (size_t blk_id) const
 	{
 		RadixBin& bin = radix_bin_block[blk_id];
 		memset(&bin, 0, sizeof(RadixBin));
@@ -26,12 +26,19 @@ namespace MSDRadixSortUtils
 		const RadixBin& my_bin = radix_bin_block[blk_id];
 		for (i = 0; i < radix_bin_num; ++i)
 			bin.bin[i] = my_bin.bin[i];
+		size_t blk_num1, blk_num2;
+		blk_num1 = block_num;
+		if (block_num > 4)
+			size_t efe = 0;
 		for (o_blk_id = 0; o_blk_id < blk_id; ++o_blk_id)
 		{
 			const RadixBin& o_sbin = radix_bin_block[o_blk_id];
 			for (i = 0; i < radix_bin_num; ++i)
 				bin.bin[i] += o_sbin.bin[i];
 		}
+		blk_num2 = block_num;
+		if (block_num > 4)
+			size_t efe = 0;
 		for (o_blk_id = blk_id + 1; o_blk_id < block_num; ++o_blk_id)
 		{
 			const RadixBin& o_sbin = radix_bin_block[o_blk_id];
@@ -110,19 +117,31 @@ tbb::task* MSDRadixSortTask::execute()
 					scan_and_fill_bin));
 			scan_and_fill_bin(0);
 			wait_for_all();
+			//scan_and_fill_bin(0);
+			//scan_and_fill_bin(1);
+			//scan_and_fill_bin(2);
+			//scan_and_fill_bin(3);
 			// move data
+			if (block_num > 4)
+				size_t efef = 0;
 			MoveAccToBin move_acc_to_bin(
 				block_num, data_num, digit_pos,
 				radix_bin_block,
 				in_keys, in_vals,
 				out_keys, out_vals);
-			set_ref_count(2);
-			spawn(*new(allocate_child())
-				DivideTask<MoveAccToBin, 2>(
-					1, block_num,
-					move_acc_to_bin));
-			move_acc_to_bin(0, bin);
-			wait_for_all();
+			if (block_num > 4)
+				size_t efef = 0;
+			//set_ref_count(2);
+			//spawn(*new(allocate_child())
+			//	DivideTask<MoveAccToBin, 2>(
+			//		1, block_num,
+			//		move_acc_to_bin));
+			//move_acc_to_bin(0, bin);
+			//wait_for_all();
+			move_acc_to_bin(1);
+			move_acc_to_bin(2);
+			move_acc_to_bin(3);
+			move_acc_to_bin(0);
 			th_radix_bin_block.free(radix_bin_block);
 		}
 		else // divide serially and sort parallely

@@ -28,7 +28,7 @@ namespace MSDRadixSortUtils
 			radix_bin_block(bin_blk),
 			keys(ks) {}
 		~ScanAndFormBin() {}
-		void operator() (size_t blk_id);
+		void operator() (size_t blk_id) const;
 	};
 
 	class MoveAccToBin

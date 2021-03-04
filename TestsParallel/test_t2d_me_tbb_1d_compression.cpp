@@ -79,18 +79,19 @@ void test_t2d_me_tbb_1d_compression(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T2D_ME_TBB_complete out("loading");
+	out.set_interval_num(100);
 	out.set_output_init_state();
-	out.set_interval_num(50);
+	out.set_output_final_state();
 	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
 
 	Step_T2D_ME_TBB step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0); // 1.0
+	step.set_step_time(1.0e-1); // 1.0
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(2);
 	step.add_time_history(out);
-	step.add_time_history(out_pb);
+	//step.add_time_history(out_pb);
 	step.solve();
 }
 

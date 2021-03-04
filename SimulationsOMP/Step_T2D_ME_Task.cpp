@@ -1,17 +1,19 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <assert.h>
+#include <atomic>
 #include "tbb/task_arena.h"
 
 #include "ParallelUtils.h"
 #include "Step_T2D_ME_Task.h"
 #include "Step_T2D_ME_TBB.h"
 
-#define one_third (1.0/3.0)
-#define Block_Low(block_id, block_num, data_num) ((block_id) * (data_num) / (block_num))
+std::atomic<size_t> sum;
 
 namespace Step_T2D_ME_Task
 {
+	constexpr double one_third = 1.0 / 3.0;
+
 	void CalData::set_model(Model_T2D_ME_mt &md) noexcept
 	{
 		pmodel = &md;
@@ -292,7 +294,7 @@ namespace Step_T2D_ME_Task
 		while (ve_id0 != SIZE_MAX && n_id == node_has_elem[--ve_id0]);
 		++ve_id0;
 		assert(ve_id0 <= three_valid_elem_num);
-		size_t ve_id1 = Block_Low(wk_id + 1, task_num, three_valid_elem_num);
+		size_t ve_id1 = block_low(wk_id + 1, task_num, three_valid_elem_num);
 		n_id = node_has_elem[ve_id1];
 		while (ve_id1 != SIZE_MAX && n_id == node_has_elem[--ve_id1]);
 		++ve_id1;
@@ -333,7 +335,7 @@ namespace Step_T2D_ME_Task
 				n_a.ay = n_fy / n_am;
 				Velocity& n_v = node_v[n_id];
 				n_v.vx = n_vmx / n_vm + n_a.ax * cd.dt;
-				n_v.vy = n_vmy / n_vm + n_a.ay *cd. dt;
+				n_v.vy = n_vmy / n_vm + n_a.ay * cd.dt;
 				NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 				bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 				n_a.iax &= bc_mask;
@@ -506,6 +508,8 @@ namespace Step_T2D_ME_Task
 			}
 			if (p_e_id != SIZE_MAX)
 				++valid_pcl_num;
+			if (p_e_id == SIZE_MAX)
+				size_t efef = 0;
 			new_pcl_in_elem[p_id] = p_e_id;
 			new_cur_to_prev_pcl[p_id] = p_id;
 #ifdef _DEBUG
@@ -553,5 +557,6 @@ namespace Step_T2D_ME_Task
 		}
 
 		pcl_in_mesh_num = valid_pcl_num;
+		sum.fetch_add(valid_pcl_num);
 	}
 }

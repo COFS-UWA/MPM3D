@@ -34,7 +34,7 @@ protected:
 class SortTriMeshNodeTask : public MSDRadixSortTask
 {
 protected:
-	static constexpr size_t min_pcl_num_per_block = 50;
+	static constexpr size_t min_pcl_num_per_block = 500;
 	static constexpr size_t serial_sort_max_data_num = 50;
 	static constexpr size_t insertion_sort_max_data_num = 20;
 

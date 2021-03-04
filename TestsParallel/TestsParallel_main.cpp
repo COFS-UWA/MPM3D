@@ -106,6 +106,6 @@ int main(int argc, char *argv[])
 	test_t2d_me_tbb_1d_compression(argc, argv);
 	//test_t2d_me_tbb_1d_compression_result(argc, argv);
 
-	//system("pause");
+	system("pause");
 	return 0;
 }

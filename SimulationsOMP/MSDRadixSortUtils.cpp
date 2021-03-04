@@ -5,6 +5,8 @@
 
 namespace MSDRadixSortUtils
 {
+	std::mutex RadixBinBlockMem::cout_lock;
+
 	RadixBinBlockMem::RadixBinBlockMem() :
 		bin_num_per_block(1),
 		block_num_per_page(1),
@@ -74,14 +76,14 @@ namespace MSDRadixSortUtils
 
 	void RadixBinBlockMemArray::clear()
 	{
-		if (mem.raw_address())
+		if (mem.raw_address() && thread_num)
 		{
 			RadixBinBlockMem *const thread_radix_bin_block
 				= (RadixBinBlockMem *)mem.aligned_address();
 			for (size_t th_id = 0; th_id < thread_num; ++th_id)
 				thread_radix_bin_block[th_id].~RadixBinBlockMem();
-			mem.free();
 		}
+		mem.free();
 	}
 
 	void RadixBinBlockMemArray::init(
