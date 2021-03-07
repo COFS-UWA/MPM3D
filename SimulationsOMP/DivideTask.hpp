@@ -20,18 +20,19 @@ namespace DivideTaskUtils
 	{
 	protected:
 		const size_t tk_id;
+		size_t _padding;
 		Work& work;
+
 	public:
 		WorkTask(size_t id, Work& wk) : tk_id(id), work(wk) {}
-		~WorkTask() {}
 		tbb::task* execute() override { work(tk_id); return nullptr; }
 	};
-	
+
 	template <class Work, size_t div_num, size_t div_id>
 	class SpawnChildWorker
 	{
 	public:
-		inline static void spawn(tbb::empty_task &c, Work& work, size_t start_id)
+		inline static void spawn(tbb::empty_task& c, Work& work, size_t start_id)
 		{
 			assert(div_id < div_num);
 			c.spawn(*new(c.allocate_child()) WorkTask<Work>(start_id, work));
@@ -43,31 +44,34 @@ namespace DivideTaskUtils
 	class SpawnChildWorker<Work, div_num, 1>
 	{
 	public:
-		inline static void spawn(tbb::empty_task &c, Work& work, size_t start_id)
+		inline static void spawn(tbb::empty_task& c, Work& work, size_t start_id)
 		{
 			assert(1 < div_num);
 			c.spawn(*new(c.allocate_child()) WorkTask<Work>(start_id, work));
 		}
 	};
-	
+
 	// (tk_id1 - tk_id0) < div_num
 	template <class Work, size_t div_num>
 	class DivideTask2 : public tbb::task
 	{
 	protected:
 		const size_t tk_id0;
+		size_t _padding;
 		Work& work;
 	public:
-		DivideTask2(size_t start_id, Work &wk) :
-			tk_id0(start_id), work(wk) { assert(div_num > 1); }
-		~DivideTask2() {}
+		DivideTask2(size_t start_id, Work& wk) :
+			tk_id0(start_id), work(wk) {
+			assert(div_num > 1);
+		}
 		tbb::task* execute() override
 		{
-			tbb::empty_task &c = *new(allocate_continuation()) tbb::empty_task;
-			c.set_ref_count(div_num - 1);
+			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
+			c.set_ref_count(div_num);
 			SpawnChildWorker<Work, div_num, div_num - 1>::spawn(c, work, tk_id0);
-			work(tk_id0 + div_num - 1);
-			return nullptr;
+			new (this) WorkTask<Work>(tk_id0 + div_num - 1, work);
+			recycle_as_child_of(c);
+			return this;
 		}
 	};
 
@@ -97,7 +101,9 @@ protected:
 public:
 	DivideTask(size_t start_id, size_t end_id, Work& wk) :
 		tk_id0(start_id), tk_id1(end_id), work(wk)
-	{ assert(div_num > 1); }
+	{
+		assert(div_num > 1);
+	}
 	~DivideTask() {}
 	tbb::task* execute() override
 	{
@@ -128,21 +134,23 @@ public:
 		}
 		else if (tk_num == div_num)
 		{
-			tbb::empty_task &c = *new(allocate_continuation()) tbb::empty_task;
-			c.set_ref_count(div_num - 1);
+			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
+			c.set_ref_count(div_num);
 			DivideTaskUtils::SpawnChildWorker<Work, div_num, div_num - 1>::spawn(c, work, tk_id0);
-			work(tk_id0 + div_num - 1);
-			return nullptr;
+			new (this) DivideTaskUtils::WorkTask<Work>(tk_id0 + div_num - 1, work);
+			recycle_as_child_of(c);
+			return this;
 		}
 		else if (tk_num > 1)
 		{
 			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
-			c.set_ref_count(tk_num - 1);
+			c.set_ref_count(tk_num);
 			for (div_id = tk_id0 + 1; div_id < tk_id1; ++div_id)
 				c.spawn(*new(c.allocate_child())
 					DivideTaskUtils::WorkTask<Work>(div_id, work));
-			work(tk_id0);
-			return nullptr;
+			new (this) DivideTaskUtils::WorkTask<Work>(tk_id0, work);
+			recycle_as_child_of(c);
+			return this;
 		}
 		else if (tk_num == 1)
 			work(tk_id0);
@@ -153,8 +161,8 @@ public:
 namespace DivideTaskUtils
 {
 	template <class Work, size_t div_num, size_t div_id>
-	inline void SpawnChildren<Work, div_num, div_id>::spawn(tbb::empty_task &c,
-		 Work& work, size_t blk_start_id, size_t task_id0, size_t task_num)
+	inline void SpawnChildren<Work, div_num, div_id>::spawn(tbb::empty_task& c,
+		Work& work, size_t blk_start_id, size_t task_id0, size_t task_num)
 	{
 		assert(div_id < div_num);
 		const size_t blk_end_id = task_id0 + (div_num - div_id) * task_num / div_num;
@@ -180,9 +188,9 @@ class DivideTask<Work, 2> : public tbb::task
 {
 protected:
 	size_t tk_id0, tk_id1;
-	Work &work;
+	Work& work;
 public:
-	DivideTask(size_t start_id, size_t end_id, Work &wk) :
+	DivideTask(size_t start_id, size_t end_id, Work& wk) :
 		tk_id0(start_id), tk_id1(end_id), work(wk) {}
 	~DivideTask() {}
 	tbb::task* execute() override
@@ -190,7 +198,7 @@ public:
 		const size_t tk_num = tk_id1 - tk_id0;
 		if (tk_num > 2)
 		{
-			tbb::empty_task &c = *new(allocate_continuation()) tbb::empty_task;
+			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
 			c.set_ref_count(2);
 			const size_t mid_tk_id = tk_id0 + tk_num / 2;
 			c.spawn(*new(c.allocate_child())
@@ -201,12 +209,13 @@ public:
 		}
 		else if (tk_num == 2)
 		{
-			tbb::empty_task &c = *new(allocate_continuation()) tbb::empty_task;
-			c.set_ref_count(1);
+			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
+			c.set_ref_count(2);
 			c.spawn(*new(c.allocate_child())
 				DivideTaskUtils::WorkTask<Work>(tk_id0, work));
-			work(tk_id0 + 1);
-			return nullptr;
+			new (this) DivideTaskUtils::WorkTask<Work>(tk_id0 + 1, work);
+			recycle_as_child_of(c);
+			return this;
 		}
 		else if (tk_num == 1)
 			work(tk_id0);

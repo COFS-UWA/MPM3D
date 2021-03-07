@@ -164,8 +164,8 @@ namespace MergeTaskUtils
 			ConTask& c = *new(allocate_continuation()) ConTask(res);
 			c.set_ref_count(div_num);
 			SpawnChildWorker<Work, Result, div_num, div_num - 1>::spawn(c, work, tk_id0);
-			recycle_as_child_of(c);
 			new (this) WorkTask<Work, Result>(tk_id0 + div_num - 1, work, res);
+			recycle_as_child_of(c);
 			return this;
 		}
 	};
@@ -245,8 +245,8 @@ public:
 			ConTask& c = *new(allocate_continuation()) ConTask(res);
 			c.set_ref_count(div_num);
 			MergeTaskUtils::SpawnChildWorker<Work, Result, div_num, div_num - 1>::spawn(c, work, tk_id0);
-			recycle_as_child_of(c);
 			new (this) MergeTaskUtils::WorkTask<Work, Result>(tk_id0 + div_num - 1, work, res);
+			recycle_as_child_of(c);
 			return this;
 		}
 		else if (tk_num > 1)
@@ -257,8 +257,8 @@ public:
 				c.spawn(*new(c.allocate_child())
 					MergeTaskUtils::WorkTask<Work, Result>(
 						tk_id0 + div_id, work, c.res[div_id]));
-			recycle_as_child_of(c);
 			new (this) MergeTaskUtils::WorkTask<Work, Result>(tk_id1 - 1, work, res);
+			recycle_as_child_of(c);
 			return this;
 		}
 		else if (tk_num == 1)
@@ -328,8 +328,8 @@ public:
 			c.spawn(*new(c.allocate_child())
 				MergeTaskUtils::WorkTask<Work, size_t>(
 					tk_id0, work, c.res));
-			recycle_as_child_of(c);
 			new (this) MergeTaskUtils::WorkTask<Work, Result>(tk_id0 + 1, work, res);
+			recycle_as_child_of(c);
 			return this;
 		}
 		else if (tk_num == 1)

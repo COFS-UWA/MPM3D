@@ -1,9 +1,6 @@
 #ifndef __MSD_Radix_Sort_Utils_h__
 #define __MSD_Radix_Sort_Utils_h__
 
-#include <iostream>
-#include <mutex>
-
 #include "tbb/task.h"
 #include "CacheAlignedMem.h"
 
@@ -44,8 +41,6 @@ namespace MSDRadixSortUtils
 	class RadixBinBlockMem
 	{
 	protected:
-		static std::mutex cout_lock;
-
 		size_t bin_num_per_block;
 		size_t block_num_per_page;
 		char* pages_mem;
@@ -75,17 +70,11 @@ namespace MSDRadixSortUtils
 			assert(free_blocks);
 			RadixBin* block_tmp = free_blocks;
 			free_blocks = *(RadixBin**)free_blocks;
-			//cout_lock.lock();
-			//std::cout << this << " alloc " << block_tmp << "\n";
-			//cout_lock.unlock();
 			return block_tmp;
 		}
 
 		inline void free(RadixBin* bins) noexcept
 		{
-			//cout_lock.lock();
-			//std::cout << this << " free " << bins << "\n";
-			//cout_lock.unlock();
 			*(RadixBin**)bins = free_blocks;
 			free_blocks = bins;
 		}

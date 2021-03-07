@@ -169,7 +169,7 @@ tbb::task* SortTriMeshNodeTask::execute()
 			for (i = 1; i < block_num; ++i)
 				valid_elem_blocks[i].res_offset = valid_elem_blocks[i].num + valid_elem_blocks[i - 1].num;
 			valid_elem_num = valid_elem_blocks[block_num - 1].res_offset;
-			static_cast<size_t>(data_num) = 3 * valid_elem_blocks[block_num - 1].res_offset;
+			*const_cast<size_t *>(&data_num) = 3 * valid_elem_blocks[block_num - 1].res_offset;
 
 			// move data
 			FormElemAndNodeArray form_elem_and_node_array(
@@ -194,13 +194,13 @@ tbb::task* SortTriMeshNodeTask::execute()
 		else // scan serially
 		{
 			memset(&bin, 0, sizeof(bin));
-			static_cast<size_t>(data_num) = 0;
+			*const_cast<size_t *>(&data_num) = 0;
 			e_id = pcl_in_elems[0];
 			for (i = 0; i < pcl_num; ++i)
 			{
 				if (e_id != pcl_in_elems[i + 1])
 				{
-					res_elems[static_cast<size_t>(data_num)++] = e_id;
+					res_elems[(*const_cast<size_t *>(&data_num))++] = e_id;
 					const ElemNodeIndex& eni = elem_node_ids[e_id];
 					++bin.bin[digit(eni.n1, digit_pos)];
 					++bin.bin[digit(eni.n2, digit_pos)];
@@ -225,16 +225,40 @@ tbb::task* SortTriMeshNodeTask::execute()
 				out_node_elem_pair[pos_id] = 3 * e_id;
 			}
 			valid_elem_num = data_num;
-			static_cast<size_t>(data_num) *= 3;
+			*const_cast<size_t *>(&data_num) *= 3;
 
 			if (digit_pos)
 			{
 				tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
 				c.set_ref_count(4);
-				c.spawn(*new(c.allocate_child()) ChildSpawner<3>(bin.bin, bin.bin[0x40], *this));
-				c.spawn(*new(c.allocate_child()) ChildSpawner<3>(bin.bin + 0x40, bin.bin[0x40 * 2], *this));
-				c.spawn(*new(c.allocate_child()) ChildSpawner<3>(bin.bin + 0x40 * 2, bin.bin[0x40 * 3], *this));
-				return new(c.allocate_child()) ChildSpawner<3>(bin.bin + 0x40 * 3, data_num, *this);
+				c.spawn(*new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin,
+						bin.bin[0x40],
+						start_pos,
+						digit_pos - 1,
+						sort_mem));
+				c.spawn(*new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin + 0x40,
+						bin.bin[0x40 * 2],
+						start_pos,
+						digit_pos - 1,
+						sort_mem));
+				c.spawn(*new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin + 0x40 * 2,
+						bin.bin[0x40 * 3],
+						start_pos,
+						digit_pos - 1,
+						sort_mem));
+				return new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin + 0x40 * 3,
+						data_num,
+						start_pos,
+						digit_pos - 1,
+						sort_mem);
 			}
 			return nullptr;
 		}
@@ -243,7 +267,7 @@ tbb::task* SortTriMeshNodeTask::execute()
 	// sort serially
 	size_t* in_node_has_elem = snm.radix_keys[radix_id];
 	size_t* in_node_elem_pair = snm.radix_vals[radix_id];
-	static_cast<size_t>(data_num) = 0;
+	*const_cast<size_t *>(&data_num) = 0;
 	e_id = pcl_in_elems[0];
 	for (i = 0; i < pcl_num; ++i)
 	{
@@ -257,12 +281,12 @@ tbb::task* SortTriMeshNodeTask::execute()
 			in_node_elem_pair[data_num * 3] = data_num * 3;
 			in_node_elem_pair[data_num * 3 + 1] = data_num * 3 + 1;
 			in_node_elem_pair[data_num * 3 + 2] = data_num * 3 + 2;
-			++static_cast<size_t>(data_num);
+			++(*const_cast<size_t *>(&data_num));
 			e_id = pcl_in_elems[i + 1];
 		}
 	}
 	valid_elem_num = data_num;
-	static_cast<size_t>(data_num) *= 3;
+	*const_cast<size_t *>(&data_num) *= 3;
 	if (data_num > insertion_sort_max_data_num) // radix sort
 	{
 		out_node_has_elem = snm.radix_keys[radix_id ^ 1];

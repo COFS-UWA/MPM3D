@@ -14,7 +14,7 @@ namespace MSDRadixSortUtils
 		size_t i;
 		const size_t data_id1 = block_low(blk_id + 1, block_num, data_num);
 		for (i = block_low(blk_id, block_num, data_num); i < data_id1; ++i)
-			++bin.bin[digit(keys[i], digit_pos)];
+			++bin.bin[digit(in_keys[i], digit_pos)];
 		for (i = 1; i < radix_bin_num; ++i)
 			bin.bin[i] += bin.bin[i - 1];
 	}
@@ -26,19 +26,12 @@ namespace MSDRadixSortUtils
 		const RadixBin& my_bin = radix_bin_block[blk_id];
 		for (i = 0; i < radix_bin_num; ++i)
 			bin.bin[i] = my_bin.bin[i];
-		size_t blk_num1, blk_num2;
-		blk_num1 = block_num;
-		if (block_num > 4)
-			size_t efe = 0;
 		for (o_blk_id = 0; o_blk_id < blk_id; ++o_blk_id)
 		{
 			const RadixBin& o_sbin = radix_bin_block[o_blk_id];
 			for (i = 0; i < radix_bin_num; ++i)
 				bin.bin[i] += o_sbin.bin[i];
 		}
-		blk_num2 = block_num;
-		if (block_num > 4)
-			size_t efe = 0;
 		for (o_blk_id = blk_id + 1; o_blk_id < block_num; ++o_blk_id)
 		{
 			const RadixBin& o_sbin = radix_bin_block[o_blk_id];
@@ -54,26 +47,24 @@ namespace MSDRadixSortUtils
 		}
 	}
 
-	void MoveAccToBin::operator() (size_t blk_id, RadixBin& bin)
+	void MoveAccToBin::operator() (RadixBin& out_bin)
 	{
+		RadixBin bin;
 		size_t i, o_blk_id;
-		const RadixBin& my_bin = radix_bin_block[blk_id];
+		const RadixBin& my_bin = radix_bin_block[block_num - 1];
 		for (i = 0; i < radix_bin_num; ++i)
 			bin.bin[i] = my_bin.bin[i];
-		for (o_blk_id = 0; o_blk_id < blk_id; ++o_blk_id)
+		for (o_blk_id = 0; o_blk_id < block_num - 1; ++o_blk_id)
 		{
 			const RadixBin& o_sbin = radix_bin_block[o_blk_id];
 			for (i = 0; i < radix_bin_num; ++i)
 				bin.bin[i] += o_sbin.bin[i];
 		}
-		for (o_blk_id = blk_id + 1; o_blk_id < block_num; ++o_blk_id)
-		{
-			const RadixBin& o_sbin = radix_bin_block[o_blk_id];
-			for (i = 1; i < radix_bin_num; ++i)
-				bin.bin[i] += o_sbin.bin[i - 1];
-		}
-		const size_t data_id0 = block_low(blk_id, block_num, data_num);
-		for (i = block_low(blk_id + 1, block_num, data_num); i-- != data_id0;)
+		out_bin.bin[0] = 0;
+		for (i = 1; i < radix_bin_num; ++i)
+			out_bin.bin[i] = bin.bin[i - 1];
+		const size_t data_id0 = block_low(block_num - 1, block_num, data_num);
+		for (i = data_num; i-- != data_id0;)
 		{
 			const size_t pos_id = --bin.bin[digit(in_keys[i], digit_pos)];
 			out_keys[pos_id] = in_keys[i];
@@ -90,58 +81,38 @@ tbb::task* MSDRadixSortTask::execute()
 	RadixBin bin;
 	size_t i;
 	const size_t radix_id = digit_pos & 1;
-	size_t *in_keys = sort_mem.radix_keys[radix_id] + start_pos;
-	size_t *in_vals = sort_mem.radix_vals[radix_id] + start_pos;
-	size_t* out_keys, *out_vals;
+	in_keys = sort_mem.radix_keys[radix_id] + start_pos;
+	in_vals = sort_mem.radix_vals[radix_id] + start_pos;
 	if (data_num > MSDRadixSortUtils::serial_sort_max_data_num)
 	{
 		out_keys = sort_mem.radix_keys[radix_id ^ 1] + start_pos;
 		out_vals = sort_mem.radix_vals[radix_id ^ 1] + start_pos;
 		if (data_num > MSDRadixSortUtils::min_data_num_per_block * 2)
 		{
-			size_t block_num = (data_num + MSDRadixSortUtils::min_data_num_per_block - 1)
+			block_num = (data_num + MSDRadixSortUtils::min_data_num_per_block - 1)
 							/ MSDRadixSortUtils::min_data_num_per_block;
 			if (block_num > sort_mem.max_block_num)
 				block_num = sort_mem.max_block_num;
 			const size_t my_th_id = tbb::task_arena::current_thread_index();
 			RadixBinBlockMem& th_radix_bin_block = sort_mem.thread_radix_bin_block[my_th_id];
-			RadixBin *const radix_bin_block = th_radix_bin_block.alloc();
+			radix_bin_block = th_radix_bin_block.alloc();
+			
 			// scan data
-			ScanAndFormBin scan_and_fill_bin(
-				block_num, data_num, digit_pos,
-				radix_bin_block, in_keys);
 			set_ref_count(2);
 			spawn(*new(allocate_child())
 				DivideTask<ScanAndFormBin, 2>(
-					1, block_num,
-					scan_and_fill_bin));
-			scan_and_fill_bin(0);
+					0, block_num - 1, scan_and_form_bin));
+			scan_and_form_bin(block_num - 1);
 			wait_for_all();
-			//scan_and_fill_bin(0);
-			//scan_and_fill_bin(1);
-			//scan_and_fill_bin(2);
-			//scan_and_fill_bin(3);
+
 			// move data
-			if (block_num > 4)
-				size_t efef = 0;
-			MoveAccToBin move_acc_to_bin(
-				block_num, data_num, digit_pos,
-				radix_bin_block,
-				in_keys, in_vals,
-				out_keys, out_vals);
-			if (block_num > 4)
-				size_t efef = 0;
-			//set_ref_count(2);
-			//spawn(*new(allocate_child())
-			//	DivideTask<MoveAccToBin, 2>(
-			//		1, block_num,
-			//		move_acc_to_bin));
-			//move_acc_to_bin(0, bin);
-			//wait_for_all();
-			move_acc_to_bin(1);
-			move_acc_to_bin(2);
-			move_acc_to_bin(3);
-			move_acc_to_bin(0);
+			set_ref_count(2);
+			spawn(*new(allocate_child())
+				DivideTask<MoveAccToBin, 2>(
+					0, block_num - 1, move_acc_to_bin));
+			move_acc_to_bin(bin); // block_num - 1
+			wait_for_all();
+
 			th_radix_bin_block.free(radix_bin_block);
 		}
 		else // divide serially and sort parallely
@@ -161,12 +132,38 @@ tbb::task* MSDRadixSortTask::execute()
 
 		if (digit_pos) // not the last digit
 		{
-			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
+			tbb::empty_task& c = 
+				*new(allocate_continuation())
+					tbb::empty_task;
 			c.set_ref_count(4);
-			c.spawn(*new(c.allocate_child()) ChildSpawner<3>(bin.bin, bin.bin[0x40], *this));
-			c.spawn(*new(c.allocate_child()) ChildSpawner<3>(bin.bin + 0x40, bin.bin[0x40*2], *this));
-			c.spawn(*new(c.allocate_child()) ChildSpawner<3>(bin.bin + 0x40*2, bin.bin[0x40*3], *this));
-			return new(c.allocate_child()) ChildSpawner<3>(bin.bin + 0x40*3, data_num, *this);
+			c.spawn(*new(c.allocate_child())
+				ChildSpawner<3>(
+					bin.bin,
+					bin.bin[0x40],
+					start_pos,
+					digit_pos - 1,
+					sort_mem));
+			c.spawn(*new(c.allocate_child())
+				ChildSpawner<3>(
+					bin.bin + 0x40,
+					bin.bin[0x40 * 2],
+					start_pos,
+					digit_pos - 1,
+					sort_mem));
+			c.spawn(*new(c.allocate_child())
+				ChildSpawner<3>(
+					bin.bin + 0x40 * 2,
+					bin.bin[0x40 * 3],
+					start_pos,
+					digit_pos - 1,
+					sort_mem));
+			return new(c.allocate_child())
+				ChildSpawner<3>(
+					bin.bin + 0x40 * 3,
+					data_num,
+					start_pos,
+					digit_pos - 1,
+					sort_mem);
 		}
 		return nullptr;
 	}

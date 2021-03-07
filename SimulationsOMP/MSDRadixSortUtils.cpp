@@ -5,8 +5,6 @@
 
 namespace MSDRadixSortUtils
 {
-	std::mutex RadixBinBlockMem::cout_lock;
-
 	RadixBinBlockMem::RadixBinBlockMem() :
 		bin_num_per_block(1),
 		block_num_per_page(1),
