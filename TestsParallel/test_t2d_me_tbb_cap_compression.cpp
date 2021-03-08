@@ -1,15 +1,16 @@
 #include "TestsParallel_pcp.h"
 
-#include "test_parallel_utils.h"
 #include "TriangleMesh.h"
 #include "ParticleGenerator2D.hpp"
 #include "Model_T2D_ME_mt.h"
 #include "Model_T2D_ME_mt_hdf5_utilities.h"
 #include "ModelData_T2D_ME_mt.h"
-#include "Step_T2D_ME_mt.h"
-#include "TimeHistory_T2D_ME_mt_complete.h"
+#include "Step_T2D_ME_TBB.h"
+#include "TimeHistory_T2D_ME_TBB_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T2D_ME_mt.h"
+
+#include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
 void test_t2d_me_tbb_cap_compression(int argc, char** argv)
@@ -55,19 +56,19 @@ void test_t2d_me_tbb_cap_compression(int argc, char** argv)
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_me_mt_cap_compression.h5");
+	res_file_hdf5.create("t2d_me_tbb_cap_compression.h5");
 
 	ModelData_T2D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T2D_ME_mt_complete out("loading");
+	TimeHistory_T2D_ME_TBB_complete out("loading");
 	out.set_interval_num(100);
 	out.set_output_init_state();
 	out.set_output_final_state();
 	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
 
-	Step_T2D_ME_mt step("step1");
+	Step_T2D_ME_TBB step("step1");
 	step.set_model(model);
 	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
@@ -83,7 +84,7 @@ void test_t2d_me_tbb_cap_compression(int argc, char** argv)
 void test_t2d_me_tbb_cap_compression_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_mt_cap_compression.h5");
+	rf.open("t2d_me_tbb_cap_compression.h5");
 
 	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
 	app.set_win_size(900, 900);
@@ -91,7 +92,7 @@ void test_t2d_me_tbb_cap_compression_result(int argc, char** argv)
 	app.set_res_file(rf, "loading", Hdf5Field::s22);
 	app.set_color_map_fld_range(-50.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
-	//app.set_png_name("t2d_me_mt_cap_compression");
-	app.set_gif_name("t2d_me_mt_cap_compression");
+	//app.set_png_name("t2d_me_tbb_cap_compression");
+	//app.set_gif_name("t2d_me_tbb_cap_compression");
 	app.start();
 }

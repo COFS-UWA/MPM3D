@@ -105,8 +105,11 @@ int main(int argc, char *argv[])
 	//test_sort_tri_mesh_node_task();
 	//test_sort_tri_mesh_node_task2();
 
-	test_t2d_me_tbb_1d_compression(argc, argv);
-	test_t2d_me_tbb_1d_compression_result(argc, argv);
+	//test_t2d_me_tbb_1d_compression(argc, argv);
+	//test_t2d_me_tbb_1d_compression_result(argc, argv);
+
+	//test_t2d_me_tbb_cap_compression(argc, argv);
+	test_t2d_me_tbb_cap_compression_result(argc, argv);
 
 	system("pause");
 	return 0;

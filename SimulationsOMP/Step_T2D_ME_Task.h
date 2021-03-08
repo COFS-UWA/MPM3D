@@ -192,7 +192,6 @@ namespace Step_T2D_ME_Task
 	class ContactRigidRect
 	{
 	protected:
-		typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 		typedef Model_T2D_ME_mt::Force Force;
 		typedef Model_T2D_ME_mt::Position Position;
 		typedef Model_T2D_ME_mt::Displacement Displacement;

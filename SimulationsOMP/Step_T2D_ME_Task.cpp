@@ -302,6 +302,7 @@ namespace Step_T2D_ME_Task
 		Force lcont_f, gcont_f;
 		Point2D cur_cont_pos;
 		Force2D rcf;
+		rcf.reset();
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = pcl_index[p_id];
@@ -331,7 +332,9 @@ namespace Step_T2D_ME_Task
 				en_f3.fy += p_N.N3 * gcont_f.fy;
 				// apply contact force to rigid body
 				const Point2D& rr_cen = prr->get_centre();
-				rcf.add_force(p_x, p_y,	-gcont_f.fx, -gcont_f.fy, rr_cen.x, rr_cen.y);
+				rcf.add_force(p_x, p_y,
+					-gcont_f.fx, -gcont_f.fy,
+					rr_cen.x, rr_cen.y);
 			}
 		}
 		rr_cf.fx = rcf.fx;

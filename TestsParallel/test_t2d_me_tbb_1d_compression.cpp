@@ -85,6 +85,7 @@ void test_t2d_me_tbb_1d_compression(int argc, char** argv)
 	out.set_output_final_state();
 	out.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_pb;
+	out_pb.set_interval_num(500);
 
 	Step_T2D_ME_TBB step("step1");
 	step.set_model(model);
