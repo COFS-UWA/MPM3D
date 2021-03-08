@@ -17,6 +17,7 @@ namespace Step_T2D_ME_Task
 	constexpr size_t task_num_per_thread = 3;
 	constexpr size_t pcl_num_per_init_pcl_task = 100;
 	constexpr size_t pcl_num_per_map_pcl_to_mesh_task = 100;
+	constexpr size_t pcl_num_per_contact_rigid_rect_task = 100;
 	constexpr size_t elem_num_per_update_a_and_v_task = 20;
 	constexpr size_t elem_num_per_cal_elem_de_task = 20;
 	constexpr size_t elem_num_per_cal_node_de_task = 20;
@@ -188,6 +189,55 @@ namespace Step_T2D_ME_Task
 		void operator() (size_t wk_id) const;
 	};
 
+	class ContactRigidRect
+	{
+	protected:
+		typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+		typedef Model_T2D_ME_mt::Force Force;
+		typedef Model_T2D_ME_mt::Position Position;
+		typedef Model_T2D_ME_mt::Displacement Displacement;
+		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
+
+		CalData &cd;
+		RigidRect *prr;
+		double K_cont;
+		const Position *pcl_pos;
+		const double *pcl_vol;
+		Force* elem_node_force;
+
+		const size_t* pcl_in_elem;
+		const size_t* pcl_index;
+		const ShapeFunc* pcl_N;
+		const Displacement* pcl_disp;
+		size_t valid_pcl_num;
+		size_t task_num;
+
+	public:
+		ContactRigidRect(CalData& _cd) : cd(_cd) {}
+		inline void init(Model_T2D_ME_mt &md) noexcept
+		{
+			prr = &md.get_rigid_rect();
+			K_cont = md.get_Kn_cont();
+			pcl_pos = cd.pcl_pos;
+			pcl_vol = cd.pcl_vol;
+			elem_node_force = cd.elem_node_force;
+		}
+		inline void update(size_t thread_num) noexcept
+		{
+			pcl_in_elem = cd.pcl_sort_mem.res_keys;
+			const auto& spva0 = cd.spvas[cd.sorted_pcl_var_id];
+			pcl_index = spva0.pcl_index;
+			pcl_N = spva0.pcl_N;
+			pcl_disp = spva0.pcl_disp;
+			valid_pcl_num = cd.valid_pcl_num;
+			task_num = ParallelUtils::cal_task_num<
+				pcl_num_per_contact_rigid_rect_task, task_num_per_thread>(
+					valid_pcl_num, thread_num);
+		}
+		inline size_t get_task_num() const noexcept { return task_num; }
+		void operator() (size_t wk_id, Force2D &rr_cf) const;
+	};
+	
 	class UpdateAccelerationAndVelocity
 	{
 	protected:
@@ -401,16 +451,6 @@ namespace Step_T2D_ME_Task
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id, size_t &pcl_in_mesh_num) const;
 	};
-
-	//class ContactWithRigidObejctTask : public tbb::task
-	//{
-	//protected:
-
-	//public:
-	//	ContactWithRigidObejctTask();
-	//	~ContactWithRigidObejctTask();
-	//	void work(size_t wk_id) const;
-	//};
 }
 
 #endif

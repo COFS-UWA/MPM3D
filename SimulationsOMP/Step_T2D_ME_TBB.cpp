@@ -14,6 +14,7 @@ Step_T2D_ME_TBB::Step_T2D_ME_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T2D_ME_TBB", &cal_substep_func_T2D_ME_TBB),
 	init_pcl(cal_data),
 	map_pcl_to_mesh(cal_data),
+	cont_rigid_rect(cal_data),
 	update_a_and_v(cal_data),
 	cal_elem_de(cal_data),
 	cal_node_de(cal_data),
@@ -48,6 +49,8 @@ int Step_T2D_ME_TBB::init_calculation()
 	cal_elem_de.init();
 	cal_node_de.init();
 	map_mesh_to_pcl.init();
+	if (md.has_rigid_rect())
+		cont_rigid_rect.init(md);
 
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
@@ -104,6 +107,22 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 	tbb::task::spawn_root_and_wait(tk_list);
 	node_sort_mem.res_keys[cd.valid_elem_num * 3] = SIZE_MAX;
 	
+	// contact with rigid rect
+	Model_T2D_ME_mt& md = *static_cast<Model_T2D_ME_mt *>(self.model);
+	if (md.has_rigid_rect())
+	{
+		auto& cont_rigid_rect = self.cont_rigid_rect;
+		cont_rigid_rect.update(self.thread_num);
+		Force2D rr_cf;
+		tbb::task::spawn_root_and_wait(
+			*new(tbb::task::allocate_root())
+				MergeTask<Step_T2D_ME_Task::ContactRigidRect, Force2D, 8>(
+					0, cont_rigid_rect.get_task_num(), cont_rigid_rect, rr_cf));
+		RigidRect& rr = md.get_rigid_rect();
+		rr.set_cont_force(rr_cf.fx, rr_cf.fy, rr_cf.m);
+		rr.update_motion(self.dtime);
+	}
+
 	// update nodal a and v
 	auto &update_a_and_v = self.update_a_and_v;
 	update_a_and_v.update(self.thread_num);

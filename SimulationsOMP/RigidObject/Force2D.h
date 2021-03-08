@@ -24,6 +24,9 @@ struct Force2D
 		double dy = p_y - cen_y;
 		m += dx * _fy - dy * _fx;
 	}
+
+	inline Force2D& operator+= (const Force2D& other) noexcept
+	{ fx += other.fx; fy += other.fy; m += other.m; return *this; }
 };
 
 #endif

@@ -46,6 +46,7 @@ add_executable(
     test_tbb_sorting.cpp
     test_tbb_sort_tri_mesh_node_task.cpp
     test_t2d_me_tbb_1d_compression.cpp
+    test_t2d_me_tbb_cap_compression.cpp
     )
 
 target_include_directories(

@@ -75,5 +75,6 @@ void test_sort_tri_mesh_node_task();
 void test_sort_tri_mesh_node_task2();
 
 void test_t2d_me_tbb_1d_compression(int argc, char** argv);
+void test_t2d_me_tbb_cap_compression(int argc, char** argv);
 
 #endif

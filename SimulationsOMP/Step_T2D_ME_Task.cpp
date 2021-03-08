@@ -283,6 +283,62 @@ namespace Step_T2D_ME_Task
 		}
 	}
 
+	void ContactRigidRect::operator() (size_t wk_id, Force2D& rr_cf) const
+	{
+		size_t e_id;
+		size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
+		e_id = pcl_in_elem[p_id0];
+		while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
+		++p_id0;
+		assert(p_id0 <= valid_pcl_num);
+		size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
+		e_id = pcl_in_elem[p_id1];
+		while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
+		++p_id1;
+		assert(p_id1 <= valid_pcl_num);
+
+		double dist;
+		Vector2D lnorm;
+		Force lcont_f, gcont_f;
+		Point2D cur_cont_pos;
+		Force2D rcf;
+		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		{
+			const size_t ori_p_id = pcl_index[p_id];
+			const Position& p_p = pcl_pos[ori_p_id];
+			const Displacement& p_d = pcl_disp[p_id];
+			const double p_x = p_p.x + p_d.ux;
+			const double p_y = p_p.y + p_d.uy;
+			const double p_r = 0.5 * sqrt(pcl_vol[p_id]);
+			if (prr->detect_collision_with_point(
+				p_x, p_y, p_r, dist, lnorm, cur_cont_pos))
+			{
+				const double f_cont = K_cont * dist;
+				lcont_f.fx = f_cont * lnorm.x;
+				lcont_f.fy = f_cont * lnorm.y;
+				prr->get_global_vector(lcont_f.vec, gcont_f.vec);
+				// apply contact force to mesh
+				const ShapeFunc& p_N = pcl_N[p_id];
+				const size_t e_id = pcl_in_elem[p_id];
+				Force &en_f1 = elem_node_force[e_id * 3];
+				en_f1.fx += p_N.N1 * gcont_f.fx;
+				en_f1.fy += p_N.N1 * gcont_f.fy;
+				Force& en_f2 = elem_node_force[e_id * 3 + 1];
+				en_f2.fx += p_N.N2 * gcont_f.fx;
+				en_f2.fy += p_N.N2 * gcont_f.fy;
+				Force& en_f3 = elem_node_force[e_id * 3 + 2];
+				en_f3.fx += p_N.N3 * gcont_f.fx;
+				en_f3.fy += p_N.N3 * gcont_f.fy;
+				// apply contact force to rigid body
+				const Point2D& rr_cen = prr->get_centre();
+				rcf.add_force(p_x, p_y,	-gcont_f.fx, -gcont_f.fy, rr_cen.x, rr_cen.y);
+			}
+		}
+		rr_cf.fx = rcf.fx;
+		rr_cf.fy = rcf.fy;
+		rr_cf.m = rcf.m;
+	}
+
 	void UpdateAccelerationAndVelocity::operator() (size_t wk_id) const
 	{
 		size_t n_id;

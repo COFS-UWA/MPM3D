@@ -43,20 +43,13 @@ protected:
 	Step_T2D_ME_Task::CalData cal_data;
 	Step_T2D_ME_Task::InitPcl init_pcl;
 	Step_T2D_ME_Task::MapPclToBgMesh map_pcl_to_mesh;
+	Step_T2D_ME_Task::ContactRigidRect cont_rigid_rect;
 	Step_T2D_ME_Task::UpdateAccelerationAndVelocity update_a_and_v;
 	Step_T2D_ME_Task::CalElemDeAndMapToNode cal_elem_de;
 	Step_T2D_ME_Task::CalNodeDe cal_node_de;
 	Step_T2D_ME_Task::MapBgMeshToPcl map_mesh_to_pcl;
 	
 	tbb::task_scheduler_init sche_init;
-
-	//int apply_rigid_rect(
-	//	size_t p_id0, size_t p_id1,
-	//	size_t* pcl_in_elem,
-	//	SortedPclVarArrays& cur_spva,
-	//	Force2D& rc_cf,
-	//	size_t substp_id,
-	//	ThreadData& thd) noexcept;
 
 	int init_calculation() override;
 	friend int cal_substep_func_T2D_ME_TBB(void* _self);

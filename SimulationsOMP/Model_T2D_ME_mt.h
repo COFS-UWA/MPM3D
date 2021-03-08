@@ -332,6 +332,7 @@ protected: // rigid object contact
 public:
 	inline bool has_rigid_rect() const noexcept { return rigid_rect_is_valid; }
 	inline RigidRect& get_rigid_rect() { return rigid_rect; }
+	inline double get_Kn_cont() const noexcept { return K_cont; }
 	inline void init_rigid_rect(double _K_cont,
 		double x, double y, double hx, double hy, double density = 1.0)
 	{
