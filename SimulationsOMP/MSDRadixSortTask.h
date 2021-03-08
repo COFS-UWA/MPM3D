@@ -30,8 +30,8 @@ namespace MSDRadixSortUtils
 		size_t *out_keys;
 		size_t *out_vals;
 	public:
-		void operator() (size_t blk_id);
-		void operator() (RadixBin& bin);
+		void operator() (size_t blk_id) const;
+		void operator() (RadixBin& bin) const;
 	};
 
 	template <size_t level_num> class ChildSpawner;
@@ -80,7 +80,6 @@ public:
 		start_pos(st_pos),
 		data_num(dat_num),
 		digit_pos(dgt_pos) {}
-	~MSDRadixSortTask() {}
 	tbb::task* execute() override;
 };
 
@@ -110,12 +109,10 @@ namespace MSDRadixSortUtils
 			child_digit_pos(cld_dgt_pos),
 			sort_mem(_sm)
 		{ memcpy(bin, _bin, bin_size * sizeof(size_t)); }
-		~ChildSpawner() {}
 		tbb::task* execute()
 		{
 			tbb::empty_task& c =
-				*new(allocate_continuation())
-					tbb::empty_task;
+				*new(allocate_continuation()) tbb::empty_task;
 			c.set_ref_count(4);
 			c.spawn(*new(c.allocate_child())
 				ChildSpawner<level_num - 1>(
@@ -169,52 +166,47 @@ namespace MSDRadixSortUtils
 			child_digit_pos(cld_dgt_pos),
 			sort_mem(_sm)
 		{ memcpy(bin, _bin, 4 * sizeof(size_t)); }
-		~ChildSpawner() {}
 		tbb::task* execute()
 		{
 			if (bin[0] == max_id)
 				return nullptr;
 			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
+			c.set_ref_count(4);
 			if (bin[0] != bin[1])
-			{
-				c.increment_ref_count();
 				c.spawn(*new(c.allocate_child())
 					MSDRadixSortTask(
 						sort_mem,
 						start_pos + bin[0],
 						bin[1] - bin[0],
 						child_digit_pos));
-			}
+			else
+				c.decrement_ref_count();
 			if (bin[1] != bin[2])
-			{
-				c.increment_ref_count();
 				c.spawn(*new(c.allocate_child())
 					MSDRadixSortTask(
 						sort_mem,
 						start_pos + bin[1],
 						bin[2] - bin[1],
 						child_digit_pos));
-			}
+			else
+				c.decrement_ref_count();
 			if (bin[2] != bin[3])
-			{
-				c.increment_ref_count();
 				c.spawn(*new(c.allocate_child())
 					MSDRadixSortTask(
 						sort_mem,
 						start_pos + bin[2],
 						bin[3] - bin[2],
 						child_digit_pos));
-			}
+			else
+				c.decrement_ref_count();
 			if (bin[3] != max_id)
-			{
-				c.increment_ref_count();
 				return new(c.allocate_child())
 					MSDRadixSortTask(
 						sort_mem,
 						start_pos + bin[3],
 						max_id - bin[3],
 						child_digit_pos);
-			}
+			c.decrement_ref_count();
 			return nullptr;
 		}
 	};

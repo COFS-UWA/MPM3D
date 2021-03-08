@@ -3,6 +3,8 @@
 
 #include "tbb/task.h"
 #include "tbb/task_scheduler_init.h"
+
+#include "ParallelUtils.h"
 #include "MSDRadixSortUtils.h"
 #include "SortParticleTask.h"
 #include "SortTriMeshNodeTask.h"
@@ -12,6 +14,7 @@ namespace Step_T2D_ME_Task
 {
 	using MSDRadixSortUtils::block_low;
 
+	constexpr size_t task_num_per_thread = 3;
 	constexpr size_t pcl_num_per_init_pcl_task = 100;
 	constexpr size_t pcl_num_per_map_pcl_to_mesh_task = 100;
 	constexpr size_t elem_num_per_update_a_and_v_task = 20;
@@ -87,11 +90,11 @@ namespace Step_T2D_ME_Task
 		size_t task_num;
 	public:
 		InitPcl(CalData& _cd) : cd(_cd) {}
-		~InitPcl() {}
-		inline void init() noexcept
+		inline void init(size_t thread_num) noexcept
 		{
-			task_num = (cd.prev_valid_pcl_num + pcl_num_per_init_pcl_task - 1)
-					/ pcl_num_per_init_pcl_task;
+			task_num = ParallelUtils::cal_task_num<
+				pcl_num_per_init_pcl_task, task_num_per_thread>(
+					cd.prev_valid_pcl_num, thread_num);
 		}
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id, size_t &pcl_in_mesh_num) const;
@@ -142,7 +145,6 @@ namespace Step_T2D_ME_Task
 		
 	public:
 		MapPclToBgMesh(CalData &_cd) : cd(_cd) {}
-		~MapPclToBgMesh() {}
 		inline void init() noexcept
 		{
 			pcl_m = cd.pcl_m;
@@ -156,7 +158,7 @@ namespace Step_T2D_ME_Task
 			elem_node_vm = cd.elem_node_vm;
 			elem_node_force = cd.elem_node_force;
 		}
-		inline void update() noexcept
+		inline void update(size_t thread_num) noexcept
 		{
 			const auto& spva0 = cd.spvas[cd.sorted_pcl_var_id];
 			const auto& spva1 = cd.spvas[cd.sorted_pcl_var_id ^ 1];
@@ -174,8 +176,9 @@ namespace Step_T2D_ME_Task
 			pcl_N1 = spva1.pcl_N;
 
 			valid_pcl_num = cd.valid_pcl_num;
-			task_num = (valid_pcl_num + pcl_num_per_map_pcl_to_mesh_task - 1)
-				/ pcl_num_per_map_pcl_to_mesh_task;
+			task_num = ParallelUtils::cal_task_num<
+				pcl_num_per_map_pcl_to_mesh_task, task_num_per_thread>(
+					valid_pcl_num, thread_num);
 
 			SortParticleMem& pcl_sort_mem = cd.pcl_sort_mem;
 			pcl_in_elem = pcl_sort_mem.res_keys;
@@ -210,7 +213,6 @@ namespace Step_T2D_ME_Task
 
 	public:
 		UpdateAccelerationAndVelocity(CalData& _cd) : cd(_cd) {}
-		~UpdateAccelerationAndVelocity() {}
 		inline void init() noexcept
 		{
 			elem_pcl_m = cd.elem_pcl_m;
@@ -223,11 +225,12 @@ namespace Step_T2D_ME_Task
 			node_has_elem = cd.node_sort_mem.res_keys;
 			node_elem_pair = cd.node_sort_mem.res_vals;
 		}
-		inline void update() noexcept
+		inline void update(size_t thread_num) noexcept
 		{
 			three_valid_elem_num = cd.valid_elem_num * 3;
-			task_num = (three_valid_elem_num + elem_num_per_update_a_and_v_task - 1)
-				/ elem_num_per_update_a_and_v_task;
+			task_num = ParallelUtils::cal_task_num<
+				elem_num_per_update_a_and_v_task, task_num_per_thread>(
+					three_valid_elem_num, thread_num);
 		}
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id) const;
@@ -255,7 +258,6 @@ namespace Step_T2D_ME_Task
 
 	public:
 		CalElemDeAndMapToNode(CalData &_cd) : cd(_cd) {}
-		~CalElemDeAndMapToNode() {}
 		inline void init() noexcept
 		{
 			elem_node_id = cd.elem_node_id;
@@ -266,11 +268,12 @@ namespace Step_T2D_ME_Task
 			elem_m_de_vol = cd.elem_m_de_vol;
 			valid_elems = cd.node_sort_mem.res_elems;
 		}
-		inline void update() noexcept
+		inline void update(size_t thread_num) noexcept
 		{
 			valid_elem_num = cd.valid_elem_num;
-			task_num = (valid_elem_num + elem_num_per_cal_elem_de_task - 1)
-					/ elem_num_per_cal_elem_de_task;
+			task_num = ParallelUtils::cal_task_num<
+				elem_num_per_cal_elem_de_task, task_num_per_thread>(
+					valid_elem_num, thread_num);
 		}
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id) const;
@@ -291,7 +294,6 @@ namespace Step_T2D_ME_Task
 
 	public:
 		CalNodeDe(CalData &_cd) : cd(_cd) {}
-		~CalNodeDe() {}
 		inline void init() noexcept
 		{
 			node_has_elem = cd.node_sort_mem.res_keys;
@@ -300,11 +302,12 @@ namespace Step_T2D_ME_Task
 			node_am = cd.node_am;
 			node_de_vol = cd.node_de_vol;
 		}
-		inline void update() noexcept
+		inline void update(size_t thread_num) noexcept
 		{
 			three_valid_elem_num = cd.valid_elem_num * 3;
-			task_num = (three_valid_elem_num + elem_num_per_cal_node_de_task - 1)
-						/ elem_num_per_cal_node_de_task;
+			task_num = ParallelUtils::cal_task_num<
+				elem_num_per_cal_node_de_task, task_num_per_thread>(
+					three_valid_elem_num, thread_num);
 		}
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id) const;
@@ -355,7 +358,6 @@ namespace Step_T2D_ME_Task
 
 	public:
 		MapBgMeshToPcl(CalData& _cd) : cd(_cd) {}
-		~MapBgMeshToPcl() {}
 		inline void init() noexcept
 		{
 			elem_node_id = cd.elem_node_id;
@@ -367,7 +369,7 @@ namespace Step_T2D_ME_Task
 			pcl_pos = cd.pcl_pos;
 			pcl_mat_model = cd.pcl_mat_model;
 		}
-		inline void update() noexcept
+		inline void update(size_t thread_num) noexcept
 		{
 			const auto& spva0 = cd.spvas[cd.sorted_pcl_var_id];
 			const auto& spva1 = cd.spvas[cd.sorted_pcl_var_id ^ 1];
@@ -385,8 +387,9 @@ namespace Step_T2D_ME_Task
 			pcl_pstrain1 = spva1.pcl_pstrain;
 			
 			valid_pcl_num = cd.valid_pcl_num;
-			task_num = (valid_pcl_num + pcl_num_per_map_mesh_to_pcl_task - 1)
-				/ pcl_num_per_map_mesh_to_pcl_task;
+			task_num = ParallelUtils::cal_task_num<
+				pcl_num_per_map_mesh_to_pcl_task, task_num_per_thread>(
+					valid_pcl_num, thread_num);
 
 			SortParticleMem& pcl_sort_mem = cd.pcl_sort_mem;
 			pcl_in_elem = pcl_sort_mem.res_keys;

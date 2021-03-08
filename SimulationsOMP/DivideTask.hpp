@@ -61,9 +61,8 @@ namespace DivideTaskUtils
 		Work& work;
 	public:
 		DivideTask2(size_t start_id, Work& wk) :
-			tk_id0(start_id), work(wk) {
-			assert(div_num > 1);
-		}
+			tk_id0(start_id), work(wk)
+		{ assert(div_num > 1); }
 		tbb::task* execute() override
 		{
 			tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
@@ -101,10 +100,7 @@ protected:
 public:
 	DivideTask(size_t start_id, size_t end_id, Work& wk) :
 		tk_id0(start_id), tk_id1(end_id), work(wk)
-	{
-		assert(div_num > 1);
-	}
-	~DivideTask() {}
+	{ assert(div_num > 1); }
 	tbb::task* execute() override
 	{
 		size_t div_id;
@@ -192,7 +188,6 @@ protected:
 public:
 	DivideTask(size_t start_id, size_t end_id, Work& wk) :
 		tk_id0(start_id), tk_id1(end_id), work(wk) {}
-	~DivideTask() {}
 	tbb::task* execute() override
 	{
 		const size_t tk_num = tk_id1 - tk_id0;

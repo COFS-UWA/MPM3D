@@ -1,6 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <assert.h>
+#include <iostream>
 #include "tbb/task_arena.h"
 
 #include "DivideTask.hpp"
@@ -38,7 +39,7 @@ void SortTriMeshNodeMem::init(
 	set_digit_num(node_num);
 }
 
-void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id)
+void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id) const
 {
 	using MSDRadixSortUtils::block_low;
 	using MSDRadixSortUtils::digit;
@@ -76,12 +77,12 @@ void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id)
 	}
 }
 
-void SortTriMeshNodeTask::FormElemAndNodeArray::operator() (size_t blk_id)
+void SortTriMeshNodeTask::FormElemAndNodeArray::operator() (size_t blk_id) const
 {
 	using MSDRadixSortUtils::digit;
 
-	RadixBin bin;
 	size_t i, o_blk_id;
+	RadixBin bin;
 	const RadixBin& my_bin = radix_bin_block[blk_id];
 	for (i = 0; i < MSDRadixSortUtils::radix_bin_num; ++i)
 		bin.bin[i] = my_bin.bin[i];
@@ -101,9 +102,8 @@ void SortTriMeshNodeTask::FormElemAndNodeArray::operator() (size_t blk_id)
 	ValidElemBlock& ve_blk = valid_elem_blocks[blk_id];
 	const size_t* const o_elems = ori_elems + ve_blk.ori_offset;
 	size_t ve_res_offset = ve_blk.res_offset;
-	const size_t ve_num = ve_blk.num;
 	size_t pos_id;
-	for (size_t ve_id = ve_num; ve_id--;)
+	for (size_t ve_id = ve_blk.num; ve_id--;)
 	{
 		const size_t e_id = o_elems[ve_id];
 		res_elems[--ve_res_offset] = e_id;
@@ -125,38 +125,28 @@ tbb::task* SortTriMeshNodeTask::execute()
 	using MSDRadixSortUtils::digit;
 
 	SortTriMeshNodeMem& snm = static_cast<SortTriMeshNodeMem &>(sort_mem);
-	const size_t node_digit_pos = snm.digit_num - 1;
-	const size_t radix_id = node_digit_pos & 1;
-	size_t* res_elems = snm.res_elems;
-	size_t* out_node_has_elem, * out_node_elem_pair ;
+	const size_t radix_id = digit_pos & 1;
+	res_elems = snm.res_elems;
 	MSDRadixSortUtils::RadixBin bin;
 	size_t i, j, e_id, pos_id;
 	// scan in parallel
 	if (pcl_num > serial_sort_max_data_num)
 	{
-		size_t* out_node_has_elem = snm.radix_keys[radix_id ^ 1];
-		size_t* out_node_elem_pair = snm.radix_vals[radix_id ^ 1];
+		out_node_has_elem = snm.radix_keys[radix_id ^ 1];
+		out_node_elem_pair = snm.radix_vals[radix_id ^ 1];
 		if (pcl_num > min_pcl_num_per_block * 2)
 		{
-			size_t block_num = (pcl_num + min_pcl_num_per_block - 1)
-				/ min_pcl_num_per_block;
+			block_num = (pcl_num + min_pcl_num_per_block - 1)
+						/ min_pcl_num_per_block;
 			if (block_num > snm.max_block_num)
 				block_num = snm.max_block_num;
+			ori_elems = snm.ori_elems;
 			const size_t my_th_id = tbb::task_arena::current_thread_index();
 			RadixBinBlockMem& th_radix_bin_block = snm.thread_radix_bin_block[my_th_id];
-			RadixBin* const radix_bin_block = th_radix_bin_block.alloc();
-			size_t* ori_elems = snm.ori_elems;
-			
+			radix_bin_block = th_radix_bin_block.alloc();
+			valid_elem_blocks = snm.valid_elem_blocks;
+
 			// scan data
-			ScanPcl scan_pcl(
-				block_num,
-				pcl_num,
-				pcl_in_elems,
-				node_digit_pos,
-				ori_elems,
-				elem_node_ids,
-				radix_bin_block,
-				snm.valid_elem_blocks);
 			set_ref_count(2);
 			spawn(*new(allocate_child())
 				DivideTask<ScanPcl, 2>(0, block_num - 1, scan_pcl));
@@ -164,24 +154,13 @@ tbb::task* SortTriMeshNodeTask::execute()
 			wait_for_all();
 
 			// summarize output
-			SortTriMeshNodeMem::ValidElemBlock* valid_elem_blocks = snm.valid_elem_blocks;
 			valid_elem_blocks[0].res_offset = valid_elem_blocks[0].num;
 			for (i = 1; i < block_num; ++i)
-				valid_elem_blocks[i].res_offset = valid_elem_blocks[i].num + valid_elem_blocks[i - 1].num;
+				valid_elem_blocks[i].res_offset = valid_elem_blocks[i - 1].res_offset + valid_elem_blocks[i].num;
 			valid_elem_num = valid_elem_blocks[block_num - 1].res_offset;
 			*const_cast<size_t *>(&data_num) = 3 * valid_elem_blocks[block_num - 1].res_offset;
 
 			// move data
-			FormElemAndNodeArray form_elem_and_node_array(
-				block_num,
-				node_digit_pos,
-				valid_elem_blocks,
-				ori_elems,
-				res_elems,
-				elem_node_ids,
-				radix_bin_block,
-				out_node_has_elem,
-				out_node_elem_pair);
 			set_ref_count(2);
 			spawn(*new(allocate_child())
 				DivideTask<FormElemAndNodeArray, 2>(
@@ -202,9 +181,9 @@ tbb::task* SortTriMeshNodeTask::execute()
 				{
 					res_elems[(*const_cast<size_t *>(&data_num))++] = e_id;
 					const ElemNodeIndex& eni = elem_node_ids[e_id];
-					++bin.bin[digit(eni.n1, digit_pos)];
-					++bin.bin[digit(eni.n2, digit_pos)];
-					++bin.bin[digit(eni.n3, digit_pos)];
+					++bin.bin[digit(eni.n1, node_digit_pos)];
+					++bin.bin[digit(eni.n2, node_digit_pos)];
+					++bin.bin[digit(eni.n3, node_digit_pos)];
 					e_id = pcl_in_elems[i + 1];
 				}
 			}
@@ -214,13 +193,13 @@ tbb::task* SortTriMeshNodeTask::execute()
 			{
 				e_id = res_elems[i];
 				const ElemNodeIndex& eni = elem_node_ids[e_id];
-				pos_id = --bin.bin[digit(eni.n3, digit_pos)];
+				pos_id = --bin.bin[digit(eni.n3, node_digit_pos)];
 				out_node_has_elem[pos_id] = eni.n3;
 				out_node_elem_pair[pos_id] = 3 * e_id + 2;
-				pos_id = --bin.bin[digit(eni.n2, digit_pos)];
+				pos_id = --bin.bin[digit(eni.n2, node_digit_pos)];
 				out_node_has_elem[pos_id] = eni.n2;
 				out_node_elem_pair[pos_id] = 3 * e_id + 1;
-				pos_id = --bin.bin[digit(eni.n1, digit_pos)];
+				pos_id = --bin.bin[digit(eni.n1, node_digit_pos)];
 				out_node_has_elem[pos_id] = eni.n1;
 				out_node_elem_pair[pos_id] = 3 * e_id;
 			}
@@ -229,7 +208,8 @@ tbb::task* SortTriMeshNodeTask::execute()
 
 			if (digit_pos)
 			{
-				tbb::empty_task& c = *new(allocate_continuation()) tbb::empty_task;
+				tbb::empty_task& c =
+					*new(allocate_continuation()) tbb::empty_task;
 				c.set_ref_count(4);
 				c.spawn(*new(c.allocate_child())
 					ChildSpawner<3>(
@@ -265,8 +245,8 @@ tbb::task* SortTriMeshNodeTask::execute()
 	}
 	
 	// sort serially
-	size_t* in_node_has_elem = snm.radix_keys[radix_id];
-	size_t* in_node_elem_pair = snm.radix_vals[radix_id];
+	size_t *in_node_has_elem = snm.radix_keys[radix_id];
+	size_t *in_node_elem_pair = snm.radix_vals[radix_id];
 	*const_cast<size_t *>(&data_num) = 0;
 	e_id = pcl_in_elems[0];
 	for (i = 0; i < pcl_num; ++i)

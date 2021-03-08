@@ -1,6 +1,5 @@
 #include "TestsParallel_pcp.h"
 
-#include "test_parallel_utils.h"
 #include "TriangleMesh.h"
 #include "ParticleGenerator2D.hpp"
 #include "Model_T2D_ME_mt.h"
@@ -10,6 +9,8 @@
 #include "TimeHistory_T2D_ME_TBB_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T2D_ME_mt.h"
+
+#include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
 void test_t2d_me_tbb_1d_compression(int argc, char** argv)
@@ -87,11 +88,11 @@ void test_t2d_me_tbb_1d_compression(int argc, char** argv)
 
 	Step_T2D_ME_TBB step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0e-1); // 1.0
+	step.set_step_time(1.0); // 1.0
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(2);
+	step.set_thread_num(4);
 	step.add_time_history(out);
-	//step.add_time_history(out_pb);
+	step.add_time_history(out_pb);
 	step.solve();
 }
 

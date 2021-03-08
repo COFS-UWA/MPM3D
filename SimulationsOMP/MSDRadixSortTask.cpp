@@ -19,7 +19,7 @@ namespace MSDRadixSortUtils
 			bin.bin[i] += bin.bin[i - 1];
 	}
 
-	void MoveAccToBin::operator() (size_t blk_id)
+	void MoveAccToBin::operator() (size_t blk_id) const
 	{
 		RadixBin bin;
 		size_t i, o_blk_id;
@@ -47,7 +47,7 @@ namespace MSDRadixSortUtils
 		}
 	}
 
-	void MoveAccToBin::operator() (RadixBin& out_bin)
+	void MoveAccToBin::operator() (RadixBin &out_bin) const
 	{
 		RadixBin bin;
 		size_t i, o_blk_id;
@@ -133,8 +133,7 @@ tbb::task* MSDRadixSortTask::execute()
 		if (digit_pos) // not the last digit
 		{
 			tbb::empty_task& c = 
-				*new(allocate_continuation())
-					tbb::empty_task;
+				*new(allocate_continuation()) tbb::empty_task;
 			c.set_ref_count(4);
 			c.spawn(*new(c.allocate_child())
 				ChildSpawner<3>(

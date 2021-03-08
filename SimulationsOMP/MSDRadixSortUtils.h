@@ -12,11 +12,11 @@ namespace MSDRadixSortUtils
 	constexpr size_t radix_bin_num = 1 << radix_digit_num;
 
 	constexpr size_t max_block_num_per_thread = 2;
-	constexpr size_t min_data_num_per_block = 50;
-	constexpr size_t serial_sort_max_data_num = 20;
+	constexpr size_t min_data_num_per_block = 100000;
+	constexpr size_t serial_sort_max_data_num = 10000;
 	constexpr size_t insertion_sort_max_data_num = 10;
 
-	inline size_t max_digit_num(size_t max_data) noexcept
+	inline constexpr size_t max_digit_num(size_t max_data) noexcept
 	{
 		size_t digit_num = 0;
 		while (max_data)

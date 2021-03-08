@@ -1,7 +1,6 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <fstream>
-#include <iostream>
 
 #include "DivideTask.hpp"
 #include "MergeTask.hpp"
@@ -10,7 +9,6 @@
 #ifdef _DEBUG
 static std::fstream res_file_t2d_me_tbb;
 #endif
-extern std::atomic<size_t> sum;
 
 Step_T2D_ME_TBB::Step_T2D_ME_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T2D_ME_TBB", &cal_substep_func_T2D_ME_TBB),
@@ -44,7 +42,7 @@ int Step_T2D_ME_TBB::init_calculation()
 	cal_data.pcl_sort_mem.init(md.pcl_num, md.elem_num, cal_data.thread_bin_blocks_mem);
 	cal_data.node_sort_mem.init(md.elem_num, md.node_num, cal_data.thread_bin_blocks_mem);
 	
-	init_pcl.init();
+	init_pcl.init(thread_num);
 	map_pcl_to_mesh.init();
 	update_a_and_v.init();
 	cal_elem_de.init();
@@ -77,18 +75,6 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 		return 0;
 	}
 
-	if (cd.valid_pcl_num != 500)
-	{
-		size_t stp_id = self.substep_index;
-		//for (size_t i = 0; i < cd.prev_valid_pcl_num; i++)
-		//{
-		//	std::cout << cd.pcl_sort_mem.res_keys[i] << ", ";
-		//	if (i % 20 == 19)
-		//		std::cout << "\n";
-		//}
-		self.exit_calculation();
-	}
-
 	cd.dt = self.dtime;
 	cd.sorted_pcl_var_id ^= 1;
 
@@ -111,7 +97,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 			cd.valid_elem_num));
 	// map pcl to bg mesh
 	auto &map_pcl_to_mesh = self.map_pcl_to_mesh;
-	map_pcl_to_mesh.update();
+	map_pcl_to_mesh.update(self.thread_num);
 	tk_list.push_back(*new(tbb::task::allocate_root())
 		DivideTask<Step_T2D_ME_Task::MapPclToBgMesh, 8>(
 			0, map_pcl_to_mesh.get_task_num(), map_pcl_to_mesh));
@@ -120,7 +106,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 	
 	// update nodal a and v
 	auto &update_a_and_v = self.update_a_and_v;
-	update_a_and_v.update();
+	update_a_and_v.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
 			DivideTask<Step_T2D_ME_Task::UpdateAccelerationAndVelocity, 8>(
@@ -128,7 +114,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 
 	// cal element de and map to node
 	auto &cal_elem_de = self.cal_elem_de;
-	cal_elem_de.update();
+	cal_elem_de.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
 			DivideTask<Step_T2D_ME_Task::CalElemDeAndMapToNode, 8>(
@@ -136,29 +122,22 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 
 	// cal strain increment at node
 	auto &cal_node_de = self.cal_node_de;
-	cal_node_de.update();
+	cal_node_de.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
 			DivideTask<Step_T2D_ME_Task::CalNodeDe, 8>(
 				0, cal_node_de.get_task_num(), cal_node_de));
 
 	// map bg mesh back to pcl
-	sum.store(0);
 	cd.prev_valid_pcl_num = cd.valid_pcl_num;
 	auto& map_mesh_to_pcl = self.map_mesh_to_pcl;
-	map_mesh_to_pcl.update();
+	map_mesh_to_pcl.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
 			MergeTask<Step_T2D_ME_Task::MapBgMeshToPcl, size_t, 8>(
 				0, map_mesh_to_pcl.get_task_num(),
 				map_mesh_to_pcl, cd.valid_pcl_num));
 	
-	if (cd.valid_pcl_num != 500)
-	{
-		size_t fefe = sum.load();
-		size_t stp_id = self.substep_index;
-	}
-
 	self.continue_calculation();
 	return 0;
 }

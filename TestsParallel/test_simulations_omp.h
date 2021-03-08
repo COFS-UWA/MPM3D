@@ -70,7 +70,10 @@ void test_t3d_me_mt_spudcan_coarse(int argc, char** argv);
 void test_t3d_chm_mt_1d_consolidation(int argc, char** argv);
 
 void test_sort_pcl_task();
+void test_sort_pcl_task2();
 void test_sort_tri_mesh_node_task();
+void test_sort_tri_mesh_node_task2();
+
 void test_t2d_me_tbb_1d_compression(int argc, char** argv);
 
 #endif

@@ -31,9 +31,7 @@ namespace MergeTaskUtils
 	{
 	public:
 		inline static void merge(Result& res0, const Result* res)
-		{
-			res0 += res[0];
-		}
+		{ res0 += res[0]; }
 	};
 
 	template <class Result, size_t div_num>
@@ -43,10 +41,7 @@ namespace MergeTaskUtils
 		Result res[div_num - 1];
 		Result& parent_res;
 		MergeResultTask(Result& pres) : parent_res(pres)
-		{
-			assert(div_num > 2);
-		}
-		~MergeResultTask() {}
+		{ assert(div_num > 2); }
 		tbb::task* execute() override
 		{
 			MergeResult<Result, div_num - 2>::merge(parent_res, res);
@@ -61,7 +56,6 @@ namespace MergeTaskUtils
 		Result& parent_res;
 		Result res;
 		MergeResultTask(Result& pres) : parent_res(pres) {}
-		~MergeResultTask() {}
 		tbb::task* execute() override
 		{
 			parent_res += res;
@@ -82,7 +76,6 @@ namespace MergeTaskUtils
 			assert(res_num_min_1);
 			assert(res_num_min_1 < div_num);
 		}
-		~MergeResultTask2() {}
 		tbb::task* execute() override
 		{
 			for (size_t i = 0; i < res_num_min_1; ++i)
@@ -102,12 +95,8 @@ namespace MergeTaskUtils
 	public:
 		WorkTask(size_t id, Work& wk, Result& re) :
 			tk_id(id), work(wk), res(re) {}
-		~WorkTask() {}
 		tbb::task* execute() override
-		{
-			work(tk_id, res);
-			return nullptr;
-		}
+		{ work(tk_id, res); return nullptr; }
 	};
 
 	template <class Work, class Result, size_t div_num, size_t div_id>
@@ -158,7 +147,6 @@ namespace MergeTaskUtils
 		{
 			assert(div_num > 1);
 		}
-		~MergeTask2() {}
 		tbb::task* execute() override
 		{
 			ConTask& c = *new(allocate_continuation()) ConTask(res);
@@ -208,10 +196,7 @@ public:
 		tk_id0(start_id),
 		tk_id1(end_id),
 		work(wk), res(re)
-	{
-		assert(div_num > 2);
-	}
-	~MergeTask() {}
+	{ assert(div_num > 2); }
 	tbb::task* execute() override
 	{
 		size_t div_id;
@@ -305,7 +290,6 @@ protected:
 public:
 	MergeTask(size_t start_id, size_t end_id, Work& wk, Result& re) :
 		tk_id0(start_id), tk_id1(end_id), work(wk), res(re) {}
-	~MergeTask() {}
 	tbb::task* execute() override
 	{
 		const size_t tk_num = tk_id1 - tk_id0;

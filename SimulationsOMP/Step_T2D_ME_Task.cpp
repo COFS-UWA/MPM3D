@@ -1,14 +1,11 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <assert.h>
-#include <atomic>
 #include "tbb/task_arena.h"
 
 #include "ParallelUtils.h"
 #include "Step_T2D_ME_Task.h"
 #include "Step_T2D_ME_TBB.h"
-
-std::atomic<size_t> sum;
 
 namespace Step_T2D_ME_Task
 {
@@ -508,8 +505,6 @@ namespace Step_T2D_ME_Task
 			}
 			if (p_e_id != SIZE_MAX)
 				++valid_pcl_num;
-			if (p_e_id == SIZE_MAX)
-				size_t efef = 0;
 			new_pcl_in_elem[p_id] = p_e_id;
 			new_cur_to_prev_pcl[p_id] = p_id;
 #ifdef _DEBUG
@@ -557,6 +552,5 @@ namespace Step_T2D_ME_Task
 		}
 
 		pcl_in_mesh_num = valid_pcl_num;
-		sum.fetch_add(valid_pcl_num);
 	}
 }
