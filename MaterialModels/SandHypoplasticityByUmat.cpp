@@ -5,19 +5,26 @@
 
 #include "SandHypoplasticityByUmat.h"
 
+// link statically
 extern "C"
 {
-	typedef void (_cdecl *SandHypoIntegrateFunc)(
+	extern void _cdecl SAND_HYPOPLASTICITY_INTEGRATION(
 		double stress[6], double ddsdde[6][6], double statev[13],
-		double dstran[6], double props[16]);
+		double dstran[6], double props[16], int* status_code);
 }
 
+// link dynamically
+extern "C"
+{
+	typedef void(_cdecl* SandHypoIntegrateFunc)(
+		double stress[6], double ddsdde[6][6], double statev[13],
+		double dstran[6], double props[16], int* status_code);
+}
 static HINSTANCE umat_dll = nullptr;
 static SandHypoIntegrateFunc dll_inte_func = nullptr;
 
 namespace MatModel
 {
-
 	int SandHypoplasticityByUmat::init(const char* dll_path)
 	{
 		if (umat_dll && dll_inte_func)
@@ -150,7 +157,9 @@ namespace MatModel
 	}
 
 	inline static void swap(double& a, double& b)
-	{ double tmp = a; a = b; b = tmp; }
+	{
+		double tmp = a; a = b; b = tmp;
+	}
 
 	int SandHypoplasticityByUmat_integration_func(
 		MaterialModel* _self,
@@ -182,13 +191,25 @@ namespace MatModel
 		};
 		double ddsdde[6][6];
 		swap(self.statev[4], self.statev[5]);
+
+		// link dynamically
 		(*dll_inte_func)(
 			stress_umat,
 			ddsdde,
 			self.statev,
 			dstrain,
-			self.props);
+			self.props,
+			&self.status_code);
+		// link statically
+		//SAND_HYPOPLASTICITY_INTEGRATION(
+		//	stress_umat,
+		//	ddsdde,
+		//	self.statev,
+		//	dstrain,
+		//	self.props,
+		//	&self.status_code);
 
+		// retrive result
 		swap(self.statev[4], self.statev[5]);
 
 		self.dstress[0] = stress_umat[0] - self.stress[0];

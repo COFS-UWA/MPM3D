@@ -18,7 +18,7 @@ namespace MatModel
 	class SandHypoplasticityByUmat : public MaterialModel
 	{
 		friend int SandHypoplasticityByUmat_integration_func(MaterialModel* _self, double dstrain[6]);
-	
+
 	protected:
 		union
 		{
@@ -87,6 +87,8 @@ namespace MatModel
 			double props[16];
 		};
 
+		int status_code;
+
 	public:
 		SandHypoplasticityByUmat();
 		~SandHypoplasticityByUmat();
@@ -101,36 +103,39 @@ namespace MatModel
 			double const _ig_strain[6] = nullptr, /* intergranular strain */
 			double _Kw = 0.0, double _pore_pressure = 0.0);
 
-		inline double get_friction_angle() const noexcept { return friction_angle; }
-		inline double get_apparent_cohesion() const noexcept { return pore_pressure_on_stress; }
-		inline double get_hs() const noexcept { return hs; }
-		inline double get_en() const noexcept { return en; }
-		inline double get_ed0() const noexcept { return ed0; }
-		inline double get_ec0() const noexcept { return ec0; }
-		inline double get_ei0() const noexcept { return ei0; }
-		inline double get_alpha() const noexcept { return alpha; }
-		inline double get_beta() const noexcept { return beta; }
-		inline double get_m_R() const noexcept { return m_R; }
-		inline double get_m_T() const noexcept { return m_T; }
-		inline double get_R() const noexcept { return R; }
-		inline double get_beta_r() const noexcept { return beta_r; }
-		inline double get_chi() const noexcept { return chi; }
-		inline double get_Kw() const noexcept { return Kw; }
-		inline double get_e() const noexcept { return e != 0.0 ? e : init_e; }
-		inline const double* get_delta() const noexcept { return delta; }
-		inline double get_delta11() const noexcept { return delta11; }
-		inline double get_delta22() const noexcept { return delta22; }
-		inline double get_delta33() const noexcept { return delta33; }
-		inline double get_delta12() const noexcept { return delta12; }
-		inline double get_delta31() const noexcept { return delta31; }
-		inline double get_delta23() const noexcept { return delta23; }
-		inline double get_pore_pressure() const noexcept { return -negative_pore_pressure; }
-		inline double get_integration_step_ratio() const noexcept { return integration_time_step; }
+		inline double get_friction_angle() const { return friction_angle; }
+		inline double get_apparent_cohesion() const { return pore_pressure_on_stress; }
+		inline double get_hs() const { return hs; }
+		inline double get_en() const { return en; }
+		inline double get_ed0() const { return ed0; }
+		inline double get_ec0() const { return ec0; }
+		inline double get_ei0() const { return ei0; }
+		inline double get_alpha() const { return alpha; }
+		inline double get_beta() const { return beta; }
+		inline double get_m_R() const { return m_R; }
+		inline double get_m_T() const { return m_T; }
+		inline double get_R() const { return R; }
+		inline double get_beta_r() const { return beta_r; }
+		inline double get_chi() const { return chi; }
+		inline double get_Kw() const { return Kw; }
+		inline double get_e() const { return e != 0.0 ? e : init_e; }
+		inline const double* get_delta() const { return delta; }
+		inline double get_delta11() const { return delta11; }
+		inline double get_delta22() const { return delta22; }
+		inline double get_delta33() const { return delta33; }
+		inline double get_delta12() const { return delta12; }
+		inline double get_delta31() const { return delta31; }
+		inline double get_delta23() const { return delta23; }
+		inline double get_pore_pressure() const { return -negative_pore_pressure; }
+		inline double get_integration_step_ratio() const { return integration_time_step; }
+		inline int get_status_code() const { return status_code; }
 
-		inline void set_apparent_cohesion(double _c) noexcept
-		{ pore_pressure_on_stress = _c; }
-		inline void set_integration_step_ratio(double _ratio) noexcept
-		{ 
+		inline void set_apparent_cohesion(double _c)
+		{
+			pore_pressure_on_stress = _c;
+		}
+		inline void set_integration_step_ratio(double _ratio)
+		{
 			if (_ratio > 1.0)
 				_ratio = 1.0;
 			if (_ratio < 0.0)

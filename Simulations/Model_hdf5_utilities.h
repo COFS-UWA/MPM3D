@@ -523,6 +523,7 @@ namespace Model_hdf5_utilities
 		};
 		double pore_pressure, Kw;
 		double integration_time_step;
+		int status_code;
 
 		inline void from_mm(MatModel::SandHypoplasticityByUmat&mm)
 		{
@@ -559,6 +560,7 @@ namespace Model_hdf5_utilities
 			pore_pressure = mm.get_pore_pressure();
 			Kw = mm.get_Kw();
 			integration_time_step = mm.get_integration_step_ratio();
+			status_code = mm.get_status_code();
 		}
 
 		inline void to_mm(MatModel::SandHypoplasticityByUmat &mm)
@@ -606,6 +608,7 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "pore_pressure", HOFFSET(SandHypoplasticityByUmatStateData, pore_pressure), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "Kw", HOFFSET(SandHypoplasticityByUmatStateData, Kw), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "integration_time_step", HOFFSET(SandHypoplasticityByUmatStateData, integration_time_step), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "status_code", HOFFSET(SandHypoplasticityByUmatStateData, status_code), H5T_NATIVE_INT);
 		return res;
 	}
 

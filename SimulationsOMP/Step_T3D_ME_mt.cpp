@@ -1166,6 +1166,22 @@ int substep_func_omp_T3D_ME_mt(
 		// update density
 		pcl_density0[p_id] = elem_density[e_id];
 
+		//if (/*self.substep_index == 1 &&*/ p_id == 2172)
+		//{
+		//	res_file_t3d_me_mt << pe_de->de11 << "\n"
+		//		<< pe_de->de22 << "\n"
+		//		<< pe_de->de33 << "\n"
+		//		<< pe_de->de12 << "\n"
+		//		<< pe_de->de23 << "\n"
+		//		<< pe_de->de31 << "\n"
+		//		<< *reinterpret_cast<size_t *>(&(pe_de->de11)) << "\n"
+		//		<< *reinterpret_cast<size_t*>(&(pe_de->de22)) << "\n"
+		//		<< *reinterpret_cast<size_t*>(&(pe_de->de33)) << "\n"
+		//		<< *reinterpret_cast<size_t*>(&(pe_de->de12)) << "\n"
+		//		<< *reinterpret_cast<size_t*>(&(pe_de->de23)) << "\n"
+		//		<< *reinterpret_cast<size_t*>(&(pe_de->de31)) << "\n";
+		//}
+
 		// update stress
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
 		pcl_mm.integrate(pe_de->de);
@@ -1177,7 +1193,7 @@ int substep_func_omp_T3D_ME_mt(
 		p_s.s12 += dstress[3];
 		p_s.s23 += dstress[4];
 		p_s.s31 += dstress[5];
-
+		
 		prev_p_id = prev_pcl_id0[p_id];
 #ifdef _DEBUG
 		assert(prev_p_id < self.prev_valid_pcl_num_tmp);
