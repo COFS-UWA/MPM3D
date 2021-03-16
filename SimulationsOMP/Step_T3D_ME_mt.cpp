@@ -1088,7 +1088,7 @@ int substep_func_omp_T3D_ME_mt(
 
 	Acceleration* pn_a1, * pn_a2, * pn_a3, * pn_a4;
 	Velocity* pn_v1, * pn_v2, * pn_v3, * pn_v4;
-	StrainInc* pe_de;
+	StrainInc* pe_de, e_de_tmp;
 	const double* estrain, * pstrain, * dstress;
 	double p_x, p_y, p_z;
 	size_t p_e_id, pcl_in_mesh_num = 0;
@@ -1166,26 +1166,19 @@ int substep_func_omp_T3D_ME_mt(
 		// update density
 		pcl_density0[p_id] = elem_density[e_id];
 
-		//if (/*self.substep_index == 1 &&*/ p_id == 2172)
-		//{
-		//	res_file_t3d_me_mt << pe_de->de11 << "\n"
-		//		<< pe_de->de22 << "\n"
-		//		<< pe_de->de33 << "\n"
-		//		<< pe_de->de12 << "\n"
-		//		<< pe_de->de23 << "\n"
-		//		<< pe_de->de31 << "\n"
-		//		<< *reinterpret_cast<size_t *>(&(pe_de->de11)) << "\n"
-		//		<< *reinterpret_cast<size_t*>(&(pe_de->de22)) << "\n"
-		//		<< *reinterpret_cast<size_t*>(&(pe_de->de33)) << "\n"
-		//		<< *reinterpret_cast<size_t*>(&(pe_de->de12)) << "\n"
-		//		<< *reinterpret_cast<size_t*>(&(pe_de->de23)) << "\n"
-		//		<< *reinterpret_cast<size_t*>(&(pe_de->de31)) << "\n";
-		//}
-
 		// update stress
+		e_de_tmp.de11 = pe_de->de11;
+		e_de_tmp.de22 = pe_de->de22;
+		e_de_tmp.de33 = pe_de->de33;
+		e_de_tmp.de12 = pe_de->de12;
+		e_de_tmp.de23 = pe_de->de23;
+		e_de_tmp.de31 = pe_de->de31;
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
-		pcl_mm.integrate(pe_de->de);
+		pcl_mm.integrate(e_de_tmp.de);
 		dstress = pcl_mm.get_dstress();
+		if (dstress[1] == 100.0)
+			size_t efe = 0;
+
 		Stress& p_s = pcl_stress0[p_id];
 		p_s.s11 += dstress[0];
 		p_s.s22 += dstress[1];
@@ -1193,7 +1186,7 @@ int substep_func_omp_T3D_ME_mt(
 		p_s.s12 += dstress[3];
 		p_s.s23 += dstress[4];
 		p_s.s31 += dstress[5];
-		
+				
 		prev_p_id = prev_pcl_id0[p_id];
 #ifdef _DEBUG
 		assert(prev_p_id < self.prev_valid_pcl_num_tmp);

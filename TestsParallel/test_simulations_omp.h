@@ -12,6 +12,9 @@ void test_contact_model_3d(int argc, char** argv);
 void test_sand_hypoplasticity_integration();
 void test_sand_hypoplasticity_Herleand_Gudehus_1999();
 void test_sand_hypoplasticity_Wichtmann_2019();
+void test_sand_hypoplasticity_triaxial();
+void test_triaxial_secant();
+
 void test_t3d_me_mt_triaxial_compression(int argc, char** argv);
 
 void test_Step_OMP(int argc, char** argv);

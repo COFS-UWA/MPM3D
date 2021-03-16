@@ -93,8 +93,10 @@ int main(int argc, char *argv[])
 	//test_sand_hypoplasticity_integration();
 	//test_sand_hypoplasticity_Herleand_Gudehus_1999();
 	//test_sand_hypoplasticity_Wichtmann_2019();
+	test_sand_hypoplasticity_triaxial();
+	//test_triaxial_secant();
 
-	test_t3d_me_mt_triaxial_compression(argc, argv);
+	//test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);
@@ -111,6 +113,6 @@ int main(int argc, char *argv[])
 	//test_t2d_me_tbb_cap_compression(argc, argv);
 	//test_t2d_me_tbb_cap_compression_result(argc, argv);
 
-	system("pause");
+	//system("pause");
 	return 0;
 }

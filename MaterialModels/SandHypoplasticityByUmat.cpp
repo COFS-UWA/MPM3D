@@ -6,17 +6,17 @@
 #include "SandHypoplasticityByUmat.h"
 
 // link statically
-extern "C"
-{
-	extern void _cdecl SAND_HYPOPLASTICITY_INTEGRATION(
-		double stress[6], double ddsdde[6][6], double statev[13],
-		double dstran[6], double props[16], int* status_code);
-}
+//extern "C"
+//{
+//	extern void _cdecl SAND_HYPOPLASTICITY_INTEGRATION(
+//		double stress[6], double ddsdde[6][6], double statev[13],
+//		double dstran[6], double props[16], int* status_code);
+//}
 
 // link dynamically
 extern "C"
 {
-	typedef void(_cdecl* SandHypoIntegrateFunc)(
+	typedef void (_cdecl* SandHypoIntegrateFunc)(
 		double stress[6], double ddsdde[6][6], double statev[13],
 		double dstran[6], double props[16], int* status_code);
 }
@@ -152,18 +152,13 @@ namespace MatModel
 		integration_time_step = 1.0; // 12
 
 		// get initial stiffness matrix Dep
-		// dstrain_e = { 0, 0, 0, 0, 0, 0 }
 		integrate(dstrain_e);
 	}
 
 	inline static void swap(double& a, double& b)
-	{
-		double tmp = a; a = b; b = tmp;
-	}
+	{ double tmp = a; a = b; b = tmp; }
 
-	int SandHypoplasticityByUmat_integration_func(
-		MaterialModel* _self,
-		double dstrain[6])
+	int SandHypoplasticityByUmat_integration_func(MaterialModel* _self, double dstrain[6])
 	{
 		SandHypoplasticityByUmat& self = *static_cast<SandHypoplasticityByUmat*>(_self);
 
@@ -192,6 +187,17 @@ namespace MatModel
 		double ddsdde[6][6];
 		swap(self.statev[4], self.statev[5]);
 
+		// debug
+		double statev_tmp[13] = {
+			self.statev[0],
+			self.statev[1],
+			self.statev[2],
+			self.statev[3],
+			self.statev[4],
+			self.statev[5],
+			self.statev[6]
+		};
+
 		// link dynamically
 		(*dll_inte_func)(
 			stress_umat,
@@ -218,6 +224,9 @@ namespace MatModel
 		self.dstress[3] = stress_umat[3] - self.stress[3];
 		self.dstress[4] = stress_umat[5] - self.stress[4];
 		self.dstress[5] = stress_umat[4] - self.stress[5];
+		
+		if (self.dstress[1] == 100.0)
+			size_t efe = 0;
 
 		self.stress[0] = stress_umat[0];
 		self.stress[1] = stress_umat[1];
@@ -237,6 +246,11 @@ namespace MatModel
 		for (size_t i = 0; i < 6; ++i)
 			for (size_t j = 3; j < 6; ++j)
 				self.Dep_mat[i][j] *= 2.0; // ????
+
+		dstrain[3] *= 0.5;
+		dstrain[4] *= 0.5;
+		dstrain[5] *= 0.5;
+		swap(dstrain[4], dstrain[5]);
 
 		return 0;
 	}
