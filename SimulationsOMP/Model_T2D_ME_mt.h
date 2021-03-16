@@ -18,12 +18,7 @@ int substep_func_omp_T2D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 class Step_T2D_ME_TBB;
 int cal_substep_func_T2D_ME_TBB(void* _self);
-
-namespace Step_T2D_ME_Task
-{
-	class CalData;
-	class MapPclToBgMeshTask;
-}
+namespace Step_T2D_ME_Task { class CalData; }
 
 class ResultFile_hdf5;
 namespace Model_T2D_ME_mt_hdf5_utilities
@@ -52,7 +47,6 @@ struct Model_T2D_ME_mt : public Model,
 	friend class Step_T2D_ME_TBB;
 	friend int cal_substep_func_T2D_ME_TBB(void* _self);
 	friend class Step_T2D_ME_Task::CalData;
-	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
 	
 public:
 	struct ShapeFunc { double N1, N2, N3; };

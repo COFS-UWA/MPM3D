@@ -1,5 +1,5 @@
-#ifndef __Step_T2D_ME_Task_h__
-#define __Step_T2D_ME_Task_h__
+#ifndef __Step_T3D_ME_Task_h__
+#define __Step_T3D_ME_Task_h__
 
 #include "tbb/task.h"
 #include "tbb/task_scheduler_init.h"
@@ -8,9 +8,9 @@
 #include "MSDRadixSortUtils.h"
 #include "SortParticleTask.h"
 #include "SortTriMeshNodeTask.h"
-#include "Model_T2D_ME_mt.h"
+#include "Model_T3D_ME_mt.h"
 
-namespace Step_T2D_ME_Task
+namespace Step_T3D_ME_Task
 {
 	using MSDRadixSortUtils::block_low;
 
@@ -25,38 +25,38 @@ namespace Step_T2D_ME_Task
 
 	struct CalData
 	{
-		Model_T2D_ME_mt *pmodel;
+		Model_T3D_ME_mt *pmodel;
 
 		// pcl data
 		const double* pcl_m;
-		const Model_T2D_ME_mt::Force* pcl_bf;
-		const Model_T2D_ME_mt::Force* pcl_t;
-		const Model_T2D_ME_mt::Position* pcl_pos;
+		const Model_T3D_ME_mt::Force* pcl_bf;
+		const Model_T3D_ME_mt::Force* pcl_t;
+		const Model_T3D_ME_mt::Position* pcl_pos;
 		double* pcl_vol;
 		MatModel::MaterialModel** pcl_mat_model;
 
-		Model_T2D_ME_mt::SortedPclVarArrays spvas[2];
+		Model_T3D_ME_mt::SortedPclVarArrays spvas[2];
 
 		// elem data
-		const Model_T2D_ME_mt::ElemNodeIndex* elem_node_id;
-		const Model_T2D_ME_mt::ShapeFuncAB* elem_dN_ab;
-		const Model_T2D_ME_mt::ShapeFuncC* elem_dN_c;
-		const double* elem_area;
+		const Model_T3D_ME_mt::ElemNodeIndex* elem_node_id;
+		const Model_T3D_ME_mt::DShapeFuncABC* elem_dN_abc;
+		const Model_T3D_ME_mt::DShapeFuncD* elem_dN_d;
+		const double* elem_vol;
 
 		double* elem_pcl_m;
 		double* elem_density;
-		Model_T2D_ME_mt::StrainInc* elem_de;
+		Model_T3D_ME_mt::StrainInc* elem_de;
 		double* elem_m_de_vol;
 		
 		// elem node data
 		MSDRadixSortUtils::RadixBinBlockMemArray thread_bin_blocks_mem;
-		Model_T2D_ME_mt::ElemNodeVM* elem_node_vm;
-		Model_T2D_ME_mt::Force* elem_node_force;
+		Model_T3D_ME_mt::ElemNodeVM* elem_node_vm;
+		Model_T3D_ME_mt::Force* elem_node_force;
 
 		// node data
-		Model_T2D_ME_mt::Acceleration* node_a;
-		Model_T2D_ME_mt::Velocity* node_v;
-		Model_T2D_ME_mt::NodeHasVBC* node_has_vbc;
+		Model_T3D_ME_mt::Acceleration* node_a;
+		Model_T3D_ME_mt::Velocity* node_v;
+		Model_T3D_ME_mt::NodeHasVBC* node_has_vbc;
 		double* node_am;
 		double* node_de_vol;
 		
@@ -78,15 +78,15 @@ namespace Step_T2D_ME_Task
 		size_t valid_pcl_num;
 		size_t valid_elem_num;
 
-		void set_model(Model_T2D_ME_mt& md) noexcept;
+		void set_model(Model_T3D_ME_mt& md) noexcept;
 	};
 	
 	class InitPcl
 	{
 	protected:
-		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
-		typedef Model_T2D_ME_mt::Displacement Displacement;
-		typedef Model_T2D_ME_mt::Position Position;
+		typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
+		typedef Model_T3D_ME_mt::Displacement Displacement;
+		typedef Model_T3D_ME_mt::Position Position;
 		CalData& cd;
 		size_t task_num;
 	public:
@@ -104,23 +104,23 @@ namespace Step_T2D_ME_Task
 	class MapPclToBgMesh
 	{
 	protected:
-		typedef Model_T2D_ME_mt::Force Force;
-		typedef Model_T2D_ME_mt::Acceleration Acceleration;
-		typedef Model_T2D_ME_mt::Velocity Velocity;
-		typedef Model_T2D_ME_mt::Displacement Displacement;
-		typedef Model_T2D_ME_mt::Stress Stress;
-		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
-		typedef Model_T2D_ME_mt::ShapeFuncAB ShapeFuncAB;
-		typedef Model_T2D_ME_mt::ShapeFuncC ShapeFuncC;
-		typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
+		typedef Model_T3D_ME_mt::Force Force;
+		typedef Model_T3D_ME_mt::Acceleration Acceleration;
+		typedef Model_T3D_ME_mt::Velocity Velocity;
+		typedef Model_T3D_ME_mt::Displacement Displacement;
+		typedef Model_T3D_ME_mt::Stress Stress;
+		typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
+		typedef Model_T3D_ME_mt::DShapeFuncABC DShapeFuncABC;
+		typedef Model_T3D_ME_mt::DShapeFuncD DShapeFuncD;
+		typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
 
 		CalData& cd;
 		const double* pcl_m;
 		const Force* pcl_bf;
 		const Force* pcl_t;
 		double* pcl_vol;
-		const ShapeFuncAB *elem_dN_ab;
-		const double *elem_area;
+		const DShapeFuncABC *elem_dN_abc;
+		const double *elem_vol;
 		double* elem_pcl_m;
 		double* elem_density;
 		ElemNodeVM* elem_node_vm;
@@ -152,8 +152,8 @@ namespace Step_T2D_ME_Task
 			pcl_bf = cd.pcl_bf;
 			pcl_t = cd.pcl_t;
 			pcl_vol = cd.pcl_vol;
-			elem_dN_ab = cd.elem_dN_ab;
-			elem_area = cd.elem_area;
+			elem_dN_abc = cd.elem_dN_abc;
+			elem_vol = cd.elem_vol;
 			elem_pcl_m = cd.elem_pcl_m;
 			elem_density = cd.elem_density;
 			elem_node_vm = cd.elem_node_vm;
@@ -192,13 +192,13 @@ namespace Step_T2D_ME_Task
 	class ContactRigidRect
 	{
 	protected:
-		typedef Model_T2D_ME_mt::Force Force;
-		typedef Model_T2D_ME_mt::Position Position;
-		typedef Model_T2D_ME_mt::Displacement Displacement;
-		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
+		typedef Model_T3D_ME_mt::Force Force;
+		typedef Model_T3D_ME_mt::Position Position;
+		typedef Model_T3D_ME_mt::Displacement Displacement;
+		typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
 
 		CalData &cd;
-		RigidRect *prr;
+		//RigidRect *prr;
 		double K_cont;
 		const Position *pcl_pos;
 		const double *pcl_vol;
@@ -213,10 +213,10 @@ namespace Step_T2D_ME_Task
 
 	public:
 		ContactRigidRect(CalData& _cd) : cd(_cd) {}
-		inline void init(Model_T2D_ME_mt &md) noexcept
+		inline void init(Model_T3D_ME_mt &md) noexcept
 		{
-			prr = &md.get_rigid_rect();
-			K_cont = md.get_Kn_cont();
+			//prr = &md.get_rigid_rect();
+			//K_cont = md.get_Kn_cont();
 			pcl_pos = cd.pcl_pos;
 			pcl_vol = cd.pcl_vol;
 			elem_node_force = cd.elem_node_force;
@@ -234,17 +234,17 @@ namespace Step_T2D_ME_Task
 					valid_pcl_num, thread_num);
 		}
 		inline size_t get_task_num() const noexcept { return task_num; }
-		void operator() (size_t wk_id, Force2D &rr_cf) const;
+		void operator() (size_t wk_id, Force3D &rr_cf) const;
 	};
 	
 	class UpdateAccelerationAndVelocity
 	{
 	protected:
-		typedef Model_T2D_ME_mt::Force Force;
-		typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
-		typedef Model_T2D_ME_mt::Acceleration Acceleration;
-		typedef Model_T2D_ME_mt::Velocity Velocity;
-		typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
+		typedef Model_T3D_ME_mt::Force Force;
+		typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
+		typedef Model_T3D_ME_mt::Acceleration Acceleration;
+		typedef Model_T3D_ME_mt::Velocity Velocity;
+		typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
 
 		CalData& cd;
 		const double* elem_pcl_m;
@@ -288,15 +288,15 @@ namespace Step_T2D_ME_Task
 	class CalElemDeAndMapToNode
 	{
 	protected:
-		typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
-		typedef Model_T2D_ME_mt::Velocity Velocity;
-		typedef Model_T2D_ME_mt::ShapeFuncAB ShapeFuncAB;
-		typedef Model_T2D_ME_mt::StrainInc StrainInc;
+		typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T3D_ME_mt::Velocity Velocity;
+		typedef Model_T3D_ME_mt::DShapeFuncABC DShapeFuncABC;
+		typedef Model_T3D_ME_mt::StrainInc StrainInc;
 
 		CalData& cd;
 		const ElemNodeIndex* elem_node_id;
 		const double* elem_pcl_m;
-		const ShapeFuncAB* elem_dN_ab; 
+		const DShapeFuncABC *elem_dN_abc; 
 		const Velocity* node_v;
 		StrainInc* elem_de;
 		double* elem_m_de_vol;
@@ -311,7 +311,7 @@ namespace Step_T2D_ME_Task
 		{
 			elem_node_id = cd.elem_node_id;
 			elem_pcl_m = cd.elem_pcl_m;
-			elem_dN_ab = cd.elem_dN_ab;
+			elem_dN_abc = cd.elem_dN_abc;
 			node_v = cd.node_v;
 			elem_de = cd.elem_de;
 			elem_m_de_vol = cd.elem_m_de_vol;
@@ -365,15 +365,15 @@ namespace Step_T2D_ME_Task
 	class MapBgMeshToPcl
 	{
 	protected:
-		typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
-		typedef Model_T2D_ME_mt::Acceleration Acceleration;
-		typedef Model_T2D_ME_mt::Velocity Velocity;
-		typedef Model_T2D_ME_mt::Displacement Displacement;
-		typedef Model_T2D_ME_mt::Position Position;
-		typedef Model_T2D_ME_mt::Stress Stress;
-		typedef Model_T2D_ME_mt::Strain Strain;
-		typedef Model_T2D_ME_mt::StrainInc StrainInc;
-		typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
+		typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T3D_ME_mt::Acceleration Acceleration;
+		typedef Model_T3D_ME_mt::Velocity Velocity;
+		typedef Model_T3D_ME_mt::Displacement Displacement;
+		typedef Model_T3D_ME_mt::Position Position;
+		typedef Model_T3D_ME_mt::Stress Stress;
+		typedef Model_T3D_ME_mt::Strain Strain;
+		typedef Model_T3D_ME_mt::StrainInc StrainInc;
+		typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
 		
 		CalData& cd;
 		const ElemNodeIndex *elem_node_id;

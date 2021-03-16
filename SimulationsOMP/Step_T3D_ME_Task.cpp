@@ -4,14 +4,14 @@
 #include "tbb/task_arena.h"
 
 #include "ParallelUtils.h"
-#include "Step_T2D_ME_Task.h"
-#include "Step_T2D_ME_TBB.h"
+#include "Step_T3D_ME_Task.h"
+#include "Step_T3D_ME_TBB.h"
 
-namespace Step_T2D_ME_Task
+namespace Step_T3D_ME_Task
 {
 	constexpr double one_third = 1.0 / 3.0;
 
-	void CalData::set_model(Model_T2D_ME_mt &md) noexcept
+	void CalData::set_model(Model_T3D_ME_mt &md) noexcept
 	{
 		pmodel = &md;
 		pcl_m = md.pcl_m;
@@ -46,9 +46,9 @@ namespace Step_T2D_ME_Task
 		spva1.pcl_N = md_spva1.pcl_N;
 
 		elem_node_id = md.elem_node_id;
-		elem_dN_ab = md.elem_dN_ab;
-		elem_dN_c = md.elem_dN_c;
-		elem_area = md.elem_area;
+		elem_dN_abc = md.elem_dN_abc;
+		elem_dN_d = md.elem_dN_d;
+		elem_vol = md.elem_vol;
 		elem_pcl_m = md.elem_pcl_m;
 		elem_density = md.elem_density;
 		elem_de = md.elem_de;
@@ -73,7 +73,7 @@ namespace Step_T2D_ME_Task
 		const auto& pcl_sort_mem = cd.pcl_sort_mem;
 		size_t* const ori_pcl_in_elem = pcl_sort_mem.ori_keys;
 		size_t* const ori_cur_to_prev_pcl = pcl_sort_mem.ori_vals;
-		Model_T2D_ME_mt& md = *cd.pmodel;
+		Model_T3D_ME_mt& md = *cd.pmodel;
 		Position* const pcl_pos = const_cast<Position* const>(cd.pcl_pos);
 		const auto& spva0 = cd.spvas[0];
 		const size_t p_id0 = ParallelUtils::block_low(wk_id, task_num, cd.prev_valid_pcl_num);
@@ -86,12 +86,14 @@ namespace Step_T2D_ME_Task
 			Displacement& p_d = spva0.pcl_disp[p_id];
 			p_p.x += p_d.ux;
 			p_p.y += p_d.uy;
+			p_p.z += p_d.uz;
 			p_d.ux = 0.0;
 			p_d.uy = 0.0;
+			p_d.uz = 0.0;
 			ShapeFunc& p_N = spva0.pcl_N[p_id];
-			size_t e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_N);
+			size_t e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_p.z, p_N);
 			if (e_id == SIZE_MAX)
-				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_N);
+				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
 			if (e_id != SIZE_MAX)
 				++valid_pcl_num;
 			ori_pcl_in_elem[p_id] = e_id;
@@ -232,9 +234,9 @@ namespace Step_T2D_ME_Task
 				e_s11 /= e_p_vol;
 				e_s22 /= e_p_vol;
 				e_s12 /= e_p_vol;
-				if (e_p_vol > elem_area[e_id])
-					e_p_vol = elem_area[e_id];
-				const ShapeFuncAB& e_dN = elem_dN_ab[e_id];
+				if (e_p_vol > elem_vol[e_id])
+					e_p_vol = elem_vol[e_id];
+				const DShapeFuncABC& e_dN = elem_dN_abc[e_id];
 				// node 1
 				Force& en1_f = elem_node_force[e_id * 3];
 				en1_fx -= (e_dN.dN1_dx * e_s11 + e_dN.dN1_dy * e_s12) * e_p_vol;
@@ -283,64 +285,64 @@ namespace Step_T2D_ME_Task
 		}
 	}
 
-	void ContactRigidRect::operator() (size_t wk_id, Force2D& rr_cf) const
-	{
-		size_t e_id;
-		size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
-		e_id = pcl_in_elem[p_id0];
-		while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
-		++p_id0;
-		assert(p_id0 <= valid_pcl_num);
-		size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
-		e_id = pcl_in_elem[p_id1];
-		while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
-		++p_id1;
-		assert(p_id1 <= valid_pcl_num);
+	//void ContactRigidRect::operator() (size_t wk_id, Force3D& rr_cf) const
+	//{
+	//	size_t e_id;
+	//	size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
+	//	e_id = pcl_in_elem[p_id0];
+	//	while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
+	//	++p_id0;
+	//	assert(p_id0 <= valid_pcl_num);
+	//	size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
+	//	e_id = pcl_in_elem[p_id1];
+	//	while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
+	//	++p_id1;
+	//	assert(p_id1 <= valid_pcl_num);
 
-		double dist;
-		Vector2D lnorm;
-		Force lcont_f, gcont_f;
-		Point2D cur_cont_pos;
-		Force2D rcf;
-		rcf.reset();
-		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
-		{
-			const size_t ori_p_id = pcl_index[p_id];
-			const Position& p_p = pcl_pos[ori_p_id];
-			const Displacement& p_d = pcl_disp[p_id];
-			const double p_x = p_p.x + p_d.ux;
-			const double p_y = p_p.y + p_d.uy;
-			const double p_r = 0.5 * sqrt(pcl_vol[p_id]);
-			if (prr->detect_collision_with_point(
-				p_x, p_y, p_r, dist, lnorm, cur_cont_pos))
-			{
-				const double f_cont = K_cont * dist;
-				lcont_f.fx = f_cont * lnorm.x;
-				lcont_f.fy = f_cont * lnorm.y;
-				prr->get_global_vector(lcont_f.vec, gcont_f.vec);
-				// apply contact force to mesh
-				const ShapeFunc& p_N = pcl_N[p_id];
-				const size_t e_id = pcl_in_elem[p_id];
-				Force &en_f1 = elem_node_force[e_id * 3];
-				en_f1.fx += p_N.N1 * gcont_f.fx;
-				en_f1.fy += p_N.N1 * gcont_f.fy;
-				Force& en_f2 = elem_node_force[e_id * 3 + 1];
-				en_f2.fx += p_N.N2 * gcont_f.fx;
-				en_f2.fy += p_N.N2 * gcont_f.fy;
-				Force& en_f3 = elem_node_force[e_id * 3 + 2];
-				en_f3.fx += p_N.N3 * gcont_f.fx;
-				en_f3.fy += p_N.N3 * gcont_f.fy;
-				// apply contact force to rigid body
-				const Point2D& rr_cen = prr->get_centre();
-				rcf.add_force(p_x, p_y,
-					-gcont_f.fx, -gcont_f.fy,
-					rr_cen.x, rr_cen.y);
-			}
-		}
-		rr_cf.fx = rcf.fx;
-		rr_cf.fy = rcf.fy;
-		rr_cf.m = rcf.m;
-	}
+	//	double dist;
+	//	Vector2D lnorm;
+	//	Force lcont_f, gcont_f;
+	//	Point2D cur_cont_pos;
+	//	Force2D rcf;
+	//	rcf.reset();
+	//	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+	//	{
+	//		const size_t ori_p_id = pcl_index[p_id];
+	//		const Position& p_p = pcl_pos[ori_p_id];
+	//		const Displacement& p_d = pcl_disp[p_id];
+	//		const double p_x = p_p.x + p_d.ux;
+	//		const double p_y = p_p.y + p_d.uy;
+	//		const double p_r = 0.5 * sqrt(pcl_vol[p_id]);
+	//		if (prr->detect_collision_with_point(
+	//			p_x, p_y, p_r, dist, lnorm, cur_cont_pos))
+	//		{
+	//			const double f_cont = K_cont * dist;
+	//			lcont_f.fx = f_cont * lnorm.x;
+	//			lcont_f.fy = f_cont * lnorm.y;
+	//			prr->get_global_vector(lcont_f.vec, gcont_f.vec);
+	//			// apply contact force to mesh
+	//			const ShapeFunc& p_N = pcl_N[p_id];
+	//			const size_t e_id = pcl_in_elem[p_id];
+	//			Force &en_f1 = elem_node_force[e_id * 3];
+	//			en_f1.fx += p_N.N1 * gcont_f.fx;
+	//			en_f1.fy += p_N.N1 * gcont_f.fy;
+	//			Force& en_f2 = elem_node_force[e_id * 3 + 1];
+	//			en_f2.fx += p_N.N2 * gcont_f.fx;
+	//			en_f2.fy += p_N.N2 * gcont_f.fy;
+	//			Force& en_f3 = elem_node_force[e_id * 3 + 2];
+	//			en_f3.fx += p_N.N3 * gcont_f.fx;
+	//			en_f3.fy += p_N.N3 * gcont_f.fy;
+	//			// apply contact force to rigid body
+	//			const Point2D& rr_cen = prr->get_centre();
+	//			rcf.add_force(p_x, p_y,
+	//				-gcont_f.fx, -gcont_f.fy,
+	//				rr_cen.x, rr_cen.y);
+	//		}
+	//	}
+	//	rr_cf.fx = rcf.fx;
+	//	rr_cf.fy = rcf.fy;
+	//	rr_cf.m = rcf.m;
+	//}
 
 	void UpdateAccelerationAndVelocity::operator() (size_t wk_id) const
 	{
@@ -430,7 +432,7 @@ namespace Step_T2D_ME_Task
 			const Velocity& n_v1 = node_v[eni.n1];
 			const Velocity& n_v2 = node_v[eni.n2];
 			const Velocity& n_v3 = node_v[eni.n3];
-			const ShapeFuncAB& e_dN = elem_dN_ab[e_id];
+			const DShapeFuncABC& e_dN = elem_dN_abc[e_id];
 			StrainInc& e_de = elem_de[e_id];
 			e_de.de11 = (e_dN.dN1_dx * n_v1.vx + e_dN.dN2_dx * n_v2.vx + e_dN.dN3_dx * n_v3.vx) * cd.dt;
 			e_de.de22 = (e_dN.dN1_dy * n_v1.vy + e_dN.dN2_dy * n_v2.vy + e_dN.dN3_dy * n_v3.vy) * cd.dt;
@@ -549,17 +551,18 @@ namespace Step_T2D_ME_Task
 			const Position& p_p = pcl_pos[ori_p_id];
 			const double p_x = p_p.x + p_d0.ux;
 			const double p_y = p_p.y + p_d0.uy;
+			const double p_z = p_p.z + p_d0.uz;
 			size_t p_e_id = e_id;
-			Model_T2D_ME_mt& md = *cd.pmodel;
-			if (!md.is_in_element(p_x, p_y, e_id, p_N))
+			Model_T3D_ME_mt& md = *cd.pmodel;
+			if (!md.is_in_element(p_x, p_y, p_z, e_id, p_N))
 			{
-				p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_N);
+				p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_z, p_N);
 				if (p_e_id == SIZE_MAX)
 				{
-					if (md.is_in_element_tol(p_x, p_y, e_id, p_N))
+					if (md.is_in_element_tol(p_x, p_y, p_z, e_id, p_N))
 						p_e_id = e_id;
 					else
-						p_e_id = md.find_pcl_in_which_elem_tol(p_x, p_y, p_N);
+						p_e_id = md.find_pcl_in_which_elem_tol(p_x, p_y, p_z, p_N);
 				}
 			}
 			if (p_e_id != SIZE_MAX)

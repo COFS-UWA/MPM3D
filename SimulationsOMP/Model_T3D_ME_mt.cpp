@@ -100,7 +100,7 @@ void Model_T3D_ME_mt::alloc_mesh(size_t n_num, size_t e_num)
 		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
 		+ sizeof(double) * 4 + sizeof(StrainInc)
 		+ sizeof(ElemNodeVM) * 4
-		+ sizeof(ElemNodeForce) * 4) * e_num
+		+ sizeof(Force) * 4) * e_num
 		+ (sizeof(size_t) * 2 + sizeof(Position)
 		+ sizeof(Acceleration) + sizeof(Velocity)
 		+ sizeof(NodeHasVBC) + sizeof(double) * 2) * n_num
@@ -134,8 +134,8 @@ void Model_T3D_ME_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(double) * elem_num;
 	elem_node_vm = (ElemNodeVM *)cur_mem; // elem_num * 4
 	cur_mem += sizeof(ElemNodeVM) * elem_num * 4;
-	elem_node_force = (ElemNodeForce *)cur_mem; // elem_num * 4
-	cur_mem += sizeof(ElemNodeForce) * elem_num * 4;
+	elem_node_force = (Force *)cur_mem; // elem_num * 4
+	cur_mem += sizeof(Force) * elem_num * 4;
 	node_a = (Acceleration *)cur_mem; // node_num
 	cur_mem += sizeof(Acceleration) * node_num;
 	node_v = (Velocity *)cur_mem; // node_num

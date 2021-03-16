@@ -52,8 +52,9 @@ add_library(
     Step_T2D_ME_TBB.h Step_T2D_ME_TBB.cpp
     TimeHistory_T2D_ME_TBB_complete.h TimeHistory_T2D_ME_TBB_complete.cpp
     # 3D ME MPM
-    #Step_T3D_ME_Task.h Step_T3D_ME_Task.cpp
-    #Step_T3D_ME_TBB.h Step_T3D_ME_TBB.cpp
+    Step_T3D_ME_Task.h Step_T3D_ME_Task.cpp
+    Step_T3D_ME_TBB.h Step_T3D_ME_TBB.cpp
+    #TimeHistory_T3D_ME_TBB_complete.h TimeHistory_T3D_ME_TBB_complete.cpp
     )
 
 add_subdirectory(RigidObject/)

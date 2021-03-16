@@ -255,7 +255,6 @@ int substep_func_omp_T3D_ME_mt(
 	typedef Model_T3D_ME_mt::StrainInc StrainInc;
 	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
-	typedef Model_T3D_ME_mt::ElemNodeForce ElemNodeForce;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
 	typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Step_T3D_ME_mt::ThreadData ThreadData;
@@ -319,7 +318,7 @@ int substep_func_omp_T3D_ME_mt(
 	double* const elem_m_de_vol = self.elem_m_de_vol;
 
 	ElemNodeVM* const elem_node_vm = self.elem_node_vm;
-	ElemNodeForce* const elem_node_force = self.elem_node_force;
+	Force* const elem_node_force = self.elem_node_force;
 
 	Acceleration* const node_a = self.node_a;
 	Velocity* const node_v = self.node_v;
@@ -635,7 +634,7 @@ int substep_func_omp_T3D_ME_mt(
 			DShapeFuncABC& e_dN = elem_dN_abc[e_id];
 			// node 1
 			ne_id = e_id * 4;
-			ElemNodeForce& en1_f = elem_node_force[ne_id];
+			Force& en1_f = elem_node_force[ne_id];
 			en1_fx -= (e_dN.dN1_dx * e_s11 + e_dN.dN1_dy * e_s12 + e_dN.dN1_dz * e_s31) * e_p_vol;
 			en1_f.fx = en1_fx;
 			en1_fy -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * e_s22 + e_dN.dN1_dz * e_s23) * e_p_vol;
@@ -644,7 +643,7 @@ int substep_func_omp_T3D_ME_mt(
 			en1_f.fz = en1_fz;
 			// node 2
 			++ne_id;
-			ElemNodeForce& en2_f = elem_node_force[ne_id];
+			Force& en2_f = elem_node_force[ne_id];
 			en2_fx -= (e_dN.dN2_dx * e_s11 + e_dN.dN2_dy * e_s12 + e_dN.dN2_dz * e_s31) * e_p_vol;
 			en2_f.fx = en2_fx;
 			en2_fy -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * e_s22 + e_dN.dN2_dz * e_s23) * e_p_vol;
@@ -653,7 +652,7 @@ int substep_func_omp_T3D_ME_mt(
 			en2_f.fz = en2_fz;
 			// node 3
 			++ne_id;
-			ElemNodeForce& en3_f = elem_node_force[ne_id];
+			Force& en3_f = elem_node_force[ne_id];
 			en3_fx -= (e_dN.dN3_dx * e_s11 + e_dN.dN3_dy * e_s12 + e_dN.dN3_dz * e_s31) * e_p_vol;
 			en3_f.fx = en3_fx;
 			en3_fy -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * e_s22 + e_dN.dN3_dz * e_s23) * e_p_vol;
@@ -662,7 +661,7 @@ int substep_func_omp_T3D_ME_mt(
 			en3_f.fz = en3_fz;
 			// node 4
 			++ne_id;
-			ElemNodeForce& en4_f = elem_node_force[ne_id];
+			Force& en4_f = elem_node_force[ne_id];
 			en4_fx -= (e_dN.dN4_dx * e_s11 + e_dN.dN4_dy * e_s12 + e_dN.dN4_dz * e_s31) * e_p_vol;
 			en4_f.fx = en4_fx;
 			en4_fy -= (e_dN.dN4_dx * e_s12 + e_dN.dN4_dy * e_s22 + e_dN.dN4_dz * e_s23) * e_p_vol;
@@ -940,7 +939,7 @@ int substep_func_omp_T3D_ME_mt(
 		assert(ne_id < self.elem_num * 4);
 		e_id = ne_id / 4;
 		n_am += elem_pcl_m[e_id];
-		ElemNodeForce& nf = elem_node_force[ne_id];
+		Force& nf = elem_node_force[ne_id];
 		n_fx += nf.fx;
 		n_fy += nf.fy;
 		n_fz += nf.fz;
@@ -1348,19 +1347,19 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
 			e_id = pcl_in_elem[p_id];
-			ElemNodeForce& en_f1 = elem_node_force[e_id * 4];
+			Force& en_f1 = elem_node_force[e_id * 4];
 			en_f1.fx += p_N.N1 * gcont_f.fx;
 			en_f1.fy += p_N.N1 * gcont_f.fy;
 			en_f1.fz += p_N.N1 * gcont_f.fz;
-			ElemNodeForce& en_f2 = elem_node_force[e_id * 4 + 1];
+			Force& en_f2 = elem_node_force[e_id * 4 + 1];
 			en_f2.fx += p_N.N2 * gcont_f.fx;
 			en_f2.fy += p_N.N2 * gcont_f.fy;
 			en_f2.fz += p_N.N2 * gcont_f.fz;
-			ElemNodeForce& en_f3 = elem_node_force[e_id * 4 + 2];
+			Force& en_f3 = elem_node_force[e_id * 4 + 2];
 			en_f3.fx += p_N.N3 * gcont_f.fx;
 			en_f3.fy += p_N.N3 * gcont_f.fy;
 			en_f3.fz += p_N.N3 * gcont_f.fz;
-			ElemNodeForce& en_f4 = elem_node_force[e_id * 4 + 3];
+			Force& en_f4 = elem_node_force[e_id * 4 + 3];
 			en_f4.fx += p_N.N4 * gcont_f.fx;
 			en_f4.fy += p_N.N4 * gcont_f.fy;
 			en_f4.fz += p_N.N4 * gcont_f.fz;
@@ -1427,19 +1426,19 @@ int Step_T3D_ME_mt::apply_rigid_cube(
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
 			e_id = pcl_in_elem[p_id];
-			ElemNodeForce& en_f1 = elem_node_force[e_id * 4];
+			Force& en_f1 = elem_node_force[e_id * 4];
 			en_f1.fx += p_N.N1 * gcont_f.fx;
 			en_f1.fy += p_N.N1 * gcont_f.fy;
 			en_f1.fz += p_N.N1 * gcont_f.fz;
-			ElemNodeForce& en_f2 = elem_node_force[e_id * 4 + 1];
+			Force& en_f2 = elem_node_force[e_id * 4 + 1];
 			en_f2.fx += p_N.N2 * gcont_f.fx;
 			en_f2.fy += p_N.N2 * gcont_f.fy;
 			en_f2.fz += p_N.N2 * gcont_f.fz;
-			ElemNodeForce& en_f3 = elem_node_force[e_id * 4 + 2];
+			Force& en_f3 = elem_node_force[e_id * 4 + 2];
 			en_f3.fx += p_N.N3 * gcont_f.fx;
 			en_f3.fy += p_N.N3 * gcont_f.fy;
 			en_f3.fz += p_N.N3 * gcont_f.fz;
-			ElemNodeForce& en_f4 = elem_node_force[e_id * 4 + 3];
+			Force& en_f4 = elem_node_force[e_id * 4 + 3];
 			en_f4.fx += p_N.N4 * gcont_f.fx;
 			en_f4.fy += p_N.N4 * gcont_f.fy;
 			en_f4.fz += p_N.N4 * gcont_f.fz;
@@ -1506,19 +1505,19 @@ int Step_T3D_ME_mt::apply_t3d_rigid_object(
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
 			e_id = pcl_in_elem[p_id];
-			ElemNodeForce& en_f1 = elem_node_force[e_id * 4];
+			Force& en_f1 = elem_node_force[e_id * 4];
 			en_f1.fx += p_N.N1 * gcont_f.fx;
 			en_f1.fy += p_N.N1 * gcont_f.fy;
 			en_f1.fz += p_N.N1 * gcont_f.fz;
-			ElemNodeForce& en_f2 = elem_node_force[e_id * 4 + 1];
+			Force& en_f2 = elem_node_force[e_id * 4 + 1];
 			en_f2.fx += p_N.N2 * gcont_f.fx;
 			en_f2.fy += p_N.N2 * gcont_f.fy;
 			en_f2.fz += p_N.N2 * gcont_f.fz;
-			ElemNodeForce& en_f3 = elem_node_force[e_id * 4 + 2];
+			Force& en_f3 = elem_node_force[e_id * 4 + 2];
 			en_f3.fx += p_N.N3 * gcont_f.fx;
 			en_f3.fy += p_N.N3 * gcont_f.fy;
 			en_f3.fz += p_N.N3 * gcont_f.fz;
-			ElemNodeForce& en_f4 = elem_node_force[e_id * 4 + 3];
+			Force& en_f4 = elem_node_force[e_id * 4 + 3];
 			en_f4.fx += p_N.N4 * gcont_f.fx;
 			en_f4.fy += p_N.N4 * gcont_f.fy;
 			en_f4.fz += p_N.N4 * gcont_f.fz;
