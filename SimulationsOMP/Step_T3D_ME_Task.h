@@ -257,7 +257,7 @@ namespace Step_T3D_ME_Task
 		const size_t* node_has_elem;
 		const size_t* node_elem_pair;
 		
-		size_t three_valid_elem_num;
+		size_t four_valid_elem_num;
 		size_t task_num;
 
 	public:
@@ -276,10 +276,10 @@ namespace Step_T3D_ME_Task
 		}
 		inline void update(size_t thread_num) noexcept
 		{
-			three_valid_elem_num = cd.valid_elem_num * 3;
+			four_valid_elem_num = cd.valid_elem_num * 4;
 			task_num = ParallelUtils::cal_task_num<
 				elem_num_per_update_a_and_v_task, task_num_per_thread>(
-					three_valid_elem_num, thread_num);
+					four_valid_elem_num, thread_num);
 		}
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id) const;
@@ -338,7 +338,7 @@ namespace Step_T3D_ME_Task
 		const double* node_am;
 		double* node_de_vol;
 
-		size_t three_valid_elem_num;
+		size_t four_valid_elem_num;
 		size_t task_num;
 
 	public:
@@ -353,10 +353,10 @@ namespace Step_T3D_ME_Task
 		}
 		inline void update(size_t thread_num) noexcept
 		{
-			three_valid_elem_num = cd.valid_elem_num * 3;
+			four_valid_elem_num = cd.valid_elem_num * 4;
 			task_num = ParallelUtils::cal_task_num<
 				elem_num_per_cal_node_de_task, task_num_per_thread>(
-					three_valid_elem_num, thread_num);
+					four_valid_elem_num, thread_num);
 		}
 		inline size_t get_task_num() const noexcept { return task_num; }
 		void operator() (size_t wk_id) const;

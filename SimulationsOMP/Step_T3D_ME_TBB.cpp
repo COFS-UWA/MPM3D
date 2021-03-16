@@ -11,7 +11,7 @@ static std::fstream res_file_t3d_me_tbb;
 #endif
 
 Step_T3D_ME_TBB::Step_T3D_ME_TBB(const char* _name) :
-	Step_TBB(_name, "Step_T3D_ME_TBB", &cal_substep_func_T2D_ME_TBB),
+	Step_TBB(_name, "Step_T3D_ME_TBB", &cal_substep_func_T3D_ME_TBB),
 	init_pcl(cal_data),
 	map_pcl_to_mesh(cal_data),
 	cont_rigid_rect(cal_data),
@@ -29,7 +29,7 @@ int Step_T3D_ME_TBB::init_calculation()
 	res_file_t3d_me_tbb.open("step_t3d_me_tbb.txt", std::ios::out | std::ios::binary);
 #endif
 
-	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt*)model;
+	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt*)model;
 	if (md.pcl_num == 0)
 		return -1;
 

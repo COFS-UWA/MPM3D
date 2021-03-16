@@ -19,7 +19,7 @@ namespace Model_T3D_ME_mt_hdf5_utilities
 		ResultFile_hdf5& rf, hid_t frame_grp_id);
 }
 
-int cal_substep_func_T3D_ME_TBB(void* _self);
+int cal_substep_func_T3D_ME_TBB(void *_self);
 
 class Step_T3D_ME_TBB : public Step_TBB
 {
