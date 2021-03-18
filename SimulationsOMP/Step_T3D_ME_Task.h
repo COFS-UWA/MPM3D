@@ -7,7 +7,7 @@
 #include "ParallelUtils.h"
 #include "MSDRadixSortUtils.h"
 #include "SortParticleTask.h"
-#include "SortTriMeshNodeTask.h"
+#include "SortTehMeshNodeTask.h"
 #include "Model_T3D_ME_mt.h"
 
 namespace Step_T3D_ME_Task
@@ -69,7 +69,7 @@ namespace Step_T3D_ME_Task
 		// cal data
 		size_t thread_num;
 		SortParticleMem pcl_sort_mem;
-		SortTriMeshNodeMem node_sort_mem;
+		SortTehMeshNodeMem node_sort_mem;
 		
 		// data changed during computation
 		double dt;

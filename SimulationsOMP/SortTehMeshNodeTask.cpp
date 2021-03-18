@@ -5,19 +5,19 @@
 #include "tbb/task_arena.h"
 
 #include "DivideTask.hpp"
-#include "SortTriMeshNodeTask.h"
+#include "SortTehMeshNodeTask.h"
 
-void SortTriMeshNodeMem::init(
+void SortTehMeshNodeMem::init(
 	size_t elem_num,
 	size_t node_num,
 	RadixBinBlockMemArray& rbbs)
 {
 	set_radix_bin_block(rbbs);
-	const size_t three_elem_num = elem_num * 3;
+	const size_t four_elem_num = elem_num * 4;
 	char *cur_mem = data_mem.alloc<char>(
 		  max_block_num * sizeof(ValidElemBlock)
 		+ elem_num * 2 * sizeof(size_t)
-		+ (three_elem_num * 4 + 4) * sizeof(size_t)
+		+ (four_elem_num * 4 + 4) * sizeof(size_t)
 		+ MSDRadixSortUtils::cache_line_size * 5);
 	valid_elem_blocks = (ValidElemBlock *)cur_mem;
 	cur_mem += max_block_num * sizeof(ValidElemBlock);
@@ -26,20 +26,20 @@ void SortTriMeshNodeMem::init(
 	res_elems = (size_t *)cur_mem;
 	cur_mem = cache_aligned(cur_mem + elem_num * sizeof(size_t));
 	radix_keys0 = (size_t *)cur_mem + 1;
-	cur_mem = cache_aligned(cur_mem + (three_elem_num + 2) * sizeof(size_t));
+	cur_mem = cache_aligned(cur_mem + (four_elem_num + 2) * sizeof(size_t));
 	radix_keys1 = (size_t*)cur_mem + 1;
-	cur_mem = cache_aligned(cur_mem + (three_elem_num + 2) * sizeof(size_t));
+	cur_mem = cache_aligned(cur_mem + (four_elem_num + 2) * sizeof(size_t));
 	radix_vals0 = (size_t*)cur_mem;
-	cur_mem = cache_aligned(cur_mem + three_elem_num * sizeof(size_t));
+	cur_mem = cache_aligned(cur_mem + four_elem_num * sizeof(size_t));
 	radix_vals1 = (size_t*)cur_mem;
 	radix_keys0[-1] = SIZE_MAX;
-	radix_keys0[three_elem_num] = SIZE_MAX;
+	radix_keys0[four_elem_num] = SIZE_MAX;
 	radix_keys1[-1] = SIZE_MAX;
-	radix_keys1[three_elem_num] = SIZE_MAX;
+	radix_keys1[four_elem_num] = SIZE_MAX;
 	set_digit_num(node_num);
 }
 
-void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id) const
+void SortTehMeshNodeTask::ScanPcl::operator() (size_t blk_id) const
 {
 	using MSDRadixSortUtils::block_low;
 	using MSDRadixSortUtils::digit;
@@ -72,12 +72,13 @@ void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id) const
 			++bin.bin[digit(eni.n1, node_digit_pos)];
 			++bin.bin[digit(eni.n2, node_digit_pos)];
 			++bin.bin[digit(eni.n3, node_digit_pos)];
+			++bin.bin[digit(eni.n4, node_digit_pos)];
 			e_id = pcl_in_elems[p_id + 1];
 		}
 	}
 }
 
-void SortTriMeshNodeTask::FormElemAndNodeArray::operator() (size_t blk_id) const
+void SortTehMeshNodeTask::FormElemAndNodeArray::operator() (size_t blk_id) const
 {
 	using MSDRadixSortUtils::digit;
 
@@ -108,23 +109,26 @@ void SortTriMeshNodeTask::FormElemAndNodeArray::operator() (size_t blk_id) const
 		const size_t e_id = o_elems[ve_id];
 		res_elems[--ve_res_offset] = e_id;
 		const ElemNodeIndex& eni = elem_node_ids[e_id];
+		pos_id = --bin.bin[digit(eni.n4, node_digit_pos)];
+		out_node_has_elem[pos_id] = eni.n4;
+		out_node_elem_pair[pos_id] = 4 * ve_id + 3;
 		pos_id = --bin.bin[digit(eni.n3, node_digit_pos)];
 		out_node_has_elem[pos_id] = eni.n3;
-		out_node_elem_pair[pos_id] = 3 * ve_id + 2;
+		out_node_elem_pair[pos_id] = 4 * ve_id + 2;
 		pos_id = --bin.bin[digit(eni.n2, node_digit_pos)];
 		out_node_has_elem[pos_id] = eni.n2;
-		out_node_elem_pair[pos_id] = 3 * ve_id + 1;
+		out_node_elem_pair[pos_id] = 4 * ve_id + 1;
 		pos_id = --bin.bin[digit(eni.n1, node_digit_pos)];
 		out_node_has_elem[pos_id] = eni.n1;
-		out_node_elem_pair[pos_id] = 3 * ve_id;
+		out_node_elem_pair[pos_id] = 4 * ve_id;
 	}
 }
 
-tbb::task* SortTriMeshNodeTask::execute()
+tbb::task* SortTehMeshNodeTask::execute()
 {
 	using MSDRadixSortUtils::digit;
 
-	SortTriMeshNodeMem& snm = static_cast<SortTriMeshNodeMem &>(sort_mem);
+	SortTehMeshNodeMem& snm = static_cast<SortTehMeshNodeMem &>(sort_mem);
 	const size_t radix_id = digit_pos & 1;
 	res_elems = snm.res_elems;
 	MSDRadixSortUtils::RadixBin bin;
@@ -158,7 +162,7 @@ tbb::task* SortTriMeshNodeTask::execute()
 			for (i = 1; i < block_num; ++i)
 				valid_elem_blocks[i].res_offset = valid_elem_blocks[i - 1].res_offset + valid_elem_blocks[i].num;
 			valid_elem_num = valid_elem_blocks[block_num - 1].res_offset;
-			*const_cast<size_t *>(&data_num) = 3 * valid_elem_blocks[block_num - 1].res_offset;
+			*const_cast<size_t *>(&data_num) = 4 * valid_elem_blocks[block_num - 1].res_offset;
 
 			// move data
 			set_ref_count(2);
@@ -184,6 +188,7 @@ tbb::task* SortTriMeshNodeTask::execute()
 					++bin.bin[digit(eni.n1, node_digit_pos)];
 					++bin.bin[digit(eni.n2, node_digit_pos)];
 					++bin.bin[digit(eni.n3, node_digit_pos)];
+					++bin.bin[digit(eni.n4, node_digit_pos)];
 					e_id = pcl_in_elems[i + 1];
 				}
 			}
@@ -193,18 +198,21 @@ tbb::task* SortTriMeshNodeTask::execute()
 			{
 				e_id = res_elems[i];
 				const ElemNodeIndex& eni = elem_node_ids[e_id];
+				pos_id = --bin.bin[digit(eni.n4, node_digit_pos)];
+				out_node_has_elem[pos_id] = eni.n4;
+				out_node_elem_pair[pos_id] = 4 * e_id + 3;
 				pos_id = --bin.bin[digit(eni.n3, node_digit_pos)];
 				out_node_has_elem[pos_id] = eni.n3;
-				out_node_elem_pair[pos_id] = 3 * e_id + 2;
+				out_node_elem_pair[pos_id] = 4 * e_id + 2;
 				pos_id = --bin.bin[digit(eni.n2, node_digit_pos)];
 				out_node_has_elem[pos_id] = eni.n2;
-				out_node_elem_pair[pos_id] = 3 * e_id + 1;
+				out_node_elem_pair[pos_id] = 4 * e_id + 1;
 				pos_id = --bin.bin[digit(eni.n1, node_digit_pos)];
 				out_node_has_elem[pos_id] = eni.n1;
-				out_node_elem_pair[pos_id] = 3 * e_id;
+				out_node_elem_pair[pos_id] = 4 * e_id;
 			}
 			valid_elem_num = data_num;
-			*const_cast<size_t *>(&data_num) *= 3;
+			*const_cast<size_t *>(&data_num) *= 4;
 
 			if (digit_pos)
 			{
@@ -255,18 +263,20 @@ tbb::task* SortTriMeshNodeTask::execute()
 		{
 			res_elems[data_num] = e_id;
 			const ElemNodeIndex& eni = elem_node_ids[e_id];
-			in_node_has_elem[data_num * 3] = eni.n1;
-			in_node_has_elem[data_num * 3 + 1] = eni.n2;
-			in_node_has_elem[data_num * 3 + 2] = eni.n3;
-			in_node_elem_pair[data_num * 3] = data_num * 3;
-			in_node_elem_pair[data_num * 3 + 1] = data_num * 3 + 1;
-			in_node_elem_pair[data_num * 3 + 2] = data_num * 3 + 2;
+			in_node_has_elem[data_num * 4] = eni.n1;
+			in_node_has_elem[data_num * 4 + 1] = eni.n2;
+			in_node_has_elem[data_num * 4 + 2] = eni.n3;
+			in_node_has_elem[data_num * 4 + 3] = eni.n4;
+			in_node_elem_pair[data_num * 4] = data_num * 4;
+			in_node_elem_pair[data_num * 4 + 1] = data_num * 4 + 1;
+			in_node_elem_pair[data_num * 4 + 2] = data_num * 4 + 2;
+			in_node_elem_pair[data_num * 4 + 3] = data_num * 4 + 3;
 			++(*const_cast<size_t *>(&data_num));
 			e_id = pcl_in_elems[i + 1];
 		}
 	}
 	valid_elem_num = data_num;
-	*const_cast<size_t *>(&data_num) *= 3;
+	*const_cast<size_t *>(&data_num) *= 4;
 	if (data_num > insertion_sort_max_data_num) // radix sort
 	{
 		out_node_has_elem = snm.radix_keys[radix_id ^ 1];

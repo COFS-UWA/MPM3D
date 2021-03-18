@@ -7,7 +7,6 @@
 
 namespace Model_T2D_CHM_mt_hdf5_utilities
 {
-
 struct ParticleData
 {
 	size_t id;
@@ -54,8 +53,8 @@ struct ParticleData
 		x = pcl_pos.x + pcl_u_s.ux;
 		y = pcl_pos.y + pcl_u_s.uy;
 		Model_T2D_CHM_mt::Displacement& pcl_u_f = psva.pcl_u_f[pcl_offset];
-		ux_f = pcl_u_f.ux;
-		uy_f = pcl_u_f.uy;
+		ux_f = pcl_u_f.ux - pcl_u_s.ux;
+		uy_f = pcl_u_f.uy - pcl_u_s.uy;
 		Model_T2D_CHM_mt::Velocity &pcl_v_s = psva.pcl_v_s[pcl_offset];
 		vx_s = pcl_v_s.vx;
 		vy_s = pcl_v_s.vy;

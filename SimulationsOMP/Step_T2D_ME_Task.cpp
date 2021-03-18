@@ -503,7 +503,7 @@ namespace Step_T2D_ME_Task
 		dstrain[4] = 0.0;
 		dstrain[5] = 0.0;
 		const double *estrain, *pstrain, *dstress;
-		size_t valid_pcl_num = 0;
+		size_t my_valid_pcl_num = 0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			if (e_id != pcl_in_elem[p_id])
@@ -563,7 +563,7 @@ namespace Step_T2D_ME_Task
 				}
 			}
 			if (p_e_id != SIZE_MAX)
-				++valid_pcl_num;
+				++my_valid_pcl_num;
 			new_pcl_in_elem[p_id] = p_e_id;
 			new_cur_to_prev_pcl[p_id] = p_id;
 #ifdef _DEBUG
@@ -610,6 +610,6 @@ namespace Step_T2D_ME_Task
 			p_pe0.e12 = p_pe1.e12 + pstrain[3];
 		}
 
-		pcl_in_mesh_num = valid_pcl_num;
+		pcl_in_mesh_num = my_valid_pcl_num;
 	}
 }

@@ -4,32 +4,32 @@
 
 #include "DivideTask.hpp"
 #include "MergeTask.hpp"
-#include "Step_T3D_ME_TBB.h"
+#include "Step_T3D_CHM_TBB.h"
 
 #ifdef _DEBUG
 static std::fstream res_file_t3d_me_tbb;
 #endif
 
-Step_T3D_ME_TBB::Step_T3D_ME_TBB(const char* _name) :
-	Step_TBB(_name, "Step_T3D_ME_TBB", &cal_substep_func_T3D_ME_TBB),
+Step_T3D_CHM_TBB::Step_T3D_CHM_TBB(const char* _name) :
+	Step_TBB(_name, "Step_T3D_CHM_TBB", &substep_func_T3D_CHM_TBB),
 	init_pcl(cal_data),
 	map_pcl_to_mesh(cal_data),
-	cont_rigid_rect(cal_data),
+	//cont_rigid_rect(cal_data),
 	update_a_and_v(cal_data),
 	cal_elem_de(cal_data),
 	cal_node_de(cal_data),
 	map_mesh_to_pcl(cal_data),
 	sche_init(tbb::task_scheduler_init::deferred) {}
 
-Step_T3D_ME_TBB::~Step_T3D_ME_TBB() {}
+Step_T3D_CHM_TBB::~Step_T3D_CHM_TBB() {}
 
-int Step_T3D_ME_TBB::init_calculation()
+int Step_T3D_CHM_TBB::init_calculation()
 {
 #ifdef _DEBUG
-	res_file_t3d_me_tbb.open("step_t3d_me_tbb.txt", std::ios::out | std::ios::binary);
+	res_file_t3d_me_tbb.open("Step_T3D_CHM_tbb.txt", std::ios::out | std::ios::binary);
 #endif
 
-	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt*)model;
+	Model_T3D_CHM_mt &md = *(Model_T3D_CHM_mt*)model;
 	if (md.pcl_num == 0)
 		return -1;
 
@@ -54,25 +54,25 @@ int Step_T3D_ME_TBB::init_calculation()
 
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
-			MergeTask<Step_T3D_ME_Task::InitPcl, size_t, 8>(
+			MergeTask<Step_T3D_CHM_Task::InitPcl, size_t, 8>(
 				0, init_pcl.get_task_num(), init_pcl,
 				cal_data.valid_pcl_num));
 
 	return 0;
 }
 
-int Step_T3D_ME_TBB::finalize_calculation()
+int Step_T3D_CHM_TBB::finalize_calculation()
 {
-	Model_T3D_ME_mt& md = *(Model_T3D_ME_mt *)model;
+	Model_T3D_CHM_mt& md = *(Model_T3D_CHM_mt *)model;
 	md.pcl_num = cal_data.prev_valid_pcl_num;
 	sche_init.terminate();
 	return 0;
 }
 
-int cal_substep_func_T3D_ME_TBB(void* _self)
+int substep_func_T3D_CHM_TBB(void* _self)
 {
-	Step_T3D_ME_TBB& self = *(Step_T3D_ME_TBB*)(_self);
-	Step_T3D_ME_Task::CalData& cd = self.cal_data;
+	Step_T3D_CHM_TBB& self = *(Step_T3D_CHM_TBB*)(_self);
+	Step_T3D_CHM_Task::CalData& cd = self.cal_data;
 	if (cd.valid_pcl_num == 0)
 	{
 		self.exit_calculation();
@@ -103,13 +103,13 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	auto &map_pcl_to_mesh = self.map_pcl_to_mesh;
 	map_pcl_to_mesh.update(self.thread_num);
 	tk_list.push_back(*new(tbb::task::allocate_root())
-		DivideTask<Step_T3D_ME_Task::MapPclToBgMesh, 8>(
+		DivideTask<Step_T3D_CHM_Task::MapPclToBgMesh, 8>(
 			0, map_pcl_to_mesh.get_task_num(), map_pcl_to_mesh));
 	tbb::task::spawn_root_and_wait(tk_list);
 	node_sort_mem.res_keys[cd.valid_elem_num * 4] = SIZE_MAX;
 	
 	// contact with rigid rect
-	Model_T3D_ME_mt& md = *static_cast<Model_T3D_ME_mt *>(self.model);
+	Model_T3D_CHM_mt& md = *static_cast<Model_T3D_CHM_mt *>(self.model);
 	//if (md.has_rigid_rect())
 	//{
 	//	auto& cont_rigid_rect = self.cont_rigid_rect;
@@ -117,7 +117,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	//	Force2D rr_cf;
 	//	tbb::task::spawn_root_and_wait(
 	//		*new(tbb::task::allocate_root())
-	//			MergeTask<Step_T3D_ME_Task::ContactRigidRect, Force2D, 8>(
+	//			MergeTask<Step_T3D_CHM_Task::ContactRigidRect, Force2D, 8>(
 	//				0, cont_rigid_rect.get_task_num(), cont_rigid_rect, rr_cf));
 	//	RigidRect& rr = md.get_rigid_rect();
 	//	rr.set_cont_force(rr_cf.fx, rr_cf.fy, rr_cf.m);
@@ -129,7 +129,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	update_a_and_v.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
-			DivideTask<Step_T3D_ME_Task::UpdateAccelerationAndVelocity, 8>(
+			DivideTask<Step_T3D_CHM_Task::UpdateAccelerationAndVelocity, 8>(
 				0, update_a_and_v.get_task_num(), update_a_and_v));
 
 	// cal element de and map to node
@@ -137,7 +137,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	cal_elem_de.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
-			DivideTask<Step_T3D_ME_Task::CalElemDeAndMapToNode, 8>(
+			DivideTask<Step_T3D_CHM_Task::CalElemDeAndMapToNode, 8>(
 				0, cal_elem_de.get_task_num(), cal_elem_de));
 
 	// cal strain increment at node
@@ -145,7 +145,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	cal_node_de.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
-			DivideTask<Step_T3D_ME_Task::CalNodeDe, 8>(
+			DivideTask<Step_T3D_CHM_Task::CalNodeDe, 8>(
 				0, cal_node_de.get_task_num(), cal_node_de));
 
 	// map bg mesh back to pcl
@@ -154,7 +154,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	map_mesh_to_pcl.update(self.thread_num);
 	tbb::task::spawn_root_and_wait(
 		*new(tbb::task::allocate_root())
-			MergeTask<Step_T3D_ME_Task::MapBgMeshToPcl, size_t, 8>(
+			MergeTask<Step_T3D_CHM_Task::MapBgMeshToPcl, size_t, 8>(
 				0, map_mesh_to_pcl.get_task_num(),
 				map_mesh_to_pcl, cd.valid_pcl_num));
 	

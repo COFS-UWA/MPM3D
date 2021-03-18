@@ -43,10 +43,13 @@ add_executable(
 	test_t3d_me_mt_cylinder_foundation_ch_den.cpp
     test_t3d_me_mt_spudcan_coarse.cpp
     test_t3d_chm_mt_1d_consolidation.cpp
+    # using tbb
     test_tbb_sorting.cpp
     test_tbb_sort_tri_mesh_node_task.cpp
     test_t2d_me_tbb_1d_compression.cpp
     test_t2d_me_tbb_cap_compression.cpp
+    test_t3d_me_tbb_1d_compression.cpp
+    test_t3d_chm_tbb_1d_consolidation.cpp
     )
 
 target_include_directories(

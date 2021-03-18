@@ -15,14 +15,12 @@
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
 
-// current code only allow one rigid object in model!!
-
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
 int substep_func_omp_T3D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
-class Step_T2D_ME_TBB;
-int cal_substep_func_T2D_ME_TBB(void* _self);
+class Step_T3D_ME_TBB;
+int cal_substep_func_T3D_ME_TBB(void* _self);
 namespace Step_T3D_ME_Task { class CalData; }
 
 class ResultFile_hdf5;

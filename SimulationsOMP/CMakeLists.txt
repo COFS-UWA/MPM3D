@@ -45,6 +45,7 @@ add_library(
     MSDRadixSortUtils.h MSDRadixSortUtils.cpp
     MSDRadixSortTask.h MSDRadixSortTask.cpp
     SortTriMeshNodeTask.h SortTriMeshNodeTask.cpp
+    SortTehMeshNodeTask.h SortTehMeshNodeTask.cpp
     SortParticleTask.h SortParticleTask.cpp
     Step_TBB.h Step_TBB.cpp
     # 2D ME MPM
@@ -54,7 +55,11 @@ add_library(
     # 3D ME MPM
     Step_T3D_ME_Task.h Step_T3D_ME_Task.cpp
     Step_T3D_ME_TBB.h Step_T3D_ME_TBB.cpp
-    #TimeHistory_T3D_ME_TBB_complete.h TimeHistory_T3D_ME_TBB_complete.cpp
+    TimeHistory_T3D_ME_TBB_complete.h TimeHistory_T3D_ME_TBB_complete.cpp
+    # 3D CHM MPM
+    Step_T3D_CHM_Task.h Step_T3D_CHM_Task.cpp
+    Step_T3D_CHM_TBB.h Step_T3D_CHM_TBB.cpp
+    TimeHistory_T3D_CHM_TBB_complete.h TimeHistory_T3D_CHM_TBB_complete.cpp
     )
 
 add_subdirectory(RigidObject/)
