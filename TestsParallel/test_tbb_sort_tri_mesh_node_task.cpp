@@ -4,9 +4,8 @@
 #include <memory>
 #include "tbb/task_scheduler_init.h"
 
-#include "SortParticleTask.h"
-#include "SortTriMeshNodeTask.h"
 #include "TriangleMesh.h"
+#include "SortTriMeshNodeTask.h"
 
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"

@@ -37,12 +37,12 @@ int Step_T3D_CHM_TBB::init_calculation()
 	
 	cal_data.set_model(md);
 	cal_data.thread_num = thread_num;
-	cal_data.sorted_pcl_var_id = 0;
-	cal_data.prev_valid_pcl_num = md.pcl_num;
 	cal_data.thread_bin_blocks_mem.init(thread_num, 2);
 	cal_data.pcl_sort_mem.init(md.pcl_num, md.elem_num, cal_data.thread_bin_blocks_mem);
 	cal_data.node_sort_mem.init(md.elem_num, md.node_num, cal_data.thread_bin_blocks_mem);
-	
+	cal_data.sorted_pcl_var_id = 0;
+	cal_data.prev_valid_pcl_num = md.pcl_num;
+
 	init_pcl.init(thread_num);
 	map_pcl_to_mesh.init();
 	update_a_and_v.init();

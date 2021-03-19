@@ -92,6 +92,10 @@ namespace Step_T3D_CHM_Task
 		node_de_vol_s = md.node_de_vol_s;
 		node_de_vol_f = md.node_de_vol_f;
 
+		Kf = md.Kf;
+		miu = md.miu;
+		k = md.k;
+
 #ifdef _DEBUG
 		ori_pcl_num = md.ori_pcl_num;
 		elem_num = md.elem_num;
@@ -215,6 +219,18 @@ namespace Step_T3D_CHM_Task
 		double en4_fx_f = 0.0;
 		double en4_fy_f = 0.0;
 		double en4_fz_f = 0.0;
+		double en1_fx_seep = 0.0;
+		double en2_fx_seep = 0.0;
+		double en3_fx_seep = 0.0;
+		double en4_fx_seep = 0.0;
+		double en1_fy_seep = 0.0;
+		double en2_fy_seep = 0.0;
+		double en3_fy_seep = 0.0;
+		double en4_fy_seep = 0.0;
+		double en1_fz_seep = 0.0;
+		double en2_fz_seep = 0.0;
+		double en3_fz_seep = 0.0;
+		double en4_fz_seep = 0.0;
 		e_id = pcl_in_elem[p_id0];
 #ifdef _DEBUG
 		assert(e_id < cd.elem_num);
@@ -339,6 +355,24 @@ namespace Step_T3D_CHM_Task
 			p_u_f0.uy = p_u_f1.uy;
 			p_u_f0.uz = p_u_f1.uz;
 
+			// seepage force
+			const double f_seep_tmp = cd.miu / cd.k * p_n * p_n * p_vol;
+			const double e_fx_seep = (p_v_f0.vx - p_v_s0.vx) * f_seep_tmp;
+			en1_fx_seep += p_N0.N1 * e_fx_seep;
+			en2_fx_seep += p_N0.N2 * e_fx_seep;
+			en3_fx_seep += p_N0.N3 * e_fx_seep;
+			en4_fx_seep += p_N0.N4 * e_fx_seep;
+			const double e_fy_seep = (p_v_f0.vy - p_v_s0.vy) * f_seep_tmp;
+			en1_fy_seep += p_N0.N1 * e_fy_seep;
+			en2_fy_seep += p_N0.N2 * e_fy_seep;
+			en3_fy_seep += p_N0.N3 * e_fy_seep;
+			en4_fy_seep += p_N0.N4 * e_fy_seep;
+			const double e_fz_seep = (p_v_f0.vz - p_v_s0.vz) * f_seep_tmp;
+			en1_fz_seep += p_N0.N1 * e_fz_seep;
+			en2_fz_seep += p_N0.N2 * e_fz_seep;
+			en3_fz_seep += p_N0.N3 * e_fz_seep;
+			en4_fz_seep += p_N0.N4 * e_fz_seep;
+			
 			// solid external load
 			const Force& p_bf_s = pcl_bf_s[ori_p_id];
 			const double one_fourth_bfx_s = one_fourth * p_bf_s.fx;
@@ -437,70 +471,109 @@ namespace Step_T3D_CHM_Task
 				e_p /= e_p_vol;
 				elem_p[e_id] = e_p;
 				if (e_p_vol > elem_vol[e_id])
+				{
+					const double vol_ratio = elem_vol[e_id] / e_p_vol;
+					en1_fx_seep *= vol_ratio;
+					en2_fx_seep *= vol_ratio;
+					en3_fx_seep *= vol_ratio;
+					en4_fx_seep *= vol_ratio;
+					en1_fy_seep *= vol_ratio;
+					en2_fy_seep *= vol_ratio;
+					en3_fy_seep *= vol_ratio;
+					en4_fy_seep *= vol_ratio;
+					en1_fz_seep *= vol_ratio;
+					en2_fz_seep *= vol_ratio;
+					en3_fz_seep *= vol_ratio;
+					en4_fz_seep *= vol_ratio;
 					e_p_vol = elem_vol[e_id];
+				}
 				const DShapeFuncABC& e_dN = elem_N_abc[e_id];
 				// node 1
 				Force& en1_f_s = elem_node_force_s[e_id * 4];
+				en1_fx_s += en1_fx_seep;
 				en1_fx_s -= (e_dN.dN1_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN1_dy * e_s12 + e_dN.dN1_dz * e_s31) * e_p_vol;
 				en1_f_s.fx = en1_fx_s;
+				en1_fy_s += en1_fy_seep;
 				en1_fy_s -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN1_dz * e_s23) * e_p_vol;
 				en1_f_s.fy = en1_fy_s;
+				en1_fz_s += en1_fz_seep;
 				en1_fz_s -= (e_dN.dN1_dx * e_s31 + e_dN.dN1_dy * e_s23 + e_dN.dN1_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 				en1_f_s.fz = en1_fz_s;
 				// node 2
 				Force& en2_f_s = elem_node_force_s[e_id * 4 + 1];
+				en2_fx_s += en2_fx_seep;
 				en2_fx_s -= (e_dN.dN2_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN2_dy * e_s12 + e_dN.dN2_dz * e_s31) * e_p_vol;
 				en2_f_s.fx = en2_fx_s;
+				en2_fy_s += en2_fy_seep;
 				en2_fy_s -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN2_dz * e_s23) * e_p_vol;
 				en2_f_s.fy = en2_fy_s;
+				en2_fz_s += en2_fz_seep;
 				en2_fz_s -= (e_dN.dN2_dx * e_s31 + e_dN.dN2_dy * e_s23 + e_dN.dN2_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 				en2_f_s.fz = en2_fz_s;
 				// node 3
 				Force& en3_f_s = elem_node_force_s[e_id * 4 + 2];
+				en3_fx_s += en3_fx_seep;
 				en3_fx_s -= (e_dN.dN3_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN3_dy * e_s12 + e_dN.dN3_dz * e_s31) * e_p_vol;
 				en3_f_s.fx = en3_fx_s;
+				en3_fy_s += en3_fy_seep;
 				en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN3_dz * e_s23) * e_p_vol;
 				en3_f_s.fy = en3_fy_s;
+				en3_fz_s += en3_fz_seep;
 				en3_fz_s -= (e_dN.dN3_dx * e_s31 + e_dN.dN3_dy * e_s23 + e_dN.dN3_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 				en3_f_s.fz = en3_fz_s;
 				// node 4
 				Force& en4_f_s = elem_node_force_s[e_id * 4 + 3];
+				en4_fx_s += en4_fx_seep;
 				en4_fx_s -= (e_dN.dN4_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN4_dy * e_s12 + e_dN.dN4_dz * e_s31) * e_p_vol;
 				en4_f_s.fx = en4_fx_s;
+				en4_fy_s += en4_fy_seep;
 				en4_fy_s -= (e_dN.dN4_dx * e_s12 + e_dN.dN4_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN4_dz * e_s23) * e_p_vol;
 				en4_f_s.fy = en4_fy_s;
+				en4_fz_s += en4_fz_seep;
 				en4_fz_s -= (e_dN.dN4_dx * e_s31 + e_dN.dN4_dy * e_s23 + e_dN.dN4_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
 				en4_f_s.fz = en4_fz_s;
 				// node 1
 				Force& en1_f_f = elem_node_force_f[e_id * 4];
+				en1_fx_f -= en1_fx_seep;
 				en1_fx_f -= e_dN.dN1_dx * e_n * -e_p * e_p_vol;
 				en1_f_f.fx = en1_fx_f;
+				en1_fy_f -= en1_fy_seep;
 				en1_fy_f -= e_dN.dN1_dy * e_n * -e_p * e_p_vol;
 				en1_f_f.fy = en1_fy_f;
+				en1_fz_f -= en1_fz_seep;
 				en1_fz_f -= e_dN.dN1_dz * e_n * -e_p * e_p_vol;
 				en1_f_f.fz = en1_fz_f;
 				// node 2
 				Force& en2_f_f = elem_node_force_f[e_id * 4 + 1];
+				en2_fx_f -= en2_fx_seep;
 				en2_fx_f -= e_dN.dN2_dx * e_n * -e_p * e_p_vol;
 				en2_f_f.fx = en2_fx_f;
+				en2_fy_f -= en2_fy_seep;
 				en2_fy_f -= e_dN.dN2_dy * e_n * -e_p * e_p_vol;
 				en2_f_f.fy = en2_fy_f;
+				en2_fz_f -= en2_fz_seep;
 				en2_fz_f -= e_dN.dN2_dz * e_n * -e_p * e_p_vol;
 				en2_f_f.fz = en2_fz_f;
 				// node 3
 				Force& en3_f_f = elem_node_force_f[e_id * 4 + 2];
+				en3_fx_f -= en3_fx_seep;
 				en3_fx_f -= e_dN.dN3_dx * e_n * -e_p * e_p_vol;
 				en3_f_f.fx = en3_fx_f;
+				en3_fy_f -= en3_fy_seep;
 				en3_fy_f -= e_dN.dN3_dy * e_n * -e_p * e_p_vol;
 				en3_f_f.fy = en3_fy_f;
+				en3_fz_f -= en3_fz_seep;
 				en3_fz_f -= e_dN.dN3_dz * e_n * -e_p * e_p_vol;
 				en3_f_f.fz = en3_fz_f;
 				// node 4
 				Force& en4_f_f = elem_node_force_f[e_id * 4 + 3];
+				en4_fx_f -= en4_fx_seep;
 				en4_fx_f -= e_dN.dN4_dx * e_n * -e_p * e_p_vol;
 				en4_f_f.fx = en4_fx_f;
+				en4_fy_f -= en4_fy_seep;
 				en4_fy_f -= e_dN.dN4_dy * e_n * -e_p * e_p_vol;
 				en4_f_f.fy = en4_fy_f;
+				en4_fz_f -= en4_fz_seep;
 				en4_fz_f -= e_dN.dN4_dz * e_n * -e_p * e_p_vol;
 				en4_f_f.fz = en4_fz_f;
 				
@@ -577,6 +650,18 @@ namespace Step_T3D_CHM_Task
 				en4_fx_f = 0.0;
 				en4_fy_f = 0.0;
 				en4_fz_f = 0.0;
+				en1_fx_seep = 0.0;
+				en2_fx_seep = 0.0;
+				en3_fx_seep = 0.0;
+				en4_fx_seep = 0.0;
+				en1_fy_seep = 0.0;
+				en2_fy_seep = 0.0;
+				en3_fy_seep = 0.0;
+				en4_fy_seep = 0.0;
+				en1_fz_seep = 0.0;
+				en2_fz_seep = 0.0;
+				en3_fz_seep = 0.0;
+				en4_fz_seep = 0.0;
 			}
 		}
 	}

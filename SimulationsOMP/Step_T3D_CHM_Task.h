@@ -25,25 +25,37 @@ namespace Step_T3D_CHM_Task
 
 	struct CalData
 	{
+		using Force = Model_T3D_CHM_mt::Force;
+		using Position = Model_T3D_CHM_mt::Position;
+		using SortedPclVarArrays = Model_T3D_CHM_mt::SortedPclVarArrays;
+		using ElemNodeIndex = Model_T3D_CHM_mt::ElemNodeIndex;
+		using DShapeFuncABC = Model_T3D_CHM_mt::DShapeFuncABC;
+		using DShapeFuncD = Model_T3D_CHM_mt::DShapeFuncD;
+		using StrainInc = Model_T3D_CHM_mt::StrainInc;
+		using ElemNodeVM = Model_T3D_CHM_mt::ElemNodeVM;
+		using Acceleration = Model_T3D_CHM_mt::Acceleration;
+		using Velocity = Model_T3D_CHM_mt::Velocity;
+		using NodeHasVBC = Model_T3D_CHM_mt::NodeHasVBC;
+
 		Model_T3D_CHM_mt *pmodel;
 
 		// pcl data
 		const double* pcl_m_s;
 		const double* pcl_density_s;
 		const double* pcl_vol_s;
-		const Model_T3D_CHM_mt::Force* pcl_bf_s;
-		const Model_T3D_CHM_mt::Force* pcl_bf_f;
-		const Model_T3D_CHM_mt::Force* pcl_t;
-		const Model_T3D_CHM_mt::Position* pcl_pos;
+		const Force* pcl_bf_s;
+		const Force* pcl_bf_f;
+		const Force* pcl_t;
+		const Position* pcl_pos;
 		double *pcl_vol;
 		MatModel::MaterialModel** pcl_mat_model;
 
-		Model_T3D_CHM_mt::SortedPclVarArrays spvas[2];
+		SortedPclVarArrays spvas[2];
 
 		// elem data
-		const Model_T3D_CHM_mt::ElemNodeIndex* elem_node_id;
-		const Model_T3D_CHM_mt::DShapeFuncABC* elem_N_abc;
-		const Model_T3D_CHM_mt::DShapeFuncD* elem_N_d;
+		const ElemNodeIndex* elem_node_id;
+		const DShapeFuncABC* elem_N_abc;
+		const DShapeFuncD* elem_N_d;
 		const double* elem_vol;
 
 		// element calculation data
@@ -51,33 +63,33 @@ namespace Step_T3D_CHM_Task
 		double* elem_pcl_n;
 		double* elem_pcl_m_s;
 		double* elem_pcl_m_f;
-		Model_T3D_CHM_mt::StrainInc* elem_de;
+		StrainInc* elem_de;
 		double* elem_p;
 		double* elem_n2_miu_div_k_vol;
-		Model_T3D_CHM_mt::Force* elem_seep_force;
+		Force* elem_seep_force;
 		double* elem_m_de_vol_s;
 		double* elem_m_de_vol_f;
 
 		// element-node data
 		Model_T3D_CHM_mt::ElemNodeVM* elem_node_vm_s;
 		Model_T3D_CHM_mt::ElemNodeVM* elem_node_vm_f;
-		Model_T3D_CHM_mt::Force* elem_node_force_s;
-		Model_T3D_CHM_mt::Force* elem_node_force_f;
+		Force* elem_node_force_s;
+		Force* elem_node_force_f;
 
 		// node data
-		Model_T3D_CHM_mt::Position* node_pos;
-		Model_T3D_CHM_mt::Acceleration* node_a_s;
-		Model_T3D_CHM_mt::Acceleration* node_a_f;
-		Model_T3D_CHM_mt::Velocity* node_v_s;
-		Model_T3D_CHM_mt::Velocity* node_v_f;
-		Model_T3D_CHM_mt::NodeHasVBC* node_has_vbc_s;
-		Model_T3D_CHM_mt::NodeHasVBC* node_has_vbc_f;
+		Position* node_pos;
+		Acceleration* node_a_s;
+		Acceleration* node_a_f;
+		Velocity* node_v_s;
+		Velocity* node_v_f;
+		NodeHasVBC* node_has_vbc_s;
+		NodeHasVBC* node_has_vbc_f;
 		double* node_am_s;
 		double* node_am_f;
 		double* node_de_vol_s;
 		double* node_de_vol_f;
 
-		double Kf;
+		double Kf, miu, k;
 
 #ifdef _DEBUG
 		size_t elem_num;
