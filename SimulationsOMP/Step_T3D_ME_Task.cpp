@@ -473,7 +473,7 @@ namespace Step_T3D_ME_Task
 			if (n_id != node_has_elem[ve_id + 1])
 			{
 				Acceleration& n_a = node_a[n_id];
-				n_am *= one_third;
+				n_am *= one_fourth;
 				node_am[n_id] = n_am;
 				n_a.ax = n_fx / n_am;
 				n_a.ay = n_fy / n_am;
@@ -602,6 +602,7 @@ namespace Step_T3D_ME_Task
 		StrainInc* pe_de;
 		double dstrain[6];
 		size_t new_valid_pcl_num = 0;
+		Model_T3D_ME_mt& md = *cd.pmodel;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			if (e_id != pcl_in_elem[p_id])
@@ -655,7 +656,6 @@ namespace Step_T3D_ME_Task
 			const double p_y = p_p.y + p_d0.uy;
 			const double p_z = p_p.z + p_d0.uz;
 			size_t p_e_id = e_id;
-			Model_T3D_ME_mt& md = *cd.pmodel;
 			if (!md.is_in_element(p_x, p_y, p_z, e_id, p_N))
 			{
 				p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_z, p_N);

@@ -86,7 +86,7 @@ void test_t3d_me_tbb_1d_compression(int argc, char **argv)
 	step.set_step_time(2.0); // 10.0
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(2);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

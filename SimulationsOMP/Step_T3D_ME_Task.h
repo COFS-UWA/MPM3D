@@ -49,7 +49,6 @@ namespace Step_T3D_ME_Task
 		double* elem_m_de_vol;
 		
 		// elem node data
-		MSDRadixSortUtils::RadixBinBlockMemArray thread_bin_blocks_mem;
 		Model_T3D_ME_mt::ElemNodeVM* elem_node_vm;
 		Model_T3D_ME_mt::Force* elem_node_force;
 
@@ -70,7 +69,8 @@ namespace Step_T3D_ME_Task
 		size_t thread_num;
 		SortParticleMem pcl_sort_mem;
 		SortTehMeshNodeMem node_sort_mem;
-		
+		MSDRadixSortUtils::RadixBinBlockMemArray thread_bin_blocks_mem;
+
 		// data changed during computation
 		double dt;
 		size_t sorted_pcl_var_id;
