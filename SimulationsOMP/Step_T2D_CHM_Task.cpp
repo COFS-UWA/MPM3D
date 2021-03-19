@@ -4,15 +4,15 @@
 #include "tbb/task_arena.h"
 
 #include "ParallelUtils.h"
-#include "Step_T3D_CHM_Task.h"
-#include "Step_T3D_CHM_TBB.h"
+#include "Step_T2D_CHM_Task.h"
+#include "Step_T2D_CHM_TBB.h"
 
-namespace Step_T3D_CHM_Task
+namespace Step_T2D_CHM_Task
 {
 	constexpr double one_third = 1.0 / 3.0;
 	constexpr double one_fourth = 0.25;
 
-	void CalData::set_model(Model_T3D_CHM_mt &md) noexcept
+	void CalData::set_model(Model_T2D_CHM_mt &md) noexcept
 	{
 		pmodel = &md;
 
@@ -59,9 +59,9 @@ namespace Step_T3D_CHM_Task
 		spva1.pcl_N = md_spva1.pcl_N;
 
 		elem_node_id = md.elem_node_id;
-		elem_N_abc = md.elem_N_abc;
-		elem_N_d = md.elem_N_d;
-		elem_vol = md.elem_vol;
+		elem_N_ab = md.elem_N_ab;
+		elem_N_c = md.elem_N_c;
+		elem_area = md.elem_area;
 		elem_density_f = md.elem_density_f;
 		elem_pcl_n = md.elem_pcl_n;
 		elem_pcl_m_s = md.elem_pcl_m_s;
@@ -108,7 +108,7 @@ namespace Step_T3D_CHM_Task
 		const auto& pcl_sort_mem = cd.pcl_sort_mem;
 		size_t* const ori_pcl_in_elem = pcl_sort_mem.ori_keys;
 		size_t* const ori_cur_to_prev_pcl = pcl_sort_mem.ori_vals;
-		Model_T3D_CHM_mt& md = *cd.pmodel;
+		Model_T2D_CHM_mt& md = *cd.pmodel;
 		Position* const pcl_pos = const_cast<Position* const>(cd.pcl_pos);
 		const auto& spva0 = cd.spvas[0];
 		const size_t p_id0 = ParallelUtils::block_low(wk_id, task_num, cd.prev_valid_pcl_num);
@@ -121,14 +121,12 @@ namespace Step_T3D_CHM_Task
 			Displacement& p_d = spva0.pcl_u_s[p_id];
 			p_p.x += p_d.ux;
 			p_p.y += p_d.uy;
-			p_p.z += p_d.uz;
 			p_d.ux = 0.0;
 			p_d.uy = 0.0;
-			p_d.uz = 0.0;
 			ShapeFunc& p_N = spva0.pcl_N[p_id];
-			size_t e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_p.z, p_N);
+			size_t e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_N);
 			if (e_id == SIZE_MAX)
-				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
+				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_N);
 			if (e_id != SIZE_MAX)
 				++my_valid_pcl_num;
 			ori_pcl_in_elem[p_id] = e_id;
@@ -967,7 +965,7 @@ namespace Step_T3D_CHM_Task
 		double e_de_vol_s, e_de_vol_f, e_density_f, e_n, e_p;
 		StrainInc* pe_de;
 		double dstrain[6];
-		Model_T3D_CHM_mt& md = *(cd.pmodel);
+		Model_T2D_CHM_mt& md = *(cd.pmodel);
 		size_t my_valid_pcl_num = 0;
 		e_id = SIZE_MAX;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)

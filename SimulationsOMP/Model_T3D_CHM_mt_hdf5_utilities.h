@@ -126,9 +126,9 @@ struct ParticleData
 		vol = m_s / (density_s * (1.0 - n));
 		const Model_T3D_CHM_mt::Position& pcl_pos = cd.pcl_pos[id];
 		const Model_T3D_CHM_mt::Displacement& pcl_u_s = spva.pcl_u_s[pcl_offset];
-		x = pcl_pos.x - pcl_u_s.ux;
-		y = pcl_pos.y - pcl_u_s.uy;
-		z = pcl_pos.z - pcl_u_s.uz;
+		x = pcl_pos.x + pcl_u_s.ux;
+		y = pcl_pos.y + pcl_u_s.uy;
+		z = pcl_pos.z + pcl_u_s.uz;
 		Model_T3D_CHM_mt::Displacement& pcl_u_f = spva.pcl_u_f[pcl_offset];
 		ux_f = pcl_u_f.ux - pcl_u_s.ux;
 		uy_f = pcl_u_f.uy - pcl_u_s.uy;

@@ -64,8 +64,8 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	//md_disp.set_view_dir(30.0, -30.0);
 	//md_disp.set_light_dir(90.0, -15.0);
 	//md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
 	//md_disp.start();
@@ -80,9 +80,10 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	TimeHistory_T3D_CHM_TBB_complete out1("consolidation");
 	out1.set_interval_num(50);
 	out1.set_output_init_state();
+	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(1000);
+	out_cpb.set_interval_num(500);
 
 	Step_T3D_CHM_TBB step("step1");
 	step.set_model(model);

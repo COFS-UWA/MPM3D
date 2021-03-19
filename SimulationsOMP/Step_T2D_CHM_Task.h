@@ -1,5 +1,5 @@
-#ifndef __Step_T3D_CHM_Task_h__
-#define __Step_T3D_CHM_Task_h__
+#ifndef __Step_T2D_CHM_Task_h__
+#define __Step_T2D_CHM_Task_h__
 
 #include "tbb/task.h"
 #include "tbb/task_scheduler_init.h"
@@ -7,10 +7,10 @@
 #include "ParallelUtils.h"
 #include "MSDRadixSortUtils.h"
 #include "SortParticleTask.h"
-#include "SortTehMeshNodeTask.h"
-#include "Model_T3D_CHM_mt.h"
+#include "SortTriMeshNodeTask.h"
+#include "Model_T2D_CHM_mt.h"
 
-namespace Step_T3D_CHM_Task
+namespace Step_T2D_CHM_Task
 {
 	using MSDRadixSortUtils::block_low;
 
@@ -25,19 +25,19 @@ namespace Step_T3D_CHM_Task
 
 	struct CalData
 	{
-		using Force = Model_T3D_CHM_mt::Force;
-		using Position = Model_T3D_CHM_mt::Position;
-		using SortedPclVarArrays = Model_T3D_CHM_mt::SortedPclVarArrays;
-		using ElemNodeIndex = Model_T3D_CHM_mt::ElemNodeIndex;
-		using DShapeFuncABC = Model_T3D_CHM_mt::DShapeFuncABC;
-		using DShapeFuncD = Model_T3D_CHM_mt::DShapeFuncD;
-		using StrainInc = Model_T3D_CHM_mt::StrainInc;
-		using ElemNodeVM = Model_T3D_CHM_mt::ElemNodeVM;
-		using Acceleration = Model_T3D_CHM_mt::Acceleration;
-		using Velocity = Model_T3D_CHM_mt::Velocity;
-		using NodeHasVBC = Model_T3D_CHM_mt::NodeHasVBC;
+		using Force = Model_T2D_CHM_mt::Force;
+		using Position = Model_T2D_CHM_mt::Position;
+		using SortedPclVarArrays = Model_T2D_CHM_mt::SortedPclVarArrays;
+		using ElemNodeIndex = Model_T2D_CHM_mt::ElemNodeIndex;
+		using DShapeFuncAB = Model_T2D_CHM_mt::DShapeFuncAB;
+		using DShapeFuncC = Model_T2D_CHM_mt::DShapeFuncC;
+		using StrainInc = Model_T2D_CHM_mt::StrainInc;
+		using ElemNodeVM = Model_T2D_CHM_mt::ElemNodeVM;
+		using Acceleration = Model_T2D_CHM_mt::Acceleration;
+		using Velocity = Model_T2D_CHM_mt::Velocity;
+		using NodeHasVBC = Model_T2D_CHM_mt::NodeHasVBC;
 
-		Model_T3D_CHM_mt *pmodel;
+		Model_T2D_CHM_mt *pmodel;
 
 		// pcl data
 		const double* pcl_m_s;
@@ -54,9 +54,9 @@ namespace Step_T3D_CHM_Task
 
 		// elem data
 		const ElemNodeIndex* elem_node_id;
-		const DShapeFuncABC* elem_N_abc;
-		const DShapeFuncD* elem_N_d;
-		const double* elem_vol;
+		const DShapeFuncAB* elem_N_ab;
+		const DShapeFuncC* elem_N_c;
+		const double* elem_area;
 
 		// element calculation data
 		double* elem_density_f;
@@ -101,7 +101,7 @@ namespace Step_T3D_CHM_Task
 		size_t thread_num;
 		MSDRadixSortUtils::RadixBinBlockMemArray thread_bin_blocks_mem;
 		SortParticleMem pcl_sort_mem;
-		SortTehMeshNodeMem node_sort_mem;
+		SortTriMeshNodeMem node_sort_mem;
 		
 		// data changed during computation
 		double dt;
@@ -110,15 +110,15 @@ namespace Step_T3D_CHM_Task
 		size_t valid_pcl_num;
 		size_t valid_elem_num;
 
-		void set_model(Model_T3D_CHM_mt& md) noexcept;
+		void set_model(Model_T2D_CHM_mt& md) noexcept;
 	};
 	
 	class InitPcl
 	{
 	protected:
-		typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
-		typedef Model_T3D_CHM_mt::Displacement Displacement;
-		typedef Model_T3D_CHM_mt::Position Position;
+		typedef Model_T2D_CHM_mt::ShapeFunc ShapeFunc;
+		typedef Model_T2D_CHM_mt::Displacement Displacement;
+		typedef Model_T2D_CHM_mt::Position Position;
 		CalData& cd;
 		size_t task_num;
 	public:
@@ -136,15 +136,15 @@ namespace Step_T3D_CHM_Task
 	class MapPclToBgMesh
 	{
 	protected:
-		typedef Model_T3D_CHM_mt::Force Force;
-		typedef Model_T3D_CHM_mt::Acceleration Acceleration;
-		typedef Model_T3D_CHM_mt::Velocity Velocity;
-		typedef Model_T3D_CHM_mt::Displacement Displacement;
-		typedef Model_T3D_CHM_mt::Stress Stress;
-		typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
-		typedef Model_T3D_CHM_mt::DShapeFuncABC DShapeFuncABC;
-		typedef Model_T3D_CHM_mt::DShapeFuncD DShapeFuncD;
-		typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
+		typedef Model_T2D_CHM_mt::Force Force;
+		typedef Model_T2D_CHM_mt::Acceleration Acceleration;
+		typedef Model_T2D_CHM_mt::Velocity Velocity;
+		typedef Model_T2D_CHM_mt::Displacement Displacement;
+		typedef Model_T2D_CHM_mt::Stress Stress;
+		typedef Model_T2D_CHM_mt::ShapeFunc ShapeFunc;
+		typedef Model_T2D_CHM_mt::DShapeFuncAB DShapeFuncAB;
+		typedef Model_T2D_CHM_mt::DShapeFuncC DShapeFuncC;
+		typedef Model_T2D_CHM_mt::ElemNodeVM ElemNodeVM;
 
 		CalData& cd;
 		const double* pcl_m_s;
@@ -154,7 +154,7 @@ namespace Step_T3D_CHM_Task
 		const Force* pcl_t;
 		double* pcl_vol;
 
-		const DShapeFuncABC *elem_N_abc;
+		const DShapeFuncAB *elem_N_ab;
 		const double *elem_vol;
 		double* elem_pcl_m_s;
 		double* elem_pcl_m_f;
@@ -204,7 +204,7 @@ namespace Step_T3D_CHM_Task
 			pcl_t = cd.pcl_t;
 			pcl_vol = cd.pcl_vol;
 			//
-			elem_N_abc = cd.elem_N_abc;
+			elem_N_ab = cd.elem_N_ab;
 			elem_vol = cd.elem_vol;
 			elem_pcl_m_s = cd.elem_pcl_m_s;
 			elem_pcl_m_f = cd.elem_pcl_m_f;
@@ -256,10 +256,10 @@ namespace Step_T3D_CHM_Task
 	//class ContactRigidRect
 	//{
 	//protected:
-	//	typedef Model_T3D_CHM_mt::Force Force;
-	//	typedef Model_T3D_CHM_mt::Position Position;
-	//	typedef Model_T3D_CHM_mt::Displacement Displacement;
-	//	typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
+	//	typedef Model_T2D_CHM_mt::Force Force;
+	//	typedef Model_T2D_CHM_mt::Position Position;
+	//	typedef Model_T2D_CHM_mt::Displacement Displacement;
+	//	typedef Model_T2D_CHM_mt::ShapeFunc ShapeFunc;
 
 	//	CalData &cd;
 	//	//RigidRect *prr;
@@ -277,7 +277,7 @@ namespace Step_T3D_CHM_Task
 
 	//public:
 	//	ContactRigidRect(CalData& _cd) : cd(_cd) {}
-	//	inline void init(Model_T3D_CHM_mt &md) noexcept
+	//	inline void init(Model_T2D_CHM_mt &md) noexcept
 	//	{
 	//		//prr = &md.get_rigid_rect();
 	//		//K_cont = md.get_Kn_cont();
@@ -304,11 +304,11 @@ namespace Step_T3D_CHM_Task
 	class UpdateAccelerationAndVelocity
 	{
 	protected:
-		typedef Model_T3D_CHM_mt::Force Force;
-		typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
-		typedef Model_T3D_CHM_mt::Acceleration Acceleration;
-		typedef Model_T3D_CHM_mt::Velocity Velocity;
-		typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
+		typedef Model_T2D_CHM_mt::Force Force;
+		typedef Model_T2D_CHM_mt::ElemNodeVM ElemNodeVM;
+		typedef Model_T2D_CHM_mt::Acceleration Acceleration;
+		typedef Model_T2D_CHM_mt::Velocity Velocity;
+		typedef Model_T2D_CHM_mt::NodeHasVBC NodeHasVBC;
 
 		CalData& cd;
 		const double* elem_pcl_m_s;
@@ -366,14 +366,14 @@ namespace Step_T3D_CHM_Task
 	class CalElemDeAndMapToNode
 	{
 	protected:
-		typedef Model_T3D_CHM_mt::ElemNodeIndex ElemNodeIndex;
-		typedef Model_T3D_CHM_mt::Velocity Velocity;
-		typedef Model_T3D_CHM_mt::DShapeFuncABC DShapeFuncABC;
-		typedef Model_T3D_CHM_mt::StrainInc StrainInc;
+		typedef Model_T2D_CHM_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T2D_CHM_mt::Velocity Velocity;
+		typedef Model_T2D_CHM_mt::DShapeFuncAB DShapeFuncAB;
+		typedef Model_T2D_CHM_mt::StrainInc StrainInc;
 
 		CalData& cd;
 		const ElemNodeIndex* elem_node_id;
-		const DShapeFuncABC *elem_N_abc;
+		const DShapeFuncAB *elem_N_ab;
 		const double* elem_pcl_m_s, *elem_pcl_m_f;
 		const double* elem_pcl_n;
 		const Velocity *node_v_s, *node_v_f;
@@ -389,7 +389,7 @@ namespace Step_T3D_CHM_Task
 		inline void init() noexcept
 		{
 			elem_node_id = cd.elem_node_id;
-			elem_N_abc = cd.elem_N_abc;
+			elem_N_ab = cd.elem_N_ab;
 			elem_pcl_m_s = cd.elem_pcl_m_s;
 			elem_pcl_m_f = cd.elem_pcl_m_f;
 			elem_pcl_n = cd.elem_pcl_n;
@@ -451,15 +451,15 @@ namespace Step_T3D_CHM_Task
 	class MapBgMeshToPcl
 	{
 	protected:
-		typedef Model_T3D_CHM_mt::ElemNodeIndex ElemNodeIndex;
-		typedef Model_T3D_CHM_mt::Acceleration Acceleration;
-		typedef Model_T3D_CHM_mt::Velocity Velocity;
-		typedef Model_T3D_CHM_mt::Displacement Displacement;
-		typedef Model_T3D_CHM_mt::Position Position;
-		typedef Model_T3D_CHM_mt::Stress Stress;
-		typedef Model_T3D_CHM_mt::Strain Strain;
-		typedef Model_T3D_CHM_mt::StrainInc StrainInc;
-		typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
+		typedef Model_T2D_CHM_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T2D_CHM_mt::Acceleration Acceleration;
+		typedef Model_T2D_CHM_mt::Velocity Velocity;
+		typedef Model_T2D_CHM_mt::Displacement Displacement;
+		typedef Model_T2D_CHM_mt::Position Position;
+		typedef Model_T2D_CHM_mt::Stress Stress;
+		typedef Model_T2D_CHM_mt::Strain Strain;
+		typedef Model_T2D_CHM_mt::StrainInc StrainInc;
+		typedef Model_T2D_CHM_mt::ShapeFunc ShapeFunc;
 		
 		CalData& cd;
 		const ElemNodeIndex *elem_node_id;
