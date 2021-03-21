@@ -424,9 +424,9 @@ int output_pcl_data_to_hdf5_file(
 
 	hid_t pcl_data_grp_id = rf.create_group(grp_id, "ParticleData");
 
-	size_t ori_pcl_num = md.get_ori_pcl_num();
+	const size_t ori_pcl_num = md.get_ori_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "ori_pcl_num", ori_pcl_num);
-	size_t pcl_num = stp.get_pcl_num();
+	const size_t pcl_num = stp.get_pcl_num();
 	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
 
 	int res = 0;

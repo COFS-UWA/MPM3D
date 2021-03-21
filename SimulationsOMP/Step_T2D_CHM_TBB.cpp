@@ -106,7 +106,7 @@ int substep_func_T2D_CHM_TBB(void* _self)
 		DivideTask<Step_T2D_CHM_Task::MapPclToBgMesh, 8>(
 			0, map_pcl_to_mesh.get_task_num(), map_pcl_to_mesh));
 	tbb::task::spawn_root_and_wait(tk_list);
-	node_sort_mem.res_keys[cd.valid_elem_num * 4] = SIZE_MAX;
+	node_sort_mem.res_keys[cd.valid_elem_num * 3] = SIZE_MAX;
 	
 	// contact with rigid rect
 	Model_T2D_CHM_mt& md = *static_cast<Model_T2D_CHM_mt *>(self.model);

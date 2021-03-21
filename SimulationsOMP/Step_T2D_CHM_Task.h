@@ -155,7 +155,7 @@ namespace Step_T2D_CHM_Task
 		double* pcl_vol;
 
 		const DShapeFuncAB *elem_N_ab;
-		const double *elem_vol;
+		const double *elem_area;
 		double* elem_pcl_m_s;
 		double* elem_pcl_m_f;
 		double* elem_pcl_n;
@@ -205,7 +205,7 @@ namespace Step_T2D_CHM_Task
 			pcl_vol = cd.pcl_vol;
 			//
 			elem_N_ab = cd.elem_N_ab;
-			elem_vol = cd.elem_vol;
+			elem_area = cd.elem_area;
 			elem_pcl_m_s = cd.elem_pcl_m_s;
 			elem_pcl_m_f = cd.elem_pcl_m_f;
 			elem_pcl_n = cd.elem_pcl_n;

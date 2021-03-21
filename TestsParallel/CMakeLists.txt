@@ -49,6 +49,7 @@ add_executable(
     test_tbb_sort_teh_mesh_node_task.cpp
     test_t2d_me_tbb_1d_compression.cpp
     test_t2d_me_tbb_cap_compression.cpp
+    test_t2d_chm_tbb_1d_consolidation.cpp
     test_t3d_me_tbb_1d_compression.cpp
     test_t3d_chm_tbb_1d_consolidation.cpp
     )

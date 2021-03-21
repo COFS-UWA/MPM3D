@@ -80,6 +80,8 @@ void test_sort_teh_mesh_node_task();
 
 void test_t2d_me_tbb_1d_compression(int argc, char** argv);
 void test_t2d_me_tbb_cap_compression(int argc, char** argv);
+void test_t2d_chm_tbb_1d_consolidation(int argc, char** argv);
+
 void test_t3d_me_tbb_1d_compression(int argc, char** argv);
 void test_t3d_chm_tbb_1d_consolidation(int argc, char** argv);
 
