@@ -18,6 +18,9 @@ class Step_T3D_CHM_mt;
 int substep_func_omp_T3D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 int substep_func_omp_T3D_CHM_mt2(void* _self, size_t my_th_id, double dt, double cur_time, size_t substp_id);
+class Step_T3D_CHM_TBB;
+int substep_func_T3D_CHM_TBB(void* _self);
+namespace Step_T3D_CHM_Task { class CalData; }
 
 class ResultFile_hdf5;
 namespace Model_T3D_CHM_mt_hdf5_utilities
@@ -47,6 +50,10 @@ struct Model_T3D_CHM_mt : public Model,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 	friend int substep_func_omp_T3D_CHM_mt2(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+	
+	friend class Step_T3D_CHM_TBB;
+	friend int substep_func_T3D_CHM_TBB(void* _self);
+	friend class Step_T3D_CHM_Task::CalData;
 
 public:
 	struct ShapeFunc { double N1, N2, N3, N4; };
@@ -279,18 +286,28 @@ public:
 	void init_fixed_vx_f_bc(size_t vx_bc_num, const size_t* vx_bcs);
 	void init_fixed_vy_f_bc(size_t vy_bc_num, const size_t* vy_bcs);
 	void init_fixed_vz_f_bc(size_t vz_bc_num, const size_t* vz_bcs);
-
+	
 protected:
+	// background grid for mesh
+	double grid_xl, grid_yl, grid_zl;
+	double grid_xu, grid_yu, grid_zu;
+	double grid_hx, grid_hy, grid_hz;
+	size_t grid_x_num, grid_y_num, grid_z_num;
+	size_t grid_xy_num;
+	size_t* grid_elem_list_id_array;
+	size_t* grid_elem_list;
+
+public:
 	inline bool is_in_element(
 		double pcl_x,
 		double pcl_y,
 		double pcl_z,
 		size_t elem_id,
-		ShapeFunc &p_N
-		) noexcept
+		ShapeFunc& p_N
+	) const noexcept
 	{
-		const DShapeFuncABC &e_dN_abc = elem_N_abc[elem_id];
-		const DShapeFuncD &e_dN_d = elem_N_d[elem_id];
+		const DShapeFuncABC& e_dN_abc = elem_N_abc[elem_id];
+		const DShapeFuncD& e_dN_d = elem_N_d[elem_id];
 		p_N.N1 = e_dN_abc.a1 * pcl_x + e_dN_abc.b1 * pcl_y + e_dN_abc.c1 * pcl_z + e_dN_d.d1;
 		p_N.N2 = e_dN_abc.a2 * pcl_x + e_dN_abc.b2 * pcl_y + e_dN_abc.c2 * pcl_z + e_dN_d.d2;
 		p_N.N3 = e_dN_abc.a3 * pcl_x + e_dN_abc.b3 * pcl_y + e_dN_abc.c3 * pcl_z + e_dN_d.d3;
@@ -298,14 +315,14 @@ protected:
 		return p_N.N1 >= 0.0 && p_N.N1 <= 1.0 && p_N.N2 >= 0.0 && p_N.N2 <= 1.0
 			&& p_N.N3 >= 0.0 && p_N.N3 <= 1.0 && p_N.N4 >= 0.0 && p_N.N4 <= 1.0;
 	}
-	
+
 	inline bool is_in_element_tol(
 		double pcl_x,
 		double pcl_y,
 		double pcl_z,
 		size_t elem_id,
 		ShapeFunc& p_N
-		) noexcept
+	) const noexcept
 	{
 		const DShapeFuncABC& e_N_abc = elem_N_abc[elem_id];
 		const DShapeFuncD& e_N_d = elem_N_d[elem_id];
@@ -340,23 +357,13 @@ protected:
 		return false;
 #undef in_elem_N_tol
 	}
-	
-	// background grid for mesh
-	double grid_xl, grid_yl, grid_zl;
-	double grid_xu, grid_yu, grid_zu;
-	double grid_hx, grid_hy, grid_hz;
-	size_t grid_x_num, grid_y_num, grid_z_num;
-	size_t grid_xy_num;
-	size_t* grid_elem_list_id_array;
-	size_t* grid_elem_list;
 
-public:
 	inline size_t find_pcl_in_which_elem(
 		double pcl_x,
 		double pcl_y,
 		double pcl_z,
 		ShapeFunc& p_N
-		) noexcept
+		) const noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu ||
@@ -381,7 +388,7 @@ public:
 		double pcl_y,
 		double pcl_z,
 		ShapeFunc& p_N
-		) noexcept
+		) const noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu ||

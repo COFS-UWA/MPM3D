@@ -16,6 +16,9 @@ int substep_func_omp_T2D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 int substep_func_omp_T2D_CHM_mt2(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
+class Step_T2D_CHM_TBB;
+int substep_func_T2D_CHM_TBB(void* _self);
+namespace Step_T2D_CHM_Task { class CalData; };
 
 class ResultFile_hdf5;
 namespace Model_T2D_CHM_mt_hdf5_utilities
@@ -46,6 +49,9 @@ struct Model_T2D_CHM_mt : public Model,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 	friend int substep_func_omp_T2D_CHM_mt2(void* _self, size_t my_th_id,
 		double dt, double cur_time, size_t substp_id);
+	friend class Step_T2D_CHM_TBB;
+	friend int substep_func_T2D_CHM_TBB(void* _self);
+	friend class Step_T2D_CHM_Task::CalData;
 
 public:
 	struct ShapeFunc { double N1, N2, N3; };
@@ -263,15 +269,24 @@ public:
 	void init_fixed_vy_f_bc(size_t vy_bc_num, const size_t* vy_bcs);
 
 protected:
+	// background grid for mesh
+	double grid_xl, grid_yl;
+	double grid_xu, grid_yu;
+	double grid_hx, grid_hy;
+	size_t grid_x_num, grid_y_num;
+	size_t* grid_elem_list_id_array;
+	size_t* grid_elem_list;
+
+public:
 	inline bool is_in_element(
 		double pcl_x,
 		double pcl_y,
 		size_t elem_id,
-		ShapeFunc &pcl_N
-		) noexcept
+		ShapeFunc& pcl_N
+	) noexcept
 	{
-		DShapeFuncAB &e_sfab = elem_N_ab[elem_id];
-		DShapeFuncC &e_sfc = elem_N_c[elem_id];
+		DShapeFuncAB& e_sfab = elem_N_ab[elem_id];
+		DShapeFuncC& e_sfc = elem_N_c[elem_id];
 		pcl_N.N1 = e_sfab.a1 * pcl_x + e_sfab.b1 * pcl_y + e_sfc.c1;
 		pcl_N.N2 = e_sfab.a2 * pcl_x + e_sfab.b2 * pcl_y + e_sfc.c2;
 		pcl_N.N3 = e_sfab.a3 * pcl_x + e_sfab.b3 * pcl_y + e_sfc.c3;
@@ -279,13 +294,13 @@ protected:
 			&& pcl_N.N2 >= 0.0 && pcl_N.N2 <= 1.0
 			&& pcl_N.N3 >= 0.0 && pcl_N.N3 <= 1.0;
 	}
-	
+
 	inline bool is_in_element_tol(
 		double pcl_x,
 		double pcl_y,
 		size_t elem_id,
 		ShapeFunc& p_N
-		) noexcept
+	) noexcept
 	{
 		DShapeFuncAB& e_N_ab = elem_N_ab[elem_id];
 		DShapeFuncC& e_N_c = elem_N_c[elem_id];
@@ -314,16 +329,7 @@ protected:
 		return false;
 #undef in_elem_N_tol
 	}
-	
-	// background grid for mesh
-	double grid_xl, grid_yl;
-	double grid_xu, grid_yu;
-	double grid_hx, grid_hy;
-	size_t grid_x_num, grid_y_num;
-	size_t* grid_elem_list_id_array;
-	size_t* grid_elem_list;
 
-public:
 	inline size_t find_pcl_in_which_elem(
 		double pcl_x,
 		double pcl_y,

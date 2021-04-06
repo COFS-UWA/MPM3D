@@ -43,7 +43,6 @@ public:
 	typedef Model_T3D_ME_mt::StrainInc StrainInc;
 	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
-	typedef Model_T3D_ME_mt::ElemNodeForce ElemNodeForce;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
 	typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	
@@ -74,7 +73,7 @@ protected:
 	double* elem_m_de_vol;
 
 	ElemNodeVM *elem_node_vm;
-	ElemNodeForce *elem_node_force;
+	Force *elem_node_force;
 
 	Acceleration *node_a;
 	Velocity *node_v;

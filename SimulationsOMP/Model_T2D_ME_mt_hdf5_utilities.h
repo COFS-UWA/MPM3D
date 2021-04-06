@@ -5,6 +5,7 @@
 #include "MatModelContainer.h"
 #include "Model_T2D_ME_mt.h"
 #include "Step_T2D_ME_mt.h"
+#include "Step_T2D_ME_TBB.h"
 
 namespace Model_T2D_ME_mt_hdf5_utilities
 {
@@ -112,6 +113,51 @@ struct ParticleData
 		elem_id = stp.get_pcl_in_elem()[pcl_offset];
 	}
 
+	void from_pcl(
+		Step_T2D_ME_TBB& stp,
+		size_t pcl_offset)
+	{
+		Step_T2D_ME_Task::CalData &cd = stp.cal_data;
+
+		auto& spva = cd.spvas[cd.sorted_pcl_var_id];
+		id = spva.pcl_index[pcl_offset];
+		const Model_T2D_ME_mt::Position& pcl_pos = cd.pcl_pos[id];
+		const Model_T2D_ME_mt::Displacement& pcl_disp = spva.pcl_disp[pcl_offset];
+		x = pcl_pos.x + pcl_disp.ux;
+		y = pcl_pos.y + pcl_disp.uy;
+		const Model_T2D_ME_mt::Force& pcl_bf = cd.pcl_bf[id];
+		bfx = pcl_bf.fx;
+		bfy = pcl_bf.fy;
+		const Model_T2D_ME_mt::Force& pcl_t = cd.pcl_t[id];
+		tx = pcl_t.fx;
+		ty = pcl_t.fy;
+		m = cd.pcl_m[id];
+		density = spva.pcl_density[pcl_offset];
+		vol = m / density;
+		const Model_T2D_ME_mt::Velocity& pcl_v = spva.pcl_v[pcl_offset];
+		vx = pcl_v.vx;
+		vy = pcl_v.vy;
+		const Model_T2D_ME_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
+		s11 = pcl_stress.s11;
+		s22 = pcl_stress.s22;
+		s12 = pcl_stress.s12;
+		const Model_T2D_ME_mt::Strain& pcl_e = spva.pcl_strain[pcl_offset];
+		e11 = pcl_e.e11;
+		e22 = pcl_e.e22;
+		e12 = pcl_e.e12;
+		const Model_T2D_ME_mt::Strain& pcl_ee = spva.pcl_estrain[pcl_offset];
+		ee11 = pcl_ee.e11;
+		ee22 = pcl_ee.e22;
+		ee12 = pcl_ee.e12;
+		const Model_T2D_ME_mt::Strain& pcl_pe = spva.pcl_pstrain[pcl_offset];
+		pe11 = pcl_pe.e11;
+		pe22 = pcl_pe.e22;
+		pe12 = pcl_pe.e12;
+		mat_id = cd.pcl_mat_model[id]->get_id();
+		elem_id = cd.pcl_sort_mem.get_prev_res_keys()[pcl_offset];
+	}
+
+    // =========================================================
 	void to_pcl(
 		Model_T2D_ME_mt &md,
 		size_t pcl_offset,
@@ -250,6 +296,7 @@ int load_boundary_condition_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5&
 
 int output_ori_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
+int output_pcl_data_to_hdf5_file(Model_T2D_ME_mt &md, Step_T2D_ME_TBB &stp, ResultFile_hdf5 &rf, hid_t grp_id);
 int load_pcl_data_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 int output_material_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -258,7 +305,6 @@ int load_material_model_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf,
 //int output_rigid_circle_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 //int load_rigid_circle_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
-int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
 int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
@@ -267,6 +313,7 @@ int output_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf);
 
 // output the particle data and material models to hdf5 (used by time history)
 int time_history_complete_output_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+int time_history_complete_output_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 
 // load model data from hdf5 to model data
 int load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt &md, Step_T2D_ME_mt& step, const char *hdf5_name, const char *th_name,	size_t frame_id);

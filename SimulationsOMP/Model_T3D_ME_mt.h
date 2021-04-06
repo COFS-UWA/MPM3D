@@ -15,12 +15,13 @@
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
 
-// current code only allow one rigid object in model!!
-
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
 int substep_func_omp_T3D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
+class Step_T3D_ME_TBB;
+int cal_substep_func_T3D_ME_TBB(void* _self);
+namespace Step_T3D_ME_Task { class CalData; }
 
 class ResultFile_hdf5;
 namespace Model_T3D_ME_mt_hdf5_utilities
@@ -52,6 +53,10 @@ struct Model_T3D_ME_mt : public Model,
 	friend class Step_T3D_ME_mt;
 	friend int substep_func_omp_T3D_ME_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+	
+	friend class Step_T3D_ME_TBB;
+	friend int cal_substep_func_T3D_ME_TBB(void* _self);
+	friend class Step_T3D_ME_Task::CalData;
 
 public:
 	struct ShapeFunc { double N1, N2, N3, N4; };
@@ -118,7 +123,6 @@ public:
 
 	struct ElemNodeIndex { size_t n1, n2, n3, n4; };
 	struct ElemNodeVM { double vm, vmx, vmy, vmz; };
-	struct ElemNodeForce { double fx, fy, fz; };
 
 	struct NodeHasVBC { bool has_vx_bc, has_vy_bc, has_vz_bc; };
 
@@ -171,7 +175,7 @@ protected:
 
 	// element-node calculation data
 	ElemNodeVM* elem_node_vm; // elem_num * 4
-	ElemNodeForce* elem_node_force; // elem_num * 4
+	Force* elem_node_force; // elem_num * 4
 
 	// node calculation data
 	Position* node_pos; // node_num

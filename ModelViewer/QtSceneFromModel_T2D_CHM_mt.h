@@ -49,8 +49,7 @@ protected:
 	void set_viewport(int wd, int ht, GLfloat xlen, GLfloat ylen);
 
 	QVector3D bg_color;
-	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
-	{ bg_color[0] = r; bg_color[1] = g; bg_color[2] = b; }
+	QVector3D pcl_color;
 
 public:
 	typedef Model_T2D_CHM_mt::ElemNodeIndex ElemNodeIndex;
@@ -70,6 +69,10 @@ public:
 		display_bbox.xl = _xl; display_bbox.xu = _xu;
 		display_bbox.yl = _yl; display_bbox.yu = _yu;
 	}
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
+	{ bg_color[0] = r; bg_color[1] = g; bg_color[2] = b; }
+	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
+	{ pcl_color[0] = r; pcl_color[1] = g; pcl_color[2] = b; }
 
 	inline void set_model(Model_T2D_CHM_mt& _model) { model = &_model; }
 	int set_pts_from_pcl_id(size_t* ids, size_t id_num, float radius);

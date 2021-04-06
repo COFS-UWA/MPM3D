@@ -3,27 +3,15 @@
 #include <assert.h>
 #include "tbb/task_arena.h"
 
+#include "ParallelUtils.h"
 #include "Step_T2D_ME_Task.h"
 #include "Step_T2D_ME_TBB.h"
 
-#define one_third (1.0/3.0)
-#define Block_Low(block_id, block_num, data_num) ((block_id) * (data_num) / (block_num))
-
 namespace Step_T2D_ME_Task
 {
-	TaskData::TaskData(
-		size_t _pcl_num_per_map_pcl_to_mesh_task,
-		size_t _node_num_per_update_a_and_v_task,
-		size_t _elem_num_per_cal_elem_de_task,
-		size_t _node_num_per_cal_node_de_task,
-		size_t _pcl_num_per_task_map_mesh_to_pcl) :
-		pcl_num_per_map_pcl_to_mesh_task(_pcl_num_per_map_pcl_to_mesh_task),
-		node_num_per_update_a_and_v_task(_node_num_per_update_a_and_v_task),
-		elem_num_per_cal_elem_de_task(_elem_num_per_cal_elem_de_task),
-		node_num_per_cal_node_de_task(_node_num_per_cal_node_de_task),
-		pcl_num_per_task_map_mesh_to_pcl(_pcl_num_per_task_map_mesh_to_pcl) {}
-	
-	void TaskData::set_model(Model_T2D_ME_mt& md) noexcept
+	constexpr double one_third = 1.0 / 3.0;
+
+	void CalData::set_model(Model_T2D_ME_mt &md) noexcept
 	{
 		pmodel = &md;
 		pcl_m = md.pcl_m;
@@ -80,44 +68,52 @@ namespace Step_T2D_ME_Task
 #endif
 	}
 
-	tbb::task* MapPclToBgMeshTask::execute()
+	void InitPcl::operator() (size_t wk_id, size_t &pcl_in_mesh_num) const
 	{
-		size_t* const pcl_in_elem = td.pcl_sort_mem.pcl_in_elem;
+		const auto& pcl_sort_mem = cd.pcl_sort_mem;
+		size_t* const ori_pcl_in_elem = pcl_sort_mem.ori_keys;
+		size_t* const ori_cur_to_prev_pcl = pcl_sort_mem.ori_vals;
+		Model_T2D_ME_mt& md = *cd.pmodel;
+		Position* const pcl_pos = const_cast<Position* const>(cd.pcl_pos);
+		const auto& spva0 = cd.spvas[0];
+		const size_t p_id0 = ParallelUtils::block_low(wk_id, task_num, cd.prev_valid_pcl_num);
+		const size_t p_id1 = ParallelUtils::block_low(wk_id + 1, task_num, cd.prev_valid_pcl_num);
+		size_t valid_pcl_num = 0;
+		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		{
+			const size_t ori_p_id = spva0.pcl_index[p_id];
+			Position& p_p = pcl_pos[ori_p_id];
+			Displacement& p_d = spva0.pcl_disp[p_id];
+			p_p.x += p_d.ux;
+			p_p.y += p_d.uy;
+			p_d.ux = 0.0;
+			p_d.uy = 0.0;
+			ShapeFunc& p_N = spva0.pcl_N[p_id];
+			size_t e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_N);
+			if (e_id == SIZE_MAX)
+				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_N);
+			if (e_id != SIZE_MAX)
+				++valid_pcl_num;
+			ori_pcl_in_elem[p_id] = e_id;
+			ori_cur_to_prev_pcl[p_id] = p_id;
+		}
+		pcl_in_mesh_num = valid_pcl_num;
+	}
+	
+	void MapPclToBgMesh::operator() (size_t wk_id) const
+	{
 		size_t e_id;
+		size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
 		e_id = pcl_in_elem[p_id0];
 		while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
 		++p_id0;
-		assert(p_id0 <= td.pcl_sort_mem.valid_pcl_num);
+		assert(p_id0 <= valid_pcl_num);
+		size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
 		e_id = pcl_in_elem[p_id1];
 		while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
 		++p_id1;
-		assert(p_id1 <= td.pcl_sort_mem.valid_pcl_num);
+		assert(p_id1 <= valid_pcl_num);
 		
-		size_t* const cur_to_prev_pcl = td.pcl_sort_mem.cur_to_prev_pcl;
-		const double* const pcl_m = td.pcl_m;
-		const Force* pcl_bf = td.pcl_bf;
-		const Force* pcl_t = td.pcl_t;
-		double* const pcl_vol = td.pcl_vol;
-		const auto& spva0 = td.spvas[td.sorted_pcl_var_id];
-		const auto& spva1 = td.spvas[td.sorted_pcl_var_id ^ 1];
-		size_t* const pcl_index0 = spva0.pcl_index;
-		double* const pcl_density0 = spva0.pcl_density;
-		Velocity* const pcl_v0 = spva0.pcl_v;
-		Displacement* const pcl_disp0 = spva0.pcl_disp;
-		Stress* const pcl_stress0 = spva0.pcl_stress;
-		ShapeFunc* const pcl_N0 = spva0.pcl_N;
-		const size_t* const pcl_index1 = spva1.pcl_index;
-		const double* const pcl_density1 = spva1.pcl_density;
-		const Velocity* const pcl_v1 = spva1.pcl_v;
-		const Displacement* const pcl_disp1 = spva1.pcl_disp;
-		const Stress* const pcl_stress1 = spva1.pcl_stress;
-		const ShapeFunc* const pcl_N1 = spva1.pcl_N;
-		const ShapeFuncAB* const elem_dN_ab = td.elem_dN_ab;
-		const double* const elem_area = td.elem_area;
-		double* const elem_pcl_m = td.elem_pcl_m;
-		double* const elem_density = td.elem_density;
-		ElemNodeVM *const elem_node_vm = td.elem_node_vm;
-		Force *const elem_node_force = td.elem_node_force;
 		double e_p_m = 0.0;
 		double e_p_vol = 0.0;
 		double e_s11 = 0.0;
@@ -140,18 +136,18 @@ namespace Step_T2D_ME_Task
 		double en3_fy = 0.0;
 		e_id = pcl_in_elem[p_id0];
 #ifdef _DEBUG
-		assert(e_id < td.elem_num);
+		assert(e_id < cd.elem_num);
 #endif
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			// pcl index
 			const size_t prev_p_id = cur_to_prev_pcl[p_id];
+			assert(prev_p_id < cd.prev_valid_pcl_num);
 			const size_t ori_p_id = pcl_index1[prev_p_id];
-			pcl_index0[p_id] = ori_p_id;
 #ifdef _DEBUG
-			assert(prev_p_id < td.prev_valid_pcl_num);
-			assert(ori_p_id < td.ori_pcl_num);
+			assert(ori_p_id < cd.ori_pcl_num);
 #endif
+			pcl_index0[p_id] = ori_p_id;
 
 			// map pcl mass
 			const double p_m = pcl_m[ori_p_id];
@@ -260,7 +256,7 @@ namespace Step_T2D_ME_Task
 
 				e_id = pcl_in_elem[p_id + 1];
 #ifdef _DEBUG
-				assert(e_id < td.elem_num || e_id == SIZE_MAX);
+				assert(e_id < cd.elem_num || e_id == SIZE_MAX);
 #endif
 
 				e_p_m = 0.0;
@@ -285,31 +281,82 @@ namespace Step_T2D_ME_Task
 				en3_fy = 0.0;
 			}
 		}
-		return nullptr;
 	}
 
-	tbb::task* UpdateAccelerationAndVelocityTask::execute()
+	void ContactRigidRect::operator() (size_t wk_id, Force2D& rr_cf) const
 	{
-		const size_t* const node_has_elem = td.node_sort_mem.node_has_elem;
+		size_t e_id;
+		size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
+		e_id = pcl_in_elem[p_id0];
+		while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
+		++p_id0;
+		assert(p_id0 <= valid_pcl_num);
+		size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
+		e_id = pcl_in_elem[p_id1];
+		while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
+		++p_id1;
+		assert(p_id1 <= valid_pcl_num);
+
+		double dist;
+		Vector2D lnorm;
+		Force lcont_f, gcont_f;
+		Point2D cur_cont_pos;
+		Force2D rcf;
+		rcf.reset();
+		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		{
+			const size_t ori_p_id = pcl_index[p_id];
+			const Position& p_p = pcl_pos[ori_p_id];
+			const Displacement& p_d = pcl_disp[p_id];
+			const double p_x = p_p.x + p_d.ux;
+			const double p_y = p_p.y + p_d.uy;
+			const double p_r = 0.5 * sqrt(pcl_vol[p_id]);
+			if (prr->detect_collision_with_point(
+				p_x, p_y, p_r, dist, lnorm, cur_cont_pos))
+			{
+				const double f_cont = K_cont * dist;
+				lcont_f.fx = f_cont * lnorm.x;
+				lcont_f.fy = f_cont * lnorm.y;
+				prr->get_global_vector(lcont_f.vec, gcont_f.vec);
+				// apply contact force to mesh
+				const ShapeFunc& p_N = pcl_N[p_id];
+				const size_t e_id = pcl_in_elem[p_id];
+				Force &en_f1 = elem_node_force[e_id * 3];
+				en_f1.fx += p_N.N1 * gcont_f.fx;
+				en_f1.fy += p_N.N1 * gcont_f.fy;
+				Force& en_f2 = elem_node_force[e_id * 3 + 1];
+				en_f2.fx += p_N.N2 * gcont_f.fx;
+				en_f2.fy += p_N.N2 * gcont_f.fy;
+				Force& en_f3 = elem_node_force[e_id * 3 + 2];
+				en_f3.fx += p_N.N3 * gcont_f.fx;
+				en_f3.fy += p_N.N3 * gcont_f.fy;
+				// apply contact force to rigid body
+				const Point2D& rr_cen = prr->get_centre();
+				rcf.add_force(p_x, p_y,
+					-gcont_f.fx, -gcont_f.fy,
+					rr_cen.x, rr_cen.y);
+			}
+		}
+		rr_cf.fx = rcf.fx;
+		rr_cf.fy = rcf.fy;
+		rr_cf.m = rcf.m;
+	}
+
+	void UpdateAccelerationAndVelocity::operator() (size_t wk_id) const
+	{
 		size_t n_id;
+		size_t ve_id0 = block_low(wk_id, task_num, three_valid_elem_num);
 		n_id = node_has_elem[ve_id0];
 		while (ve_id0 != SIZE_MAX && n_id == node_has_elem[--ve_id0]);
 		++ve_id0;
-		assert(ve_id0 <= td.node_sort_mem.valid_elem_num * 3);
+		assert(ve_id0 <= three_valid_elem_num);
+		size_t ve_id1 = block_low(wk_id + 1, task_num, three_valid_elem_num);
 		n_id = node_has_elem[ve_id1];
 		while (ve_id1 != SIZE_MAX && n_id == node_has_elem[--ve_id1]);
 		++ve_id1;
-		assert(ve_id1 <= td.node_sort_mem.valid_elem_num * 3);
+		assert(ve_id1 <= three_valid_elem_num);
 		
-		const size_t* const node_elem_pair = td.node_sort_mem.node_elem_pair;
-		const double *const elem_pcl_m = td.elem_pcl_m;
-		const Force *const elem_node_force = td.elem_node_force;
-		const ElemNodeVM *const elem_node_vm = td.elem_node_vm;
-		Acceleration *const node_a = td.node_a;
-		double *const node_am = td.node_am;
-		Velocity *const node_v = td.node_v;
-		NodeHasVBC* const node_has_vbc = td.node_has_vbc;
-		size_t bc_mask, ne_id, e_id;
+		size_t bc_mask, ne_id;
 		double n_am = 0.0;
 		double n_fx = 0.0;
 		double n_fy = 0.0;
@@ -318,16 +365,15 @@ namespace Step_T2D_ME_Task
 		double n_vmy = 0.0;
 		n_id = node_has_elem[ve_id0];
 #ifdef _DEBUG
-		assert(n_id < td.node_num);
+		assert(n_id < cd.node_num);
 #endif
 		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 		{
 			ne_id = node_elem_pair[ve_id];
 #ifdef _DEBUG
-			assert(ne_id < td.elem_num * 3);
+			assert(ne_id < cd.elem_num * 3);
 #endif
-			e_id = ne_id / 3;
-			n_am += elem_pcl_m[e_id];
+			n_am += elem_pcl_m[ne_id / 3];
 			const Force& nf = elem_node_force[ne_id];
 			n_fx += nf.fx;
 			n_fy += nf.fy;
@@ -344,8 +390,8 @@ namespace Step_T2D_ME_Task
 				n_a.ax = n_fx / n_am;
 				n_a.ay = n_fy / n_am;
 				Velocity& n_v = node_v[n_id];
-				n_v.vx = n_vmx / n_vm + n_a.ax * td.dt;
-				n_v.vy = n_vmy / n_vm + n_a.ay *td. dt;
+				n_v.vx = n_vmx / n_vm + n_a.ax * cd.dt;
+				n_v.vy = n_vmy / n_vm + n_a.ay * cd.dt;
 				NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 				bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 				n_a.iax &= bc_mask;
@@ -356,7 +402,7 @@ namespace Step_T2D_ME_Task
 
 				n_id = node_has_elem[ve_id + 1];
 #ifdef _DEBUG
-				assert(n_id < td.node_num || n_id == SIZE_MAX);
+				assert(n_id < cd.node_num || n_id == SIZE_MAX);
 #endif
 
 				n_am = 0.0;
@@ -367,23 +413,17 @@ namespace Step_T2D_ME_Task
 				n_vmy = 0.0;
 			}
 		}
-		return nullptr;
 	}
 
-	tbb::task* CalElemDeAndMapToNode::execute()
+	void CalElemDeAndMapToNode::operator() (size_t wk_id) const
 	{
-		const size_t* const valid_elems = td.node_sort_mem.valid_elems;
-		const ElemNodeIndex* const elem_node_id = td.elem_node_id;
-		const Velocity* const node_v = td.node_v;
-		const ShapeFuncAB* const elem_dN_ab = td.elem_dN_ab;
-		StrainInc* const elem_de = td.elem_de;
-		const double *const elem_pcl_m = td.elem_pcl_m;
-		double *const elem_m_de_vol = td.elem_m_de_vol;
+		const size_t ve_id0 = block_low(wk_id, task_num, valid_elem_num);
+		const size_t ve_id1 = block_low(wk_id + 1, task_num, valid_elem_num);
 		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 		{
 			const size_t e_id = valid_elems[ve_id];
 #ifdef _DEBUG
-			assert(e_id < td.elem_num);
+			assert(e_id < cd.elem_num);
 #endif
 
 			const ElemNodeIndex& eni = elem_node_id[e_id];
@@ -392,100 +432,69 @@ namespace Step_T2D_ME_Task
 			const Velocity& n_v3 = node_v[eni.n3];
 			const ShapeFuncAB& e_dN = elem_dN_ab[e_id];
 			StrainInc& e_de = elem_de[e_id];
-			e_de.de11 = (e_dN.dN1_dx * n_v1.vx + e_dN.dN2_dx * n_v2.vx + e_dN.dN3_dx * n_v3.vx) * td.dt;
-			e_de.de22 = (e_dN.dN1_dy * n_v1.vy + e_dN.dN2_dy * n_v2.vy + e_dN.dN3_dy * n_v3.vy) * td.dt;
+			e_de.de11 = (e_dN.dN1_dx * n_v1.vx + e_dN.dN2_dx * n_v2.vx + e_dN.dN3_dx * n_v3.vx) * cd.dt;
+			e_de.de22 = (e_dN.dN1_dy * n_v1.vy + e_dN.dN2_dy * n_v2.vy + e_dN.dN3_dy * n_v3.vy) * cd.dt;
 			e_de.de12 = (e_dN.dN1_dx * n_v1.vy + e_dN.dN2_dx * n_v2.vy + e_dN.dN3_dx * n_v3.vy
-					   + e_dN.dN1_dy * n_v1.vx + e_dN.dN2_dy * n_v2.vx + e_dN.dN3_dy * n_v3.vx) * td.dt * 0.5;
+					   + e_dN.dN1_dy * n_v1.vx + e_dN.dN2_dy * n_v2.vx + e_dN.dN3_dy * n_v3.vx) * cd.dt * 0.5;
 			double e_de_vol = e_de.de11 + e_de.de22;
 			elem_m_de_vol[e_id] = elem_pcl_m[e_id] * e_de_vol;
 			e_de_vol *= one_third;
 			e_de.de11 -= e_de_vol;
 			e_de.de22 -= e_de_vol;
 		}
-		return nullptr;
 	}
 	
-	tbb::task* CalNodeDe::execute()
+	void CalNodeDe::operator() (size_t wk_id) const
 	{
-		const size_t* const node_has_elem = td.node_sort_mem.node_has_elem;
 		size_t n_id;
+		size_t ve_id0 = block_low(wk_id, task_num, three_valid_elem_num);
 		n_id = node_has_elem[ve_id0];
 		while (ve_id0 != SIZE_MAX && n_id == node_has_elem[--ve_id0]);
 		++ve_id0;
-		assert(ve_id0 <= td.node_sort_mem.valid_elem_num * 3);
+		assert(ve_id0 <= three_valid_elem_num);
+		size_t ve_id1 = block_low(wk_id + 1, task_num, three_valid_elem_num);
 		n_id = node_has_elem[ve_id1];
 		while (ve_id1 != SIZE_MAX && n_id == node_has_elem[--ve_id1]);
 		++ve_id1;
-		assert(ve_id1 <= td.node_sort_mem.valid_elem_num * 3);
+		assert(ve_id1 <= three_valid_elem_num);
 
-		const size_t* const node_elem_pair = td.node_sort_mem.node_elem_pair;
-		const double* const elem_m_de_vol = td.elem_m_de_vol;
-		const double* const node_am = td.node_am;
-		double* const node_de_vol = td.node_de_vol;
 		double n_am_de_vol = 0.0;
 		n_id = node_has_elem[ve_id0];
 #ifdef _DEBUG
-		assert(n_id < td.node_num || n_id == SIZE_MAX);
+		assert(n_id < cd.node_num || n_id == SIZE_MAX);
 #endif
 		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 		{
-			const size_t e_id = node_elem_pair[ve_id] / 3;
 #ifdef _DEBUG
-			assert(e_id < td.elem_num);
+			assert(node_elem_pair[ve_id] / 3 < cd.elem_num);
 #endif
-			n_am_de_vol += elem_m_de_vol[e_id];
+			n_am_de_vol += elem_m_de_vol[node_elem_pair[ve_id] / 3];
 			if (n_id != node_has_elem[ve_id + 1])
 			{
 				node_de_vol[n_id] = n_am_de_vol * one_third / node_am[n_id];
 				n_id = node_has_elem[ve_id + 1];
 #ifdef _DEBUG
-				assert(n_id < td.node_num || n_id == SIZE_MAX);
+				assert(n_id < cd.node_num || n_id == SIZE_MAX);
 #endif
 				n_am_de_vol = 0.0;
 			}
 		}
-		return nullptr;
 	}
 
-	tbb::task* MapBgMeshToPclTask::execute()
+	void MapBgMeshToPcl::operator() (size_t wk_id, size_t& pcl_in_mesh_num) const
 	{
-		const SortUtils::SortParticleMem &pcl_sort_mem = td.pcl_sort_mem;
-		const size_t* const pcl_in_elem = pcl_sort_mem.pcl_in_elem;
 		size_t e_id;
+		size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
 		e_id = pcl_in_elem[p_id0];
 		while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
 		++p_id0;
-		assert(p_id0 <= pcl_sort_mem.valid_pcl_num);
+		assert(p_id0 <= valid_pcl_num);
+		size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
 		e_id = pcl_in_elem[p_id1];
 		while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
 		++p_id1;
-		assert(p_id1 <= pcl_sort_mem.valid_pcl_num);
-
-		const size_t* const cur_to_prev_pcl = pcl_sort_mem.cur_to_prev_pcl;
-		size_t* const ori_pcl_in_elem = pcl_sort_mem.ori_pcl_in_elem;
-		size_t* const ori_cur_to_prev_pcl = pcl_sort_mem.ori_cur_to_prev_pcl;
-		const ElemNodeIndex* const elem_node_id = td.elem_node_id;
-		const Acceleration *const node_a = td.node_a;
-		const Velocity* const node_v = td.node_v;
-		double* const elem_density = td.elem_density;
-		StrainInc* const elem_de = td.elem_de;
-		const double* const node_de_vol = td.node_de_vol;
-		const Position* pcl_pos = td.pcl_pos;
-		MatModel::MaterialModel** pcl_mat_model = td.pcl_mat_model;
-		const auto &spva0 = td.spvas[td.sorted_pcl_var_id];
-		const auto& spva1 = td.spvas[td.sorted_pcl_var_id ^ 1];
-		const size_t* const pcl_index0 = spva0.pcl_index;
-		double* const pcl_density0 = spva0.pcl_density;
-		Velocity *const pcl_v0 = spva0.pcl_v;
-		Displacement* const pcl_disp0 = spva0.pcl_disp;
-		ShapeFunc* const pcl_N0 = spva0.pcl_N;
-		Stress* const pcl_stress0 = spva0.pcl_stress;
-		Strain* const pcl_strain0 = spva0.pcl_strain;
-		Strain* const pcl_estrain0 = spva0.pcl_estrain;
-		Strain* const pcl_pstrain0 = spva0.pcl_pstrain;
-		const Strain* const pcl_strain1 = spva1.pcl_strain;
-		const Strain* const pcl_estrain1 = spva1.pcl_estrain;
-		const Strain* const pcl_pstrain1 = spva1.pcl_pstrain;
+		assert(p_id1 <= valid_pcl_num);
+		
 		const Acceleration* pn_a1, * pn_a2, * pn_a3;
 		const Velocity* pn_v1, * pn_v2, * pn_v3;
 		StrainInc* pe_de;
@@ -494,13 +503,14 @@ namespace Step_T2D_ME_Task
 		dstrain[4] = 0.0;
 		dstrain[5] = 0.0;
 		const double *estrain, *pstrain, *dstress;
+		size_t my_valid_pcl_num = 0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			if (e_id != pcl_in_elem[p_id])
 			{
 				e_id = pcl_in_elem[p_id];
 #ifdef _DEBUG
-				assert(e_id < td.elem_num);
+				assert(e_id < cd.elem_num);
 #endif
 				const ElemNodeIndex& eni = elem_node_id[e_id];
 				pn_a1 = node_a + eni.n1;
@@ -523,24 +533,24 @@ namespace Step_T2D_ME_Task
 			// update velocity
 			ShapeFunc& p_N = pcl_N0[p_id];
 			Velocity& p_v0 = pcl_v0[p_id];
-			p_v0.vx += (p_N.N1 * pn_a1->ax + p_N.N2 * pn_a2->ax + p_N.N3 * pn_a3->ax) * td.dt;
-			p_v0.vy += (p_N.N1 * pn_a1->ay + p_N.N2 * pn_a2->ay + p_N.N3 * pn_a3->ay) * td.dt;
+			p_v0.vx += (p_N.N1 * pn_a1->ax + p_N.N2 * pn_a2->ax + p_N.N3 * pn_a3->ax) * cd.dt;
+			p_v0.vy += (p_N.N1 * pn_a1->ay + p_N.N2 * pn_a2->ay + p_N.N3 * pn_a3->ay) * cd.dt;
 
 			// update displacement
 			Displacement& p_d0 = pcl_disp0[p_id];
-			p_d0.ux += (p_N.N1 * pn_v1->vx + p_N.N2 * pn_v2->vx + p_N.N3 * pn_v3->vx) * td.dt;
-			p_d0.uy += (p_N.N1 * pn_v1->vy + p_N.N2 * pn_v2->vy + p_N.N3 * pn_v3->vy) * td.dt;
+			p_d0.ux += (p_N.N1 * pn_v1->vx + p_N.N2 * pn_v2->vx + p_N.N3 * pn_v3->vx) * cd.dt;
+			p_d0.uy += (p_N.N1 * pn_v1->vy + p_N.N2 * pn_v2->vy + p_N.N3 * pn_v3->vy) * cd.dt;
 
 			// update location (in which element)
 			const size_t ori_p_id = pcl_index0[p_id];
 #ifdef _DEBUG
-			assert(ori_p_id < td.ori_pcl_num);
+			assert(ori_p_id < cd.ori_pcl_num);
 #endif
 			const Position& p_p = pcl_pos[ori_p_id];
 			const double p_x = p_p.x + p_d0.ux;
 			const double p_y = p_p.y + p_d0.uy;
 			size_t p_e_id = e_id;
-			Model_T2D_ME_mt& md = *td.pmodel;
+			Model_T2D_ME_mt& md = *cd.pmodel;
 			if (!md.is_in_element(p_x, p_y, e_id, p_N))
 			{
 				p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_N);
@@ -552,10 +562,12 @@ namespace Step_T2D_ME_Task
 						p_e_id = md.find_pcl_in_which_elem_tol(p_x, p_y, p_N);
 				}
 			}
-			ori_pcl_in_elem[p_id] = p_e_id;
-			ori_cur_to_prev_pcl[p_id] = p_id;
+			if (p_e_id != SIZE_MAX)
+				++my_valid_pcl_num;
+			new_pcl_in_elem[p_id] = p_e_id;
+			new_cur_to_prev_pcl[p_id] = p_id;
 #ifdef _DEBUG
-			assert(p_e_id < td.elem_num || p_e_id == SIZE_MAX);
+			assert(p_e_id < cd.elem_num || p_e_id == SIZE_MAX);
 #endif
 
 			// update density
@@ -575,7 +587,7 @@ namespace Step_T2D_ME_Task
 
 			const size_t prev_p_id = cur_to_prev_pcl[p_id];
 #ifdef _DEBUG
-			assert(prev_p_id < td.prev_valid_pcl_num);
+			assert(prev_p_id < cd.prev_valid_pcl_num);
 #endif
 			const Strain& p_e1 = pcl_strain1[prev_p_id];
 			Strain& p_e0 = pcl_strain0[p_id];
@@ -597,148 +609,7 @@ namespace Step_T2D_ME_Task
 			p_pe0.e22 = p_pe1.e22 + pstrain[1];
 			p_pe0.e12 = p_pe1.e12 + pstrain[3];
 		}
-		return nullptr;
-	}
 
-	tbb::task *Step_T2D_ME_Task::execute()
-	{
-		SortUtils::SortParticleMem& pcl_sort_mem = td.pcl_sort_mem;
-#ifdef _DEBUG
-		td.prev_valid_pcl_num = pcl_sort_mem.valid_pcl_num;
-#endif
-		// sort pcl id
-		set_ref_count(2);
-		spawn_and_wait_for_all(*new(allocate_child())
-			SortUtils::SortParticleTask(pcl_sort_mem));
-		if (pcl_sort_mem.valid_pcl_num == 0)
-			return nullptr;
-		const size_t valid_pcl_num = pcl_sort_mem.valid_pcl_num;
-
-		size_t task_num, task_id, start_id, end_id;
-		task_num = (valid_pcl_num + td.pcl_num_per_map_pcl_to_mesh_task - 1)
-				 / td.pcl_num_per_map_pcl_to_mesh_task;
-		set_ref_count(2 + task_num);
-		// sort node id
-		SortUtils::SortTriMeshNodeMem& node_sort_mem = td.node_sort_mem;
-		spawn(*new(allocate_child())
-			SortUtils::SortTriMeshNodeTask(
-#ifdef _DEBUG
-				td.elem_num,
-#endif
-				pcl_sort_mem.pcl_in_elem,
-				valid_pcl_num,
-				td.elem_node_id,
-				node_sort_mem));
-		// map pcl to bg mesh
-		start_id = 0;
-		for (task_id = 1; task_id < task_num; ++task_id)
-		{
-			end_id = Block_Low(task_id, task_num, valid_pcl_num);
-			spawn(*new(allocate_child()) MapPclToBgMeshTask(start_id, end_id ,td));
-			start_id = end_id;
-		}
-		spawn_and_wait_for_all(*new(allocate_child())
-			MapPclToBgMeshTask(start_id, valid_pcl_num, td));
-
-		// cal node acceleration and velocity
-		const size_t valid_elem_num = node_sort_mem.valid_elem_num;
-		const size_t three_valid_elem_num = valid_elem_num * 3;
-		task_num = (three_valid_elem_num + td.node_num_per_update_a_and_v_task - 1)
-				  / td.node_num_per_update_a_and_v_task;
-		set_ref_count(1 + task_num);
-		start_id = 0;
-		for (task_id = 1; task_id < task_num; ++task_id)
-		{
-			end_id = Block_Low(task_id, task_num, three_valid_elem_num);
-			spawn(*new(allocate_child()) UpdateAccelerationAndVelocityTask(start_id, end_id, td));
-			start_id = end_id;
-		}
-		spawn_and_wait_for_all(*new(allocate_child()) MapPclToBgMeshTask(start_id, three_valid_elem_num, td));
-
-		// cal element strain increment and map to node
-		task_num = (valid_elem_num + td.elem_num_per_cal_elem_de_task - 1)
-				/ td.elem_num_per_cal_elem_de_task;
-		set_ref_count(1 + task_num);
-		start_id = 0;
-		for (task_id = 1; task_id < task_num; ++task_id)
-		{
-			end_id = Block_Low(task_id, task_num, valid_elem_num);
-			spawn(*new(allocate_child()) CalElemDeAndMapToNode(start_id, end_id, td));
-			start_id = end_id;
-		}
-		spawn_and_wait_for_all(*new(allocate_child())
-			CalElemDeAndMapToNode(start_id, valid_elem_num, td));
-
-		// cal strain increment at node
-		task_num = (three_valid_elem_num + td.node_num_per_cal_node_de_task - 1)
-				/ td.node_num_per_cal_node_de_task;
-		set_ref_count(1 + task_num);
-		start_id = 0;
-		for (task_id = 1; task_id < task_num; ++task_id)
-		{
-			end_id = Block_Low(task_id, task_num, three_valid_elem_num);
-			spawn(*new(allocate_child()) CalNodeDe(start_id, end_id, td));
-			start_id = end_id;
-		}
-		spawn_and_wait_for_all(*new(allocate_child()) CalNodeDe(start_id, three_valid_elem_num, td));
-
-		// map bg mesh back to pcl
-		task_num = (valid_pcl_num + td.pcl_num_per_task_map_mesh_to_pcl - 1)
-				/ td.pcl_num_per_task_map_mesh_to_pcl;
-		set_ref_count(1 + task_num);
-		start_id = 0;
-		for (task_id = 1; task_id < task_num; ++task_id)
-		{
-			end_id = Block_Low(task_id, task_num, valid_pcl_num);
-			spawn(*new(allocate_child()) MapBgMeshToPclTask(start_id, end_id, td));
-			start_id = end_id;
-		}
-		spawn_and_wait_for_all(*new(allocate_child()) MapBgMeshToPclTask(start_id, valid_pcl_num, td));
-		
-		return nullptr;
-	}
-
-	tbb::task* InitPclTask::execute()
-	{
-		const auto &pcl_sort_mem = td.pcl_sort_mem;
-		size_t* const ori_pcl_in_elem = pcl_sort_mem.ori_pcl_in_elem;
-		size_t* const ori_cur_to_prev_pcl = pcl_sort_mem.ori_cur_to_prev_pcl;
-		Model_T2D_ME_mt &md = *td.pmodel;
-		Position* const pcl_pos = const_cast<Position *const>(td.pcl_pos);
-		const auto &spva0 = td.spvas[0];
-		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
-		{
-			const size_t ori_p_id = spva0.pcl_index[p_id];
-			Position& p_p = pcl_pos[ori_p_id];
-			Displacement& p_d = spva0.pcl_disp[p_id];
-			p_p.x += p_d.ux;
-			p_p.y += p_d.uy;
-			p_d.ux = 0.0;
-			p_d.uy = 0.0;
-			ShapeFunc& p_N = spva0.pcl_N[p_id];
-			size_t e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_N);
-			if (e_id == SIZE_MAX)
-				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_N);
-			ori_pcl_in_elem[p_id] = e_id;
-			ori_cur_to_prev_pcl[p_id] = p_id;
-		}
-		return nullptr;
-	}
-
-	tbb::task* InitTask::execute()
-	{
-		const size_t valid_pcl_num = td.pcl_sort_mem.valid_pcl_num;
-		const size_t task_num = (valid_pcl_num + td.pcl_num_per_task_map_mesh_to_pcl - 1)
-								/ td.pcl_num_per_task_map_mesh_to_pcl;
-		set_ref_count(1 + task_num);
-		size_t start_id = 0;
-		for (size_t task_id = 1; task_id < task_num; ++task_id)
-		{
-			const size_t end_id = Block_Low(task_id, task_num, valid_pcl_num);
-			spawn(*new(allocate_child()) MapBgMeshToPclTask(start_id, end_id, td));
-			start_id = end_id;
-		}
-		spawn(*new(allocate_child()) MapBgMeshToPclTask(start_id, valid_pcl_num, td));
-		return nullptr;
+		pcl_in_mesh_num = my_valid_pcl_num;
 	}
 }

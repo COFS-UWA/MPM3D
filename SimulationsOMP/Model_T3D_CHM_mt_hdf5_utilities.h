@@ -4,10 +4,10 @@
 #include "ResultFile_hdf5.h"
 #include "Model_T3D_CHM_mt.h"
 #include "Step_T3D_CHM_mt.h"
+#include "Step_T3D_CHM_TBB.h"
 
 namespace Model_T3D_CHM_mt_hdf5_utilities
 {
-
 struct ParticleData
 {
 	size_t id;
@@ -57,9 +57,9 @@ struct ParticleData
 		y = pcl_pos.y + pcl_u_s.uy;
 		z = pcl_pos.z + pcl_u_s.uz;
 		Model_T3D_CHM_mt::Displacement& pcl_u_f = psva.pcl_u_f[pcl_offset];
-		ux_f = pcl_u_f.ux;
-		uy_f = pcl_u_f.uy;
-		uz_f = pcl_u_f.uz;
+		ux_f = pcl_u_f.ux - pcl_u_s.ux; // u_s already incoprated into u_f
+		uy_f = pcl_u_f.uy - pcl_u_s.uy;
+		uz_f = pcl_u_f.uz - pcl_u_s.uz;
 		Model_T3D_CHM_mt::Velocity &pcl_v_s = psva.pcl_v_s[pcl_offset];
 		vx_s = pcl_v_s.vx;
 		vy_s = pcl_v_s.vy;
@@ -99,7 +99,80 @@ struct ParticleData
 		pe31 = pcl_pe.e31;
 		mat_id = md.pcl_mat_model[id]->get_id();
 	}
-	
+
+	void from_pcl(
+		Step_T3D_CHM_TBB &stp,
+		size_t pcl_offset)
+	{
+		Step_T3D_CHM_Task::CalData& cd = stp.cal_data;
+		auto& spva = cd.spvas[cd.sorted_pcl_var_id];
+		id = spva.pcl_index[pcl_offset];
+		const Model_T3D_CHM_mt::Force& pcl_bf_s = cd.pcl_bf_s[id];
+		bfx_s = pcl_bf_s.fx;
+		bfy_s = pcl_bf_s.fy;
+		bfz_s = pcl_bf_s.fz;
+		const Model_T3D_CHM_mt::Force& pcl_bf_f = cd.pcl_bf_f[id];
+		bfx_f = pcl_bf_f.fx;
+		bfy_f = pcl_bf_f.fy;
+		bfz_f = pcl_bf_f.fz;
+		const Model_T3D_CHM_mt::Force& pcl_t = cd.pcl_t[id];
+		tx = pcl_t.fx;
+		ty = pcl_t.fy;
+		tz = pcl_t.fz;
+		n = spva.pcl_n[pcl_offset];
+		m_s = cd.pcl_m_s[id];
+		density_s = cd.pcl_density_s[id];
+		density_f = spva.pcl_density_f[pcl_offset];
+		vol = m_s / (density_s * (1.0 - n));
+		const Model_T3D_CHM_mt::Position& pcl_pos = cd.pcl_pos[id];
+		const Model_T3D_CHM_mt::Displacement& pcl_u_s = spva.pcl_u_s[pcl_offset];
+		x = pcl_pos.x + pcl_u_s.ux;
+		y = pcl_pos.y + pcl_u_s.uy;
+		z = pcl_pos.z + pcl_u_s.uz;
+		Model_T3D_CHM_mt::Displacement& pcl_u_f = spva.pcl_u_f[pcl_offset];
+		ux_f = pcl_u_f.ux - pcl_u_s.ux;
+		uy_f = pcl_u_f.uy - pcl_u_s.uy;
+		uz_f = pcl_u_f.uz - pcl_u_s.uz;
+		Model_T3D_CHM_mt::Velocity& pcl_v_s = spva.pcl_v_s[pcl_offset];
+		vx_s = pcl_v_s.vx;
+		vy_s = pcl_v_s.vy;
+		vz_s = pcl_v_s.vz;
+		Model_T3D_CHM_mt::Velocity& pcl_v_f = spva.pcl_v_f[pcl_offset];
+		vx_f = pcl_v_f.vx;
+		vy_f = pcl_v_f.vy;
+		vz_f = pcl_v_f.vz;
+		Model_T3D_CHM_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
+		s11 = pcl_stress.s11;
+		s22 = pcl_stress.s22;
+		s33 = pcl_stress.s33;
+		s12 = pcl_stress.s12;
+		s23 = pcl_stress.s23;
+		s31 = pcl_stress.s31;
+		p = spva.pcl_p[pcl_offset];
+		Model_T3D_CHM_mt::Strain& pcl_e = spva.pcl_strain[pcl_offset];
+		e11 = pcl_e.e11;
+		e22 = pcl_e.e22;
+		e33 = pcl_e.e33;
+		e12 = pcl_e.e12;
+		e23 = pcl_e.e23;
+		e31 = pcl_e.e31;
+		Model_T3D_CHM_mt::Strain& pcl_ee = spva.pcl_estrain[pcl_offset];
+		ee11 = pcl_ee.e11;
+		ee22 = pcl_ee.e22;
+		ee33 = pcl_ee.e33;
+		ee12 = pcl_ee.e12;
+		ee23 = pcl_ee.e23;
+		ee31 = pcl_ee.e31;
+		Model_T3D_CHM_mt::Strain& pcl_pe = spva.pcl_pstrain[pcl_offset];
+		pe11 = pcl_pe.e11;
+		pe22 = pcl_pe.e22;
+		pe33 = pcl_pe.e33;
+		pe12 = pcl_pe.e12;
+		pe23 = pcl_pe.e23;
+		pe31 = pcl_pe.e31;
+		mat_id = cd.pcl_mat_model[id]->get_id();
+	}
+
 	void to_pcl(
 		Model_T3D_CHM_mt &md,
 		size_t pcl_offset,
@@ -316,6 +389,7 @@ int load_boundary_condition_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5
 
 int output_ori_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
+int output_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
 int load_pcl_data_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 int output_material_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -330,6 +404,7 @@ int output_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf);
 
 // output the particle data and material models to hdf5 (used by time history)
 int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 
 // load model data from hdf5 to model data
 int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, const char* hdf5_name);

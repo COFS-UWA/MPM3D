@@ -12,6 +12,9 @@ void test_contact_model_3d(int argc, char** argv);
 void test_sand_hypoplasticity_integration();
 void test_sand_hypoplasticity_Herleand_Gudehus_1999();
 void test_sand_hypoplasticity_Wichtmann_2019();
+void test_sand_hypoplasticity_triaxial();
+void test_triaxial_secant();
+
 void test_t3d_me_mt_triaxial_compression(int argc, char** argv);
 
 void test_Step_OMP(int argc, char** argv);
@@ -68,5 +71,18 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_coarse(int argc, char** argv);
 
 void test_t3d_chm_mt_1d_consolidation(int argc, char** argv);
+
+void test_sort_pcl_task();
+void test_sort_pcl_task2();
+void test_sort_tri_mesh_node_task();
+void test_sort_tri_mesh_node_task2();
+void test_sort_teh_mesh_node_task();
+
+void test_t2d_me_tbb_1d_compression(int argc, char** argv);
+void test_t2d_me_tbb_cap_compression(int argc, char** argv);
+void test_t2d_chm_tbb_1d_consolidation(int argc, char** argv);
+
+void test_t3d_me_tbb_1d_compression(int argc, char** argv);
+void test_t3d_chm_tbb_1d_consolidation(int argc, char** argv);
 
 #endif

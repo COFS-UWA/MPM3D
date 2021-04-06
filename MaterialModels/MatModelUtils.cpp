@@ -19,10 +19,10 @@ namespace MatModel
 		const double init_s22 = stress[1];
 		const double (*D)[6] = (const double(*)[6])model.get_Dep_mat();
 		double ddstrain[6] = {
-			0.0, 0.0,
-			// 0.7 is an empirical factor
-			//0.7 * (D[1][2] * D[0][1] - D[1][1] * D[0][2]) * de / (D[0][0] * D[1][1] - D[1][0] * D[0][1]), // e11
-			//0.7 * (D[0][2] * D[1][0] - D[0][0] * D[1][2]) * de / (D[0][0] * D[1][1] - D[1][0] * D[0][1]), // e22
+			//0.0, 0.0, // e11, e22
+			// multiply an empirical factor
+			0.5 * (D[1][2] * D[0][1] - D[1][1] * D[0][2]) * de / (D[0][0] * D[1][1] - D[1][0] * D[0][1]), // e11
+			0.5 * (D[0][2] * D[1][0] - D[0][0] * D[1][2]) * de / (D[0][0] * D[1][1] - D[1][0] * D[0][1]), // e22
 			de,	0.0, 0.0, 0.0
 		};
 		int res = model.integrate(ddstrain);
@@ -38,6 +38,8 @@ namespace MatModel
 		const double two_stress_tol2 = 2.0 * tol * tol;
 		double ds11 = stress[0] - init_s11;
 		double ds22 = stress[1] - init_s22;
+		if (ds11 > 0.0 || ds22 > 0.0)
+			return true;
 		for (size_t iter_id = 0; iter_id < max_iter_num; ++iter_id)
 		{
 			ddstrain[0] = (D[0][1] * ds22 - D[1][1] * ds11) / (D[0][0] * D[1][1] - D[1][0] * D[0][1]);

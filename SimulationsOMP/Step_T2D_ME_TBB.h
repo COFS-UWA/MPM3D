@@ -1,25 +1,28 @@
 #ifndef __Step_T2D_ME_TBB_h__
 #define __Step_T2D_ME_TBB_h__
 
-#include "CacheAlignedMem.h"
+#include "tbb/task_scheduler_init.h"
+
 #include "Model_T2D_ME_mt.h"
-#include "SortTask.h"
 #include "Step_T2D_ME_Task.h"
 #include "Step_TBB.h"
 
 class Step_T2D_ME_TBB;
 namespace Model_T2D_ME_mt_hdf5_utilities
 {
-	int load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+	struct ParticleData;
+	int output_pcl_data_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp,
+		ResultFile_hdf5& rf, hid_t grp_id);
+	int time_history_complete_output_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp,
+		ResultFile_hdf5& rf, hid_t frame_grp_id);
 }
 
 int cal_substep_func_T2D_ME_TBB(void* _self);
 
 class Step_T2D_ME_TBB : public Step_TBB
 {
-	friend class Step_T2D_ME_Task::TaskData;
-	friend class Step_T2D_ME_Task::MapPclToBgMeshTask;
-
 protected:
 	typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Model_T2D_ME_mt::Force Force;
@@ -37,17 +40,16 @@ protected:
 	typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
 
-	Step_T2D_ME_Task::TaskData task_data;
+	Step_T2D_ME_Task::CalData cal_data;
+	Step_T2D_ME_Task::InitPcl init_pcl;
+	Step_T2D_ME_Task::MapPclToBgMesh map_pcl_to_mesh;
+	Step_T2D_ME_Task::ContactRigidRect cont_rigid_rect;
+	Step_T2D_ME_Task::UpdateAccelerationAndVelocity update_a_and_v;
+	Step_T2D_ME_Task::CalElemDeAndMapToNode cal_elem_de;
+	Step_T2D_ME_Task::CalNodeDe cal_node_de;
+	Step_T2D_ME_Task::MapBgMeshToPcl map_mesh_to_pcl;
 	
-	CacheAlignedMem cal_mem;
-
-	//int apply_rigid_rect(
-	//	size_t p_id0, size_t p_id1,
-	//	size_t* pcl_in_elem,
-	//	SortedPclVarArrays& cur_spva,
-	//	Force2D& rc_cf,
-	//	size_t substp_id,
-	//	ThreadData& thd) noexcept;
+	tbb::task_scheduler_init sche_init;
 
 	int init_calculation() override;
 	friend int cal_substep_func_T2D_ME_TBB(void* _self);
@@ -57,11 +59,11 @@ public:
 	Step_T2D_ME_TBB(const char* _name);
 	~Step_T2D_ME_TBB();
 
-	//inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
-	//inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
-	//inline size_t* get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
-
-	friend int Model_T2D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+	friend struct Model_T2D_ME_mt_hdf5_utilities::ParticleData;
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_pcl_data_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::time_history_complete_output_to_hdf5_file(
+		Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 };
 
 #endif

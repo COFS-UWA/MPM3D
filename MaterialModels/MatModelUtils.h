@@ -346,6 +346,68 @@ namespace MatModel
 		double dstrain[6],
 		double tol = 1.0e-3,
 		size_t max_iter_num = 100);
+
+	//// assume stiffness maxtrix is symmetrix
+	//template <typename MatModel>
+	//bool integrate_drained_triaxial_test_secant(
+	//	MatModel& model,
+	//	double de, // axial strain
+	//	double sr, // radix stress
+	//	double dstrain[6], // output strain increment
+	//	double tol = 1.0e-3,
+	//	size_t max_iter_num = 100)
+	//{
+	//	const double de_tol = abs(de) * tol;
+	//	const double sr_tol = abs(sr) * tol;
+	//	MatModel tmp_md;
+	//	const double* stress = tmp_md.get_stress();
+	//	double er0, er1, er2, sr0, sr1, sr2;
+	//	dstrain[2] = de;
+	//	dstrain[3] = 0.0;
+	//	dstrain[4] = 0.0;
+	//	dstrain[5] = 0.0;
+	//	// 0
+	//	dstrain[0] = 0.0;
+	//	dstrain[1] = 0.0;
+	//	dstrain[2] = de;
+	//	dstrain[3] = 0.0;
+	//	dstrain[4] = 0.0;
+	//	dstrain[5] = 0.0;
+	//	tmp_md = model;
+	//	tmp_md.integrate(dstrain);
+	//	er1 = 0.0;
+	//	sr1 = stress[0];
+	//	// 1
+	//	dstrain[0] = (D[1][2] * D[0][1] - D[1][1] * D[0][2]) * de / (D[0][0] * D[1][1] - D[1][0] * D[0][1]);
+	//	dstrain[1] = (D[0][2] * D[1][0] - D[0][0] * D[1][2]) * de / (D[0][0] * D[1][1] - D[1][0] * D[0][1]);
+	//	dstrain[2] = de;
+	//	dstrain[3] = 0.0;
+	//	dstrain[4] = 0.0;
+	//	dstrain[5] = 0.0;
+	//	tmp_md = model;
+	//	tmp_md.integrate(dstrain);
+	//	er2 = dstrain[0];
+	//	sr2 = stress[0];
+
+	//	do
+	//	{
+	//		er0 = er1;
+	//		er1 = er2;
+	//		sr0 = sr1;
+	//		sr1 = sr2;
+	//		// sn+1
+	//		tmp_md = model;
+	//		er2 = er1 + (sr - sr1) * (er1 - er0) / (sr1 - sr0);
+	//		dstrain[0] = er2;
+	//		dstrain[1] = er2;
+	//		dstrain[2] = de;
+	//		dstrain[3] = 0.0;
+	//		dstrain[4] = 0.0;
+	//		dstrain[5] = 0.0;
+	//		tmp_md.integrate(dstrain);
+	//		sr2 = stress[0];
+	//	} while (abs(er2 - er1) > de_tol || abs(sr2 - sr1) > sr_tol);
+	//}
 }
 
 #endif

@@ -142,4 +142,20 @@ void find_3d_nodes_on_z_plane(Model& md, IndexArray& id_array,
 	}
 }
 
+inline void print_array(
+	const size_t* data,
+	size_t num,
+	size_t data_per_line = 20)
+{
+	for (size_t i = 0; i < num; ++i)
+	{
+		std::cout << data[i] << ", ";
+		if (i % data_per_line == (data_per_line - 1))
+			std::cout << "\n";
+	}
+	if ((num - 1) % data_per_line != (data_per_line - 1))
+		std::cout << "\n";
+	std::cout << "\n";
+}
+
 #endif

@@ -1,402 +1,349 @@
 #include "SimulationsOMP_pcp.h"
 
+#include <assert.h>
+#include <iostream>
+#include "tbb/task_arena.h"
+
+#include "DivideTask.hpp"
 #include "SortTriMeshNodeTask.h"
 
-#define __Cal_Key_Digit__(data, digit_pos) (((data) >> ((digit_pos) * 8)) & (0xFF))	
-#define Block_Low(block_id, block_num, data_num) ((block_id) * (data_num) / (block_num))
-
-namespace SortUtils
+void SortTriMeshNodeMem::init(
+	size_t elem_num,
+	size_t node_num,
+	RadixBinBlockMemArray& rbbs)
 {
-	void SortTriMeshNodeMem::init(
-		void* shared_mem,
-		size_t thread_num,
-		size_t elem_num,
-		size_t node_num)
+	set_radix_bin_block(rbbs);
+	const size_t three_elem_num = elem_num * 3;
+	char *cur_mem = data_mem.alloc<char>(
+		  max_block_num * sizeof(ValidElemBlock)
+		+ elem_num * 2 * sizeof(size_t)
+		+ (three_elem_num * 4 + 4) * sizeof(size_t)
+		+ MSDRadixSortUtils::cache_line_size * 5);
+	valid_elem_blocks = (ValidElemBlock *)cur_mem;
+	cur_mem += max_block_num * sizeof(ValidElemBlock);
+	ori_elems = (size_t *)cur_mem;
+	cur_mem = cache_aligned(cur_mem + elem_num * sizeof(size_t));
+	res_elems = (size_t *)cur_mem;
+	cur_mem = cache_aligned(cur_mem + elem_num * sizeof(size_t));
+	radix_keys0 = (size_t *)cur_mem + 1;
+	cur_mem = cache_aligned(cur_mem + (three_elem_num + 2) * sizeof(size_t));
+	radix_keys1 = (size_t*)cur_mem + 1;
+	cur_mem = cache_aligned(cur_mem + (three_elem_num + 2) * sizeof(size_t));
+	radix_vals0 = (size_t*)cur_mem;
+	cur_mem = cache_aligned(cur_mem + three_elem_num * sizeof(size_t));
+	radix_vals1 = (size_t*)cur_mem;
+	radix_keys0[-1] = SIZE_MAX;
+	radix_keys0[three_elem_num] = SIZE_MAX;
+	radix_keys1[-1] = SIZE_MAX;
+	radix_keys1[three_elem_num] = SIZE_MAX;
+	set_digit_num(node_num);
+}
+
+void SortTriMeshNodeTask::ScanPcl::operator() (size_t blk_id) const
+{
+	using MSDRadixSortUtils::block_low;
+	using MSDRadixSortUtils::digit;
+
+	size_t e_id;
+	size_t p_id0 = block_low(blk_id, block_num, pcl_num);
+	e_id = pcl_in_elems[p_id0];
+	while (p_id0 != SIZE_MAX && e_id == pcl_in_elems[--p_id0]);
+	++p_id0;
+	assert(p_id0 <= pcl_num);
+	size_t p_id1 = block_low(blk_id + 1, block_num, pcl_num);
+	e_id = pcl_in_elems[p_id1];
+	while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
+	++p_id1;
+	assert(p_id1 <= pcl_num);
+
+	RadixBin& bin = radix_bin_block[blk_id];
+	ValidElemBlock& ve_blk = valid_elem_blocks[blk_id];
+	memset(&bin, 0, sizeof(RadixBin));
+	e_id = pcl_in_elems[p_id0];
+	size_t* const o_elems = ori_elems + e_id;
+	ve_blk.ori_offset = e_id;
+	ve_blk.num = 0;
+	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		clear();
-		node_digit_num = max_digit_num(node_num);
-		max_block_num = thread_num * max_block_num_div_thread_num;
-		const size_t three_elem_num = elem_num * 3;
-		size_t block_num = (three_elem_num + parallel_divide_min_pcl_num_per_block - 1)
-							/ parallel_divide_min_pcl_num_per_block;
-		if (block_num > max_block_num)
-			block_num = max_block_num;
-		char* cur_mem = (char*)self_mem.alloc(
-			  sizeof(size_t *) * (node_digit_num * 4 + 2)
-			+ sizeof(SortBin *) * thread_num
-			+ sizeof(size_t) * elem_num
-			+ sizeof(size_t) * (three_elem_num * 2 + 2)
-			+ Cache_Alignment * 3);
-		//
-		node_has_elem_arrays = (size_t **)cur_mem; // node_digit_num + 1 
-		cur_mem += sizeof(size_t *) * (node_digit_num + 1);
-		node_elem_pair_arrays = (size_t**)cur_mem; // node_digit_num + 1 
-		cur_mem += sizeof(size_t*) * (node_digit_num + 1);
-		tmp_node_has_elem_arrays = (size_t**)cur_mem; // node_digit_num
-		cur_mem += sizeof(size_t*) * node_digit_num;
-		tmp_node_elem_pair_arrays = (size_t**)cur_mem; // pcl_digit_num
-		cur_mem += sizeof(size_t*) * node_digit_num;
-		thread_bins = (SortBin**)cur_mem;
-		cur_mem = cache_aligned(cur_mem + sizeof(SortBin*) * thread_num);
-		//
-		valid_elems = (size_t*)cur_mem;
-		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * elem_num);
-		//
-		node_has_elem = ((size_t *)cur_mem) + 1;
-		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * (three_elem_num + 2));
-		node_elem_pair = (size_t *)cur_mem;
-		node_has_elem_arrays[0] = node_has_elem;
-		node_elem_pair_arrays[0] = node_elem_pair;
-		node_elem_pair[-1] = SIZE_MAX;
-		node_elem_pair[three_elem_num] = SIZE_MAX;
-		
-		cur_mem = (char*)cache_aligned(shared_mem);
-		tmp_valid_elems = (size_t*)cur_mem;
-		cur_mem = cache_aligned(cur_mem + sizeof(size_t) * elem_num);
-		// key and value memory
-		size_t i;
-		for (i = 0; i < node_digit_num; ++i)
+		if (e_id != pcl_in_elems[p_id + 1])
 		{
-			node_has_elem_arrays[i + 1] = (size_t*)cur_mem;
-			cur_mem = cache_aligned(cur_mem + sizeof(size_t) * three_elem_num);
-		}
-		for (i = 0; i < node_digit_num; ++i)
-		{
-			node_elem_pair_arrays[i + 1] = (size_t*)cur_mem;
-			cur_mem = cache_aligned(cur_mem + sizeof(size_t) * three_elem_num);
-		}
-		for (i = 0; i < node_digit_num; ++i)
-		{
-			tmp_node_has_elem_arrays[i] = (size_t*)cur_mem;
-			cur_mem = cache_aligned(cur_mem + sizeof(size_t) * three_elem_num);
-		}
-		for (i = 0; i < node_digit_num; ++i)
-		{
-			tmp_node_elem_pair_arrays[i] = (size_t*)cur_mem;
-			cur_mem = cache_aligned(cur_mem + sizeof(size_t) * three_elem_num);
-		}
-		ori_node_has_elem = node_has_elem_arrays[node_digit_num];
-		ori_node_elem_pair = node_elem_pair_arrays[node_digit_num];
-		// sort bin memory
-		root_bin = (SortBin*)cur_mem;
-		const size_t sort_bin_size = sizeof(SortBin) * block_num;
-		for (i = 0; i < thread_num; ++i)
-		{
-			cur_mem += sort_bin_size;
-			thread_bins[i] = (SortBin*)cur_mem;
+			o_elems[ve_blk.num++] = e_id;
+			const ElemNodeIndex& eni = elem_node_ids[e_id];
+			++bin.bin[digit(eni.n1, node_digit_pos)];
+			++bin.bin[digit(eni.n2, node_digit_pos)];
+			++bin.bin[digit(eni.n3, node_digit_pos)];
+			e_id = pcl_in_elems[p_id + 1];
 		}
 	}
+}
 
-	namespace Internal
+void SortTriMeshNodeTask::FormElemAndNodeArray::operator() (size_t blk_id) const
+{
+	using MSDRadixSortUtils::digit;
+
+	size_t i, o_blk_id;
+	RadixBin bin;
+	const RadixBin& my_bin = radix_bin_block[blk_id];
+	for (i = 0; i < MSDRadixSortUtils::radix_bin_num; ++i)
+		bin.bin[i] = my_bin.bin[i];
+	for (o_blk_id = 0; o_blk_id < blk_id; ++o_blk_id)
 	{
-		tbb::task* CountSortTriMeshNodeTask::execute()
+		const RadixBin& o_sbin = radix_bin_block[o_blk_id];
+		for (i = 0; i < MSDRadixSortUtils::radix_bin_num; ++i)
+			bin.bin[i] += o_sbin.bin[i];
+	}
+	for (o_blk_id = blk_id + 1; o_blk_id < block_num; ++o_blk_id)
+	{
+		const RadixBin& o_sbin = radix_bin_block[o_blk_id];
+		for (i = 1; i < MSDRadixSortUtils::radix_bin_num; ++i)
+			bin.bin[i] += o_sbin.bin[i - 1];
+	}
+
+	ValidElemBlock& ve_blk = valid_elem_blocks[blk_id];
+	const size_t* const o_elems = ori_elems + ve_blk.ori_offset;
+	size_t ve_res_offset = ve_blk.res_offset;
+	size_t pos_id;
+	for (size_t ve_id = ve_blk.num; ve_id--;)
+	{
+		const size_t e_id = o_elems[ve_id];
+		res_elems[--ve_res_offset] = e_id;
+		const ElemNodeIndex& eni = elem_node_ids[e_id];
+		pos_id = --bin.bin[digit(eni.n3, node_digit_pos)];
+		out_node_has_elem[pos_id] = eni.n3;
+		out_node_elem_pair[pos_id] = 3 * ve_id + 2;
+		pos_id = --bin.bin[digit(eni.n2, node_digit_pos)];
+		out_node_has_elem[pos_id] = eni.n2;
+		out_node_elem_pair[pos_id] = 3 * ve_id + 1;
+		pos_id = --bin.bin[digit(eni.n1, node_digit_pos)];
+		out_node_has_elem[pos_id] = eni.n1;
+		out_node_elem_pair[pos_id] = 3 * ve_id;
+	}
+}
+
+tbb::task* SortTriMeshNodeTask::execute()
+{
+	using MSDRadixSortUtils::digit;
+
+	SortTriMeshNodeMem& snm = static_cast<SortTriMeshNodeMem &>(sort_mem);
+	const size_t radix_id = digit_pos & 1;
+	res_elems = snm.res_elems;
+	MSDRadixSortUtils::RadixBin bin;
+	size_t i, j, e_id, pos_id;
+	// scan in parallel
+	if (pcl_num > serial_sort_max_data_num)
+	{
+		out_node_has_elem = snm.radix_keys[radix_id ^ 1];
+		out_node_elem_pair = snm.radix_vals[radix_id ^ 1];
+		if (pcl_num > min_pcl_num_per_block * 2)
 		{
-			size_t e_id;
-			e_id = pcl_in_elem[p_id0];
-			while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
-			++p_id0;
-			e_id = pcl_in_elem[p_id1];
-			while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
-			++p_id1;
-#ifdef _DEBUG
-			assert(p_id0 <= pcl_num);
-			assert(p_id1 <= pcl_num);
-#endif
-			size_t* const c_bin = bin.count_bin;
-			size_t* const s_bin = bin.sum_bin;
-			memset(c_bin, 0, sizeof(size_t) * radix_bucket_num);
-			e_id = pcl_in_elem[p_id0];
-#ifdef _DEBUG
-			assert(e_id < elem_num || e_id == SIZE_MAX);
-#endif
-			size_t* const my_valid_elems = tmp_valid_elems + e_id;
-			size_t* const my_node_has_elem = tmp_node_has_elem + e_id * 3;
-			size_t* const my_node_elem_pair = tmp_node_elem_pair + e_id * 3;
-			s_bin[0] = e_id * 3;
-			size_t valid_elem_num = 0;
-			for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+			block_num = (pcl_num + min_pcl_num_per_block - 1)
+						/ min_pcl_num_per_block;
+			if (block_num > snm.max_block_num)
+				block_num = snm.max_block_num;
+			ori_elems = snm.ori_elems;
+			const size_t my_th_id = tbb::task_arena::current_thread_index();
+			RadixBinBlockMem& th_radix_bin_block = snm.thread_radix_bin_block[my_th_id];
+			radix_bin_block = th_radix_bin_block.alloc();
+			valid_elem_blocks = snm.valid_elem_blocks;
+
+			// scan data
+			set_ref_count(2);
+			spawn(*new(allocate_child())
+				DivideTask<ScanPcl, 2>(0, block_num - 1, scan_pcl));
+			scan_pcl(block_num - 1);
+			wait_for_all();
+
+			// summarize output
+			valid_elem_blocks[0].res_offset = valid_elem_blocks[0].num;
+			for (i = 1; i < block_num; ++i)
+				valid_elem_blocks[i].res_offset = valid_elem_blocks[i - 1].res_offset + valid_elem_blocks[i].num;
+			valid_elem_num = valid_elem_blocks[block_num - 1].res_offset;
+			*const_cast<size_t *>(&data_num) = 3 * valid_elem_blocks[block_num - 1].res_offset;
+
+			// move data
+			set_ref_count(2);
+			spawn(*new(allocate_child())
+				DivideTask<FormElemAndNodeArray, 2>(
+					0, block_num - 1, form_elem_and_node_array));
+			form_elem_and_node_array(block_num - 1);
+			wait_for_all();
+
+			th_radix_bin_block.free(radix_bin_block);
+		}
+		else // scan serially
+		{
+			memset(&bin, 0, sizeof(bin));
+			*const_cast<size_t *>(&data_num) = 0;
+			e_id = pcl_in_elems[0];
+			for (i = 0; i < pcl_num; ++i)
 			{
-				if (e_id != pcl_in_elem[p_id + 1])
+				if (e_id != pcl_in_elems[i + 1])
 				{
-					const ElemNodeIndex& eni = elem_node_id[e_id];
-					++c_bin[__Cal_Key_Digit__(eni.n1, node_digit_pos)];
-					++c_bin[__Cal_Key_Digit__(eni.n2, node_digit_pos)];
-					++c_bin[__Cal_Key_Digit__(eni.n3, node_digit_pos)];
-					my_node_has_elem[valid_elem_num * 3] = eni.n1;
-					my_node_has_elem[valid_elem_num * 3 + 1] = eni.n2;
-					my_node_has_elem[valid_elem_num * 3 + 2] = eni.n3;
-					my_node_elem_pair[valid_elem_num * 3] = e_id * 3;
-					my_node_elem_pair[valid_elem_num * 3 + 1] = e_id * 3 + 1;
-					my_node_elem_pair[valid_elem_num * 3 + 2] = e_id * 3 + 2;
-					my_valid_elems[valid_elem_num++] = e_id;
-					e_id = pcl_in_elem[p_id + 1];
-#ifdef _DEBUG
-					assert(e_id < elem_num || e_id == SIZE_MAX);
-#endif
+					res_elems[(*const_cast<size_t *>(&data_num))++] = e_id;
+					const ElemNodeIndex& eni = elem_node_ids[e_id];
+					++bin.bin[digit(eni.n1, node_digit_pos)];
+					++bin.bin[digit(eni.n2, node_digit_pos)];
+					++bin.bin[digit(eni.n3, node_digit_pos)];
+					e_id = pcl_in_elems[i + 1];
 				}
 			}
-			// form count and sort bin
-			s_bin[0] += c_bin[0];
-			for (size_t i = 1; i < radix_bucket_num; ++i)
-				s_bin[i] = s_bin[i - 1] + c_bin[i];
-			// reorder memory
-			size_t pos;
-			for (e_id = valid_elem_num; e_id--;)
+			for (i = 1; i < MSDRadixSortUtils::radix_bin_num; ++i)
+				bin.bin[i] += bin.bin[i - 1];
+			for (i = data_num; i--;)
 			{
-				pos = --s_bin[__Cal_Key_Digit__(my_node_has_elem[e_id * 3], node_digit_pos)];
-				out_node_has_elem[pos] = my_node_has_elem[e_id * 3];
-				out_node_elem_pair[pos] = my_node_elem_pair[e_id * 3];
-				pos = --s_bin[__Cal_Key_Digit__(my_node_has_elem[e_id * 3 + 1], node_digit_pos)];
-				out_node_has_elem[pos] = my_node_has_elem[e_id * 3 + 1];
-				out_node_elem_pair[pos] = my_node_elem_pair[e_id * 3 + 1];
-				pos = --s_bin[__Cal_Key_Digit__(my_node_has_elem[e_id * 3 + 2], node_digit_pos)];
-				out_node_has_elem[pos] = my_node_has_elem[e_id * 3 + 2];
-				out_node_elem_pair[pos] = my_node_elem_pair[e_id * 3 + 2];
+				e_id = res_elems[i];
+				const ElemNodeIndex& eni = elem_node_ids[e_id];
+				pos_id = --bin.bin[digit(eni.n3, node_digit_pos)];
+				out_node_has_elem[pos_id] = eni.n3;
+				out_node_elem_pair[pos_id] = 3 * e_id + 2;
+				pos_id = --bin.bin[digit(eni.n2, node_digit_pos)];
+				out_node_has_elem[pos_id] = eni.n2;
+				out_node_elem_pair[pos_id] = 3 * e_id + 1;
+				pos_id = --bin.bin[digit(eni.n1, node_digit_pos)];
+				out_node_has_elem[pos_id] = eni.n1;
+				out_node_elem_pair[pos_id] = 3 * e_id;
+			}
+			valid_elem_num = data_num;
+			*const_cast<size_t *>(&data_num) *= 3;
+
+			if (digit_pos)
+			{
+				tbb::empty_task& c =
+					*new(allocate_continuation()) tbb::empty_task;
+				c.set_ref_count(4);
+				c.spawn(*new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin,
+						bin.bin[0x40],
+						start_pos,
+						digit_pos - 1,
+						sort_mem));
+				c.spawn(*new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin + 0x40,
+						bin.bin[0x40 * 2],
+						start_pos,
+						digit_pos - 1,
+						sort_mem));
+				c.spawn(*new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin + 0x40 * 2,
+						bin.bin[0x40 * 3],
+						start_pos,
+						digit_pos - 1,
+						sort_mem));
+				return new(c.allocate_child())
+					ChildSpawner<3>(
+						bin.bin + 0x40 * 3,
+						data_num,
+						start_pos,
+						digit_pos - 1,
+						sort_mem);
 			}
 			return nullptr;
 		}
 	}
-
-	tbb::task* SortTriMeshNodeTask::execute()
+	
+	// sort serially
+	size_t *in_node_has_elem = snm.radix_keys[radix_id];
+	size_t *in_node_elem_pair = snm.radix_vals[radix_id];
+	*const_cast<size_t *>(&data_num) = 0;
+	e_id = pcl_in_elems[0];
+	for (i = 0; i < pcl_num; ++i)
 	{
-		SortBin* const rt_bins = sort_mem.root_bin;
-		size_t* const valid_elems = sort_mem.valid_elems;
-		size_t* const in_node_has_elem = sort_mem.ori_node_has_elem;
-		size_t* const in_node_elem_pair = sort_mem.ori_node_elem_pair;
-		const size_t node_digit_pos = sort_mem.node_digit_num - 1;
-		if (pcl_num > serial_sort_min_pcl_num)
+		if (e_id != pcl_in_elems[i + 1])
 		{
-			size_t* const out_node_has_elem = sort_mem.node_has_elem_arrays[node_digit_pos];
-			size_t* const out_node_elem_pair = sort_mem.node_elem_pair_arrays[node_digit_pos];
-			size_t bin_id;
-			if (pcl_num > parallel_divide_min_pcl_num_per_block)
-			{
-				size_t* const tmp_valid_elems = sort_mem.tmp_valid_elems;
-				size_t* const tmp_node_has_elem = sort_mem.tmp_node_has_elem_arrays[node_digit_pos];
-				size_t* const tmp_node_elem_pair = sort_mem.tmp_node_elem_pair_arrays[node_digit_pos];
-				size_t blk_num = (pcl_num + SortTriMeshNodeMem::parallel_divide_min_pcl_num_per_block - 1)
-								/ SortTriMeshNodeMem::parallel_divide_min_pcl_num_per_block;
-				if (blk_num > sort_mem.max_block_num)
-					blk_num = sort_mem.max_block_num;
-				set_ref_count(blk_num + 1);
-				size_t blk_id, pcl_end_id, pcl_start_id = 0;
-				for (blk_id = 1; blk_id < blk_num; ++blk_id)
-				{
-					pcl_end_id = Block_Low(blk_id, blk_num, pcl_num);
-					spawn(*new(allocate_child())
-						Internal::CountSortTriMeshNodeTask(
-#ifdef _DEBUG
-							pcl_num,
-							elem_num,
-#endif
-							elem_node_ids,
-							pcl_in_elem,
-							pcl_start_id,
-							pcl_end_id,
-							node_digit_pos,
-							rt_bins[blk_id - 1],
-							sort_mem.tmp_valid_elems,
-							in_node_has_elem,
-							in_node_elem_pair,
-							tmp_node_has_elem,
-							tmp_node_elem_pair));
-					pcl_start_id = pcl_end_id;
-				}
-				// last child
-				spawn_and_wait_for_all(*new(allocate_child())
-					Internal::CountSortTriMeshNodeTask(
-#ifdef _DEBUG
-						pcl_num,
-						elem_num,
-#endif
-						elem_node_ids,
-						pcl_in_elem,
-						pcl_start_id,
-						pcl_num,
-						node_digit_pos,
-						rt_bins[blk_num - 1],
-						sort_mem.tmp_valid_elems,
-						in_node_has_elem,
-						in_node_elem_pair,
-						tmp_node_has_elem,
-						tmp_node_elem_pair));
-
-				size_t start_id;
-				if (node_digit_pos) // not the last digit
-				{
-					set_ref_count(blk_num + Internal::radix_bucket_num + 1);
-
-					// collect valid element into out_valid_elems
-					start_id = 0;
-					for (blk_id = 0; blk_id < blk_num; ++blk_id)
-					{
-						const SortBin& bin = rt_bins[blk_id];
-						const size_t* sbin = bin.sum_bin;
-						const size_t ve_num = (bin.count_bin[Internal::radix_bucket_num - 1]
-							+ sbin[Internal::radix_bucket_num - 1] - sbin[0]) / 3;
-						spawn(*new(allocate_child())
-							Internal::CopyMemTask(
-								valid_elems + start_id,
-								tmp_valid_elems + sbin[0] / 3,
-								sizeof(size_t) * ve_num));
-						start_id += ve_num;
-					}
-					sort_mem.valid_elem_num = start_id;
-
-					// sort nodes
-					start_id = 0;
-					for (bin_id = 0; bin_id < Internal::radix_bucket_num; ++bin_id)
-					{
-						size_t child_start_id = 0;
-						for (blk_id = 0; blk_id < blk_num; ++blk_id)
-						{
-							SortBin& blk_bin = rt_bins[blk_id];
-							const size_t blk_data_off = blk_bin.sum_bin[bin_id];
-							const size_t blk_data_num = blk_bin.count_bin[bin_id];
-							memcpy(out_node_has_elem + start_id + child_start_id,
-								tmp_node_has_elem + blk_data_off,
-								blk_data_num * sizeof(size_t));
-							memcpy(out_node_elem_pair + start_id + child_start_id,
-								tmp_node_elem_pair + blk_data_off,
-								blk_data_num * sizeof(size_t));
-							child_start_id += blk_data_num;
-						}
-						if (child_start_id)
-						{
-							spawn(*new(allocate_child())
-								SortTask(
-									sort_mem._sort_mem,
-									start_id,
-									child_start_id,
-									node_digit_pos - 1));
-							start_id += child_start_id;
-						}
-						else
-							decrement_ref_count();
-					}
-					wait_for_all();
-				}
-				else // already the last digit
-				{
-					set_ref_count(blk_num + 1);
-
-					// collect valid element into out_valid_elems
-					start_id = 0;
-					for (blk_id = 0; blk_id < blk_num; ++blk_id)
-					{
-						const SortBin& bin = rt_bins[blk_id];
-						const size_t* sbin = bin.sum_bin;
-						const size_t ve_num = (bin.count_bin[Internal::radix_bucket_num - 1]
-							+ sbin[Internal::radix_bucket_num - 1] - sbin[0]) / 3;
-						spawn(*new(allocate_child())
-							Internal::CopyMemTask(
-								valid_elems + start_id,
-								tmp_valid_elems + sbin[0] / 3,
-								sizeof(size_t) * ve_num));
-						start_id += ve_num;
-					}
-					sort_mem.valid_elem_num = start_id;
-
-					// sort nodes
-					start_id = 0;
-					for (bin_id = 0; bin_id < Internal::radix_bucket_num; ++bin_id)
-					{
-						for (blk_id = 0; blk_id < blk_num; ++blk_id)
-						{
-							SortBin& blk_bin = rt_bins[blk_id];
-							const size_t blk_data_off = blk_bin.sum_bin[bin_id];
-							const size_t blk_data_num = blk_bin.count_bin[bin_id];
-							memcpy(out_node_has_elem + start_id,
-								tmp_node_has_elem + blk_data_off,
-								blk_data_num * sizeof(size_t));
-							memcpy(out_node_elem_pair + start_id,
-								tmp_node_elem_pair + blk_data_off,
-								blk_data_num * sizeof(size_t));
-							start_id += blk_data_num;
-						}
-					}
-					wait_for_all();
-				}
-			}
-			else // divide serially and sort parallely
-			{
-				SortBin& rt_bin = rt_bins[0];
-				sort_mem.valid_elem_num
-					= Internal::count_sort_tri_mesh_node(
-#ifdef _DEBUG
-					elem_num,
-#endif
-					elem_node_ids,
-					pcl_in_elem,
-					pcl_num,
-					node_digit_pos,
-					rt_bin,
-					valid_elems,
-					in_node_has_elem,
-					in_node_elem_pair,
-					out_node_has_elem,
-					out_node_elem_pair);
-				size_t* const c_bin = rt_bin.count_bin;
-				size_t* const s_bin = rt_bin.sum_bin;
-				if (node_digit_pos) // not the last digit
-				{
-					set_ref_count(Internal::radix_bucket_num + 1);
-					for (bin_id = 0; bin_id < Internal::radix_bucket_num; ++bin_id)
-					{
-						if (c_bin[bin_id])
-						{
-							spawn(*new(allocate_child())
-								SortTask(
-									sort_mem._sort_mem,
-									s_bin[bin_id],
-									c_bin[bin_id],
-									node_digit_pos - 1));
-						}
-						else
-							decrement_ref_count();
-					}
-					wait_for_all();
-				}
-			}
+			res_elems[data_num] = e_id;
+			const ElemNodeIndex& eni = elem_node_ids[e_id];
+			in_node_has_elem[data_num * 3] = eni.n1;
+			in_node_has_elem[data_num * 3 + 1] = eni.n2;
+			in_node_has_elem[data_num * 3 + 2] = eni.n3;
+			in_node_elem_pair[data_num * 3] = data_num * 3;
+			in_node_elem_pair[data_num * 3 + 1] = data_num * 3 + 1;
+			in_node_elem_pair[data_num * 3 + 2] = data_num * 3 + 2;
+			++(*const_cast<size_t *>(&data_num));
+			e_id = pcl_in_elems[i + 1];
 		}
-		else // sort serially
-		{
-			size_t e_id = pcl_in_elem[0];
-#ifdef _DEBUG
-			assert(e_id < elem_num || e_id == SIZE_MAX);
-#endif
-			size_t ve_num = 0;
-			for (size_t p_id = 0; p_id < pcl_num; ++p_id)
-			{
-				if (e_id != pcl_in_elem[p_id + 1])
-				{
-					const Internal::ElemNodeIndex& eni = elem_node_ids[e_id];
-					in_node_has_elem[ve_num * 3] = eni.n1;
-					in_node_has_elem[ve_num * 3 + 1] = eni.n2;
-					in_node_has_elem[ve_num * 3 + 2] = eni.n3;
-					in_node_elem_pair[ve_num * 3] = e_id * 3;
-					in_node_elem_pair[ve_num * 3 + 1] = e_id * 3 + 1;
-					in_node_elem_pair[ve_num * 3 + 2] = e_id * 3 + 2;
-					valid_elems[ve_num++] = e_id;
-					e_id = pcl_in_elem[p_id + 1];
-#ifdef _DEBUG
-					assert(e_id < elem_num || e_id == SIZE_MAX);
-#endif
-				}
-			}
-			sort_mem.valid_elem_num = ve_num;
-			Internal::serial_sort(
-				sort_mem.node_has_elem,
-				sort_mem.node_elem_pair,
-				in_node_has_elem,
-				in_node_elem_pair,
-				ve_num * 3,
-				node_digit_pos,
-				rt_bins[0],
-				sort_mem.tmp_node_has_elem_arrays[0],
-				sort_mem.tmp_node_elem_pair_arrays[0]);
-		}
-		sort_mem.node_has_elem[sort_mem.valid_elem_num * 3] = SIZE_MAX;
-		return nullptr;
 	}
+	valid_elem_num = data_num;
+	*const_cast<size_t *>(&data_num) *= 3;
+	if (data_num > insertion_sort_max_data_num) // radix sort
+	{
+		out_node_has_elem = snm.radix_keys[radix_id ^ 1];
+		out_node_elem_pair = snm.radix_vals[radix_id ^ 1];
+		for (size_t d_id = 0; d_id < digit_pos + 1; ++d_id)
+		{
+			memset(&bin, 0, sizeof(bin));
+			for (i = 0; i < data_num; ++i)
+				++bin.bin[digit(in_node_has_elem[i], d_id)];
+			for (i = 1; i < MSDRadixSortUtils::radix_bin_num; ++i)
+				bin.bin[i] += bin.bin[i - 1];
+			for (i = data_num; i--;)
+			{
+				pos_id = --bin.bin[digit(in_node_has_elem[i], d_id)];
+				out_node_has_elem[pos_id] = in_node_has_elem[i];
+				out_node_elem_pair[pos_id] = in_node_elem_pair[i];
+			}
+#define swap_pointer(pt1, pt2) \
+			(pt1) = (size_t *)(size_t(pt1) ^ size_t(pt2)); \
+			(pt2) = (size_t *)(size_t(pt1) ^ size_t(pt2)); \
+			(pt1) = (size_t *)(size_t(pt1) ^ size_t(pt2))
+			swap_pointer(in_node_has_elem, out_node_has_elem);
+			swap_pointer(in_node_elem_pair, out_node_elem_pair);
+		}
+	}
+	else if (data_num > 2) // insertion sort
+	{
+		out_node_has_elem = sort_mem.res_keys;
+		out_node_elem_pair = sort_mem.res_vals;
+		const size_t data_num_min_1 = data_num - 1;
+		for (i = 0; i < data_num_min_1; ++i)
+		{
+			size_t min_key = in_node_has_elem[i];
+			size_t min_val = in_node_elem_pair[i];
+			size_t min_key_id = i;
+			for (j = i + 1; j < data_num; ++j)
+			{
+				if (min_key > in_node_has_elem[j])
+				{
+					min_key = in_node_has_elem[j];
+					min_val = in_node_elem_pair[j];
+					min_key_id = j;
+				}
+			}
+			const_cast<size_t*>(in_node_has_elem)[min_key_id] = in_node_has_elem[i];
+			out_node_has_elem[i] = min_key;
+			const_cast<size_t*>(in_node_elem_pair)[min_key_id] = in_node_elem_pair[i];
+			out_node_elem_pair[i] = min_val;
+		}
+		out_node_has_elem[data_num_min_1] = in_node_has_elem[data_num_min_1];
+		out_node_elem_pair[data_num_min_1] = in_node_elem_pair[data_num_min_1];
+	}
+	else if (data_num == 2)
+	{
+		out_node_has_elem = sort_mem.res_keys;
+		out_node_elem_pair = sort_mem.res_vals;
+		if (in_node_has_elem[0] < in_node_has_elem[1])
+		{
+			out_node_has_elem[0] = in_node_has_elem[0];
+			out_node_has_elem[1] = in_node_has_elem[1];
+			out_node_elem_pair[0] = in_node_elem_pair[0];
+			out_node_elem_pair[1] = in_node_elem_pair[1];
+		}
+		else
+		{
+			size_t tmp = in_node_has_elem[1];
+			out_node_has_elem[1] = in_node_has_elem[0];
+			out_node_has_elem[0] = tmp;
+			tmp = in_node_elem_pair[1];
+			out_node_elem_pair[1] = in_node_elem_pair[0];
+			out_node_elem_pair[0] = tmp;
+		}
+	}
+	else if (data_num == 1)
+	{
+		sort_mem.res_keys[0] = in_node_has_elem[0];
+		sort_mem.res_vals[0] = in_node_elem_pair[0];
+	}
+	return nullptr;
 }
