@@ -324,7 +324,7 @@ void test_t3d_me_mt_spudcan_coarse_result(int argc, char** argv)
 	app.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_win_size(1200, 800);
+	app.set_win_size(1500, 950);
 	app.set_view_dir(0.0f, 10.0f);
 	app.set_light_dir(0.0f, 10.0f);
 	app.set_view_dist_scale(0.4);
@@ -337,6 +337,6 @@ void test_t3d_me_mt_spudcan_coarse_result(int argc, char** argv)
 	app.set_color_map_fld_range(0.0, 0.03);
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_spudcan_coarse");
-	//app.set_gif_name("t3d_me_mt_spudcan_coarse");
+	app.set_gif_name("t3d_me_mt_spudcan_coarse");
 	app.start();
 }

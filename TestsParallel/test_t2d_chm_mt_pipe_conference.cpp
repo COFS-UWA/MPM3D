@@ -110,30 +110,30 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 void test_t2d_chm_mt_pipe_conference_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_mt_pipe_conference1.h5");
+	rf.open("t2d_chm_mt_pipe_conference1_k1e7_k1e-12_v0.05.h5");
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(10.0);
 	app.set_win_size(1900, 950);
 	//app.set_bg_color(1.0f, 1.0f, 1.0f);
 	//app.set_char_color(0.0f, 0.0f, 0.0f);
-	app.set_display_range(-3.6, 3.6, -5.1, 0.6);
-	//app.set_display_range(-2.2, 2.2, -2.0, 0.6);
+	//app.set_display_range(-3.6, 3.6, -5.1, 0.6);
+	app.set_display_range(-2.2, 2.2, -2.0, 0.6);
 
 	// s22
 	//app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	//app.set_color_map_fld_range(-30000.0, 0.0);
 	// pore pressure
-	app.set_res_file(rf, "penetration", Hdf5Field::p);
-	app.set_color_map_fld_range(0, 30000.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_color_map_fld_range(0, 30000.0);
 	// mises strain
-	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.3);
+	app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
+	app.set_color_map_fld_range(0.0, 0.3);
 	// plastic mises strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.3);
 
-	app.set_color_map_geometry(1.6f, 0.45f, 0.5f);
+	app.set_color_map_geometry(1.75f, 0.45f, 0.5f);
 	//app.set_mono_color_pcl();
 	//app.set_png_name("t2d_chm_mt_pipe_conference1");
 	app.set_gif_name("t2d_chm_mt_pipe_conference1");
