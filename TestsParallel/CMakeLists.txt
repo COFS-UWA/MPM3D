@@ -43,6 +43,8 @@ add_executable(
 	test_t3d_me_mt_cylinder_foundation_ch_den.cpp
     test_t3d_me_mt_spudcan_coarse.cpp
     test_t3d_chm_mt_1d_consolidation.cpp
+    # sand hypoplasticity
+    test_t3d_me_mt_spudcan_sand_hypo.cpp
     # using tbb
     test_tbb_sorting.cpp
     test_tbb_sort_tri_mesh_node_task.cpp
