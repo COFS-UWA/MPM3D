@@ -612,6 +612,78 @@ namespace Model_hdf5_utilities
 		return res;
 	}
 
+	// SandHypoplasticity
+	struct SandHypoplasticityStateData
+	{
+		unsigned long long id;
+		double phi, hs, n;
+		double alpha, beta;
+		double ed0, ec0, ei0;
+		union
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
+		double e;
+		double substep_size;
+		int status_code;
+
+		inline void from_mm(MatModel::SandHypoplasticityWrapper &mm)
+		{
+			id = mm.get_id();
+			phi = mm.get_phi();
+			hs = mm.get_hs();
+			n = mm.get_n();
+			alpha = mm.get_alpha();
+			beta = mm.get_beta();
+			ed0 = mm.get_ed0();
+			ec0 = mm.get_ec0();
+			ei0 = mm.get_ei0();
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
+			e = mm.get_e();
+			substep_size = mm.get_substp_size();
+			status_code = mm.get_status_code();
+		}
+
+		inline void to_mm(MatModel::SandHypoplasticityWrapper& mm)
+		{
+			mm.set_id(id);
+			mm.set_param(stress, e, phi, hs, n,	ed0, ec0, ei0, alpha, beta);
+			mm.set_substep_size(substep_size);
+			status_code = 0;
+		}
+	};
+	
+	inline hid_t get_sand_hypoplasticity_hdf5_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(SandHypoplasticityStateData));
+		H5Tinsert(res, "id", HOFFSET(SandHypoplasticityStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "phi", HOFFSET(SandHypoplasticityStateData, phi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "hs", HOFFSET(SandHypoplasticityStateData, hs), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "n", HOFFSET(SandHypoplasticityStateData, n), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "alpha", HOFFSET(SandHypoplasticityStateData, alpha), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "beta", HOFFSET(SandHypoplasticityStateData, beta), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ed0", HOFFSET(SandHypoplasticityStateData, ed0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ec0", HOFFSET(SandHypoplasticityStateData, ec0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ei0", HOFFSET(SandHypoplasticityStateData, ei0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(SandHypoplasticityStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(SandHypoplasticityStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(SandHypoplasticityStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(SandHypoplasticityStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(SandHypoplasticityStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(SandHypoplasticityStateData, s31), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e", HOFFSET(SandHypoplasticityStateData, e), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "substep_size", HOFFSET(SandHypoplasticityStateData, substep_size), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "status_code", HOFFSET(SandHypoplasticityStateData, status_code), H5T_NATIVE_INT);
+		return res;
+	}
+
 	// material model container
 	int output_material_model_container_to_hdf5_file(
 		MatModel::MatModelContainer &mc, ResultFile_hdf5 &rf, hid_t mc_grp_id);

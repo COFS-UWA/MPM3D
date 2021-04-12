@@ -10,6 +10,7 @@
 #include "VonMises.h"
 #include "Tresca.h"
 #include "SandHypoplasticityByUmat.h"
+#include "SandHypoplasticityWrapper.h"
 
 namespace MatModel
 {
@@ -89,6 +90,7 @@ public:                                          \
 		__Add_Mat_Model_to_Model_Container__(VonMises);
 		__Add_Mat_Model_to_Model_Container__(Tresca);
 		__Add_Mat_Model_to_Model_Container__(SandHypoplasticityByUmat);
+		__Add_Mat_Model_to_Model_Container__(SandHypoplasticityWrapper);
 	};
 
 #undef __Add_Mat_Model_to_Model_Container__

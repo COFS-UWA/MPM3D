@@ -8,8 +8,11 @@ add_library(
     # precompiled header
     MaterialModels_pcp.h MaterialModels_pcp.cpp
     # utilities
+    MaterialModelPrecision.h
     MatModelUtils.h MatModelUtils.cpp
+    MatModelConstants.h
     SymMatEigen.h SymMatEigen.cpp
+    #MatModelTestUtils.h MatModelTestUtils.cpp
     # Base class
     MaterialModel.h
     # Linear Elasticity
@@ -24,6 +27,9 @@ add_library(
     Tresca.h Tresca.cpp
     # Sand hypoplasticity from umat
     SandHypoplasticityByUmat.h SandHypoplasticityByUmat.cpp
+    # Sand hypoplasticity
+    sand_hypoplasticity.h sand_hypoplasticity.cpp
+    SandHypoplasticityWrapper.h SandHypoplasticityWrapper.cpp
     # ModelContainer
     MatModelContainer.h MatModelContainer.cpp
     # Map from material model id to pointer

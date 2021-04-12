@@ -25,8 +25,9 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	model.init_pcls(pcl_generator, 10.0);
-	size_t pcl_num = model.get_pcl_num();
+	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
+	// Linear elasticity
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -34,6 +35,14 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 		le.set_param(1000.0, 0.0);
 		mms[pcl_id] = &le;
 	}
+	// Tresca
+	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::LinearElasticity& le = les[pcl_id];
+	//	le.set_param(1000.0, 0.0);
+	//	mms[pcl_id] = &le;
+	//}
 
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);

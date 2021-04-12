@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 	//test_sand_hypoplasticity_triaxial();
 	//test_triaxial_secant();
 
-	//test_t3d_me_mt_triaxial_compression(argc, argv);
+	test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);
@@ -124,8 +124,8 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 
-	test_t3d_me_mt_spudcan_sand_hypo_model(argc, argv);
-	test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
+	//test_t3d_me_mt_spudcan_sand_hypo_model(argc, argv);
+	//test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
 	//Stest_t3d_me_mt_spudcan_sand_hypo_result(argc, argv);
 	
 	system("pause");

@@ -37,26 +37,38 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	//	mms[pcl_id] = &le;
 	//}
 	// sand hypoplasticity
-	MatModel::SandHypoplasticityByUmat* shps = model.add_SandHypoplasticityByUmat(pcl_num);
-	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
-	const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
-	constexpr double R = 1.0e-4;
-	const double ig_strain[6] = { -R / sqrt(3.0), -R / sqrt(3.0), -R / sqrt(3.0), 0.0, 0.0, 0.0 };
+	//MatModel::SandHypoplasticityByUmat* shps = model.add_SandHypoplasticityByUmat(pcl_num);
+	////const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	//const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
+	//constexpr double R = 1.0e-4;
+	//const double ig_strain[6] = { -R / sqrt(3.0), -R / sqrt(3.0), -R / sqrt(3.0), 0.0, 0.0, 0.0 };
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::SandHypoplasticityByUmat &shp = shps[pcl_id];
+	//	// intergranular strain
+	//	shp.set_param(ini_stress, 0.817,
+	//		33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
+	//		2.2, 1.1, R, 0.1, 5.5, ig_strain);
+	//	// no intergranular strain
+	//	//shp.set_param(ini_stress, 0.817,
+	//	//	33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
+	//	//	0.0, 1.1, R, 0.1, 5.5, ig_strain);
+	//	//shp.set_integration_step_ratio(0.5);
+	//	mms[pcl_id] = &shp;
+	//}
+	// sand hypoplasticity
+	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::SandHypoplasticityByUmat &shp = shps[pcl_id];
-		// intergranular strain
+		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
 		shp.set_param(ini_stress, 0.817,
-			33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
-			2.2, 1.1, R, 0.1, 5.5, ig_strain);
-		// no intergranular strain
-		//shp.set_param(ini_stress, 0.817,
-		//	33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
-		//	0.0, 1.1, R, 0.1, 5.5, ig_strain);
-		//shp.set_integration_step_ratio(0.5);
+			33.1, 4.0e9, 0.27,
+			0.677, 1.054, 1.212,
+			0.14, 2.5);
 		mms[pcl_id] = &shp;
 	}
-
+	
 	// rigid cap
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
@@ -109,14 +121,14 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(500);
+	//out_cpb.set_interval_num(500);
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(0.5);
-	//step.set_step_time(1.0e-4);
+	//step.set_step_time(0.5);
+	step.set_step_time(1.0e-4);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(4);
+	//step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
