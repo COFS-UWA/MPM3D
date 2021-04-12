@@ -5,8 +5,22 @@
 
 namespace MatModel
 {
+	SandHypoplasticityWrapper::SandHypoplasticityWrapper() :
+		MaterialModel(sand_hypoplasticity_wrapper_integration_function,
+			"SandHypoplasticityWrapper")
+	{
+		dee11 = 0.0;
+		dee22 = 0.0;
+		dee33 = 0.0;
+		dee12 = 0.0;
+		dee23 = 0.0;
+		dee31 = 0.0;
+	}
+
 	SandHypoplasticityWrapper::SandHypoplasticityWrapper(
-		const SandHypoplasticityWrapper& other)
+		const SandHypoplasticityWrapper& other) :
+		MaterialModel(sand_hypoplasticity_wrapper_integration_function,
+			"SandHypoplasticityWrapper")
 	{
 		const auto& o_glb = other.glb;
 		glb.set_param(o_glb.phi, o_glb.hs, o_glb.n,
@@ -22,6 +36,12 @@ namespace MatModel
 		mat.stress[5] = o_mat.stress[5];
 		mat.e = o_mat.e;
 		mat.substp_size = o_mat.substp_size;
+		dee11 = 0.0;
+		dee22 = 0.0;
+		dee33 = 0.0;
+		dee12 = 0.0;
+		dee23 = 0.0;
+		dee31 = 0.0;
 	}
 
 	void SandHypoplasticityWrapper::set_param(
@@ -32,7 +52,7 @@ namespace MatModel
 		__Float_Type__ ei0, __Float_Type__ ec0, __Float_Type__ ed0,
 		__Float_Type__ alpha, __Float_Type__ beta)
 	{
-		glb.set_param(phi, hs, n, alpha, beta, ei0, ec0, ed0, 1000.0, 0.48);
+		glb.set_param(phi, hs, n, alpha, beta, ei0, ec0, ed0, 1000.0, 0.3);
 		mat.stress[0] = ini_stress[0];
 		mat.stress[1] = ini_stress[1];
 		mat.stress[2] = ini_stress[2];
@@ -46,7 +66,27 @@ namespace MatModel
 	int sand_hypoplasticity_wrapper_integration_function(MaterialModel* _self, double dstrain[6])
 	{
 		SandHypoplasticityWrapper& self = *static_cast<SandHypoplasticityWrapper*>(_self);
+		const double ori_stress[6] = {
+			self.mat.s11,
+			self.mat.s22,
+			self.mat.s33,
+			self.mat.s12,
+			self.mat.s23,
+			self.mat.s31
+		};
 		self.status_code = integrate_sand_hypoplasticity(self.glb, self.mat, dstrain, ffmat(1.0));
+		self.ds11 = self.mat.s11 - ori_stress[0];
+		self.ds22 = self.mat.s22 - ori_stress[1];
+		self.ds33 = self.mat.s33 - ori_stress[2];
+		self.ds12 = self.mat.s12 - ori_stress[3];
+		self.ds23 = self.mat.s23 - ori_stress[4];
+		self.ds31 = self.mat.s31 - ori_stress[5];
+		self.dep11 = dstrain[0];
+		self.dep22 = dstrain[1];
+		self.dep33 = dstrain[2];
+		self.dep12 = dstrain[3];
+		self.dep23 = dstrain[4];
+		self.dep31 = dstrain[5];
 		return self.status_code;
 	}
 }

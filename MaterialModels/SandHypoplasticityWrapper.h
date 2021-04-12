@@ -18,9 +18,7 @@ namespace MatModel
 		int32_t status_code;
 
 	public:
-		SandHypoplasticityWrapper() : MaterialModel(
-			sand_hypoplasticity_wrapper_integration_function,
-			"SandHypoplasticityWrapper") {}
+		SandHypoplasticityWrapper();
 		SandHypoplasticityWrapper(const SandHypoplasticityWrapper& other);
 		~SandHypoplasticityWrapper() {}
 		void set_substep_size(__Float_Type__ substp_size) noexcept

@@ -336,7 +336,6 @@ int32_t integrate_sand_hypoplasticity(
 			
 		if (error2 < error_tol * error_tol) // accept substep
 		{
-			substp_size *= min(substp_size_adjust_ratio, ffmat(2.0));
 			total_size += act_substp_size;
 			mat_dat.stress[0] = stress3[0];
 			mat_dat.stress[1] = stress3[1];
@@ -345,6 +344,8 @@ int32_t integrate_sand_hypoplasticity(
 			mat_dat.stress[4] = stress3[4];
 			mat_dat.stress[5] = stress3[5];
 			mat_dat.e = e3;
+			substp_size *= min(substp_size_adjust_ratio, ffmat(2.0));
+			substp_size = min(substp_size, ffmat(1.0));
 			continue;
 		}
 			
