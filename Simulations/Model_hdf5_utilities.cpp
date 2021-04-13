@@ -180,8 +180,7 @@ namespace Model_hdf5_utilities
 	int load_material_model_container_from_hdf5_file(
 		MatModel::MatModelContainer& mc,
 		ResultFile_hdf5& rf,
-		hid_t mc_grp_id
-		)
+		hid_t mc_grp_id)
 	{
 		if (mc_grp_id < 0)
 			return -1;
@@ -347,9 +346,9 @@ namespace Model_hdf5_utilities
 		}
 		
 		// Sand Hypoplasticity
-		if (rf.has_dataset(mc_grp_id, "SandHypoplasticityWrapper"))
+		if (rf.has_dataset(mc_grp_id, "SandHypoplasticity"))
 		{
-			rf.read_attribute(mc_grp_id, "SandHypoplasticityWrapper_num", mm_num);
+			rf.read_attribute(mc_grp_id, "SandHypoplasticity_num", mm_num);
 
 			SandHypoplasticityStateData* mm_data
 				= new SandHypoplasticityStateData[mm_num];

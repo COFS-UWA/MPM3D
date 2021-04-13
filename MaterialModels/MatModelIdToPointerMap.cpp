@@ -107,5 +107,21 @@ namespace MatModel
 				throw std::exception(exception_msg);
 			}
 		}
+
+		// Sandhypoplasticity
+		for (MatModel::SandHypoplasticityWrapper *iter = mc.first_SandHypoplasticityWrapper();
+			mc.is_not_end_SandHypoplasticityWrapper(iter);
+			iter = mc.next_SandHypoplasticityWrapper(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: SandHypoplasticity model %zu already exists.",
+					iter->get_id());
+				throw std::exception(exception_msg);
+			}
+		}
 	}
 }
