@@ -82,7 +82,7 @@ void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv)
 	//	mms[pcl_id] = &tc;
 	//}
 	// Sand hypoplasticity
-	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
 	MatModel::SandHypoplasticityWrapper *shps = model.add_SandHypoplasticityWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -97,7 +97,7 @@ void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv)
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0);
-	model.set_contact_param(60000.0, 60000.0, 0.1);
+	model.set_contact_param(200000.0, 200000.0, 0.1);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);

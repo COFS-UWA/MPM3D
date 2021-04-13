@@ -36,37 +36,37 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	//	le.set_param(1000.0, 0.3);
 	//	mms[pcl_id] = &le;
 	//}
-	// sand hypoplasticity
-	MatModel::SandHypoplasticityByUmat* shps = model.add_SandHypoplasticityByUmat(pcl_num);
-	const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
-	constexpr double R = 1.0e-4;
-	const double ig_strain[6] = { -R / sqrt(3.0), -R / sqrt(3.0), -R / sqrt(3.0), 0.0, 0.0, 0.0 };
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		MatModel::SandHypoplasticityByUmat &shp = shps[pcl_id];
-		// intergranular strain
-		//shp.set_param(ini_stress, 0.817,
-		//	33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
-		//	2.2, 1.1, R, 0.1, 5.5, ig_strain);
-		// no intergranular strain
-		shp.set_param(ini_stress, 0.817,
-			33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
-			0.0, 1.1, R, 0.1, 5.5, ig_strain);
-		shp.set_integration_step_ratio(0.5);
-		mms[pcl_id] = &shp;
-	}
-	// sand hypoplasticity
+	//// sand hypoplasticity
+	//MatModel::SandHypoplasticityByUmat* shps = model.add_SandHypoplasticityByUmat(pcl_num);
 	//const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
-	//MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	//constexpr double R = 1.0e-4;
+	//const double ig_strain[6] = { -R / sqrt(3.0), -R / sqrt(3.0), -R / sqrt(3.0), 0.0, 0.0, 0.0 };
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
+	//	MatModel::SandHypoplasticityByUmat &shp = shps[pcl_id];
+	//	// intergranular strain
+	//	//shp.set_param(ini_stress, 0.817,
+	//	//	33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
+	//	//	2.2, 1.1, R, 0.1, 5.5, ig_strain);
+	//	// no intergranular strain
 	//	shp.set_param(ini_stress, 0.817,
-	//		33.1, 4.0e9, 0.27,
-	//		0.677, 1.054, 1.212,
-	//		0.14, 2.5);
+	//		33.1, 4.0e9, 0.27, 0.677, 1.054, 1.212, 0.14, 2.5,
+	//		0.0, 1.1, R, 0.1, 5.5, ig_strain);
+	//	shp.set_integration_step_ratio(0.5);
 	//	mms[pcl_id] = &shp;
 	//}
+	// sand hypoplasticity
+	const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
+	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
+		shp.set_param(ini_stress, 0.817,
+			33.1, 4.0e9, 0.27,
+			0.677, 1.054, 1.212,
+			0.14, 2.5);
+		mms[pcl_id] = &shp;
+	}
 	
 	// rigid cap
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
