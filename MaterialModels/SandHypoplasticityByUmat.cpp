@@ -31,6 +31,7 @@ namespace MatModel
 			return 0;
 
 		umat_dll = LoadLibrary(dll_path);
+		DWORD dwError = GetLastError();
 		if (!umat_dll)
 			throw std::exception("SandHypoplasticityByUmat::"
 				"can't load library\n");

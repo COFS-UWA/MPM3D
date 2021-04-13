@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_spudcan_coarse(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_result(argc, argv);
 
-	MatModel::MaterialModelInitializer::init();
+	//MatModel::MaterialModelInitializer::init();
 	//test_sand_hypoplasticity_integration();
 	//test_sand_hypoplasticity_Herleand_Gudehus_1999();
 	//test_sand_hypoplasticity_Wichtmann_2019();
@@ -124,9 +124,9 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 
-	test_t3d_me_mt_spudcan_sand_hypo_model(argc, argv);
-	test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
-	//Stest_t3d_me_mt_spudcan_sand_hypo_result(argc, argv);
+	//test_t3d_me_mt_spudcan_sand_hypo_model(argc, argv);
+	//test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
+	test_t3d_me_mt_spudcan_sand_hypo_result(argc, argv);
 	
 	system("pause");
 	return 0;

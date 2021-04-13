@@ -61,7 +61,7 @@ void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv)
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	teh_mesh.clear();
-	model.init_pcls(pcl_generator, 10.0);
+	model.init_pcls(pcl_generator, 8.0);
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
@@ -79,7 +79,7 @@ void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv)
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		MatModel::Tresca &tc = tcs[pcl_id];
-		tc.set_param(4000.0, 0.3, 5.0);
+		tc.set_param(4000.0, 0.3, 10.0);
 		mms[pcl_id] = &tc;
 	}
 	// Sand hypoplasticity
@@ -99,7 +99,7 @@ void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv)
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0);
-	model.set_contact_param(20000.0, 20000.0, 0.1);
+	model.set_contact_param(60000.0, 60000.0, 0.1);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
@@ -194,13 +194,13 @@ void test_t3d_me_mt_spudcan_sand_hypo_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
 	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
-	app.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//app.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 800);
-	app.set_view_dir(0.0f, 10.0f);
-	app.set_light_dir(0.0f, 10.0f);
-	app.set_view_dist_scale(0.4);
+	app.set_view_dir(-90.0f, 30.0f);
+	app.set_light_dir(-90.0f, 10.0f);
+	app.set_view_dist_scale(0.7);
 	app.set_display_bg_mesh(false);
 	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-20.0, 0.0);
