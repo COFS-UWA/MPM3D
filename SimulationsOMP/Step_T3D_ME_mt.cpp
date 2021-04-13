@@ -1175,8 +1175,6 @@ int substep_func_omp_T3D_ME_mt(
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
 		pcl_mm.integrate(e_de_tmp.de);
 		dstress = pcl_mm.get_dstress();
-		if (dstress[1] == 100.0)
-			size_t efe = 0;
 
 		Stress& p_s = pcl_stress0[p_id];
 		p_s.s11 += dstress[0];

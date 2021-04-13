@@ -83,7 +83,11 @@ target_include_directories(
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
     ${HDF5_INCLUDE_DIR}
+<<<<<<< HEAD
 	${TBB_INCLUDE_DIR}
+=======
+    ${TBB_INCLUDE_DIR}
+>>>>>>> 012e995fcd67451d8607327eb2ee9b3d588a1610
     )
 
 find_package(TBB CONFIG REQUIRED)

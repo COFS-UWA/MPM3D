@@ -183,7 +183,11 @@ target_include_directories(
     ${EIGEN_INCLUDE_DIR}
     ${HDF5_INCLUDE_DIR}
     ${FREETYPE_INCLUDE_DIR}
+<<<<<<< HEAD
 	${TBB_INCLUDE_DIR}
+=======
+    ${TBB_INCLUDE_DIR}
+>>>>>>> 012e995fcd67451d8607327eb2ee9b3d588a1610
     )
 
 target_link_libraries(

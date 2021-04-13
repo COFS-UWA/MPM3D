@@ -1,36 +1,35 @@
 #include "MaterialModels_pcp.h"
 
+#include <stdint.h>
 #include <cmath>
 
 #include "SymMatEigen.h"
+#include "MatModelConstants.h"
 
-#define DTol (1.0e-10)
-#define PI (3.14159265359)
+#define DTol (ffmat(1.0e-10))
 
 #define cross_prod(a, b, c) \
 	c[0] = a[1] * b[2] - a[2] * b[1]; \
 	c[1] = a[2] * b[0] - a[0] * b[2]; \
 	c[2] = a[0] * b[1] - a[1] * b[0]
 
-#define swap_ll(a, b)    \
-		(a) = (a) ^ (b); \
-		(b) = (a) ^ (b); \
-		(a) = (a) ^ (b)
+#define swap(a, b, tmp) \
+	(tmp) = (a), (a) = (b), (b) = (tmp)
 
-static void cal_evec(const double mat_va[6], double ev, double evec[3])
+static void cal_evec(const __Float_Type__ mat_va[6], __Float_Type__ ev, __Float_Type__ evec[3])
 {
-	double r0[3] = { mat_va[0] - ev, mat_va[3], mat_va[5] };
-	double r1[3] = { mat_va[3], mat_va[1] - ev, mat_va[4] };
-	double r2[3] = { mat_va[5], mat_va[4], mat_va[2] - ev };
-	double r0xr1[3], r1xr2[3], r2xr0[3];
+	const __Float_Type__ r0[3] = { mat_va[0] - ev, mat_va[3], mat_va[5] };
+	const __Float_Type__ r1[3] = { mat_va[3], mat_va[1] - ev, mat_va[4] };
+	const __Float_Type__ r2[3] = { mat_va[5], mat_va[4], mat_va[2] - ev };
+	__Float_Type__ r0xr1[3], r1xr2[3], r2xr0[3];
 	cross_prod(r0, r1, r0xr1);
-	double r0xr1_len2 = r0xr1[0] * r0xr1[0] + r0xr1[1] * r0xr1[1] + r0xr1[2] * r0xr1[2];
+	const __Float_Type__ r0xr1_len2 = r0xr1[0] * r0xr1[0] + r0xr1[1] * r0xr1[1] + r0xr1[2] * r0xr1[2];
 	cross_prod(r1, r2, r1xr2);
-	double r1xr2_len2 = r1xr2[0] * r1xr2[0] + r1xr2[1] * r1xr2[1] + r1xr2[2] * r1xr2[2];
+	const __Float_Type__ r1xr2_len2 = r1xr2[0] * r1xr2[0] + r1xr2[1] * r1xr2[1] + r1xr2[2] * r1xr2[2];
 	cross_prod(r2, r0, r2xr0);
-	double r2xr0_len2 = r2xr0[0] * r2xr0[0] + r2xr0[1] * r2xr0[1] + r2xr0[2] * r2xr0[2];
-	double max_len2 = r0xr1_len2;
-	double* max_vec = r0xr1;
+	const __Float_Type__ r2xr0_len2 = r2xr0[0] * r2xr0[0] + r2xr0[1] * r2xr0[1] + r2xr0[2] * r2xr0[2];
+	__Float_Type__ max_len2 = r0xr1_len2;
+	const __Float_Type__* max_vec = r0xr1;
 	if (r1xr2_len2 > max_len2)
 	{
 		max_len2 = r1xr2_len2;
@@ -41,35 +40,35 @@ static void cal_evec(const double mat_va[6], double ev, double evec[3])
 		max_len2 = r2xr0_len2;
 		max_vec = r2xr0;
 	}
-	max_len2 = sqrt(max_len2);
+	max_len2 = (__Float_Type__)sqrt(max_len2);
 	evec[0] = max_vec[0] / max_len2;
 	evec[1] = max_vec[1] / max_len2;
 	evec[2] = max_vec[2] / max_len2;
 }
 
-static void cal_ortho_vec(const double vec0[3], double vec1[3])
+static void cal_ortho_vec(const __Float_Type__ vec0[3], __Float_Type__ vec1[3])
 {
-	double inv_len;
+	__Float_Type__ inv_len;
 	if (abs(vec0[0]) > abs(vec0[1]))
 	{
-		inv_len = 1.0 / sqrt(vec0[0] * vec0[0] + vec0[2] * vec0[2]);
+		inv_len = ffmat(1.0) / (__Float_Type__)sqrt(vec0[0] * vec0[0] + vec0[2] * vec0[2]);
 		vec1[0] = -vec0[2] * inv_len;
-		vec1[1] = 0.0;
+		vec1[1] = ffmat(0.0);
 		vec1[2] = vec0[0] * inv_len;
 	}
 	else
 	{
-		inv_len = 1.0 / sqrt(vec0[1] * vec0[1] + vec0[2] * vec0[2]);
-		vec1[0] = 0.0;
+		inv_len = ffmat(1.0) / (__Float_Type__)sqrt(vec0[1] * vec0[1] + vec0[2] * vec0[2]);
+		vec1[0] = ffmat(0.0);
 		vec1[1] = vec0[2] * inv_len;
 		vec1[2] = -vec0[1] * inv_len;
 	}
 }
 
-static const double identity_mat[3][3] = {
-	1.0, 0.0, 0.0,
-	0.0, 1.0, 0.0,
-	0.0, 0.0, 1.0
+static const __Float_Type__ identity_mat[3][3] = {
+	ffmat(1.0), ffmat(0.0), ffmat(0.0),
+	ffmat(0.0), ffmat(1.0), ffmat(0.0),
+	ffmat(0.0), ffmat(0.0), ffmat(1.0)
 };
 
 // mat is sysmetric
@@ -79,12 +78,81 @@ static const double identity_mat[3][3] = {
 // mat_va[3] = mat[0][1]
 // mat_va[4] = mat[1][2]
 // mat_va[5] = mat[2][0]
-void cal_sym_mat_eigen(const double mat_va[6], double ev[3], double evecs[3][3])
+// return: ev[0] > ev[1] > ev[2]
+void cal_sym_mat_eigen(const __Float_Type__ mat_va[6], __Float_Type__ ev[3])
 {
-#define ev_ll(id) (((long long *)(ev))[(id)])
-	double tmp = mat_va[3] * mat_va[3]
-		+ mat_va[4] * mat_va[4]
-		+ mat_va[5] * mat_va[5];
+	const __Float_Type__ tmp = mat_va[3] * mat_va[3]
+		+ mat_va[4] * mat_va[4] + mat_va[5] * mat_va[5];
+	if (tmp < DTol * DTol)
+	{
+		// eigen values
+		ev[0] = mat_va[0];
+		ev[1] = mat_va[1];
+		ev[2] = mat_va[2];
+	}
+	else
+	{
+		// cal eigenvalues
+		const __Float_Type__ p = (mat_va[0] + mat_va[1] + mat_va[2]) / ffmat(3.0);
+		__Float_Type__ matb_va[6];
+		matb_va[0] = mat_va[0] - p;
+		matb_va[1] = mat_va[1] - p;
+		matb_va[2] = mat_va[2] - p;
+		__Float_Type__ q = (__Float_Type__)sqrt(
+			 (matb_va[0] * matb_va[0]
+			+ matb_va[1] * matb_va[1]
+			+ matb_va[2] * matb_va[2]
+			+ tmp * ffmat(2.0)) / ffmat(6.0));
+		matb_va[0] /= q;
+		matb_va[1] /= q;
+		matb_va[2] /= q;
+		matb_va[3] = mat_va[3] / q;
+		matb_va[4] = mat_va[4] / q;
+		matb_va[5] = mat_va[5] / q;
+		const __Float_Type__ detb = (
+			  matb_va[0] * matb_va[1] * matb_va[2]
+			+ matb_va[3] * matb_va[4] * matb_va[5] * ffmat(2.0)
+			- matb_va[0] * matb_va[4] * matb_va[4]
+			- matb_va[1] * matb_va[5] * matb_va[5]
+			- matb_va[2] * matb_va[3] * matb_va[3]) * ffmat(0.5);
+		__Float_Type__ phi;
+		if (detb <= ffmat(-1.0))
+			phi = PI / ffmat(3.0);
+		else if (detb >= ffmat(1.0))
+			phi = ffmat(0.0);
+		else
+			phi = (__Float_Type__)acos(detb) / ffmat(3.0);
+		ev[0] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi);
+		ev[1] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi + ffmat(2.0) * PI / ffmat(3.0));
+		ev[2] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi + ffmat(4.0) * PI / ffmat(3.0));
+	}
+
+	// sort eigenvalues
+	// ev[0] > ev[1] > ev[2]
+	__Float_Type__ sw_tmp;
+	if (ev[0] < ev[1])
+		swap(ev[0], ev[1], sw_tmp);
+	if (ev[0] < ev[2])
+		swap(ev[0], ev[2], sw_tmp);
+	if (ev[1] < ev[2])
+		swap(ev[1], ev[2], sw_tmp);
+}
+
+// mat is sysmetric
+// mat_va[0] = mat[0][0]
+// mat_va[1] = mat[1][1]
+// mat_va[2] = mat[2][2]
+// mat_va[3] = mat[0][1]
+// mat_va[4] = mat[1][2]
+// mat_va[5] = mat[2][0]
+// return: ev[0] > ev[1] > ev[2]
+void cal_sym_mat_eigen(
+	const __Float_Type__ mat_va[6],
+	__Float_Type__ ev[3],
+	__Float_Type__ evecs[3][3])
+{
+	const __Float_Type__ tmp = mat_va[3] * mat_va[3]
+		+ mat_va[4] * mat_va[4]	+ mat_va[5] * mat_va[5];
 	if (tmp < DTol * DTol)
 	{
 		// eigen values
@@ -93,23 +161,25 @@ void cal_sym_mat_eigen(const double mat_va[6], double ev[3], double evecs[3][3])
 		ev[2] = mat_va[2];
 		// sort eigenvalues
 		// ev[0] > ev[1] > ev[2]
-		size_t ev0_id = 0;
-		size_t ev1_id = 1;
-		size_t ev2_id = 2;
+		uint8_t ev0_id = 0;
+		uint8_t ev1_id = 1;
+		uint8_t ev2_id = 2;
+		__Float_Type__ sw_tmp_d;
+		uint8_t sw_tmp_uint8;
 		if (ev[0] < ev[1])
 		{
-			swap_ll(ev_ll(0), ev_ll(1));
-			swap_ll(ev0_id, ev1_id);
+			swap(ev[0], ev[1], sw_tmp_d);
+			swap(ev0_id, ev1_id, sw_tmp_uint8);
 		}
 		if (ev[0] < ev[2])
 		{
-			swap_ll(ev_ll(0), ev_ll(2));
-			swap_ll(ev0_id, ev2_id);
+			swap(ev[0], ev[2], sw_tmp_d);
+			swap(ev0_id, ev2_id, sw_tmp_uint8);
 		}
 		if (ev[1] < ev[2])
 		{
-			swap_ll(ev_ll(1), ev_ll(2));
-			swap_ll(ev1_id, ev2_id);
+			swap(ev[1], ev[2], sw_tmp_d);
+			swap(ev1_id, ev2_id, sw_tmp_uint8);
 		}
 		// eigen vectors are identity matrix
 		evecs[0][0] = identity_mat[0][ev0_id];
@@ -125,55 +195,63 @@ void cal_sym_mat_eigen(const double mat_va[6], double ev[3], double evecs[3][3])
 	else
 	{
 		// cal eigenvalues
-		double p = (mat_va[0] + mat_va[1] + mat_va[2]) / 3.0;
-		double matb_va[6];
+		const __Float_Type__ p = (mat_va[0] + mat_va[1] + mat_va[2]) / ffmat(3.0);
+		__Float_Type__ matb_va[6];
 		matb_va[0] = mat_va[0] - p;
 		matb_va[1] = mat_va[1] - p;
 		matb_va[2] = mat_va[2] - p;
-		double q = sqrt((matb_va[0] * matb_va[0] + matb_va[1] * matb_va[1]
-					   + matb_va[2] * matb_va[2] + 2.0 * tmp) / 6.0);
+		__Float_Type__ q = (__Float_Type__)sqrt(
+			 (matb_va[0] * matb_va[0]
+			+ matb_va[1] * matb_va[1]
+			+ matb_va[2] * matb_va[2]
+			+ tmp * ffmat(2.0)) / ffmat(6.0));
 		matb_va[0] /= q;
 		matb_va[1] /= q;
 		matb_va[2] /= q;
 		matb_va[3] = mat_va[3] / q;
 		matb_va[4] = mat_va[4] / q;
 		matb_va[5] = mat_va[5] / q;
-		double detb = (matb_va[0] * matb_va[1] * matb_va[2]
-			+ 2.0 * matb_va[3] * matb_va[4] * matb_va[5]
+		const __Float_Type__ detb = (
+			  matb_va[0] * matb_va[1] * matb_va[2]
+			+ matb_va[3] * matb_va[4] * matb_va[5] * ffmat(2.0)
 			- matb_va[0] * matb_va[4] * matb_va[4]
 			- matb_va[1] * matb_va[5] * matb_va[5]
-			- matb_va[2] * matb_va[3] * matb_va[3]) * 0.5;
-		double phi;
-		if (detb <= -1.0)
-			phi = PI / 3.0;
-		else if (detb >= 1.0)
-			phi = 0.0;
+			- matb_va[2] * matb_va[3] * matb_va[3]) * ffmat(0.5);
+		__Float_Type__ phi;
+		if (detb <= ffmat(-1.0))
+			phi = PI / ffmat(3.0);
+		else if (detb >= ffmat(1.0))
+			phi = ffmat(0.0);
 		else
-			phi = acos(detb) / 3.0;
-		ev[0] = p + 2.0 * q * cos(phi);
-		ev[1] = p + 2.0 * q * cos(phi + 2.0 * PI / 3.0);
-		ev[2] = p + 2.0 * q * cos(phi + 4.0 * PI / 3.0);
+			phi = acos(detb) / ffmat(3.0);
+		ev[0] = p + ffmat(2.0) * q * cos(phi);
+		ev[1] = p + ffmat(2.0) * q * cos(phi + ffmat(2.0) * PI / ffmat(3.0));
+		ev[2] = p + ffmat(2.0) * q * cos(phi + ffmat(4.0) * PI / ffmat(3.0));
 
 		// sort eigenvalues
 		// ev[0] > ev[1] > ev[2]
-		if (ev[0] < ev[1]) { swap_ll(ev_ll(0), ev_ll(1)); }
-		if (ev[0] < ev[2]) { swap_ll(ev_ll(0), ev_ll(2)); }
-		if (ev[1] < ev[2]) { swap_ll(ev_ll(1), ev_ll(2)); }
+		double sw_tmp_d;
+		if (ev[0] < ev[1])
+			swap(ev[0], ev[1], sw_tmp_d);
+		if (ev[0] < ev[2])
+			swap(ev[0], ev[2], sw_tmp_d);
+		if (ev[1] < ev[2])
+			swap(ev[1], ev[2], sw_tmp_d);
 
 		// cal eigen vector
-		double d_tol0 = (ev[0] - ev[2]) * 0.5 * 1.0e-10;
-		double d_tol1 = (ev[0] + ev[1] + ev[2]) * 0.333333 * 1.0e-10;
-		double d_tol = 1.0e-10;
+		const __Float_Type__ d_tol0 = (ev[0] - ev[2]) * ffmat(0.5) * DTol;
+		const __Float_Type__ d_tol1 = (ev[0] + ev[1] + ev[2]) * ffmat(0.333333) * DTol;
+		__Float_Type__ d_tol = DTol;
 		if (d_tol < d_tol0)
 			d_tol = d_tol0;
 		if (d_tol < d_tol1)
 			d_tol = d_tol1;
 
-		double evec_tmp0[3], evec_tmp1[3], evec_tmp2[3];
-		if (abs(ev[0] - ev[1]) > d_tol) // ev[0] != ev[1]
+		__Float_Type__ evec_tmp0[3], evec_tmp1[3], evec_tmp2[3];
+		if ((__Float_Type__)abs(ev[0] - ev[1]) > d_tol) // ev[0] != ev[1]
 		{
-			double diff12 = abs(ev[1] - ev[2]);
-			if (abs(ev[1] - ev[2]) > d_tol) // ev[0] != ev[1] != ev[2]
+			const __Float_Type__ diff12 = abs(ev[1] - ev[2]);
+			if ((__Float_Type__)abs(ev[1] - ev[2]) > d_tol) // ev[0] != ev[1] != ev[2]
 			{
 				cal_evec(mat_va, ev[0], evec_tmp0);
 				evecs[0][0] = evec_tmp0[0];
@@ -228,22 +306,16 @@ void cal_sym_mat_eigen(const double mat_va[6], double ev[3], double evecs[3][3])
 				ev[1] = mat_va[1];
 				ev[2] = mat_va[2];
 				// eigen vectors are identity matrix
-				evecs[0][0] = 1.0;
-				evecs[1][0] = 0.0;
-				evecs[2][0] = 0.0;
-				evecs[0][1] = 0.0;
-				evecs[1][1] = 1.0;
-				evecs[2][1] = 0.0;
-				evecs[0][2] = 0.0;
-				evecs[1][2] = 0.0;
-				evecs[2][2] = 1.0;
+				evecs[0][0] = ffmat(1.0);
+				evecs[1][0] = ffmat(0.0);
+				evecs[2][0] = ffmat(0.0);
+				evecs[0][1] = ffmat(0.0);
+				evecs[1][1] = ffmat(1.0);
+				evecs[2][1] = ffmat(0.0);
+				evecs[0][2] = ffmat(0.0);
+				evecs[1][2] = ffmat(0.0);
+				evecs[2][2] = ffmat(1.0);
 			}
 		}
 	}
-#undef ev_ll
 }
-
-#undef DTol
-#undef PI
-#undef cross_prod
-#undef swap_ll

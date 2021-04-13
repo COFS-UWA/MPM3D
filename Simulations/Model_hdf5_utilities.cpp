@@ -147,6 +147,33 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 		
+		// sand hypoplasticity
+		mm_num = mc.get_num_SandHypoplasticityWrapper();
+		if (mm_num)
+		{
+			rf.write_attribute(mc_grp_id, "SandHypoplasticity_num", mm_num);
+
+			SandHypoplasticityStateData* mm_data
+				= new SandHypoplasticityStateData[mm_num];
+			mm_id = 0;
+			for (MatModel::SandHypoplasticityWrapper *iter = mc.first_SandHypoplasticityWrapper();
+				mc.is_not_end_SandHypoplasticityWrapper(iter);
+				iter = mc.next_SandHypoplasticityWrapper(iter))
+			{
+				mm_data[mm_id].from_mm(*iter);
+				++mm_id;
+			}
+			hid_t shp_dt_id = get_sand_hypoplasticity_hdf5_dt_id();
+			rf.write_dataset(
+				mc_grp_id,
+				"SandHypoplasticity",
+				mm_num,
+				mm_data,
+				shp_dt_id);
+			H5Tclose(shp_dt_id);
+			delete[] mm_data;
+		}
+		
 		return 0;
 	}
 
@@ -319,6 +346,32 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 		
+		// Sand Hypoplasticity
+		if (rf.has_dataset(mc_grp_id, "SandHypoplasticityWrapper"))
+		{
+			rf.read_attribute(mc_grp_id, "SandHypoplasticityWrapper_num", mm_num);
+
+			SandHypoplasticityStateData* mm_data
+				= new SandHypoplasticityStateData[mm_num];
+			hid_t shp_dt_id = get_sand_hypoplasticity_hdf5_dt_id();
+			rf.read_dataset(
+				mc_grp_id,
+				"SandHypoplasticity",
+				mm_num,
+				mm_data,
+				shp_dt_id);
+			H5Tclose(shp_dt_id);
+			MatModel::SandHypoplasticityWrapper* mms
+				= mc.add_SandHypoplasticityWrapper(mm_num);
+			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
+			{
+				SandHypoplasticityStateData& mmd = mm_data[mm_id];
+				MatModel::SandHypoplasticityWrapper &mm = mms[mm_id];
+				mmd.to_mm(mm);
+			}
+			delete[] mm_data;
+		}
+
 		return 0;
 	}
 }
