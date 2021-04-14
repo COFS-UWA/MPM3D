@@ -174,6 +174,31 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 		
+		// mohr coulomb
+		mm_num = mc.get_num_MohrCoulombWrapper();
+		if (mm_num)
+		{
+			rf.write_attribute(mc_grp_id, "MohrCoulomb_num", mm_num);
+			MohrCoulombStateData* mm_data = new MohrCoulombStateData[mm_num];
+			mm_id = 0;
+			for (MatModel::MohrCoulombWrapper* iter = mc.first_MohrCoulombWrapper();
+				mc.is_not_end_MohrCoulombWrapper(iter);
+				iter = mc.next_MohrCoulombWrapper(iter))
+			{
+				mm_data[mm_id].from_mm(*iter);
+				++mm_id;
+			}
+			hid_t mc_dt_id = get_mohr_coulomb_hdf5_dt_id();
+			rf.write_dataset(
+				mc_grp_id,
+				"MohrCoulomb",
+				mm_num,
+				mm_data,
+				mc_dt_id);
+			H5Tclose(mc_dt_id);
+			delete[] mm_data;
+		}
+
 		return 0;
 	}
 
@@ -366,6 +391,31 @@ namespace Model_hdf5_utilities
 			{
 				SandHypoplasticityStateData& mmd = mm_data[mm_id];
 				MatModel::SandHypoplasticityWrapper &mm = mms[mm_id];
+				mmd.to_mm(mm);
+			}
+			delete[] mm_data;
+		}
+
+		// Mohr Coulomb
+		if (rf.has_dataset(mc_grp_id, "MohrCoulomb"))
+		{
+			rf.read_attribute(mc_grp_id, "MohrCoulomb_num", mm_num);
+
+			MohrCoulombStateData* mm_data = new MohrCoulombStateData[mm_num];
+			hid_t mc_dt_id = get_mohr_coulomb_hdf5_dt_id();
+			rf.read_dataset(
+				mc_grp_id,
+				"MohrCoulomb",
+				mm_num,
+				mm_data,
+				mc_dt_id);
+			H5Tclose(mc_dt_id);
+			MatModel::MohrCoulombWrapper* mms
+				= mc.add_MohrCoulombWrapper(mm_num);
+			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
+			{
+				MohrCoulombStateData& mmd = mm_data[mm_id];
+				MatModel::MohrCoulombWrapper& mm = mms[mm_id];
 				mmd.to_mm(mm);
 			}
 			delete[] mm_data;

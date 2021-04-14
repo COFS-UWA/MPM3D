@@ -123,5 +123,21 @@ namespace MatModel
 				throw std::exception(exception_msg);
 			}
 		}
+
+		// MohrCoulomb
+		for (MatModel::MohrCoulombWrapper* iter = mc.first_MohrCoulombWrapper();
+			mc.is_not_end_MohrCoulombWrapper(iter);
+			iter = mc.next_MohrCoulombWrapper(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: MohrCoulomb model %zu already exists.",
+					iter->get_id());
+				throw std::exception(exception_msg);
+			}
+		}
 	}
 }

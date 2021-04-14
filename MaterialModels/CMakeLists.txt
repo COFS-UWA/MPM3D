@@ -30,6 +30,9 @@ add_library(
     # Sand hypoplasticity
     sand_hypoplasticity.h sand_hypoplasticity.cpp
     SandHypoplasticityWrapper.h SandHypoplasticityWrapper.cpp
+    # MohrCoulomb
+    mohr_coulomb.h mohr_coulomb.cpp
+    MohrCoulombWrapper.h MohrCoulombWrapper.cpp
     # ModelContainer
     MatModelContainer.h MatModelContainer.cpp
     # Map from material model id to pointer
