@@ -120,7 +120,7 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 		
-		// sand hypoplasticity
+		// sand hypoplasticity by umat
 		mm_num = mc.get_num_SandHypoplasticityByUmat();
 		if (mm_num)
 		{

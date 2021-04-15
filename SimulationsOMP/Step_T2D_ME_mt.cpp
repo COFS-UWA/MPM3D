@@ -82,12 +82,15 @@ int Step_T2D_ME_mt::init_calculation()
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 	
-	K_cont = md.K_cont;
+	Kn_cont = md.Kn_cont;
+	Kt_cont = md.Kt_cont;
+	fric_ratio = md.fric_ratio;
+	pcf = md.pcm;
 	cf_tmp.reset();
-	//contact_substep_id = md.contact_substep_id;
-	//prev_contact_pos = md.prev_contact_pos;
-	//prev_contact_tan_force = md.prev_contact_tan_force;
-	//memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
+	contact_substep_id = md.contact_substep_id;
+	prev_contact_pos = md.prev_contact_pos;
+	prev_contact_tan_force = md.prev_contact_tan_force;
+	memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
 	if (md.has_rigid_rect())
 	{
 		prr = &md.get_rigid_rect();
@@ -963,14 +966,14 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 	double p_x, p_y, p_r;
 	size_t ori_p_id, e_id;
 	double dist;
-	Vector2D lnorm;// , gnorm;
+	Vector2D lnorm, gnorm;
 	Force lcont_f, gcont_f;
 	Point2D cur_cont_pos;
 	size_t* pcl_index = cur_spva.pcl_index;
 	Displacement* pcl_disp = cur_spva.pcl_disp;
 	ShapeFunc* pcl_N = cur_spva.pcl_N;
-	//PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
-	//pv_getter.cur_sorted_pcl_vars = &cur_spva;
+	PclVar_T2D_ME_mt& pv_getter = thd.pcl_var_getter;
+	pv_getter.cur_sorted_pcl_vars = &cur_spva;
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		ori_p_id = pcl_index[p_id];
@@ -982,24 +985,20 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 		if (prr->detect_collision_with_point(
 			p_x, p_y, p_r, dist, lnorm, cur_cont_pos))
 		{
-			//pv_getter.pcl_id = p_id;
-			//prr->get_global_vector(lnorm, gnorm);
-			//pcf->cal_contact_force(
-			//	substp_id,
-			//	dist,
-			//	lnorm,
-			//	cur_cont_pos,
-			//	p_r + p_r,
-			//	pv_getter,
-			//	contact_substep_id[ori_p_id],
-			//	prev_contact_pos[ori_p_id].pt,
-			//	prev_contact_tan_force[ori_p_id].vec,
-			//	lcont_f.vec
-			//);
-			//const double f_cont = K_cont * 2.0 * p_r * dist;
-			const double f_cont = K_cont * dist;
-			lcont_f.fx = f_cont * lnorm.x;
-			lcont_f.fy = f_cont * lnorm.y;
+			pv_getter.pcl_id = p_id;
+			prr->get_global_vector(lnorm, gnorm);
+			pcf->cal_contact_force(
+				substp_id,
+				dist,
+				lnorm,
+				cur_cont_pos,
+				p_r + p_r,
+				pv_getter,
+				contact_substep_id[ori_p_id],
+				prev_contact_pos[ori_p_id].pt,
+				prev_contact_tan_force[ori_p_id].vec,
+				lcont_f.vec
+			);
 			prr->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];

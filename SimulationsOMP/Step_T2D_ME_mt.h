@@ -66,9 +66,14 @@ protected:
 	double *node_de_vol;
 
 	// rigid object
-	double K_cont;
+	size_t* contact_substep_id; // ori_pcl_num
+	Position* prev_contact_pos; // ori_pcl_num
+	Force* prev_contact_tan_force; // ori_pcl_num
+
+	double Kn_cont, Kt_cont, fric_ratio;
 	RigidRect* prr;
-	
+	ContactModel2D* pcf;
+
 	// thread-wise data
 	union ThreadData
 	{
@@ -76,9 +81,10 @@ protected:
 		{
 			size_t sorted_pcl_var_id;
 			size_t sorted_pcl_in_elem_id;
+			PclVar_T2D_ME_mt pcl_var_getter;
 		};
-		char padding[Cache_Alignment];
-		ThreadData() {}
+		char padding[Cache_Alignment * 2];
+		ThreadData() : pcl_var_getter() {}
 		~ThreadData() {}
 	};
 	ThreadData* thread_datas;

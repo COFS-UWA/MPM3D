@@ -61,6 +61,10 @@ namespace Step_T2D_ME_Task
 		node_am = md.node_am;
 		node_de_vol = md.node_de_vol;
 
+		contact_substep_id = md.contact_substep_id;
+		prev_contact_pos = md.prev_contact_pos;
+		prev_contact_tan_force = md.prev_contact_tan_force;
+
 #ifdef _DEBUG
 		ori_pcl_num = md.ori_pcl_num;
 		elem_num = md.elem_num;
@@ -298,7 +302,7 @@ namespace Step_T2D_ME_Task
 		assert(p_id1 <= valid_pcl_num);
 
 		double dist;
-		Vector2D lnorm;
+		Vector2D lnorm, gnorm;
 		Force lcont_f, gcont_f;
 		Point2D cur_cont_pos;
 		Force2D rcf;
@@ -314,9 +318,19 @@ namespace Step_T2D_ME_Task
 			if (prr->detect_collision_with_point(
 				p_x, p_y, p_r, dist, lnorm, cur_cont_pos))
 			{
-				const double f_cont = K_cont * dist;
-				lcont_f.fx = f_cont * lnorm.x;
-				lcont_f.fy = f_cont * lnorm.y;
+				prr->get_global_vector(lnorm, gnorm);
+				pcf->cal_contact_force(
+					cd.substep_id,
+					dist,
+					lnorm,
+					cur_cont_pos,
+					p_r + p_r,
+					cd.pcl_var_getter,
+					cd.contact_substep_id[ori_p_id],
+					cd.prev_contact_pos[ori_p_id].pt,
+					cd.prev_contact_tan_force[ori_p_id].vec,
+					lcont_f.vec
+				);
 				prr->get_global_vector(lcont_f.vec, gcont_f.vec);
 				// apply contact force to mesh
 				const ShapeFunc& p_N = pcl_N[p_id];

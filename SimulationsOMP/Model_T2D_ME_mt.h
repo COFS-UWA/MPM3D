@@ -9,6 +9,11 @@
 #include "MatModelContainer.h"
 #include "ParticleGenerator2D.hpp"
 #include "TriangleMesh.h"
+#include "RigidObject/ContactModel2D.h"
+#include "RigidObject/SmoothContact2D.h"
+#include "RigidObject/FrictionalContact2D.h"
+#include "RigidObject/StickyContact2D.h"
+#include "RigidObject/RoughContact2D.h"
 #include "RigidBody/RigidRect.h"
 #include "RigidObject/Force2D.h"
 
@@ -36,6 +41,8 @@ namespace Model_T2D_ME_mt_hdf5_utilities
 	int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
+
+class PclVar_T2D_ME_mt;
 
 struct Model_T2D_ME_mt : public Model,
 	public MatModel::MatModelContainer
@@ -184,6 +191,7 @@ public:
 	inline const ElemNodeIndex* get_elem_node_index() const noexcept { return elem_node_id; }
 	inline MatModel::MaterialModel **get_mat_models() noexcept { return pcl_mat_model; }
 	Rect get_mesh_bbox();
+	Velocity* get_ini_pcl_v() noexcept { return sorted_pcl_var_arrays[0].pcl_v; }
 
 	inline const NodeHasVBC *get_has_vbcs() const noexcept { return node_has_vbc; }
 
@@ -318,25 +326,61 @@ public:
 	}
 
 protected: // rigid object contact
-	double K_cont;
+	size_t* contact_substep_id; // ori_pcl_num
+	Position* prev_contact_pos; // ori_pcl_num
+	Force* prev_contact_tan_force; // ori_pcl_num
+
+	char* contact_mem;
+	void clear_contact_mem();
+	void alloc_contact_mem(size_t num);
+
 	// rigid rect
 	bool rigid_rect_is_valid;
 	RigidRect rigid_rect;
 
+	// ad hoc design for output
+	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
+	ContactModel2D* pcm;
+	SmoothContact2D smooth_contact;
+	FrictionalContact2D fric_contact;
+	StickyContact2D sticky_contact;
+	RoughContact2D rough_contact;
+
 public:
 	inline bool has_rigid_rect() const noexcept { return rigid_rect_is_valid; }
 	inline RigidRect& get_rigid_rect() { return rigid_rect; }
-	inline double get_Kn_cont() const noexcept { return K_cont; }
-	inline void init_rigid_rect(double _K_cont,
-		double x, double y, double hx, double hy, double density = 1.0)
+	inline double get_Kn_cont() const noexcept { return Kn_cont; }
+	inline double get_Kt_cont() const noexcept { return Kt_cont; }
+	inline double get_fric_ratio() const noexcept { return fric_ratio; }
+	inline void init_rigid_rect(double x, double y, double hx, double hy, double density)
 	{
 		rigid_rect_is_valid = true;
-		K_cont = _K_cont;
 		rigid_rect.init(x, y, hx, hy, density);
 	}
-	inline void set_rigid_rect_velocity(double vx, double vy, double v_ang)
+	inline void set_rigid_rect_ext_force(double fx, double fy)
 	{
-		rigid_rect.set_v_bc(vx, vy, v_ang);
+		rigid_rect.add_fx_external(fx);
+		rigid_rect.add_fy_external(fy);
+	}
+	inline void set_rigid_rect_velocity(double vx, double vy, double v_ang)
+	{ rigid_rect.set_v_bc(vx, vy, v_ang); }
+	// for contact model
+	inline void set_contact_param(
+		double _Kn_cont,
+		double _Kt_cont,
+		double _fric_ratio,
+		double _shear_strength)
+	{
+		Kn_cont = _Kn_cont;
+		Kt_cont = _Kt_cont;
+		fric_ratio = _fric_ratio;
+		shear_strength = _shear_strength;
+		smooth_contact.set_Kn_cont(_Kn_cont);
+		fric_contact.set_K_cont(_Kn_cont, _Kt_cont);
+		fric_contact.set_friction_ratio(_fric_ratio);
+		sticky_contact.set_K_cont(_Kn_cont, _Kt_cont);
+		sticky_contact.set_shear_strength(shear_strength);
+		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 	}
 
 	friend class Model_T2D_ME_mt_hdf5_utilities::ParticleData;
@@ -351,6 +395,136 @@ public:
 	friend int Model_T2D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_ME_mt_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend class PclVar_T2D_ME_mt;
+};
+
+#include "ParticleVariablesGetter.h"
+
+class PclVar_T2D_ME_mt : public ParticleVariablesGetter
+{
+public:
+	Model_T2D_ME_mt* pmodel;
+	Model_T2D_ME_mt::SortedPclVarArrays* cur_sorted_pcl_vars;
+	size_t pcl_id;
+
+	size_t get_index() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_index[pcl_id]; }
+	double get_m() const noexcept override
+	{ return pmodel->pcl_m[cur_sorted_pcl_vars->pcl_index[pcl_id]]; }
+	double get_bfx() const noexcept override
+	{
+		return pmodel->pcl_bf[cur_sorted_pcl_vars->pcl_index[pcl_id]].fx;
+	}
+	double get_bfy() const noexcept override
+	{
+		return pmodel->pcl_bf[cur_sorted_pcl_vars->pcl_index[pcl_id]].fy;
+	}
+	double get_tx() const noexcept override
+	{
+		return pmodel->pcl_t[cur_sorted_pcl_vars->pcl_index[pcl_id]].fx;
+	}
+	double get_ty() const noexcept override
+	{
+		return pmodel->pcl_t[cur_sorted_pcl_vars->pcl_index[pcl_id]].fy;
+	}
+	double get_x() const noexcept override
+	{
+		return pmodel->pcl_pos[cur_sorted_pcl_vars->pcl_index[pcl_id]].x;
+	}
+	double get_y() const noexcept override
+	{
+		return pmodel->pcl_pos[cur_sorted_pcl_vars->pcl_index[pcl_id]].y;
+	}
+	double get_vol() const noexcept override
+	{
+		return pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]];
+	}
+	double get_square_r() const noexcept override
+	{
+		double p_vol = pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]];
+		return 0.5 * pow(p_vol, 1.0 / 3.0);
+	}
+	double get_circle_r() const noexcept override
+	{
+		double p_vol = pmodel->pcl_vol[cur_sorted_pcl_vars->pcl_index[pcl_id]];
+		return pow(0.75 / 3.14159265359 * p_vol, 1.0 / 3.0);
+	}
+	MatModel::MaterialModel* get_mat_model() const noexcept override
+	{
+		return pmodel->pcl_mat_model[cur_sorted_pcl_vars->pcl_index[pcl_id]];
+	}
+	double get_density() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_density[pcl_id];
+	}
+	double get_vx() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_v[pcl_id].vx;
+	}
+	double get_vy() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_v[pcl_id].vy;
+	}
+	double get_ux() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_disp[pcl_id].ux;
+	}
+	double get_uy() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_disp[pcl_id].uy;
+	}
+	double get_s11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_stress[pcl_id].s11;
+	}
+	double get_s22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_stress[pcl_id].s22;
+	}
+	double get_s12() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_stress[pcl_id].s12;
+	}
+	double get_e11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_strain[pcl_id].e11;
+	}
+	double get_e22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_strain[pcl_id].e22;
+	}
+	double get_e12() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_strain[pcl_id].e12;
+	}
+	double get_ee11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e11;
+	}
+	double get_ee22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e22;
+	}
+	double get_ee12() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e12;
+	}
+	double get_pe11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e11;
+	}
+	double get_pe22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e22;
+	}
+	double get_pe12() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e12; }
+	double get_N1() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_N[pcl_id].N1; }
+	double get_N2() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_N[pcl_id].N2; }
+	double get_N3() const noexcept override
+	{ return cur_sorted_pcl_vars->pcl_N[pcl_id].N3; }
 };
 
 #endif
