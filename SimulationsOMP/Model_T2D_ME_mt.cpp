@@ -23,6 +23,7 @@ Model_T2D_ME_mt::Model_T2D_ME_mt() :
 	pcm(&smooth_contact)
 	//pcm(&rough_contact)
 	//pcm(&fric_contact)
+	//pcm(&sticky_contact)
 	{}
 
 Model_T2D_ME_mt::~Model_T2D_ME_mt()
@@ -322,6 +323,8 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Strain) * num;
 
 	pcl_mat_model = new MatModel::MaterialModel*[num];
+
+	alloc_contact_mem(pcl_num);
 }
 
 void Model_T2D_ME_mt::alloc_pcls(
@@ -590,17 +593,17 @@ void Model_T2D_ME_mt::clear_contact_mem()
 	}
 }
 
-void Model_T2D_ME_mt::alloc_contact_mem(size_t num)
+void Model_T2D_ME_mt::alloc_contact_mem(size_t pcl_num)
 {
 	clear_contact_mem();
 
 	contact_mem = new char[(sizeof(size_t)
-		+ sizeof(Position) + sizeof(Force)) * num];
+		+ sizeof(Position) + sizeof(Force)) * pcl_num];
 
 	char* cur_mem = contact_mem;
 	contact_substep_id = (size_t*)cur_mem;
-	cur_mem += sizeof(size_t) * num;
+	cur_mem += sizeof(size_t) * pcl_num;
 	prev_contact_pos = (Position*)cur_mem;
-	cur_mem += sizeof(Position) * num;
+	cur_mem += sizeof(Position) * pcl_num;
 	prev_contact_tan_force = (Force*)cur_mem;
 }

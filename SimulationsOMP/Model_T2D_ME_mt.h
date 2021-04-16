@@ -332,7 +332,7 @@ protected: // rigid object contact
 
 	char* contact_mem;
 	void clear_contact_mem();
-	void alloc_contact_mem(size_t num);
+	void alloc_contact_mem(size_t pcl_num);
 
 	// rigid rect
 	bool rigid_rect_is_valid;
