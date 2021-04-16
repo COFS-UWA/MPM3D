@@ -997,8 +997,7 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 				contact_substep_id[ori_p_id],
 				prev_contact_pos[ori_p_id].pt,
 				prev_contact_tan_force[ori_p_id].vec,
-				lcont_f.vec
-			);
+				lcont_f.vec);
 			prr->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];

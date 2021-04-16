@@ -364,6 +364,8 @@ public:
 	}
 	inline void set_rigid_rect_velocity(double vx, double vy, double v_ang)
 	{ rigid_rect.set_v_bc(vx, vy, v_ang); }
+	inline void set_rigid_rect_ini_velocity(double vx, double vy, double v_ang)
+	{ rigid_rect.set_ini_v(vx, vy, v_ang); }
 	// for contact model
 	inline void set_contact_param(
 		double _Kn_cont,
