@@ -6,6 +6,11 @@
 
 struct SandHypoplasticityGlobal;
 struct SandHypoplasticity;
+
+// positive num : iteration number
+// 0 : in tensile state
+// -1 : substep size too small
+// -3 : too many substeps
 int32_t integrate_sand_hypoplasticity(
 	const SandHypoplasticityGlobal &glb_dat,
 	SandHypoplasticity &mat_dat,

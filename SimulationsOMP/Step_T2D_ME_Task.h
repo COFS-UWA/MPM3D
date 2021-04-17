@@ -60,6 +60,10 @@ namespace Step_T2D_ME_Task
 		double* node_am;
 		double* node_de_vol;
 		
+		size_t* contact_substep_id;
+		Model_T2D_ME_mt::Position* prev_contact_pos;
+		Model_T2D_ME_mt::Force* prev_contact_tan_force;
+
 #ifdef _DEBUG
 		size_t elem_num;
 		size_t node_num;
@@ -72,11 +76,14 @@ namespace Step_T2D_ME_Task
 		SortTriMeshNodeMem node_sort_mem;
 		
 		// data changed during computation
+		size_t substep_id;
 		double dt;
 		size_t sorted_pcl_var_id;
 		size_t prev_valid_pcl_num;
 		size_t valid_pcl_num;
 		size_t valid_elem_num;
+
+		ParticleVariablesGetter pcl_var_getter;
 
 		void set_model(Model_T2D_ME_mt& md) noexcept;
 	};
@@ -199,7 +206,8 @@ namespace Step_T2D_ME_Task
 
 		CalData &cd;
 		RigidRect *prr;
-		double K_cont;
+		ContactModel2D* pcf;
+		double Kn_cont, Kt_cont, fric_ratio;
 		const Position *pcl_pos;
 		const double *pcl_vol;
 		Force* elem_node_force;
@@ -216,7 +224,9 @@ namespace Step_T2D_ME_Task
 		inline void init(Model_T2D_ME_mt &md) noexcept
 		{
 			prr = &md.get_rigid_rect();
-			K_cont = md.get_Kn_cont();
+			Kn_cont = md.get_Kn_cont();
+			Kt_cont = md.get_Kt_cont();
+			fric_ratio = md.get_fric_ratio();
 			pcl_pos = cd.pcl_pos;
 			pcl_vol = cd.pcl_vol;
 			elem_node_force = cd.elem_node_force;

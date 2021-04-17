@@ -18,7 +18,13 @@ Model_T2D_ME_mt::Model_T2D_ME_mt() :
 	grid_x_num(0), grid_y_num(0),
 	grid_elem_list(nullptr),
 	grid_elem_list_id_array(nullptr),
-	rigid_rect_is_valid(false) {}
+	rigid_rect_is_valid(false),
+	contact_mem(nullptr),
+	pcm(&smooth_contact)
+	//pcm(&rough_contact)
+	//pcm(&fric_contact)
+	//pcm(&sticky_contact)
+	{}
 
 Model_T2D_ME_mt::~Model_T2D_ME_mt()
 {
@@ -29,6 +35,7 @@ Model_T2D_ME_mt::~Model_T2D_ME_mt()
 	clear_bfys();
 	clear_txs();
 	clear_tys();
+	clear_contact_mem();
 }
 
 Rect Model_T2D_ME_mt::get_mesh_bbox()
@@ -316,6 +323,8 @@ void Model_T2D_ME_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Strain) * num;
 
 	pcl_mat_model = new MatModel::MaterialModel*[num];
+
+	alloc_contact_mem(pcl_num);
 }
 
 void Model_T2D_ME_mt::alloc_pcls(
@@ -573,4 +582,28 @@ void Model_T2D_ME_mt::init_fixed_vy_bc(
 		if (bcs[bc_id] < node_num)
 			node_has_vbc[bcs[bc_id]].has_vy_bc = true;
 	}
+}
+
+void Model_T2D_ME_mt::clear_contact_mem()
+{
+	if (contact_mem)
+	{
+		delete[] contact_mem;
+		contact_mem = nullptr;
+	}
+}
+
+void Model_T2D_ME_mt::alloc_contact_mem(size_t pcl_num)
+{
+	clear_contact_mem();
+
+	contact_mem = new char[(sizeof(size_t)
+		+ sizeof(Position) + sizeof(Force)) * pcl_num];
+
+	char* cur_mem = contact_mem;
+	contact_substep_id = (size_t*)cur_mem;
+	cur_mem += sizeof(size_t) * pcl_num;
+	prev_contact_pos = (Position*)cur_mem;
+	cur_mem += sizeof(Position) * pcl_num;
+	prev_contact_tan_force = (Force*)cur_mem;
 }

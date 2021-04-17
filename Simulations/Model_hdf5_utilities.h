@@ -684,6 +684,58 @@ namespace Model_hdf5_utilities
 		return res;
 	}
 
+	// MohrCoulomb
+	struct MohrCoulombStateData
+	{
+		unsigned long long id;
+		double phi, psi, cohesion;
+		double E, niu;
+		union
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
+		int status_code;
+
+		inline void from_mm(MatModel::MohrCoulombWrapper& mm)
+		{
+			id = mm.get_id();
+			phi = mm.get_phi();
+			psi = mm.get_psi();
+			cohesion = mm.get_cohesion();
+			E = mm.get_E();
+			niu = mm.get_niu();
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
+			status_code = mm.get_status_code();
+		}
+
+		inline void to_mm(MatModel::MohrCoulombWrapper& mm)
+		{
+			mm.set_id(id);
+			mm.set_param(stress, phi, psi, cohesion, E, niu);
+			status_code = 0;
+		}
+	};
+
+	inline hid_t get_mohr_coulomb_hdf5_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(MohrCoulombStateData));
+		H5Tinsert(res, "id", HOFFSET(MohrCoulombStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "phi", HOFFSET(MohrCoulombStateData, phi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "psi", HOFFSET(MohrCoulombStateData, psi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "cohesion", HOFFSET(MohrCoulombStateData, cohesion), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "E", HOFFSET(MohrCoulombStateData, E), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "niu", HOFFSET(MohrCoulombStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "status_code", HOFFSET(MohrCoulombStateData, status_code), H5T_NATIVE_INT);
+		return res;
+	}
+
 	// material model container
 	int output_material_model_container_to_hdf5_file(
 		MatModel::MatModelContainer &mc, ResultFile_hdf5 &rf, hid_t mc_grp_id);

@@ -14,7 +14,7 @@
 #define error_tol ffmat(1.0e-2)
 
 #define max_substp_num (100)
-#define min_substp_size ffmat(1.0e-2)
+#define min_substp_size ffmat(2.0e-2)
 #define tensile_min_substp_size ffmat(5.0e-2)
 // < min_substp_size and tensile_min_substp_size
 #define substp_tol ffmat(1.0e-3)
@@ -196,7 +196,7 @@ void SandHypoplasticityGlobal::elasticity(
 	stress[5] += ten_G * dstrain[5];
 }
 
-bool in_tensile_state(__Float_Type__ stress[6])
+bool in_tensile_state(const __Float_Type__ stress[6])
 {
 	const __Float_Type__ I1 = stress[0] + stress[1] + stress[2];
 	if (-I1 < min_com_stress * ffmat(3.0))
@@ -209,14 +209,14 @@ bool in_tensile_state(__Float_Type__ stress[6])
 }
 
 int32_t integrate_sand_hypoplasticity(
-	const SandHypoplasticityGlobal& glb_data,
+	const SandHypoplasticityGlobal& glb_dat,
 	SandHypoplasticity& mat_dat,
 	const __Float_Type__ dstrain[6],
 	__Float_Type__ substp_size_ratio)
 {
 	if (in_tensile_state(mat_dat.stress))
 	{
-		glb_data.elasticity(dstrain, mat_dat.stress);
+		glb_dat.elasticity(dstrain, mat_dat.stress);
 		return 0;
 	}
 
@@ -243,7 +243,7 @@ int32_t integrate_sand_hypoplasticity(
 		ddstrain[4] = act_substp_size * dstrain[4];
 		ddstrain[5] = act_substp_size * dstrain[5];
 
-		glb_data.hypoplasticity_substp(mat_dat.stress,
+		glb_dat.hypoplasticity_substp(mat_dat.stress,
 			mat_dat.e, ddstrain, dstress1, de1);
 
 		stress1[0] = mat_dat.stress[0] + dstress1[0] * ffmat(0.5);
@@ -254,14 +254,14 @@ int32_t integrate_sand_hypoplasticity(
 		stress1[5] = mat_dat.stress[5] + dstress1[5] * ffmat(0.5);
 		if (in_tensile_state(stress1))
 		{
-			mat_dat.substp_size *= 0.25;
-			if (mat_dat.substp_size < tensile_min_substp_size)
+			substp_size *= 0.25;
+			if (substp_size < tensile_min_substp_size)
 				return 0;
 			continue;
 		}
 		e1 = mat_dat.e + de1 * ffmat(0.5);
 
-		glb_data.hypoplasticity_substp(
+		glb_dat.hypoplasticity_substp(
 			stress1, e1, ddstrain, dstress2, de2);
 
 		stress2[0] = mat_dat.stress[0] - dstress1[0] + dstress2[0] + dstress2[0];
@@ -272,15 +272,14 @@ int32_t integrate_sand_hypoplasticity(
 		stress2[5] = mat_dat.stress[5] - dstress1[5] + dstress2[5] + dstress2[5];
 		if (in_tensile_state(stress2))
 		{
-			mat_dat.substp_size *= 0.25;
-			if (mat_dat.substp_size < tensile_min_substp_size)
+			substp_size *= 0.25;
+			if (substp_size < tensile_min_substp_size)
 				return 0;
 			continue;
 		}
 		e2 = mat_dat.e - de1 + de2 + de2;
 
-		glb_data.hypoplasticity_substp(
-			stress2, e2, ddstrain, dstress3, de3);
+		glb_dat.hypoplasticity_substp(stress2, e2, ddstrain, dstress3, de3);
 			
 		dstress3[0] = ffmat(1.0) / ffmat(6.0) * dstress1[0]
 					+ ffmat(2.0) / ffmat(3.0) * dstress2[0]
@@ -309,8 +308,8 @@ int32_t integrate_sand_hypoplasticity(
 		stress3[5] = mat_dat.stress[5] + dstress3[5];
 		if (in_tensile_state(stress3))
 		{
-			mat_dat.substp_size *= 0.25;
-			if (mat_dat.substp_size < tensile_min_substp_size)
+			substp_size *= 0.25;
+			if (substp_size < tensile_min_substp_size)
 				return 0;
 			continue;
 		}
@@ -348,7 +347,7 @@ int32_t integrate_sand_hypoplasticity(
 			substp_size = min(substp_size, ffmat(1.0));
 			continue;
 		}
-			
+		
 		// reject substep
 		substp_size *= max(substp_size_adjust_ratio, ffmat(0.25));
 		if (substp_size < min_substp_size)

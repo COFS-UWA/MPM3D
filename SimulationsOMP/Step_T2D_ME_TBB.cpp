@@ -78,6 +78,7 @@ int cal_substep_func_T2D_ME_TBB(void* _self)
 		return 0;
 	}
 
+	cd.substep_id = self.substep_index;
 	cd.dt = self.dtime;
 	cd.sorted_pcl_var_id ^= 1;
 

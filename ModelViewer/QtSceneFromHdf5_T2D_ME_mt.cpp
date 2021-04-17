@@ -15,7 +15,8 @@ QtSceneFromHdf5_T2D_ME_mt::QtSceneFromHdf5_T2D_ME_mt(
 	display_rr(true), has_rr_obj(false), rr_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
-	bg_color(0.2f, 0.3f, 0.3f) {}
+	bg_color(0.2f, 0.3f, 0.3f),
+	pcl_is_mono_color(false) {}
 
 QtSceneFromHdf5_T2D_ME_mt::~QtSceneFromHdf5_T2D_ME_mt()
 {
@@ -273,8 +274,11 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	
 	// color map texture
 	size_t color_map_texture_size;
-	unsigned char* color_map_texture_data
-		= color_map.gen_1Dtexture(20, color_map_texture_size);
+	unsigned char* color_map_texture_data;
+	if (pcl_is_mono_color)
+		color_map_texture_data = color_map1.gen_1Dtexture(1, color_map_texture_size);
+	else
+		color_map_texture_data = color_map.gen_1Dtexture(20, color_map_texture_size);
 	if (!color_map_texture_data || !color_map_texture_size)
 		return -2;
 	gl.glGenTextures(1, &color_map_texture);
@@ -437,8 +441,7 @@ void QtSceneFromHdf5_T2D_ME_mt::update_scene(size_t frame_id)
 		pcl_y_data,
 		pcl_vol_data,
 		pcl_fld_data,
-		0.5
-		);
+		0.5);
 	
 	ResultFile_hdf5& rf = *res_file;
 	char frame_name[50];

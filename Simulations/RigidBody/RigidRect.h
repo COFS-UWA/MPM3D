@@ -143,6 +143,9 @@ public:
 	inline void set_v_bc(double _vx, double _vy, double _v_ang)
 	{ set_vx_bc(_vx); set_vy_bc(_vy); set_v_ang_bc(_v_ang); }
 
+	inline void set_ini_v(double _vx, double _vy, double _v_ang)
+	{ vx = _vx; vy = _vy; v_ang = _v_ang; }
+
 	inline void add_fx_external(double _f) { fx_ext += _f; }
 	inline void add_fy_external(double _f) { fy_ext += _f; }
 	inline void add_m_external(double _f) { m_ext += _f; }

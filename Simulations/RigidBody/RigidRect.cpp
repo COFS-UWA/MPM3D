@@ -5,8 +5,7 @@
 void RigidRect::init(
 	double _x, double _y,
 	double _hx, double _hy,
-	double _density
-	)
+	double _density)
 {
 	hx = _hx;
 	hy = _hy;

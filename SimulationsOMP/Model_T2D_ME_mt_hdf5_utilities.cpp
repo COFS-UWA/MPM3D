@@ -453,7 +453,10 @@ int output_rigid_rect_to_hdf5_file(
 
 	hid_t rr_grp_id = rf.create_group(grp_id, "RigidRect");
 
-	rf.write_attribute(rr_grp_id, "K_cont", md.K_cont);
+	rf.write_attribute(rr_grp_id, "Kn_cont", md.Kn_cont);
+	rf.write_attribute(rr_grp_id, "Kt_cont", md.Kt_cont);
+	rf.write_attribute(rr_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rr_grp_id, "shear_strength", md.shear_strength);
 
 	RigidRect &rr = md.get_rigid_rect();
 	using RigidBody_hdf5_utilities::output_rigid_rect_to_hdf5_file;
@@ -476,9 +479,12 @@ int load_rigid_rect_from_hdf5_file(
 
 	hid_t rr_grp_id = rf.open_group(grp_id, "RigidRect");
 
-	double K_cont;
-	rf.read_attribute(rr_grp_id, "K_cont", K_cont);
-	md.K_cont = K_cont;
+	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
+	rf.read_attribute(rr_grp_id, "Kn_cont", Kn_cont);
+	rf.read_attribute(rr_grp_id, "Kt_cont", Kt_cont);
+	rf.read_attribute(rr_grp_id, "fric_ratio", fric_ratio);
+	rf.read_attribute(rr_grp_id, "shear_strength", shear_strength);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	using RigidBody_hdf5_utilities::load_rigid_rect_from_hdf5_file;
 	load_rigid_rect_from_hdf5_file(md.rigid_rect, rf, rr_grp_id);

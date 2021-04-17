@@ -1,6 +1,12 @@
 target_sources(
     SimulationsOMP PRIVATE
     # 2D contact
+    ContactModel2D.h ContactModel2D.cpp
+    NoContact2D.h NoContact2D.cpp
+    SmoothContact2D.h SmoothContact2D.cpp
+    FrictionalContact2D.h FrictionalContact2D.cpp
+    StickyContact2D.h StickyContact2D.cpp
+    RoughContact2D.h RoughContact2D.cpp
     Force2D.h
     RigidCircle.h RigidCircle.cpp
     # 3D contact

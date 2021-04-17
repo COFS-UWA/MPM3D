@@ -204,8 +204,7 @@ int ResultFile_hdf5::write_dataset(
 	const char* dset_name,
 	const size_t num,
 	const void* data,
-	const hid_t datatype_id
-	)
+	const hid_t datatype_id)
 {
 	hid_t dataspace_id = H5Screate_simple(1, &num, nullptr);
 	hid_t dset_id = H5Dcreate(grp_id, dset_name, datatype_id,
