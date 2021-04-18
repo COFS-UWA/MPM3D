@@ -92,8 +92,8 @@ void QtSceneFromHdf5_T3D_ME_mt::update_proj_mat()
 
 void QtSceneFromHdf5_T3D_ME_mt::update_light_pos()
 {
-	float dist_from_obj = md_radius * light_dist_scale
-		/ sin(fov_angle * 0.5 / 180.0 * 3.14159265359);
+	const float dist_from_obj = md_radius * light_dist_scale
+		/ (float)sin(fov_angle * 0.5 / 180.0 * 3.14159265359);
 	light_dir.normalize();
 	light_pos = md_centre - dist_from_obj * light_dir;
 }
