@@ -1,6 +1,10 @@
 #include "SimulationsOMP_pcp.h"
 
+#include <fstream>
 #include "StickyContact2D.h"
+
+//extern std::fstream res_file_t2d_me_mt;
+//extern bool need_output;
 
 StickyContact2D::StickyContact2D() :
 	Kn_cont(0.0), Kt_cont(0.0), shear_strength(0.0) {}
@@ -22,11 +26,39 @@ void StickyContact2D::cal_contact_force(
 	Vector2D& cont_force)
 {
 	// normal force
-	const double f_cont = Kn_cont * pcl_len * dist;
-	cont_force.x = f_cont * norm.x;
-	cont_force.y = f_cont * norm.y;
+	// add some "sticky force" in normal direction
+	dist -= pcl_len * 0.1; // 0.1 empircal factor
+	if (dist < 0.0)
+	{
+		if (cont_substp_id != substp_id)
+		{
+			cont_force.x = 0.0;
+			cont_force.y = 0.0;
+			return;
+		}
+		// some sticky force in normal direction
+		double f_cont = Kn_cont * pcl_len * dist;
+		if (f_cont < -shear_strength * pcl_len * 10.0)
+			f_cont = -shear_strength * pcl_len * 10.0;
+		cont_force.x = f_cont * norm.x;
+		cont_force.y = f_cont * norm.y;
+	}
+	else
+	{
+		const double f_cont = Kn_cont * pcl_len * dist;
+		cont_force.x = f_cont * norm.x;
+		cont_force.y = f_cont * norm.y;
+	}
+	
+	//// no sticky normal force
+	//const double f_cont = Kn_cont * pcl_len * dist;
+	//cont_force.x = f_cont * norm.x;
+	//cont_force.y = f_cont * norm.y;
+
+	//if (need_output)
+	//	res_file_t2d_me_mt << cont_force.x << ", " << cont_force.y << ", ";
 	// tangential force
-	if (cont_substp_id != substp_id)
+	if (cont_substp_id != substp_id) // not previously in contact
 	{
 		// not in contacct
 		// record contact position
@@ -64,5 +96,8 @@ void StickyContact2D::cal_contact_force(
 		cont_force.x += prev_cont_tan_force.x;
 		cont_force.y += prev_cont_tan_force.y;
 	}
+	//if (need_output)
+	//	res_file_t2d_me_mt << prev_cont_tan_force.x << ", "
+	//	<< prev_cont_tan_force.y << ", ";
 	cont_substp_id = substp_id + 1;
 }

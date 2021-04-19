@@ -51,9 +51,14 @@ void RoughContact3D::cal_contact_force(
 		// previously in contactt
 		// add tangential force to contact force
 		const double K_p_area = Kt_cont * pcl_area;
-		cont_force.x -= (cont_pos.x - prev_cont_pos.x) * K_p_area;
-		cont_force.y -= (cont_pos.y - prev_cont_pos.y) * K_p_area;
-		cont_force.z -= (cont_pos.z - prev_cont_pos.z) * K_p_area;
+		//
+		//cont_force.x -= (cont_pos.x - prev_cont_pos.x) * K_p_area;
+		//cont_force.y -= (cont_pos.y - prev_cont_pos.y) * K_p_area;
+		//cont_force.z -= (cont_pos.z - prev_cont_pos.z) * K_p_area;
+		cont_force.x = -(cont_pos.x - prev_cont_pos.x) * K_p_area;
+		cont_force.y = -(cont_pos.y - prev_cont_pos.y) * K_p_area;
+		cont_force.z = -(cont_pos.z - prev_cont_pos.z) * K_p_area;
+		//
 		cont_substp_id = substp_id + 1;
 	}
 }

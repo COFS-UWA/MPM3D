@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_block_collision(argc, argv);
 	//test_t2d_me_mt_block_collision_result(argc, argv);
 
-	test_t2d_me_mt_slide_down_slope(argc, argv);
-	test_t2d_me_mt_slide_down_slope_result(argc, argv);
+	test_t2d_me_mt_block_sliding(argc, argv);
+	//test_t2d_me_mt_block_sliding_result(argc, argv);
 	
 	//test_t2d_me_mt_strip_footing_smaller(argc, argv);
 	//test_t2d_me_mt_strip_footing_smaller_result(argc, argv);
@@ -134,6 +134,6 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
 	//test_t3d_me_mt_spudcan_sand_hypo_result(argc, argv);
 	
-	system("pause");
+	//system("pause");
 	return 0;
 }

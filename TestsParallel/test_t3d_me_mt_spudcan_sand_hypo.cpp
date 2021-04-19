@@ -207,7 +207,7 @@ void test_t3d_me_mt_spudcan_sand_hypo_result(int argc, char** argv)
 	app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	app.set_color_map_fld_range(0.0, 0.03);
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_png_name("t3d_me_mt_spudcan_coarse");
-	//app.set_gif_name("t3d_me_mt_spudcan_coarse");
+	//app.set_png_name("t3d_me_mt_spudcan_sand_hypo");
+	//app.set_gif_name("t3d_me_mt_spudcan_sand_hypo");
 	app.start();
 }

@@ -2,25 +2,27 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t2d_me_mt_sliding_down_slope.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t2d_me_mt_block_sliding.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['slide']
 th_num = th_grp.attrs['output_num']
 
 cal_time = []
 rb_cfx = []
+rb_xpos = []
 for th_id in range(th_num):
     frame_grp = th_grp['frame_%d' % th_id]
     cal_time.append(frame_grp.attrs['total_time'])
     rb_grp = frame_grp['RigidRect']
     rb_cfx.append(rb_grp.attrs['fx_contact'])
+    rb_xpos.append(rb_grp.attrs['x'])
 
 hdf5_file.close()
 
-data_file = open("../Build/TestsParallel/t2d_me_mt_sliding_down_slope.csv", "w")
-data_file.write("time, fx_contact,\n")
+data_file = open("../Build/TestsParallel/t2d_me_mt_block_sliding_data.csv", "w")
+data_file.write("time, xpos, fx_contact,\n")
 for i in range(len(cal_time)):
-    data_file.write("%f, %f\n" % (cal_time[i], rb_cfx[i]))
+    data_file.write("%f, %f, %f\n" % (cal_time[i], rb_xpos[i], rb_cfx[i]))
 data_file.close()
 
 fig = plt.figure()

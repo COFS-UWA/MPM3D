@@ -273,31 +273,7 @@ public: // helper function for calculation
 	}
 
 	// update rigid circle motion and position
-	void update_motion(double dt)
-	{
-		// update a
-		ax = (fx_ext + fx_con) / m;
-		ay = (fy_ext + fy_con) / m;
-		a_ang = (m_ext + m_con) / moi;
-		// apply abc
-		ax_ull = (ax_ull & ~ax_bc_mask) | (ax_bc_ull & ax_bc_mask);
-		ay_ull = (ay_ull & ~ay_bc_mask) | (ay_bc_ull & ay_bc_mask);
-		a_ang_ull = (a_ang_ull & ~a_ang_bc_mask) | (a_ang_bc_ull & a_ang_bc_mask);
-		// update velocity
-		vx += ax * dt;
-		vy += ay * dt;
-		v_ang += a_ang * dt;
-		// apply vbc
-		vx_ull = (vx_ull & ~vx_bc_mask) | (vx_bc_ull & vx_bc_mask);
-		vy_ull = (vy_ull & ~vy_bc_mask) | (vy_bc_ull & vy_bc_mask);
-		v_ang_ull = (v_ang_ull & ~v_ang_bc_mask) | (v_ang_bc_ull & v_ang_bc_mask);
-		// update position
-		x += vx * dt;
-		y += vy * dt;
-		ang += v_ang * dt;
-		sin_ang = sin(ang);
-		cos_ang = cos(ang);
-	}
+	void update_motion(double dt);
 };
 
 #endif

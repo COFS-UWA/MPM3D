@@ -25,7 +25,7 @@ add_executable(
     test_t2d_me_mt_1d_compression.cpp
     test_t2d_me_mt_cap_compression.cpp
     test_t2d_me_mt_block_collision.cpp
-    test_t2d_me_mt_slide_down_slope.cpp
+    test_t2d_me_mt_block_sliding.cpp
 	#test_t2d_me_mt_pipe_conference.cpp
     test_t2d_me_mt_strip_footing_smaller.cpp
     test_t2d_me_mt_strip_footing.cpp

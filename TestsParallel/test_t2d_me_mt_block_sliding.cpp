@@ -11,7 +11,7 @@
 #include "QtApp_Prep_T2D_ME_mt.h"
 #include "test_simulations_omp.h"
 
-void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
+void test_t2d_me_mt_block_sliding(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
 	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh_1by10.h5");
@@ -22,12 +22,14 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
 	ParticleGenerator2D<TriangleMesh>::Particle pcl;
-	pcl.y = 0.125;
-	pcl.area = 0.25 * 0.25;
-	const size_t pcl_num = 40;
+	const double pcl_len = 0.05;
+	//const double pcl_len = 0.2;
+	pcl.y = pcl_len * 0.5;
+	pcl.area = pcl_len * pcl_len;
+	const size_t pcl_num = 10.0 / pcl_len;
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		pcl.x = 0.125 + double(pcl_id) * 0.25;
+		pcl.x = pcl_len * (0.5 + double(pcl_id));
 		pcl_generator.add_pcl(pcl);
 	}
 	model.init_pcls(pcl_generator, 10.0);
@@ -39,9 +41,16 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 		mms[p_id] = &les[p_id];
 	}
 
-	model.init_rigid_rect(1.0, 1.25, 2.0, 2.0, 1.0);
+	const double Kcn = 10000.0;
+	const double Kct = 10000.0;
+	model.init_rigid_rect(1.0, 1.0 + pcl_len - 10.0/2.0/Kcn, 2.0, 2.0, 1.0);
+	// need a momentum for sticky contact
 	model.set_rigid_rect_ext_force(4.0, -10.0);
-	model.set_contact_param(10000.0, 10000.0, 0.2, 1.5);
+	//model.set_rigid_rect_ext_force(4.0, -10.0, 3.0); // sticky
+	model.set_contact_param(Kcn, Kct, 0.2, 1.5); // pcl_len = 0.05
+	//model.set_frictional_contact_between_pcl_and_rect();
+	//model.set_sticky_contact_between_pcl_and_rect();
+	//model.set_rough_contact_between_pcl_and_rect();
 
 	const size_t node_num = model.get_node_num();
 	IndexArray all_n_array(node_num);
@@ -59,7 +68,7 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_me_mt_sliding_down_slope.h5");
+	res_file_hdf5.create("t2d_me_mt_block_sliding.h5");
 
 	ModelData_T2D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
@@ -74,6 +83,7 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_step_time(4.0);
+	//step.set_step_time(5.0e-4);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(4);
 	step.add_time_history(out);
@@ -84,10 +94,10 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 #include "QtApp_Posp_T2D_ME_mt.h"
 #include "test_model_view_omp.h"
 
-void test_t2d_me_mt_slide_down_slope_result(int argc, char** argv)
+void test_t2d_me_mt_block_sliding_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_mt_sliding_down_slope.h5");
+	rf.open("t2d_me_mt_block_sliding.h5");
 
 	// mono color ?
 	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
@@ -96,7 +106,7 @@ void test_t2d_me_mt_slide_down_slope_result(int argc, char** argv)
 	app.set_res_file(rf, "slide", Hdf5Field::s22);
 	app.set_color_map_fld_range(-50.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
-	//app.set_png_name("t2d_me_mt_sliding_down_slope");
-	//app.set_gif_name("t2d_me_mt_sliding_down_slope");
+	//app.set_png_name("t2d_me_mt_block_sliding");
+	//app.set_gif_name("t2d_me_mt_block_sliding");
 	app.start();
 }
