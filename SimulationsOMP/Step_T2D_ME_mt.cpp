@@ -12,6 +12,7 @@
 
 #ifdef _DEBUG
 static std::fstream res_file_t2d_me_mt;
+int output_id = 0;
 #endif
 
 Step_T2D_ME_mt::Step_T2D_ME_mt(const char* _name) : 
@@ -22,7 +23,7 @@ Step_T2D_ME_mt::~Step_T2D_ME_mt() {}
 int Step_T2D_ME_mt::init_calculation()
 {
 #ifdef _DEBUG
-	res_file_t2d_me_mt.open("me_mt_res.txt", std::ios::out | std::ios::binary);
+	res_file_t2d_me_mt.open("t2d_me_mt_res.csv", std::ios::out | std::ios::binary);
 #endif
 
 	Model_T2D_ME_mt &md = *(Model_T2D_ME_mt *)model;
@@ -767,6 +768,16 @@ int substep_func_omp_T2D_ME_mt(
 				self.cf_tmp.fy,
 				self.cf_tmp.m);
 			rr.update_motion(dt);
+			//if (self.cf_tmp.fx != 0.0 || self.cf_tmp.fy != 0.0 ||
+			//	self.cf_tmp.m != 0.0)
+			//{
+			//	++output_id;
+			//	if (output_id % 10 == 0)
+			//		res_file_t2d_me_mt << self.get_total_time() << ", "
+			//			<< self.cf_tmp.fx << ", "
+			//			<< self.cf_tmp.fy << ", "
+			//			<< self.cf_tmp.m << "\n";
+			//}
 		}
 
 		self.cf_tmp.reset();

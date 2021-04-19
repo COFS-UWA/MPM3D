@@ -19,8 +19,7 @@ void FrictionalContact2D::cal_contact_force(
 	size_t& cont_substp_id,
 	Point2D& prev_cont_pos,
 	Vector2D& prev_cont_tan_force,
-	Vector2D& cont_force
-	)
+	Vector2D& cont_force)
 {
 	// normal force
 	const double f_cont = Kn_cont * pcl_len * dist;
@@ -54,7 +53,7 @@ void FrictionalContact2D::cal_contact_force(
 		// contact consitutive model
 		double tan_force = sqrt(prev_cont_tan_force.x * prev_cont_tan_force.x
 							  + prev_cont_tan_force.y * prev_cont_tan_force.y);
-		double max_tan_force = sqrt(cont_force.x * cont_force.x
+		const double max_tan_force = sqrt(cont_force.x * cont_force.x
 								  + cont_force.y * cont_force.y) * friction_ratio;
 		if (tan_force > max_tan_force)
 		{

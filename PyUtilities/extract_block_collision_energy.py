@@ -8,6 +8,12 @@ th_grp = hdf5_file['TimeHistory']['collision']
 th_num = th_grp.attrs['output_num']
 pcl_num = th_grp['frame_0']['ParticleData'].attrs['pcl_num']
 
+
+E = 10000.0
+niu = 0.0
+lmbd2 = E * niu / ((1.0 + niu) * (1.0 - 2.0 * niu))
+G = E / (1.0 + niu)
+lmbd1 = lmbd2 + G
 sim_time = []
 db_kinetic_energy = []
 db_strain_energy = []
@@ -37,10 +43,12 @@ for th_id in range(th_num):
         p_e11 = p_var['e11']
         p_e22 = p_var['e22']
         p_e12 = p_var['e12']
-        db_se += p_vol * 0.5 * \
-                ((prev_p_s[p_id][0] + p_s11) * (p_e11 - prev_p_e[p_id][0]) \
-               + (prev_p_s[p_id][1] + p_s22) * (p_e22 - prev_p_e[p_id][1])
-               + (prev_p_s[p_id][2] + p_s12) * (p_e12 - prev_p_e[p_id][2]))
+        # db_se += p_vol * 0.5 * \
+                # ((prev_p_s[p_id][0] + p_s11) * (p_e11 - prev_p_e[p_id][0]) \
+               # + (prev_p_s[p_id][1] + p_s22) * (p_e22 - prev_p_e[p_id][1])
+               # + (prev_p_s[p_id][2] + p_s12) * (p_e12 - prev_p_e[p_id][2]))
+        db_se += p_vol * (0.5 * lmbd1 * (p_e11 * p_e11 + p_e22 * p_e22) \
+               + lmbd2 * p_e11 * p_e22 + 0.5 * G * p_e12 * p_e12)
         prev_p_s[p_id][0] = p_s11
         prev_p_s[p_id][1] = p_s22
         prev_p_s[p_id][2] = p_s12
@@ -70,10 +78,10 @@ for th_id in range(th_num):
 hdf5_file.close()
 
 data_file = open("../Build/TestsParallel/t2d_me_mt_block_collision_energy.csv", "w")
-data_file.write("db_kin, db_seg, rb_kin, kin, total\n")
+data_file.write("time, db_kin, db_seg, db_total, rb_kin, kin, total\n")
 for i in range(th_num):
-    data_file.write("%f, %f, %f, %f, %f, %f\n" % \
-        (db_kinetic_energy[i], db_strain_energy[i], db_energy[i], \
+    data_file.write("%f, %f, %f, %f, %f, %f, %f\n" % \
+        (sim_time[i], db_kinetic_energy[i], db_strain_energy[i], db_energy[i], \
          rb_kinetic_energy[i], kinetic_energy[i], total_energy[i]))
 data_file.close()
 
@@ -87,6 +95,6 @@ line4, = plot1.plot(sim_time, db_strain_energy)
 x_range = [min(sim_time), max(sim_time)]
 plt.xlim(x_range)
 
-plt.legend(handles=[line1, line2, line3, line4], \
-    labels=['Total', 'rb_kinetic', 'db_kinetic', 'db_strain'])
+plt.legend(handles=[ line1, line2, line3, line4 ], \
+    labels=[ 'Total', 'rb_kinetic', 'db_kinetic', 'db_strain' ])
 plt.show()

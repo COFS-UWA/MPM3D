@@ -39,10 +39,9 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 		mms[p_id] = &les[p_id];
 	}
 
-	model.init_rigid_rect(1.0, 1.25, 2.0, 2.0, 0.1);
+	model.init_rigid_rect(1.0, 1.25, 2.0, 2.0, 1.0);
 	model.set_rigid_rect_ext_force(4.0, -10.0);
-	model.set_rigid_rect_velocity(0.0, 0.0, 0.0);
-	model.set_contact_param(10000.0, 10000.0, 0.2, 3.0);
+	model.set_contact_param(10000.0, 10000.0, 0.2, 1.5);
 
 	const size_t node_num = model.get_node_num();
 	IndexArray all_n_array(node_num);
@@ -51,13 +50,13 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 	model.init_fixed_vx_bc(node_num, all_n_array.get_mem());
 	model.init_fixed_vy_bc(node_num, all_n_array.get_mem());
 
-	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	md_disp.set_win_size(900, 900);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_sliding_down_slope.h5");
@@ -74,7 +73,7 @@ void test_t2d_me_mt_slide_down_slope(int argc, char** argv)
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
+	step.set_step_time(4.0);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(4);
 	step.add_time_history(out);
@@ -94,7 +93,7 @@ void test_t2d_me_mt_slide_down_slope_result(int argc, char** argv)
 	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
 	app.set_win_size(900, 900);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "sliding", Hdf5Field::s22);
+	app.set_res_file(rf, "slide", Hdf5Field::s22);
 	app.set_color_map_fld_range(-50.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_me_mt_sliding_down_slope");

@@ -53,9 +53,10 @@ void StickyContact2D::cal_contact_force(
 		// contact consitutive model
 		double tan_force = sqrt(prev_cont_tan_force.x * prev_cont_tan_force.x
 							  + prev_cont_tan_force.y * prev_cont_tan_force.y);
-		if (tan_force > shear_strength)
+		const double max_shear_force = pcl_len * shear_strength;
+		if (tan_force > max_shear_force)
 		{
-			const double ratio = shear_strength / tan_force;
+			const double ratio = max_shear_force / tan_force;
 			prev_cont_tan_force.x *= ratio;
 			prev_cont_tan_force.y *= ratio;
 		}

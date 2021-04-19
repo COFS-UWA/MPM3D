@@ -38,6 +38,11 @@ void RoughContact3D::cal_contact_force(
 			prev_cont_pos.x = cont_pos.x;
 			prev_cont_pos.y = cont_pos.y;
 			prev_cont_pos.z = cont_pos.z;
+			// .. need ?? 
+			cont_force.x = 0.0;
+			cont_force.y = 0.0;
+			cont_force.z = 0.0;
+			//
 			cont_substp_id = substp_id + 1;
 		}
 	}

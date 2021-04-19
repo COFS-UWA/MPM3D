@@ -42,12 +42,12 @@ void test_t2d_me_mt_block_collision(int argc, char** argv)
 	model.init_rigid_rect(5.0, 3.0, 2.0, 4.0, 1.0);
 	model.set_rigid_rect_ini_velocity(-0.5, 0.0, 0.0);
 	// only smooth contact is considered here
-	model.set_contact_param(2000.0, 2000.0, 0.2, 3.0);
+	model.set_contact_param(10000.0, 10000.0, 0.2, 3.0);
 
 	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
 	//md_disp.set_model(model);
-	//md_disp.start();
+	//md_d3isp.start();
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
