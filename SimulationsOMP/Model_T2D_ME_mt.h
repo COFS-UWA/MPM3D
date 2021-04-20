@@ -326,9 +326,10 @@ public:
 	}
 
 protected: // rigid object contact
-	size_t* contact_substep_id; // ori_pcl_num
-	Position* prev_contact_pos; // ori_pcl_num
-	Force* prev_contact_tan_force; // ori_pcl_num
+	size_t *contact_substep_id; // ori_pcl_num
+	Position *prev_contact_pos; // ori_pcl_num
+	Force *prev_contact_tan_force; // ori_pcl_num
+	double* prev_contact_dist; // ori_pcl_num
 
 	char* contact_mem;
 	void clear_contact_mem();

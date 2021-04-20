@@ -14,6 +14,7 @@ StickyContact2D::~StickyContact2D() {}
 void StickyContact2D::cal_contact_force(
 	// in
 	size_t substp_id,
+	size_t ori_pcl_id,
 	double dist,
 	const Vector2D& norm,
 	const Point2D& cont_pos,
@@ -26,34 +27,34 @@ void StickyContact2D::cal_contact_force(
 	Vector2D& cont_force)
 {
 	// normal force
-	// add some "sticky force" in normal direction
-	dist -= pcl_len * 0.1; // 0.1 empircal factor
-	if (dist < 0.0)
-	{
-		if (cont_substp_id != substp_id)
-		{
-			cont_force.x = 0.0;
-			cont_force.y = 0.0;
-			return;
-		}
-		// some sticky force in normal direction
-		double f_cont = Kn_cont * pcl_len * dist;
-		if (f_cont < -shear_strength * pcl_len * 10.0)
-			f_cont = -shear_strength * pcl_len * 10.0;
-		cont_force.x = f_cont * norm.x;
-		cont_force.y = f_cont * norm.y;
-	}
-	else
-	{
-		const double f_cont = Kn_cont * pcl_len * dist;
-		cont_force.x = f_cont * norm.x;
-		cont_force.y = f_cont * norm.y;
-	}
+	//// add some "sticky force" in normal direction
+	//dist -= pcl_len * 0.1; // 0.1 empircal factor
+	//if (dist < 0.0)
+	//{
+	//	if (cont_substp_id != substp_id)
+	//	{
+	//		cont_force.x = 0.0;
+	//		cont_force.y = 0.0;
+	//		return;
+	//	}
+	//	// some sticky force in normal direction
+	//	double f_cont = Kn_cont * pcl_len * dist;
+	//	if (f_cont < -shear_strength * pcl_len * 10.0)
+	//		f_cont = -shear_strength * pcl_len * 10.0;
+	//	cont_force.x = f_cont * norm.x;
+	//	cont_force.y = f_cont * norm.y;
+	//}
+	//else
+	//{
+	//	const double f_cont = Kn_cont * pcl_len * dist;
+	//	cont_force.x = f_cont * norm.x;
+	//	cont_force.y = f_cont * norm.y;
+	//}
 	
-	//// no sticky normal force
-	//const double f_cont = Kn_cont * pcl_len * dist;
-	//cont_force.x = f_cont * norm.x;
-	//cont_force.y = f_cont * norm.y;
+	// normal force (not sticky)
+	const double f_cont = Kn_cont * pcl_len * dist;
+	cont_force.x = f_cont * norm.x;
+	cont_force.y = f_cont * norm.y;
 
 	//if (need_output)
 	//	res_file_t2d_me_mt << cont_force.x << ", " << cont_force.y << ", ";

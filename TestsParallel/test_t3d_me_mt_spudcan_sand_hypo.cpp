@@ -119,17 +119,17 @@ void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv)
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
-	//md_disp.set_model(model);
-	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(-45.0f, -35.0f);
-	//md_disp.set_light_dir(-50.0f, -35.0f);
-	//md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(0.7);
-	////md_disp.set_pts_from_vx_bc(0.1);
-	////md_disp.set_pts_from_vy_bc(0.1);
-	//md_disp.set_pts_from_vz_bc(0.1);
-	//md_disp.start();
+	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	md_disp.set_model(model);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(-90.0f, 30.0f);
+	md_disp.set_light_dir(-60.0f, 15.0f);
+	md_disp.set_display_bg_mesh(false);
+	md_disp.set_view_dist_scale(0.7);
+	//md_disp.set_pts_from_vx_bc(0.1);
+	//md_disp.set_pts_from_vy_bc(0.1);
+	md_disp.set_pts_from_vz_bc(0.1);
+	md_disp.start();
 }
 
 void test_t3d_me_mt_spudcan_sand_hypo(int argc, char** argv)

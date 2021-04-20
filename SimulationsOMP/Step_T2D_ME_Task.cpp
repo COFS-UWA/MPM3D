@@ -321,6 +321,7 @@ namespace Step_T2D_ME_Task
 				prr->get_global_vector(lnorm, gnorm);
 				pcf->cal_contact_force(
 					cd.substep_id,
+					ori_p_id,
 					dist,
 					lnorm,
 					cur_cont_pos,

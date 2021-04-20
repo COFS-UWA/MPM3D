@@ -996,6 +996,7 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 			//	need_output = true;
 			pcf->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,

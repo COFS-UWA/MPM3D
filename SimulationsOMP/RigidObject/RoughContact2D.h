@@ -21,6 +21,7 @@ public:
 	void cal_contact_force(
 		// in
 		size_t substp_id,
+		size_t ori_pcl_id,
 		double dist,
 		const Vector2D& norm,
 		const Point2D& cont_pos,

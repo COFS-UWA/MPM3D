@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_block_collision_result(argc, argv);
 
 	test_t2d_me_mt_block_sliding(argc, argv);
-	//test_t2d_me_mt_block_sliding_result(argc, argv);
+	test_t2d_me_mt_block_sliding_result(argc, argv);
 	
 	//test_t2d_me_mt_strip_footing_smaller(argc, argv);
 	//test_t2d_me_mt_strip_footing_smaller_result(argc, argv);
