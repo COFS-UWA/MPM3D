@@ -9,6 +9,8 @@ protected:
 	double Kn_cont, Kt_cont;
 
 public:
+	double *prev_contact_dist;
+
 	RoughContact2D();
 	~RoughContact2D();
 

@@ -10,6 +10,8 @@ protected:
 	double friction_ratio;
 
 public:
+	double *prev_contact_dist;
+
 	FrictionalContact2D();
 	~FrictionalContact2D();
 

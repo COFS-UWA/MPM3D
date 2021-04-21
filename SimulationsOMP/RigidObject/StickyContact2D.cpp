@@ -55,6 +55,19 @@ void StickyContact2D::cal_contact_force(
 	const double f_cont = Kn_cont * pcl_len * dist;
 	cont_force.x = f_cont * norm.x;
 	cont_force.y = f_cont * norm.y;
+	double& pcd = prev_contact_dist[ori_pcl_id];
+	if (cont_substp_id != substp_id) // not previously in contact
+	{
+		pcd = 0.0;
+	}
+	else // previously in contact
+	{
+		// local damping
+		const double ddist_sign = sign(dist - pcd);
+		pcd = dist;
+		cont_force.x -= ddist_sign * abs(cont_force.x) * 0.02;
+		cont_force.y -= ddist_sign * abs(cont_force.y) * 0.02;
+	}
 
 	//if (need_output)
 	//	res_file_t2d_me_mt << cont_force.x << ", " << cont_force.y << ", ";

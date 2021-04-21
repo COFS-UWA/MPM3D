@@ -49,8 +49,11 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 		mms[p_id] = &tes[p_id];
 	}
 
-	model.init_rigid_rect(200.0, 0.0, 0.1, 1.0, 0.2);
+	model.init_rigid_rect(0.0, 0.1, 1.0, 0.2, 1.0);
 	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
+	model.set_contact_param(20000.0, 20000.0, 0.2, 1.5);
+	//model.set_frictional_contact_between_pcl_and_rect();
+	//model.set_rough_contact_between_pcl_and_rect();
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -67,8 +70,8 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	//md_disp.set_win_size(1500, 950);
 	//md_disp.set_model(model);
 	////md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
 	//md_disp.start();
 	//return;
 

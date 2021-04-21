@@ -30,8 +30,8 @@ data_file.close()
 
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
-#line1, = plot1.plot(cal_time, rb_cfx)
-line1, = plot1.plot(cal_time, rb_cfy)
+line1, = plot1.plot(cal_time, rb_cfx)
+#line1, = plot1.plot(cal_time, rb_cfy)
 
 cal_time_range = [min(cal_time), max(cal_time)]
 #rb_x_range = [min(rb_x), max(rb_x)]

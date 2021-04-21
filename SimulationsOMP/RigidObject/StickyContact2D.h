@@ -10,6 +10,8 @@ protected:
 	double shear_strength;
 
 public:
+	double *prev_contact_dist;
+
 	StickyContact2D();
 	~StickyContact2D();
 

@@ -34,8 +34,8 @@ void SmoothContact2D::cal_contact_force(
 		// local damping
 		const double ddist_sign = sign(dist - pcd);
 		pcd = dist;
-		cont_force.x -= ddist_sign * abs(cont_force.x) * 0.05;
-		cont_force.y -= ddist_sign * abs(cont_force.y) * 0.05;
+		cont_force.x -= ddist_sign * abs(cont_force.x) * 0.02;
+		cont_force.y -= ddist_sign * abs(cont_force.y) * 0.02;
 	}
 	cont_substp_id = substp_id + 1;
 }
