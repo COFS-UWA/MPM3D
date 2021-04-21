@@ -606,4 +606,11 @@ void Model_T2D_ME_mt::alloc_contact_mem(size_t pcl_num)
 	prev_contact_pos = (Position*)cur_mem;
 	cur_mem += sizeof(Position) * pcl_num;
 	prev_contact_tan_force = (Force*)cur_mem;
+	cur_mem += sizeof(double) * pcl_num;
+	prev_contact_dist = (double *)cur_mem;
+
+	smooth_contact.prev_contact_dist = prev_contact_dist;
+	fric_contact.prev_contact_dist = prev_contact_dist;
+	sticky_contact.prev_contact_dist = prev_contact_dist;
+	rough_contact.prev_contact_dist = prev_contact_dist;
 }

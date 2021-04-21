@@ -11,7 +11,9 @@
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
 #ifdef _DEBUG
-static std::fstream res_file_t2d_me_mt;
+std::fstream res_file_t2d_me_mt;
+//int output_id = 0;
+//bool need_output = false;
 #endif
 
 Step_T2D_ME_mt::Step_T2D_ME_mt(const char* _name) : 
@@ -22,7 +24,7 @@ Step_T2D_ME_mt::~Step_T2D_ME_mt() {}
 int Step_T2D_ME_mt::init_calculation()
 {
 #ifdef _DEBUG
-	res_file_t2d_me_mt.open("me_mt_res.txt", std::ios::out | std::ios::binary);
+	res_file_t2d_me_mt.open("t2d_me_mt_res.csv", std::ios::out | std::ios::binary);
 #endif
 
 	Model_T2D_ME_mt &md = *(Model_T2D_ME_mt *)model;
@@ -974,6 +976,9 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 	ShapeFunc* pcl_N = cur_spva.pcl_N;
 	PclVar_T2D_ME_mt& pv_getter = thd.pcl_var_getter;
 	pv_getter.cur_sorted_pcl_vars = &cur_spva;
+	//int contact_pcl_num = 0;
+	//double contact_force = 0.0;
+	//++output_id;
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		ori_p_id = pcl_index[p_id];
@@ -987,8 +992,11 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 		{
 			pv_getter.pcl_id = p_id;
 			prr->get_global_vector(lnorm, gnorm);
+			//if (output_id % 100 == 1)
+			//	need_output = true;
 			pcf->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
@@ -998,6 +1006,8 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 				prev_contact_pos[ori_p_id].pt,
 				prev_contact_tan_force[ori_p_id].vec,
 				lcont_f.vec);
+			//if (output_id % 100 == 1)
+			//	need_output = false;
 			prr->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
@@ -1016,7 +1026,17 @@ int Step_T2D_ME_mt::apply_rigid_rect(
 			rc_cf.add_force(p_x, p_y,
 				-gcont_f.fx, -gcont_f.fy,
 				rr_cen.x, rr_cen.y);
+			//++contact_pcl_num;
+			//contact_force += gcont_f.fx;
+			//if (output_id % 100 == 1)
+			//	res_file_t2d_me_mt << p_x << ", " << p_y << ", "
+			//	<< dist << ", "	<< gnorm.x << ", " << gnorm.y << ", "
+			//	<< gcont_f.fx << ", " << gcont_f.fy << "\n";
 		}
 	}
+	//if (output_id % 100 == 1)
+	//	res_file_t2d_me_mt << substp_id << ", "
+	//		<< contact_pcl_num << ", "
+	//		<< contact_force << "\n";
 	return 0;
 }

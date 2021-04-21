@@ -25,7 +25,7 @@ void test_t2d_me_mt_1d_compression(int argc, char** argv);
 void test_t2d_me_mt_cap_compression(int argc, char** argv);
 void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv);
 void test_t2d_me_mt_strip_footing(int argc, char** argv);
-void test_t2d_me_mt_slide_down_slope(int argc, char** argv);
+void test_t2d_me_mt_block_sliding(int argc, char** argv);
 void test_t2d_me_mt_block_collision(int argc, char** argv);
 
 void test_t3d_me_mt_1d_compression(int argc, char** argv);

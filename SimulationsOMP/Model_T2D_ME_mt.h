@@ -326,9 +326,10 @@ public:
 	}
 
 protected: // rigid object contact
-	size_t* contact_substep_id; // ori_pcl_num
-	Position* prev_contact_pos; // ori_pcl_num
-	Force* prev_contact_tan_force; // ori_pcl_num
+	size_t *contact_substep_id; // ori_pcl_num
+	Position *prev_contact_pos; // ori_pcl_num
+	Force *prev_contact_tan_force; // ori_pcl_num
+	double* prev_contact_dist; // ori_pcl_num
 
 	char* contact_mem;
 	void clear_contact_mem();
@@ -357,10 +358,11 @@ public:
 		rigid_rect_is_valid = true;
 		rigid_rect.init(x, y, hx, hy, density);
 	}
-	inline void set_rigid_rect_ext_force(double fx, double fy)
+	inline void set_rigid_rect_ext_force(double fx, double fy, double m = 0.0)
 	{
 		rigid_rect.add_fx_external(fx);
 		rigid_rect.add_fy_external(fy);
+		rigid_rect.add_m_external(m);
 	}
 	inline void set_rigid_rect_velocity(double vx, double vy, double v_ang)
 	{ rigid_rect.set_v_bc(vx, vy, v_ang); }
@@ -384,6 +386,10 @@ public:
 		sticky_contact.set_shear_strength(shear_strength);
 		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 	}
+	inline void set_smooth_contact_between_pcl_and_rect() noexcept { pcm = &smooth_contact; }
+	inline void set_rough_contact_between_pcl_and_rect() noexcept { pcm = &rough_contact; }
+	inline void set_frictional_contact_between_pcl_and_rect() noexcept { pcm = &fric_contact; }
+	inline void set_sticky_contact_between_pcl_and_rect() noexcept { pcm = &sticky_contact; }
 
 	friend class Model_T2D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T2D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
