@@ -41,8 +41,9 @@ void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv)
 	//	mms[p_id] = &les[p_id];
 	//}
 
-	model.init_rigid_rect(200.0, 10.0, 15.25, 4.0, 0.5);
+	model.init_rigid_rect(10.0, 15.25, 4.0, 0.5, 1.0);
 	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
+	model.set_contact_param(20000.0, 20000.0, 0.2, 1.5);
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -55,14 +56,14 @@ void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, 0.0);
 	model.init_fixed_vy_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
-	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(900, 900);
-	//md_disp.set_model(model);
+	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_model(model);
 	//md_disp.set_display_range(8.0, 12.0, 13.0, 14.0);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.1);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.1);
-	//md_disp.start();
-	//return;
+	md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.1);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.1);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_strip_footing_smaller.h5");

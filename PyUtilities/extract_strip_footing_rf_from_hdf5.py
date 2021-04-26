@@ -1,7 +1,7 @@
 import h5py as py
 import matplotlib.pyplot as plt
 
-hdf5_file = py.File("../Build/TestsParallel/t2d_me_mt_strip_footing_smaller.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t2d_me_mt_strip_footing_smooth_niu03.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['loading']
 th_num = th_grp.attrs['output_num']
@@ -23,7 +23,7 @@ for th_id in range(th_num):
 
 hdf5_file.close()
 
-data_file = open("../Build/TestsParallel/t2d_me_mt_strip_footing_smaller_rf.csv", "w")
+data_file = open("../Build/TestsParallel/t2d_me_mt_strip_footing_rf.csv", "w")
 for i in range(len(rb_y)):
     data_file.write("%f, %f\n" % (rb_y[i], rb_fy[i]))
 data_file.close()
