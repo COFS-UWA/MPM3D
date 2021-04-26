@@ -33,7 +33,7 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -3.5, 0.0), 0.01, 0.01);
 	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -5.0, -3.5), 0.03, 0.03);
 	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
-	model.init_pcls(pcl_generator, 20.0);
+	model.init_pcls(pcl_generator, 1.8e3);
 	std::cout << model.get_pcl_num() << "\n";
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	//MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
@@ -45,15 +45,15 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	MatModel::Tresca* tes = model.add_Tresca(model.get_pcl_num());
 	for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		tes[p_id].set_param(4000.0, 0.3, 5.0);
+		tes[p_id].set_param(4000.0e3, 0.3, 5.0e3);
 		mms[p_id] = &tes[p_id];
 	}
 
 	model.init_rigid_rect(0.0, 0.1, 1.0, 0.2, 1.0);
 	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
-	model.set_contact_param(20000.0, 20000.0, 0.2, 1.5);
+	model.set_contact_param(40000.0e3, 40000.0e3, 0.2, 1.5);
 	//model.set_frictional_contact_between_pcl_and_rect();
-	//model.set_rough_contact_between_pcl_and_rect();
+	model.set_rough_contact_between_pcl_and_rect();
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -66,14 +66,14 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, -5.0);
 	model.init_fixed_vy_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
-	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(1500, 950);
-	//md_disp.set_model(model);
-	////md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
+	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(1500, 950);
+	md_disp.set_model(model);
+	//md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
 	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
-	//md_disp.start();
-	//return;
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_strip_footing.h5");
@@ -90,7 +90,7 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(10.0); // 10.0
+	step.set_step_time(7.0); // 10.0
 	step.set_dtime(5.0e-6);
 	step.set_thread_num(20);
 	step.add_time_history(out1);
@@ -104,16 +104,25 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 void test_t2d_me_mt_strip_footing_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_mt_strip_footing.h5");
+	//rf.open("t2d_me_mt_strip_footing_rough.h5");
+	rf.open("t2d_me_mt_strip_footing_smooth_niu03.h5");
 
-	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
-	app.set_win_size(1600, 1000);
-	app.set_ani_time(8.0);
-	//app.set_display_range(-2.5, 2.5, -2.4, 0.1);
-	app.set_res_file(rf, "loading", Hdf5Field::s22);
-	app.set_color_map_fld_range(-20.0, 0.0);
-	//app.set_res_file(rf, "loading", Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.01);
+	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
+	//app.set_ani_time(10.0);
+	//app.set_res_file(rf, "loading", Hdf5Field::s22);
+
+	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
+	app.set_win_size(2000, 900);
+	//app.set_display_range(0.0, 4.0, -3.5, 0.3);
+	//app.set_color_map_geometry(1.6, 0.3f, 0.5f);
+	//app.set_res_file(rf, "loading", 86, Hdf5Field::s22);
+	//app.set_color_map_fld_range(-25.7e3, 0.0);
+	//
+	app.set_display_range(0.0, 2.2, -1.5, 0.3);
+	app.set_color_map_geometry(1.75f, 0.3f, 0.5f);
+	app.set_res_file(rf, "loading", 86, Hdf5Field::plastic_mises_strain_2d);
+	app.set_color_map_fld_range(0.0, 0.05);
+	//
 	//app.set_res_file(rf, "loading", Hdf5Field::vx);
 	//app.set_color_map_fld_range(-0.003, 0.003);
 	//app.set_png_name("t2d_me_mt_strip_footing");

@@ -325,7 +325,8 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		rb_bbox.xu = rr_x + xr;
 		rb_bbox.yl = rr_y - yr;
 		rb_bbox.yu = rr_y + yr;
-		bbox.envelop(rb_bbox);
+		if (display_whole_model)
+			bbox.envelop(rb_bbox);
 	}
 	rf.close_group(frame_grp_id);
 

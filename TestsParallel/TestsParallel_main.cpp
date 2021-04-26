@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_strip_footing_smaller(argc, argv);
 	//test_t2d_me_mt_strip_footing_smaller_result(argc, argv);
 
-	test_t2d_me_mt_strip_footing(argc, argv);
-	//test_t2d_me_mt_strip_footing_result(argc, argv);
+	//test_t2d_me_mt_strip_footing(argc, argv);
+	test_t2d_me_mt_strip_footing_result(argc, argv);
 
 	//test_t3d_me_mt_1d_compression(argc, argv);
 	//test_t3d_me_mt_1d_compression_result(argc, argv);
