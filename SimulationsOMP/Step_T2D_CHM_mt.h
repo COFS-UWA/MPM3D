@@ -5,6 +5,7 @@
 #include "Step_OMP.h"
 #include "Model_T2D_CHM_mt.h"
 #include "RigidObject/Force2D.h"
+#include "RigidObject/ContactModel2D.h"
 
 class Model_T2D_CHM_mt;
 class Step_T2D_CHM_mt;
@@ -86,12 +87,18 @@ protected:
 	size_t elem_num, node_num;
 	double k, miu, Kf;
 	
-	double Ksn_cont, Kfn_cont;
-	size_t* contact_substep_id;
-	Position* prev_contact_pos;
-	Force* prev_contact_tan_force;
-
+	// rigid object
+	// solid
+	size_t* contact_substep_id; // ori_pcl_num
+	Position* prev_contact_pos; // ori_pcl_num
+	Force* prev_contact_tan_force; // ori_pcl_num
+	// fluid
+	size_t* contact_substep_id_f; // ori_pcl_num
+	Position* prev_contact_pos_f; // ori_pcl_num
+	Force* prev_contact_tan_force_f; // ori_pcl_num
+	// rigid circle
 	RigidObject::RigidCircle* prc;
+	ContactModel2D* pcm_s, * pcm_f;
 
 #ifdef _DEBUG
 	size_t prev_valid_pcl_num_tmp;
@@ -115,19 +122,30 @@ protected:
 		{
 			size_t sorted_pcl_var_id;
 			size_t sorted_pcl_in_elem_id;
+			PclVar_T2D_CHM_mt pcl_var_getter;
 		};
 		char padding[Cache_Alignment * 2];
+		ThreadData() : pcl_var_getter() {}
+		~ThreadData() {}
 	};
 	ThreadData* thread_datas;
 	
 	CacheAlignedMem thread_mem;
 	CacheAlignedMem cal_mem;
 
+	//int apply_rigid_circle(
+	//	size_t p_id0, size_t p_id1,
+	//	const size_t *pcl_in_elem,
+	//	const SortedPclVarArrays& cur_spva,
+	//	Force2D& rc_cf,
+	//	size_t substp_id,
+	//	ThreadData& thd) noexcept;
 	int apply_rigid_circle(
 		size_t p_id0, size_t p_id1,
-		const size_t *pcl_in_elem,
-		const SortedPclVarArrays& cur_spva,
-		Force2D& rc_cf,
+		size_t* pcl_in_elem,
+		SortedPclVarArrays& cur_spva,
+		Force2D& rc_scf,
+		Force2D &rc_fcf,
 		size_t substp_id,
 		ThreadData& thd) noexcept;
 

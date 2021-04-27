@@ -587,13 +587,20 @@ int substep_func_omp_T2D_CHM_mt2(
 	
 	if (md.has_rigid_circle())
 	{
-		Force2D rc_force;
-		rc_force.reset();
+		md.rc_scf.reset();
+		md.rc_fcf.reset();
 		self.apply_rigid_circle(
 			p_id0, p_id1,
 			pcl_in_elem0,
-			spva0, rc_force,
+			spva0,
+			md.rc_scf,
+			md.rc_fcf,
 			substp_id, thd);
+
+		Force2D rc_force;
+		rc_force.reset();
+		rc_force.combine(md.rc_scf);
+		rc_force.combine(md.rc_fcf);
 
 #pragma omp critical
 		self.cf_tmp.combine(rc_force);

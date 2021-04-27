@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_1d_compression(argc, argv);
 	//test_t2d_me_mt_1d_compression_result(argc, argv);
 
-	test_t2d_me_mt_cap_compression(argc, argv);
+	//test_t2d_me_mt_cap_compression(argc, argv);
 	//test_t2d_me_mt_cap_compression_result(argc, argv);
 
 	//test_t2d_me_mt_block_collision(argc, argv);
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
 
-	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
+	test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
 	
 	//test_t2d_chm_mt_pipe_conference(argc, argv);

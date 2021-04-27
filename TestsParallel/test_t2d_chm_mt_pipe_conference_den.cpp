@@ -45,8 +45,11 @@ void test_t2d_chm_mt_pipe_conference_den(int argc, char** argv)
 		mms[p_id] = &mcc;
 	}
 
-	model.init_rigid_circle(1.0e5, 1.0e3, 0.0, 0.5, 0.5);
+	model.init_rigid_circle(0.0, 0.5, 0.5, 1.0);
 	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
+	model.set_contact_param(1.0e5 / 0.02, 1.0e5 / 0.02, 0.0, 10.0, 1.0e3 / 0.02, 1.0e3 / 0.02);
+	//model.set_rough_contact_between_spcl_and_circle();
+	//model.set_rough_contact_between_fpcl_and_circle();
 
 	IndexArray left_right_bc_pt_array(100);
 	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, -3.5);

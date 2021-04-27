@@ -8,7 +8,10 @@
 #include "ParticleGenerator2D.hpp"
 #include "TriangleMesh.h"
 #include "RigidObject/RigidCircle.h"
-#include "RigidObject/SmoothContact3D.h"
+#include "RigidObject/SmoothContact2D.h"
+#include "RigidObject/RoughContact2D.h"
+#include "RigidObject/FrictionalContact2D.h"
+#include "RigidObject/StickyContact2D.h"
 
 class Model_T2D_CHM_mt;
 class Step_T2D_CHM_mt;
@@ -379,35 +382,81 @@ public:
 	}
 
 protected: // rigid object contact
-	bool rigid_circle_is_valid;
-	RigidObject::RigidCircle rigid_circle;
-
 	size_t* contact_substep_id; // ori_pcl_num
 	Position* prev_contact_pos; // ori_pcl_num
 	Force* prev_contact_tan_force; // ori_pcl_num
-	
+	double* prev_contact_dist; // ori_pcl_num
+
+	size_t* contact_substep_id_f; // ori_pcl_num
+	Position* prev_contact_pos_f; // ori_pcl_num
+	Force* prev_contact_tan_force_f; // ori_pcl_num
+	double* prev_contact_dist_f; // ori_pcl_num
+
 	char* contact_mem;
 	void clear_contact_mem();
 	void alloc_contact_mem(size_t num);
 
-	SmoothContact3D smh_cont_s, smh_cont_f;
-	
+	bool rigid_circle_is_valid;
+	RigidObject::RigidCircle rigid_circle;
+
+	double Ksn_cont, Kst_cont, fric_ratio_s, shear_strength_s;
+	double Kfn_cont, Kft_cont;
+	ContactModel2D* pcm_s, *pcm_f;
+	SmoothContact2D smooth_contact_s, smooth_contact_f;
+	RoughContact2D rough_contact_s, rough_contact_f;
+	FrictionalContact2D fric_contact_s;
+	StickyContact2D sticky_contact_s;
+	Force2D rc_scf, rc_fcf;
+
 public:
 	inline bool has_rigid_circle() const noexcept { return rigid_circle_is_valid; }
 	inline RigidObject::RigidCircle &get_rigid_circle() { return rigid_circle; }
-	inline void init_rigid_circle(double _Ksn_cont, double _Kfn_cont,
-		double x, double y, double r, double density = 1.0)
+	inline double get_Ksn_cont() const noexcept { return Ksn_cont; }
+	inline double get_Kst_cont() const noexcept { return Kst_cont; }
+	inline double get_Kfn_cont() const noexcept { return Kfn_cont; }
+	inline double get_Kft_cont() const noexcept { return Kft_cont; }
+	inline double get_fric_ratio_s() const noexcept { return fric_ratio_s; }
+	inline double get_shear_strength_s() const noexcept { return shear_strength_s; }
+	//inline Force2D& get_rc_scf() noexcept { return rc_scf; }
+	//inline Force2D& get_rc_fcf() noexcept { return rc_fcf; }
+	inline void init_rigid_circle(double x, double y, double r, double density)
 	{
 		rigid_circle_is_valid = true;
 		rigid_circle.init(x, y, r, density);
-		smh_cont_s.set_Kn_cont(_Ksn_cont);
-		smh_cont_f.set_Kn_cont(_Kfn_cont);
 	}
 	inline void set_rigid_circle_velocity(
 		double vx, double vy, double v_ang)
 	{ rigid_circle.set_vbc(vx, vy, v_ang); }
+	inline void set_contact_param(
+		double _Ksn_cont,
+		double _Kst_cont,
+		double _fric_ratio_s,
+		double _shear_strength_s,
+		double _Kfn_cont,
+		double _Kft_cont)
+	{
+		Ksn_cont = _Ksn_cont;
+		Kst_cont = _Kst_cont;
+		Kfn_cont = _Kfn_cont;
+		Kft_cont = _Kft_cont;
+		fric_ratio_s = _fric_ratio_s;
+		shear_strength_s = _shear_strength_s;
+		smooth_contact_s.set_Kn_cont(_Ksn_cont);
+		smooth_contact_f.set_Kn_cont(_Kfn_cont);
+		rough_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
+		rough_contact_f.set_K_cont(_Kfn_cont, _Kft_cont);
+		fric_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
+		fric_contact_s.set_friction_ratio(_fric_ratio_s);
+		sticky_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
+		sticky_contact_s.set_shear_strength(shear_strength_s);
+	}
+	inline void set_smooth_contact_between_spcl_and_circle() noexcept { pcm_s = &smooth_contact_s; }
+	inline void set_rough_contact_between_spcl_and_circle() noexcept { pcm_s = &rough_contact_s; }
+	inline void set_frictional_contact_between_spcl_and_circle() noexcept { pcm_s = &fric_contact_s; }
+	inline void set_sticky_contact_between_spcl_and_circle() noexcept { pcm_s = &sticky_contact_s; }
+	inline void set_smooth_contact_between_fpcl_and_circle() noexcept { pcm_f = &smooth_contact_f; }
+	inline void set_rough_contact_between_fpcl_and_circle() noexcept { pcm_f = &rough_contact_f; }
 
-protected:
 	friend struct Model_T2D_CHM_mt_hdf5_utilities::ParticleData;
 	friend int Model_T2D_CHM_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -424,6 +473,81 @@ protected:
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_rigid_circle_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_chm_mt_model_from_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+};
+
+#include "ParticleVariablesGetter.h"
+
+class PclVar_T2D_CHM_mt : public ParticleVariablesGetter
+{
+public:
+	Model_T2D_CHM_mt* pmodel;
+	Model_T2D_CHM_mt::SortedPclVarArrays* cur_sorted_pcl_vars;
+	size_t pcl_id;
+
+	size_t get_index() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_index[pcl_id];
+	}
+	double get_s11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_stress[pcl_id].s11;
+	}
+	double get_s22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_stress[pcl_id].s22;
+	}
+	double get_s12() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_stress[pcl_id].s12;
+	}
+	double get_e11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_strain[pcl_id].e11;
+	}
+	double get_e22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_strain[pcl_id].e22;
+	}
+	double get_e12() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_strain[pcl_id].e12;
+	}
+	double get_ee11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e11;
+	}
+	double get_ee22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e22;
+	}
+	double get_ee12() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_estrain[pcl_id].e12;
+	}
+	double get_pe11() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e11;
+	}
+	double get_pe22() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e22;
+	}
+	double get_pe12() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_pstrain[pcl_id].e12;
+	}
+	double get_N1() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_N[pcl_id].N1;
+	}
+	double get_N2() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_N[pcl_id].N2;
+	}
+	double get_N3() const noexcept override
+	{
+		return cur_sorted_pcl_vars->pcl_N[pcl_id].N3;
+	}
 };
 
 #endif

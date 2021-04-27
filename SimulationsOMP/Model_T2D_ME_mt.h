@@ -340,12 +340,13 @@ protected: // rigid object contact
 	RigidRect rigid_rect;
 
 	// ad hoc design for output
-	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
+	double Kn_cont, Kt_cont;
+	double fric_ratio, shear_strength;
 	ContactModel2D* pcm;
 	SmoothContact2D smooth_contact;
+	RoughContact2D rough_contact;
 	FrictionalContact2D fric_contact;
 	StickyContact2D sticky_contact;
-	RoughContact2D rough_contact;
 
 public:
 	inline bool has_rigid_rect() const noexcept { return rigid_rect_is_valid; }
@@ -353,6 +354,7 @@ public:
 	inline double get_Kn_cont() const noexcept { return Kn_cont; }
 	inline double get_Kt_cont() const noexcept { return Kt_cont; }
 	inline double get_fric_ratio() const noexcept { return fric_ratio; }
+	inline double get_shear_strength() const noexcept { return shear_strength; }
 	inline void init_rigid_rect(double x, double y, double hx, double hy, double density)
 	{
 		rigid_rect_is_valid = true;
@@ -383,7 +385,7 @@ public:
 		fric_contact.set_K_cont(_Kn_cont, _Kt_cont);
 		fric_contact.set_friction_ratio(_fric_ratio);
 		sticky_contact.set_K_cont(_Kn_cont, _Kt_cont);
-		sticky_contact.set_shear_strength(shear_strength);
+		sticky_contact.set_shear_strength(_shear_strength);
 		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 	}
 	inline void set_smooth_contact_between_pcl_and_rect() noexcept { pcm = &smooth_contact; }

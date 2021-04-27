@@ -559,8 +559,20 @@ int output_rigid_circle_to_hdf5_file(
 	if (!md.has_rigid_circle())
 		return 0;
 	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCircle");
-	rf.write_attribute(rc_grp_id, "Ksn_cont", md.smh_cont_s.get_Kn_cont());
-	rf.write_attribute(rc_grp_id, "Kfn_cont", md.smh_cont_f.get_Kn_cont());
+	rf.write_attribute(rc_grp_id, "Ksn_cont", md.get_Ksn_cont());
+	rf.write_attribute(rc_grp_id, "Kst_cont", md.get_Kst_cont());
+	rf.write_attribute(rc_grp_id, "fric_ratio", md.get_fric_ratio_s());
+	rf.write_attribute(rc_grp_id, "shear_strength", md.get_shear_strength_s());
+	rf.write_attribute(rc_grp_id, "Kfn_cont", md.get_Kfn_cont());
+	rf.write_attribute(rc_grp_id, "Kft_cont", md.get_Kft_cont());
+	// contact force
+	rf.write_attribute(rc_grp_id, "fsx_cont", md.rc_scf.fx);
+	rf.write_attribute(rc_grp_id, "fsy_cont", md.rc_scf.fy);
+	rf.write_attribute(rc_grp_id, "ms_cont", md.rc_scf.m);
+	rf.write_attribute(rc_grp_id, "ffx_cont", md.rc_fcf.fx);
+	rf.write_attribute(rc_grp_id, "ffy_cont", md.rc_fcf.fy);
+	rf.write_attribute(rc_grp_id, "mf_cont", md.rc_fcf.m);
+	//
 	using RigidObject_hdf5_utilities::output_rigid_circle_to_hdf5_file;
 	output_rigid_circle_to_hdf5_file(md.get_rigid_circle(), rf, rc_grp_id);
 	rf.close_group(rc_grp_id);
@@ -570,8 +582,7 @@ int output_rigid_circle_to_hdf5_file(
 int load_rigid_circle_from_hdf5_file(
 	Model_T2D_CHM_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -580,11 +591,22 @@ int load_rigid_circle_from_hdf5_file(
 		return 0;
 	hid_t rr_grp_id = rf.open_group(grp_id, "RigidCircle");
 	
-	double Ksn_cont, Kfn_cont;
+	double Ksn_cont, Kst_cont, fric_ratio_s, shear_strength_s;
+	double Kfn_cont, Kft_cont;
 	rf.read_attribute(rr_grp_id, "Ksn_cont", Ksn_cont);
-	md.smh_cont_s.set_Kn_cont(Ksn_cont);
+	rf.read_attribute(rr_grp_id, "Kst_cont", Kst_cont);
+	rf.read_attribute(rr_grp_id, "fric_ratio", fric_ratio_s);
+	rf.read_attribute(rr_grp_id, "shear_strength", shear_strength_s);
 	rf.read_attribute(rr_grp_id, "Kfn_cont", Kfn_cont);
-	md.smh_cont_f.set_Kn_cont(Kfn_cont);
+	rf.read_attribute(rr_grp_id, "Kft_cont", Kft_cont);
+	md.smooth_contact_s.set_Kn_cont(Ksn_cont);
+	md.rough_contact_s.set_K_cont(Ksn_cont, Kst_cont);
+	md.fric_contact_s.set_K_cont(Ksn_cont, Kst_cont);
+	md.fric_contact_s.set_friction_ratio(fric_ratio_s);
+	md.sticky_contact_s.set_K_cont(Ksn_cont, Kst_cont);
+	md.sticky_contact_s.set_shear_strength(shear_strength_s);
+	md.smooth_contact_f.set_Kn_cont(Kfn_cont);
+	md.rough_contact_f.set_K_cont(Kfn_cont, Kft_cont);
 
 	md.rigid_circle_is_valid = true;
 	using RigidObject_hdf5_utilities::load_rigid_circle_from_hdf5_file;

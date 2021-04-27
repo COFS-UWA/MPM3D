@@ -8,8 +8,7 @@ namespace RigidObject_hdf5_utilities
 	int output_rigid_circle_to_hdf5_file(
 		RigidObject::RigidCircle& rc,
 		ResultFile_hdf5& rf,
-		hid_t rc_grp_id
-		)
+		hid_t rc_grp_id)
 	{
 		if (rc_grp_id < 0)
 			return -1;

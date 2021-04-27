@@ -21,7 +21,9 @@ Model_T2D_CHM_mt::Model_T2D_CHM_mt() :
 	grid_elem_list(nullptr),
 	grid_elem_list_id_array(nullptr),
 	rigid_circle_is_valid(false),
-	contact_mem(nullptr) {}
+	contact_mem(nullptr),
+	pcm_s(&smooth_contact_s),
+	pcm_f(&smooth_contact_f) {}
 
 Model_T2D_CHM_mt::~Model_T2D_CHM_mt()
 {
@@ -34,6 +36,7 @@ Model_T2D_CHM_mt::~Model_T2D_CHM_mt()
 	clear_bfy_fs();
 	clear_txs();
 	clear_tys();
+	clear_contact_mem();
 }
 
 Rect Model_T2D_CHM_mt::get_mesh_bbox()
@@ -783,11 +786,36 @@ void Model_T2D_CHM_mt::alloc_contact_mem(size_t num)
 	if (num == 0)
 		return;
 
-	contact_mem = new char[(sizeof(size_t) + sizeof(Position) + sizeof(Force)) * num];
+	contact_mem = new char[(sizeof(size_t)
+		+ sizeof(Position) + sizeof(Force)
+		+ sizeof(double) + sizeof(size_t)
+		+ sizeof(Position) + sizeof(Force)
+		+ sizeof(double)) * num];
+	
+	// solid phase
 	char* cur_mem = contact_mem;
 	contact_substep_id = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * num;
 	prev_contact_pos = (Position*)cur_mem;
 	cur_mem += sizeof(Position) * num;
 	prev_contact_tan_force = (Force*)cur_mem;
+	cur_mem += sizeof(Force) * num;
+	prev_contact_dist = (double*)cur_mem;
+	// fluid phase
+	cur_mem += sizeof(double) * num;
+	contact_substep_id_f = (size_t *)cur_mem;
+	cur_mem += sizeof(size_t) * num;
+	prev_contact_pos_f = (Position *)cur_mem;
+	cur_mem += sizeof(Position) * num;
+	prev_contact_tan_force_f = (Force *)cur_mem;
+	cur_mem += sizeof(Force) * num;
+	prev_contact_dist_f = (double *)cur_mem;
+
+	smooth_contact_s.prev_contact_dist = prev_contact_dist;
+	rough_contact_s.prev_contact_dist = prev_contact_dist;
+	fric_contact_s.prev_contact_dist = prev_contact_dist;
+	sticky_contact_s.prev_contact_dist = prev_contact_dist;
+
+	smooth_contact_f.prev_contact_dist = prev_contact_dist_f;
+	rough_contact_f.prev_contact_dist = prev_contact_dist_f;
 }

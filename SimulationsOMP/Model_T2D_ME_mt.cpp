@@ -597,6 +597,9 @@ void Model_T2D_ME_mt::alloc_contact_mem(size_t pcl_num)
 {
 	clear_contact_mem();
 
+	if (pcl_num == 0)
+		return;
+
 	contact_mem = new char[(sizeof(size_t)
 		+ sizeof(Position) + sizeof(Force)) * pcl_num];
 
