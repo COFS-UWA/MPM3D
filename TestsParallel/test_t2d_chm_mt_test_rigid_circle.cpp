@@ -53,8 +53,8 @@ void test_t2d_chm_mt_test_rigid_circle(int argc, char** argv)
 	model.init_rigid_circle(10.0, 17.5, 2.5, 1.0);
 	model.set_rigid_circle_velocity(0.0, -0.25, 0.0);
 	model.set_contact_param(1.0e5 / 0.2, 1.0e5 / 0.2, 0.0, 10.0, 1.0e3 / 0.2, 1.0e3 / 0.2);
-	//model.set_rough_contact_between_spcl_and_circle();
-	//model.set_rough_contact_between_fpcl_and_circle();
+	model.set_rough_contact_between_spcl_and_circle();
+	model.set_rough_contact_between_fpcl_and_circle();
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -93,7 +93,7 @@ void test_t2d_chm_mt_test_rigid_circle(int argc, char** argv)
 	step.set_step_time(3.0);
 	//step.set_step_time(5.0e-4);
 	step.set_dtime(5.0e-6);
-	//step.set_thread_num(7);
+	step.set_thread_num(10);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();

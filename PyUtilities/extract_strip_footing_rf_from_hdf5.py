@@ -1,7 +1,7 @@
 import h5py as py
 import matplotlib.pyplot as plt
 
-hdf5_file = py.File("../Build/TestsParallel/t2d_me_mt_strip_footing_smooth_niu03.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t2d_me_mt_strip_footing.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['loading']
 th_num = th_grp.attrs['output_num']
