@@ -174,9 +174,9 @@ void test_t3d_chm_mt_spudcan_sand_hypo(int argc, char** argv)
 
 	Step_T3D_CHM_mt step("step1");
 	step.set_model(model);
-	//step.set_thread_num(22);
-	//step.set_step_time(3.0);
-	step.set_step_time(1.0e-4);
+	step.set_thread_num(22);
+	step.set_step_time(3.0);
+	//step.set_step_time(1.0e-4);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

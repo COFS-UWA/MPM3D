@@ -73,26 +73,16 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1800, 950);
 	//md_disp.set_model(model);
-<<<<<<< HEAD
 	//md_disp.set_pts_from_vx_s_bc(0.03);
 	////md_disp.set_pts_from_vx_f_bc(0.03);
 	////md_disp.set_pts_from_vy_s_bc(0.03);
-=======
-	////md_disp.set_pts_from_vx_s_bc(0.03);
-	////md_disp.set_pts_from_vx_f_bc(0.03);
-	//md_disp.set_pts_from_vy_s_bc(0.03);
->>>>>>> 51fc9b445c10bb7323ab4d43058ee6ed93a1d7ac
 	////md_disp.set_pts_from_vy_f_bc(0.03);
 	//// all
 	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//// left
 	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
 	//// middle
-<<<<<<< HEAD
-	//md_disp.set_display_range(-2.25, 2.25, -1.3, 1.3);
-=======
 	////md_disp.set_display_range(-2.25, 2.25, -1.3, 1.3);
->>>>>>> 51fc9b445c10bb7323ab4d43058ee6ed93a1d7ac
 	//// right
 	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
 	//md_disp.start();
