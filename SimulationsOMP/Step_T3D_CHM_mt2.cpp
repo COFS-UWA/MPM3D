@@ -1202,6 +1202,13 @@ int substep_func_omp_T3D_CHM_mt2(
 
 		// update location (in which element)
 		ori_p_id = pcl_index0[p_id];
+		if (ori_p_id == 2559)
+		{
+			double pvfx = p_v_f0.vx;
+			double pvfy = p_v_f0.vy;
+			double pvfz = p_v_f0.vz;
+			int efe = 0;
+		}
 		assert(ori_p_id < md.ori_pcl_num);
 		const Position& p_p = pcl_pos[ori_p_id];
 		p_x = p_p.x + p_u_s0.ux;

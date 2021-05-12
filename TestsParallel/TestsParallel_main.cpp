@@ -21,12 +21,12 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_cap_compression(argc, argv);
 	//test_t2d_me_mt_cap_compression_result(argc, argv);
 
-	//test_t2d_me_mt_block_collision(argc, argv);
-	//test_t2d_me_mt_block_collision_result(argc, argv);
-
 	//test_t2d_me_mt_block_sliding(argc, argv);
 	//test_t2d_me_mt_block_sliding_result(argc, argv);
 	
+	//test_t2d_me_mt_block_collision(argc, argv);
+	//test_t2d_me_mt_block_collision_result(argc, argv);
+
 	//test_t2d_me_mt_strip_footing_smaller(argc, argv);
 	//test_t2d_me_mt_strip_footing_smaller_result(argc, argv);
 
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
 
-	test_t2d_chm_mt_test_rigid_circle(argc, argv);
+	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
 	
 	//test_t2d_chm_mt_pipe_conference(argc, argv);
@@ -106,8 +106,18 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);
+	//test_t3d_chm_mt_1d_consolidation_restart(argc, argv);
 	//test_t3d_chm_mt_1d_consolidation_result(argc, argv);
 
+	//test_t3d_me_mt_spudcan_sand_hypo_model(argc, argv);
+	//test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
+	//test_t3d_me_mt_spudcan_sand_hypo_result(argc, argv);
+
+	//test_t3d_chm_mt_spudcan_sand_hypo_model(argc, argv);
+	test_t3d_chm_mt_spudcan_sand_hypo(argc, argv);
+	//test_t3d_chm_mt_spudcan_sand_hypo_result(argc, argv);
+
+	// tbb parallelism
 	//test_sort_pcl_task();
 	//test_sort_pcl_task2();
 	//test_sort_tri_mesh_node_task();
@@ -130,10 +140,6 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 	
-	//test_t3d_me_mt_spudcan_sand_hypo_model(argc, argv);
-	//test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
-	//test_t3d_me_mt_spudcan_sand_hypo_result(argc, argv);
-	
-	//system("pause");
+	system("pause");
 	return 0;
 }

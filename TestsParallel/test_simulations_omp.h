@@ -73,6 +73,7 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_coarse(int argc, char** argv);
 
 void test_t3d_chm_mt_1d_consolidation(int argc, char** argv);
+void test_t3d_chm_mt_1d_consolidation_restart(int argc, char** argv);
 
 void test_sort_pcl_task();
 void test_sort_pcl_task2();
@@ -90,5 +91,9 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char** argv);
 void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_sand_hypo(int argc, char** argv);
 void test_t3d_me_mt_spudcan_sand_hypo_result(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_sand_hypo_model(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_sand_hypo(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_sand_hypo_result(int argc, char** argv);
 
 #endif

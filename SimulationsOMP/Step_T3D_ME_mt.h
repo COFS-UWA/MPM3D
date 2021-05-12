@@ -55,10 +55,6 @@ protected:
 	MatModel::MaterialModel** pcl_mat_model;
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
 
-	size_t* contact_substep_id; // ori_pcl_num
-	Position* prev_contact_pos; // ori_pcl_num
-	Force* prev_contact_tan_force; // ori_pcl_num
-
 	size_t elem_num;
 	size_t node_num;
 	
@@ -123,7 +119,7 @@ protected:
 	RigidCube* prcu;
 	RigidObjectByT3DMesh* prmesh;
 
-	ContactModel3D *pcf;
+	ContactModel3D *pcm;
 
 	size_t prev_valid_pcl_num, valid_pcl_num;
 	size_t valid_elem_num;

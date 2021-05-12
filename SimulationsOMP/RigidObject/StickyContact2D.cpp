@@ -51,7 +51,7 @@ void StickyContact2D::cal_contact_force(
 	//	cont_force.y = f_cont * norm.y;
 	//}
 	
-	// normal force (not sticky)
+	// normal force
 	const double f_cont = Kn_cont * pcl_len * dist;
 	cont_force.x = f_cont * norm.x;
 	cont_force.y = f_cont * norm.y;

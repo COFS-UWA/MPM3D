@@ -14,6 +14,7 @@
 #include "RigidObject/SmoothContact3D.h"
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
+#include "RigidObject/StickyContact3D.h"
 
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
@@ -382,10 +383,6 @@ public:
 	}
 
 protected:
-	size_t* contact_substep_id; // ori_pcl_num
-	Position* prev_contact_pos; // ori_pcl_num
-	Force* prev_contact_tan_force; // ori_pcl_num
-
 	bool rigid_cylinder_is_valid;
 	bool rigid_cone_is_valid;
 	bool rigid_cube_is_valid;
@@ -396,13 +393,19 @@ protected:
 	RigidObjectByT3DMesh rigid_t3d_mesh;
 
 	// ad hoc design for output
-	double Kn_cont, Kt_cont, fric_ratio;
-	ContactModel3D* pcm;
+	double Kn_cont, Kt_cont;
+	double fric_ratio, shear_strength;
 	SmoothContact3D smooth_contact;
 	RoughContact3D rough_contact;
 	FrictionalContact3D fric_contact;
+	StickyContact3D sticky_contact;
+	ContactModel3D* pcm;
 
-	char* contact_mem;
+	size_t *contact_substep_ids; // ori_pcl_num
+	ContactModel3D::Position *prev_contact_poses; // ori_pcl_num
+	ContactModel3D::Force *prev_contact_tan_forces; // ori_pcl_num
+	double *prev_contact_dists; // ori_pcl_num
+	char *contact_mem;
 	void clear_contact_mem();
 	void alloc_contact_mem(size_t num);
 
@@ -436,6 +439,7 @@ public:
 	{
 		rigid_cone.set_vbc(vx, vy, vz);
 	}
+
 	// cube
 	bool has_rigid_cube() const noexcept { return rigid_cube_is_valid; }
 	RigidCube& get_rigid_cube() { return rigid_cube; }
@@ -452,6 +456,7 @@ public:
 		rigid_cube.set_fy_ext(fy);
 		rigid_cube.set_fz_ext(fz);
 	}
+
 	// t3d rigid mesh
 	bool has_t3d_rigid_mesh() const noexcept { return rigid_t3d_mesh_is_valid; }
 	RigidObjectByT3DMesh &get_t3d_rigid_mesh() noexcept { return rigid_t3d_mesh; }
@@ -469,14 +474,28 @@ public:
 	{ rigid_t3d_mesh.set_translation_velocity_bc(vx, vy, vz);	}
 
 	// for contact model
-	inline void set_contact_param(double _Kn_cont, double _Kt_cont, double _fric_ratio)
+	// for contact model
+	inline void set_contact_param(
+		double _Kn_cont,
+		double _Kt_cont,
+		double _fric_ratio,
+		double _shear_strength)
 	{
-		Kn_cont = _Kn_cont; Kt_cont = _Kt_cont; fric_ratio = _fric_ratio;
+		Kn_cont = _Kn_cont;
+		Kt_cont = _Kt_cont;
+		fric_ratio = _fric_ratio;
+		shear_strength = _shear_strength;
 		smooth_contact.set_Kn_cont(_Kn_cont);
-		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 		fric_contact.set_K_cont(_Kn_cont, _Kt_cont);
 		fric_contact.set_friction_ratio(_fric_ratio);
+		sticky_contact.set_K_cont(_Kn_cont, _Kt_cont);
+		sticky_contact.set_shear_strength(_shear_strength);
+		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 	}
+	inline void set_smooth_contact_between_pcl_and_rect() noexcept { pcm = &smooth_contact; }
+	inline void set_rough_contact_between_pcl_and_rect() noexcept { pcm = &rough_contact; }
+	inline void set_frictional_contact_between_pcl_and_rect() noexcept { pcm = &fric_contact; }
+	inline void set_sticky_contact_between_pcl_and_rect() noexcept { pcm = &sticky_contact; }
 
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

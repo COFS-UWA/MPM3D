@@ -78,7 +78,7 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T3D_CHM_mt_complete out1("consolidation");
-	out1.set_interval_num(50);
+	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
@@ -86,9 +86,52 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 
 	Step_T3D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(10.0);
+	//step.set_step_time(10.0);
+	step.set_step_time(1.0e-4);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(5);
+	//step.set_thread_num(5);
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
+}
+
+void test_t3d_chm_mt_1d_consolidation_restart(int argc, char** argv)
+{
+	Model_T3D_CHM_mt model;
+	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
+		model, "t3d_chm_mt_1d_consolidation.h5");
+
+	//QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_view_dir(30.0, -30.0);
+	//md_disp.set_light_dir(90.0, -15.0);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_vx_bc_s(0.01);
+	////md_disp.set_pts_from_vy_bc_s(0.01);
+	////md_disp.set_pts_from_vz_bc_s(0.01);
+	//md_disp.start();
+	//return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_chm_mt_1d_consolidation2.h5");
+
+	ModelData_T3D_CHM_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T3D_CHM_mt_complete out1("consolidation");
+	out1.set_interval_num(100);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_res_file(res_file_hdf5);
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
+
+	Step_T3D_CHM_mt step("step1");
+	step.set_model(model);
+	//step.set_step_time(10.0);
+	step.set_step_time(1.0e-4);
+	step.set_dtime(1.0e-5);
+	//step.set_thread_num(5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -101,9 +144,10 @@ void test_t3d_chm_mt_1d_consolidation_result(int argc, char **argv)
 {
 	ResultFile_hdf5 rf;
 	rf.open("t3d_chm_mt_1d_consolidation.h5");
+	//rf.open("t3d_chm_mt_1d_consolidation2.h5");
 
 	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_ME_s::SingleFrame);
-	//app.set_res_file(rf, "compression", 2, Hdf5Field::p);
+	//app.set_res_file(rf, "consolidation", 2, Hdf5Field::p);
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(900, 900);
@@ -113,6 +157,6 @@ void test_t3d_chm_mt_1d_consolidation_result(int argc, char **argv)
 	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_chm_mt_1d_consolidation");
-	app.set_gif_name("t3d_chm_mt_1d_consolidation");
+	//app.set_gif_name("t3d_chm_mt_1d_consolidation");
 	app.start();
 }

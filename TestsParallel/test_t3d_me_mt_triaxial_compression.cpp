@@ -71,7 +71,7 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	// rigid cap
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
-	model.set_contact_param(200000.0, 200000.0, 0.1);
+	model.set_contact_param(200000.0, 200000.0, 0.1, 0.2);
 
 	// top pressure
 	//IndexArray tbc_pcl_array(100);

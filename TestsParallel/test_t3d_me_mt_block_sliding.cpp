@@ -36,7 +36,10 @@ void test_t3d_me_mt_block_sliding(int argc, char** argv)
 
 	model.init_rigid_cube(2.5, 2.5, 1.5, 3.0, 3.0, 1.0, 1.0);
 	model.set_rigid_cube_force(3.0, 0.0, -3.0);
-	model.set_contact_param(200.0, 200.0, 0.2);
+	model.set_contact_param(200.0, 200.0, 0.2, 0.1);
+	//model.set_rough_contact_between_pcl_and_rect();
+	//model.set_frictional_contact_between_pcl_and_rect();
+	model.set_sticky_contact_between_pcl_and_rect();
 
 	IndexArray all_n_ids(model.get_node_num());
 	for (size_t n_id = 0; n_id < model.get_node_num(); ++n_id)
@@ -47,8 +50,8 @@ void test_t3d_me_mt_block_sliding(int argc, char** argv)
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(180.0f, 20.0f);
-	//md_disp.set_light_dir(180.0f, 20.0f);
+	//md_disp.set_view_dir(100.0f, 20.0f);
+	//md_disp.set_light_dir(120.0f, 20.0f);
 	//md_disp.set_model(model);
 	//md_disp.set_pts_from_node_id(all_n_ids.get_mem(), all_n_ids.get_num(), 0.1);
 	//md_disp.start();
@@ -62,9 +65,9 @@ void test_t3d_me_mt_block_sliding(int argc, char** argv)
 
 	TimeHistory_T3D_ME_mt_complete out1("sliding");
 	out1.set_res_file(res_file_hdf5);
+	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
-	out1.set_interval_num(100);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
 	Step_T3D_ME_mt step("step1");

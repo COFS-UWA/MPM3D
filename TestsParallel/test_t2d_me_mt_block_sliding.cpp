@@ -42,7 +42,7 @@ void test_t2d_me_mt_block_sliding(int argc, char** argv)
 	}
 
 	const double Kcn = 10000.0;
-	const double Kct = 100000.0;
+	const double Kct = 10000.0;
 	//model.init_rigid_rect(1.0, 1.0 + pcl_len - 10.0/2.0/Kcn, 2.0, 2.0, 1.0);
 	model.init_rigid_rect(1.0, 1.0 + pcl_len, 2.0, 2.0, 1.0);
 	// need a momentum for sticky contact

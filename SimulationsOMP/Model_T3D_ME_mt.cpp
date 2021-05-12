@@ -30,8 +30,6 @@ Model_T3D_ME_mt::Model_T3D_ME_mt() :
 	rigid_t3d_mesh_is_valid(false),
 	contact_mem(nullptr),
 	pcm(&smooth_contact)
-	//pcm(&rough_contact)
-	//pcm(&fric_contact)
 {
 	//res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }
@@ -840,12 +838,35 @@ void Model_T3D_ME_mt::alloc_contact_mem(size_t num)
 	clear_contact_mem();
 
 	contact_mem = new char[(sizeof(size_t)
-		+ sizeof(Position) + sizeof(Force)) * num];
+		+ sizeof(ContactModel3D::Position)
+		+ sizeof(ContactModel3D::Force)
+		+ sizeof(double)) * num];
 	
 	char* cur_mem = contact_mem;
-	contact_substep_id = (size_t *)cur_mem;
+	contact_substep_ids = (size_t *)cur_mem;
 	cur_mem += sizeof(size_t) * num;
-	prev_contact_pos = (Position *)cur_mem;
-	cur_mem += sizeof(Position) * num;
-	prev_contact_tan_force = (Force *)cur_mem;
+	prev_contact_poses = (ContactModel3D::Position *)cur_mem;
+	cur_mem += sizeof(ContactModel3D::Position) * num;
+	prev_contact_tan_forces = (ContactModel3D::Force *)cur_mem;
+	cur_mem += sizeof(ContactModel3D::Force) * num;
+	prev_contact_dists = (double *)cur_mem;
+
+	// smooth contact
+	smooth_contact.contact_substep_ids = contact_substep_ids;
+	smooth_contact.prev_contact_dists = prev_contact_dists;
+	// rough contact
+	rough_contact.contact_substep_ids = contact_substep_ids;
+	rough_contact.prev_contact_poses = prev_contact_poses;
+	rough_contact.prev_contact_tan_forces = prev_contact_tan_forces;
+	rough_contact.prev_contact_dists = prev_contact_dists;
+	// frictional contact
+	fric_contact.contact_substep_ids = contact_substep_ids;
+	fric_contact.prev_contact_poses = prev_contact_poses;
+	fric_contact.prev_contact_tan_forces = prev_contact_tan_forces;
+	fric_contact.prev_contact_dists = prev_contact_dists;
+	// sticky contact
+	sticky_contact.contact_substep_ids = contact_substep_ids;
+	sticky_contact.prev_contact_poses = prev_contact_poses;
+	sticky_contact.prev_contact_tan_forces = prev_contact_tan_forces;
+	sticky_contact.prev_contact_dists = prev_contact_dists;
 }

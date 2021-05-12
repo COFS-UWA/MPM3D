@@ -11,6 +11,7 @@ cal_time = []
 rb_cfx = []
 rb_cfy = []
 rb_xpos = []
+rb_ypos = []
 for th_id in range(th_num):
     frame_grp = th_grp['frame_%d' % th_id]
     cal_time.append(frame_grp.attrs['total_time'])
@@ -18,14 +19,15 @@ for th_id in range(th_num):
     rb_cfx.append(rb_grp.attrs['fx_contact'])
     rb_cfy.append(rb_grp.attrs['fy_contact'])
     rb_xpos.append(rb_grp.attrs['x'])
+    rb_ypos.append(rb_grp.attrs['y'])
 
 hdf5_file.close()
 
 data_file = open("../Build/TestsParallel/t2d_me_mt_block_sliding_data.csv", "w")
-data_file.write("time, xpos, fx_contact, fy_contact,\n")
+data_file.write("time, xpos, ypos, fx_contact, fy_contact,\n")
 for i in range(len(cal_time)):
-    data_file.write("%f, %f, %f, %f\n" % \
-        (cal_time[i], rb_xpos[i], rb_cfx[i], rb_cfy[i]))
+    data_file.write("%f, %f, %f, %f, %f\n" % \
+        (cal_time[i], rb_xpos[i], rb_ypos[i], rb_cfx[i], rb_cfy[i]))
 data_file.close()
 
 fig = plt.figure()

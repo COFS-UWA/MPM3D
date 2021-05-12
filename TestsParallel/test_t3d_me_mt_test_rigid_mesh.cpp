@@ -108,7 +108,7 @@ void test_t3d_me_mt_test_rigid_mesh(int argc, char** argv)
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/cylinder_model.h5",
 		0.1, 0.1, 1.0, 0.0, 0.0, 0.0, 0.0125, 0.0125, 0.0125);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.1);
-	model.set_contact_param(20000.0, 20000.0, 0.1);
+	model.set_contact_param(20000.0, 20000.0, 0.1, 0.2);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);

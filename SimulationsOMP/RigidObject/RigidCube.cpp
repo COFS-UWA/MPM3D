@@ -53,7 +53,7 @@ void RigidCube::set_cont_force(
 	double mx,
 	double my,
 	double mz
-) noexcept
+	) noexcept
 {
 	fx_cont = fx; fy_cont = fy; fz_cont = fz;
 	mx_cont = mx; my_cont = my; mz_cont = mz;
@@ -88,16 +88,321 @@ bool RigidCube::detect_collision_with_point(
 	Point3D& lcontpos
 	) const noexcept
 {
-	double lp_x = p_x - x;
-	double lp_y = p_y - y;
-	double lp_z = p_z - z;
-	double p_hhx = hhx + p_r;
-	double p_hhy = hhy + p_r;
-	double p_hhz = hhz + p_r;
+	const double lp_x = p_x - x;
+	const double lp_y = p_y - y;
+	const double lp_z = p_z - z;
+	const double p_hhx = hhx + p_r;
+	const double p_hhy = hhy + p_r;
+	const double p_hhz = hhz + p_r;
 	if (lp_x < -p_hhx || lp_x > p_hhx ||
 		lp_y < -p_hhy || lp_y > p_hhy ||
 		lp_z < -p_hhz || lp_z > p_hhz)
 		return false;
+
+	lcontpos.x = lp_x;
+	lcontpos.y = lp_y;
+	lcontpos.z = lp_z;
+
+	double drp, dx, dy, dz;
+	if (lp_x < -hhx)
+	{
+		if (lp_y < -hhy)
+		{
+			if (lp_z < -hhz)
+			{
+				dx = lp_x + hhx;
+				dy = lp_y + hhy;
+				dz = lp_z + hhz;
+				drp = sqrt(dx*dx+dy*dy+dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dx = lp_x + hhx;
+				dy = lp_y + hhy;
+				dz = lp_z - hhz;
+				drp = sqrt(dx*dx + dy*dy + dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else // -hhz < z < hhz
+			{
+				dx = lp_x + hhx;
+				dy = lp_y + hhy;
+				drp = sqrt(dx*dx + dy*dy);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = 0.0;
+				return true;
+			}
+		}
+		else if (lp_y > hhy)
+		{
+			if (lp_z < -hhz)
+			{
+				dx = lp_x + hhx;
+				dy = lp_y - hhy;
+				dz = lp_z + hhz;
+				drp = sqrt(dx*dx+dy*dy+dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dx = lp_x + hhx;
+				dy = lp_y - hhy;
+				dz = lp_z - hhz;
+				drp = sqrt(dx*dx+dy*dy+dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else // -hhz < lp_z < hhz
+			{
+				dx = lp_x + hhx;
+				dy = lp_y - hhy;
+				drp = sqrt(dx*dx + dy*dy);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = 0.0;
+				return true;
+			}
+		}
+		else // -hhy < y < hhy
+		{
+			if (lp_z < -hhz)
+			{
+				dx = lp_x + hhx;
+				dz = lp_z + hhz;
+				drp = sqrt(dx*dx + dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = 0.0;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dx = lp_x + hhx;
+				dz = lp_z - hhz;
+				drp = sqrt(dx * dx + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = 0.0;
+				lnorm.z = dz / drp;
+				return true;
+			}
+		}
+	}
+	else if (lp_x > hhx)
+	{
+		if (lp_y < -hhy)
+		{
+			if (lp_z < -hhz)
+			{
+				dx = lp_x - hhx;
+				dy = lp_y + hhy;
+				dz = lp_z + hhz;
+				drp = sqrt(dx*dx+dy*dy+dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dx = lp_x - hhx;
+				dy = lp_y + hhy;
+				dz = lp_z - hhz;
+				drp = sqrt(dx * dx + dy * dy + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else // -hhz < z < hhz
+			{
+				dx = lp_x - hhx;
+				dy = lp_y + hhy;
+				drp = sqrt(dx * dx + dy * dy);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = 0.0;
+				return true;
+			}
+		}
+		else if (lp_y > hhy)
+		{
+			if (lp_z < -hhz)
+			{
+				dx = lp_x - hhx;
+				dy = lp_y - hhy;
+				dz = lp_z + hhz;
+				drp = sqrt(dx * dx + dy * dy + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dx = lp_x - hhx;
+				dy = lp_y - hhy;
+				dz = lp_z - hhz;
+				drp = sqrt(dx * dx + dy * dy + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else // -hhz < lp_z < hhz
+			{
+				dx = lp_x - hhx;
+				dy = lp_y - hhy;
+				drp = sqrt(dx * dx + dy * dy);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = dy / drp;
+				lnorm.z = 0.0;
+				return true;
+			}
+		}
+		else // -hhy < lp_y < hhy
+		{
+			if (lp_z < -hhz)
+			{
+				dx = lp_x - hhx;
+				dz = lp_z + hhz;
+				drp = sqrt(dx*dx + dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = 0.0;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dx = lp_x - hhx;
+				dz = lp_z - hhz;
+				drp = sqrt(dx * dx + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = dx / drp;
+				lnorm.y = 0.0;
+				lnorm.z = dz / drp;
+				return true;
+			}
+		}
+	}
+	else // -hhx < x < hhx
+	{
+		if (lp_y < -hhy)
+		{
+			if (lp_z < -hhz)
+			{
+				dy = lp_y + hhy;
+				dz = lp_z + hhz;
+				drp = sqrt(dy*dy + dz*dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = 0.0;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dy = lp_y + hhy;
+				dz = lp_z - hhz;
+				drp = sqrt(dy * dy + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = 0.0;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+			}
+		}
+		else if (lp_y > hhy)
+		{
+			if (lp_z < -hhz)
+			{
+				dy = lp_y - hhy;
+				dz = lp_z + hhz;
+				drp = sqrt(dy * dy + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = 0.0;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+				return true;
+			}
+			else if (lp_z > hhz)
+			{
+				dy = lp_y - hhy;
+				dz = lp_z - hhz;
+				drp = sqrt(dy * dy + dz * dz);
+				dist = -drp + p_r;
+				if (dist < 0.0)
+					return false;
+				lnorm.x = 0.0;
+				lnorm.y = dy / drp;
+				lnorm.z = dz / drp;
+			}
+		}
+	}
 
 	unsigned char type;
 	double tmp;
@@ -154,8 +459,5 @@ bool RigidCube::detect_collision_with_point(
 	lnorm.x = norm.x;
 	lnorm.y = norm.y;
 	lnorm.z = norm.z;
-	lcontpos.x = lp_x - p_r * lnorm.x;
-	lcontpos.y = lp_y - p_r * lnorm.y;
-	lcontpos.z = lp_z - p_r * lnorm.z;
 	return true;
 }

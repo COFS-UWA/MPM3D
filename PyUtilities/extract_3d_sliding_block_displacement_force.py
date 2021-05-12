@@ -40,8 +40,9 @@ line1, = plot1.plot(cal_time, rb_x)
 # line1, = plot1.plot(cal_time, rb_cfz)
 
 # Analytical solution
-# a = 0.33333333333 # snooth
-a = (3.0 - 3.0 * 0.2) / 9.0
+#a = 3.0 / 9.0 # smooth
+#a = (3.0 - 3.0 * 0.2) / 9.0 # frictional
+a = (3.0 - 9.0 * 0.1) / 9.0 # sticky
 an_rb_x = []
 for i in range(len(cal_time)):
     an_rb_x.append(0.5 * a * cal_time[i] * cal_time[i] + rb_x[0])

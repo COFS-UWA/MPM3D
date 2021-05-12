@@ -48,7 +48,7 @@ void test_t3d_me_mt_cylinder_foundation_create_model_den(int argc, char** argv)
 
 	model.init_rigid_cylinder(0.0, 0.0, 0.1, 0.2, 0.5);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
-	model.set_contact_param(20000.0, 20000.0, 0.1);
+	model.set_contact_param(20000.0, 20000.0, 0.1, 5.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, -3.0);

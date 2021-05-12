@@ -10,6 +10,7 @@ class Model_T3D_CHM_mt;
 class Step_T3D_CHM_mt;
 namespace Model_T3D_CHM_mt_hdf5_utilities
 {
+	int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, const char* hdf5_name);
 	int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt& step,
 		const char* hdf5_name, const char* th_name, size_t frame_id);
 }
@@ -90,13 +91,6 @@ protected:
 	RigidObjectByT3DMesh *prm;
 	ContactModel3D *pcm_s, *pcm_f;
 	
-	size_t* contact_substep_id_s;
-	Position* prev_contact_pos_s;
-	Force* prev_contact_tan_force_s;
-	size_t* contact_substep_id_f;
-	Position* prev_contact_pos_f;
-	Force* prev_contact_tan_force_f;
-
 #ifdef _DEBUG
 	size_t prev_valid_pcl_num_tmp;
 #endif

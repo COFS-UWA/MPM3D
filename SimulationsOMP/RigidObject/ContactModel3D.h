@@ -7,23 +7,26 @@
 class ContactModel3D
 {
 public:
+	struct Position { double x, y, z; };
+	struct Force { double x, y, z; };
+
 	explicit ContactModel3D();
 	virtual ~ContactModel3D();
 
 	virtual void cal_contact_force(
 		// in
 		size_t substp_id,
+		size_t ori_pcl_id,
 		double dist,
 		const Vector3D& norm,
 		const Point3D& cont_pos,
 		double pcl_len,
 		ParticleVariablesGetter &pv_getter,
 		// out
-		size_t& cont_substp_id,
-		Point3D &prev_cont_pos,
-		Vector3D &prev_cont_tan_force,
 		Vector3D &cont_force
 		) = 0;
+
+	inline static double sign(double num) noexcept { return num < 0.0 ? -1.0 : 1.0; }
 };
 
 #endif

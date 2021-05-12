@@ -116,27 +116,6 @@ int Step_T3D_CHM_mt::init_calculation()
 
 	Kf = md.Kf; k = md.k; miu = md.miu;
 
-	if (md.has_rigid_cylinder())
-	{
-		prcy = &md.get_rigid_cylinder();
-		prcy->reset_cont_force();
-	}
-	if (md.has_t3d_rigid_mesh())
-	{
-		prm = &md.get_t3d_rigid_mesh();
-		prm->reset_cont_force();
-	}
-	pcm_s = md.pcm_s;
-	contact_substep_id_s = md.contact_substep_id_s;
-	prev_contact_pos_s = md.prev_contact_pos_s;
-	prev_contact_tan_force_s = md.prev_contact_tan_force_s;
-	memset(contact_substep_id_s, 0xFF, sizeof(size_t) * md.ori_pcl_num);
-	pcm_f = md.pcm_f;
-	contact_substep_id_f = md.contact_substep_id_f;
-	prev_contact_pos_f = md.prev_contact_pos_f;
-	prev_contact_tan_force_f = md.prev_contact_tan_force_f;
-	memset(contact_substep_id_f, 0xFF, sizeof(size_t) * md.ori_pcl_num);
-
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
 	char* cur_mem = (char*)cal_mem.alloc(
@@ -221,8 +200,21 @@ int Step_T3D_CHM_mt::init_calculation()
 		valid_pcl_num += pcl_in_mesh_num;
 	}
 
+	pcm_s = md.pcm_s;
+	memset(md.contact_substep_ids_s, 0xFF, sizeof(size_t)* md.ori_pcl_num);
+	pcm_f = md.pcm_f;
+	memset(md.contact_substep_ids_f, 0xFF, sizeof(size_t)* md.ori_pcl_num);
+	
+	if (md.has_rigid_cylinder())
+	{
+		prcy = &md.get_rigid_cylinder();
+		prcy->reset_cont_force();
+	}
 	if (md.has_t3d_rigid_mesh())
 	{
+		prm = &md.get_t3d_rigid_mesh();
+		prm->reset_cont_force();
+		// set max dist for efficiency
 		double max_pcl_radius = thread_datas[0].max_pcl_vol;
 		for (size_t th_id = 1; th_id < thread_num; ++th_id)
 		{
@@ -1548,21 +1540,18 @@ int Step_T3D_CHM_mt::apply_rigid_cylinder(
 		const ShapeFunc& p_N = pcl_N[p_id];
 		const size_t e_id = pcl_in_elem[p_id];
 		if (prcy->detect_collision_with_point(
-			p_x, p_y, p_z, p_r,
-			dist, lnorm, cur_cont_pos))
+			p_x, p_y, p_z, p_r, dist, lnorm, cur_cont_pos))
 		{
 			prcy->get_global_vector(lnorm, gnorm);
 			// solid pcl
 			pcm_s->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
 				p_r + p_r,
 				pv_place_holder,
-				contact_substep_id_s[ori_p_id],
-				prev_contact_pos_s[ori_p_id].pt,
-				prev_contact_tan_force_s[ori_p_id].vec,
 				lcont_fs.vec);
 			prcy->get_global_vector(lcont_fs.vec, gcont_fs.vec);
 			Force& en_f_s1 = elem_node_force_s[e_id * 4];
@@ -1584,14 +1573,12 @@ int Step_T3D_CHM_mt::apply_rigid_cylinder(
 			// fluid pcl
 			pcm_f->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
 				p_r + p_r,
 				pv_place_holder,
-				contact_substep_id_f[ori_p_id],
-				prev_contact_pos_f[ori_p_id].pt,
-				prev_contact_tan_force_f[ori_p_id].vec,
 				lcont_ff.vec);
 			prcy->get_global_vector(lcont_ff.vec, gcont_ff.vec);
 			Force& en_f_f1 = elem_node_force_f[e_id * 4];
@@ -1658,14 +1645,12 @@ int Step_T3D_CHM_mt::apply_t3d_rigid_mesh(
 			// solid pcl
 			pcm_s->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
 				p_r + p_r,
 				pv_place_holder,
-				contact_substep_id_s[ori_p_id],
-				prev_contact_pos_s[ori_p_id].pt,
-				prev_contact_tan_force_s[ori_p_id].vec,
 				lcont_fs.vec);
 			prm->get_global_vector(lcont_fs.vec, gcont_fs.vec);
 			Force& en_f_s1 = elem_node_force_s[e_id * 4];
@@ -1687,14 +1672,12 @@ int Step_T3D_CHM_mt::apply_t3d_rigid_mesh(
 			// fluid pcl
 			pcm_f->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
 				p_r + p_r,
 				pv_place_holder,
-				contact_substep_id_f[ori_p_id],
-				prev_contact_pos_f[ori_p_id].pt,
-				prev_contact_tan_force_f[ori_p_id].vec,
 				lcont_ff.vec);
 			prm->get_global_vector(lcont_ff.vec, gcont_ff.vec);
 			Force& en_f_f1 = elem_node_force_f[e_id * 4];

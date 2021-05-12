@@ -37,7 +37,7 @@ void test_contact_model_3d(int argc, char** argv)
 	// penetrate 0.05
 	model.init_rigid_cylinder(0.25, 0.25, 0.12, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.02, 0.0, 0.0);
-	model.set_contact_param(20000.0, 200000.0, 0.01);
+	model.set_contact_param(20000.0, 200000.0, 0.01, 0.1);
 
 	IndexArray all_n_ids(model.get_node_num());
 	for (size_t n_id = 0; n_id < model.get_node_num(); ++n_id)

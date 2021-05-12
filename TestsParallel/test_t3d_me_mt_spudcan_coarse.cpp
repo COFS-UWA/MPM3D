@@ -177,7 +177,7 @@ void test_t3d_me_mt_spudcan_coarse_model(int argc, char** argv)
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0);
-	model.set_contact_param(20000.0, 20000.0, 0.1);
+	model.set_contact_param(20000.0, 20000.0, 0.1, 5.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, -0.5 * width);

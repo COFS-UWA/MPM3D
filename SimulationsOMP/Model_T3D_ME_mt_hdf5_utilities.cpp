@@ -589,6 +589,7 @@ int output_rigid_cylinder_to_hdf5_file(
 	rf.write_attribute(rc_grp_id, "Kn_cont", md.Kn_cont);
 	rf.write_attribute(rc_grp_id, "Kt_cont", md.Kt_cont);
 	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rc_grp_id, "shear_strength", md.shear_strength);
 
 	RigidObject_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
 
@@ -610,11 +611,12 @@ int load_rigid_cylinder_from_hdf5_file(
 
 	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCylinder");
 
-	double Kn_cont, Kt_cont, fric_ratio;
+	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
 	rf.read_attribute(rc_grp_id, "Kn_cont", Kn_cont);
 	rf.read_attribute(rc_grp_id, "Kt_cont", Kt_cont);
 	rf.read_attribute(rc_grp_id, "fric_ratio", fric_ratio);
-	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio);
+	rf.read_attribute(rc_grp_id, "shear_strength", shear_strength);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	RigidObject_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
 
@@ -626,8 +628,7 @@ int load_rigid_cylinder_from_hdf5_file(
 int output_rigid_cone_to_hdf5_file(
 	Model_T3D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -640,6 +641,7 @@ int output_rigid_cone_to_hdf5_file(
 	rf.write_attribute(rc_grp_id, "Kn_cont", md.Kn_cont);
 	rf.write_attribute(rc_grp_id, "Kt_cont", md.Kt_cont);
 	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rc_grp_id, "shear_strength", md.shear_strength);
 
 	RigidObject_hdf5_utilities::output_rigid_cone_to_hdf5_file(md.rigid_cone, rf, rc_grp_id);
 
@@ -650,8 +652,7 @@ int output_rigid_cone_to_hdf5_file(
 int load_rigid_cone_from_hdf5_file(
 	Model_T3D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -661,11 +662,12 @@ int load_rigid_cone_from_hdf5_file(
 
 	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCone");
 
-	double Kn_cont, Kt_cont, fric_ratio;
+	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
 	rf.read_attribute(rc_grp_id, "Kn_cont", Kn_cont);
 	rf.read_attribute(rc_grp_id, "Kt_cont", Kt_cont);
 	rf.read_attribute(rc_grp_id, "fric_ratio", fric_ratio);
-	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio);
+	rf.read_attribute(rc_grp_id, "shear_strength", shear_strength);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	RigidObject_hdf5_utilities::load_rigid_cone_from_hdf5_file(md.rigid_cone, rf, rc_grp_id);
 
@@ -677,8 +679,7 @@ int load_rigid_cone_from_hdf5_file(
 int output_rigid_cube_to_hdf5_file(
 	Model_T3D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -691,6 +692,7 @@ int output_rigid_cube_to_hdf5_file(
 	rf.write_attribute(rc_grp_id, "Kn_cont", md.Kn_cont);
 	rf.write_attribute(rc_grp_id, "Kt_cont", md.Kt_cont);
 	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rc_grp_id, "shear_strength", md.shear_strength);
 
 	RigidObject_hdf5_utilities::output_rigid_cube_to_hdf5_file(md.rigid_cube, rf, rc_grp_id);
 
@@ -701,8 +703,7 @@ int output_rigid_cube_to_hdf5_file(
 int load_rigid_cube_from_hdf5_file(
 	Model_T3D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -712,11 +713,12 @@ int load_rigid_cube_from_hdf5_file(
 
 	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCube");
 
-	double Kn_cont, Kt_cont, fric_ratio;
+	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
 	rf.read_attribute(rc_grp_id, "Kn_cont", Kn_cont);
 	rf.read_attribute(rc_grp_id, "Kt_cont", Kt_cont);
 	rf.read_attribute(rc_grp_id, "fric_ratio", fric_ratio);
-	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio);
+	rf.read_attribute(rc_grp_id, "shear_strength", shear_strength);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	RigidObject_hdf5_utilities::load_rigid_cube_from_hdf5_file(md.rigid_cube, rf, rc_grp_id);
 
@@ -728,8 +730,7 @@ int load_rigid_cube_from_hdf5_file(
 int output_t3d_rigid_mesh_to_hdf5_file(
 	Model_T3D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -742,6 +743,7 @@ int output_t3d_rigid_mesh_to_hdf5_file(
 	rf.write_attribute(rm_grp_id, "Kn_cont", md.Kn_cont);
 	rf.write_attribute(rm_grp_id, "Kt_cont", md.Kt_cont);
 	rf.write_attribute(rm_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rm_grp_id, "shear_strength", md.shear_strength);
 
 	RigidObject_hdf5_utilities::output_rigid_object_by_3dmesh_to_hdf5_file(
 		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
@@ -781,11 +783,12 @@ int load_t3d_rigid_mesh_from_hdf5_file(
 
 	hid_t rm_grp_id = rf.open_group(grp_id, "RigidObjectByT3DMesh");
 
-	double Kn_cont, Kt_cont, fric_ratio;
+	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
 	rf.read_attribute(rm_grp_id, "Kn_cont", Kn_cont);
 	rf.read_attribute(rm_grp_id, "Kt_cont", Kt_cont);
 	rf.read_attribute(rm_grp_id, "fric_ratio", fric_ratio);
-	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio);
+	rf.read_attribute(rm_grp_id, "shear_strength", shear_strength);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	RigidObject_hdf5_utilities::load_rigid_object_by_3dmesh_from_hdf5_file(
 		md.get_t3d_rigid_mesh(), rf, rm_grp_id);

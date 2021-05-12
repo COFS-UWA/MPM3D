@@ -15,14 +15,19 @@
 void test_t2d_me_mt_cap_compression(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
-	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
-	
+	//tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
+	//tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh_005.h5");
+	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh_0025.h5");
+
 	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
 	model.init_search_grid(tri_mesh, 0.05, 0.05);
 	
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.015, 0.015);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.01, 0.01);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.005, 0.005);
 	model.init_pcls(pcl_generator, 10.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(model.get_pcl_num());
@@ -35,7 +40,7 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	model.init_rigid_rect(0.1, 1.03, 0.3, 0.06, 1.0);
 	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
 	// 5000.0, 10000.0, 20000.0, 50000.0
-	model.set_contact_param(5000.0, 5000.0, 0.2, 3.0);
+	model.set_contact_param(20000.0, 20000.0, 0.2, 3.0);
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -73,7 +78,7 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	step.set_model(model);
 	step.set_step_time(5.0);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(4);
+	step.set_thread_num(4);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();

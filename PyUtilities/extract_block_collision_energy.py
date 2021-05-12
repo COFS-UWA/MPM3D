@@ -74,6 +74,8 @@ for th_id in range(th_num):
     db_energy.append(db_kinetic_energy[th_id] + db_strain_energy[th_id])
     kinetic_energy.append(db_kinetic_energy[th_id] + rb_kinetic_energy[th_id])
     total_energy.append(kinetic_energy[th_id] + db_strain_energy[th_id])
+    
+    print("Complete frame %d" % th_id)
 
 hdf5_file.close()
 

@@ -1,14 +1,12 @@
 #include "SimulationsOMP_pcp.h"
 
-#include "FrictionalContact3D.h"
+#include "StickyContact3D.h"
 
-FrictionalContact3D::FrictionalContact3D() :
-	Kn_cont(0.0), Kt_cont(0.0), friction_ratio(0.0) {}
+StickyContact3D::StickyContact3D() : Kn_cont(0.0) {}
 
-FrictionalContact3D::~FrictionalContact3D() {}
+StickyContact3D::~StickyContact3D() {}
 
-void FrictionalContact3D::cal_contact_force(
-	// in
+void StickyContact3D::cal_contact_force(
 	size_t substp_id,
 	size_t ori_pcl_id,
 	double dist,
@@ -16,7 +14,6 @@ void FrictionalContact3D::cal_contact_force(
 	const Point3D& cont_pos,
 	double pcl_len,
 	ParticleVariablesGetter& pv_getter,
-	// out
 	Vector3D& cont_force)
 {
 	// normal force
@@ -29,12 +26,11 @@ void FrictionalContact3D::cal_contact_force(
 	Position& prev_cont_pos = prev_contact_poses[ori_pcl_id];
 	Force& prev_cont_tan_force = prev_contact_tan_forces[ori_pcl_id];
 	double& pcd = prev_contact_dists[ori_pcl_id];
-	// tangential force
 	if (cont_substp_id != substp_id) // not previously in contact
 	{
 		pcd = 0.0;
 	}
-	else // previously in contacct
+	else // previously in contact
 	{
 		// local damping
 		const double ddist_sign = sign(dist - pcd);
@@ -44,8 +40,7 @@ void FrictionalContact3D::cal_contact_force(
 		cont_force.z -= ddist_sign * abs(cont_force.z) * 0.02;
 	}
 
-	// tangential force
-	if (cont_substp_id != substp_id)
+	if (cont_substp_id != substp_id) // not previously in contact
 	{
 		// not in contacct
 		// record contact position
@@ -67,24 +62,22 @@ void FrictionalContact3D::cal_contact_force(
 		prev_cont_pos.x = cont_pos.x;
 		prev_cont_pos.y = cont_pos.y;
 		prev_cont_pos.z = cont_pos.z;
-		double norm_len = rx * norm.x + ry * norm.y + rz * norm.z;
+		const double norm_len = rx * norm.x + ry * norm.y + rz * norm.z;
 		rx -= norm_len * norm.x;
 		ry -= norm_len * norm.y;
 		rz -= norm_len * norm.z;
-		const double K_p_area = Kt_cont * pcl_area;
-		prev_cont_tan_force.x -= rx * Kt_cont;
-		prev_cont_tan_force.y -= ry * Kt_cont;
-		prev_cont_tan_force.z -= rz * Kt_cont;
+		const double Kt_area = Kt_cont * pcl_area;
+		prev_cont_tan_force.x -= rx * Kt_area;
+		prev_cont_tan_force.y -= ry * Kt_area;
+		prev_cont_tan_force.z -= rz * Kt_area;
 		// contact consitutive model
 		double tan_force = sqrt(prev_cont_tan_force.x * prev_cont_tan_force.x
 							  + prev_cont_tan_force.y * prev_cont_tan_force.y
 							  + prev_cont_tan_force.z * prev_cont_tan_force.z);
-		double max_tan_force = sqrt(cont_force.x * cont_force.x
-								  + cont_force.y * cont_force.y
-								  + cont_force.z * cont_force.z) * friction_ratio;
-		if (tan_force > max_tan_force)
+		const double max_shear_force = pcl_area * shear_strength;
+		if (tan_force > max_shear_force)
 		{
-			const double ratio = max_tan_force / tan_force;
+			const double ratio = max_shear_force / tan_force;
 			prev_cont_tan_force.x *= ratio;
 			prev_cont_tan_force.y *= ratio;
 			prev_cont_tan_force.z *= ratio;

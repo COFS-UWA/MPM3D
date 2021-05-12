@@ -28,10 +28,8 @@ Model_T3D_CHM_mt::Model_T3D_CHM_mt() :
 	rigid_cylinder_is_valid(false),
 	rigid_t3d_mesh_is_valid(false),
 	contact_mem(nullptr),
-	pcm_s(&smooth_contact),
-	//pcm_s(&rough_contact),
-	//pcm_s(&fric_contact),
-	pcm_f(&smooth_contact)
+	pcm_s(&smooth_contact_s),
+	pcm_f(&smooth_contact_f)
 {
 
 }
@@ -956,17 +954,48 @@ void Model_T3D_CHM_mt::alloc_contact_mem(size_t num)
 	if (num == 0)
 		return;
 
-	contact_mem = new char[(sizeof(size_t) + sizeof(Position) + sizeof(Force)) * num * 2];
+	contact_mem = new char[(sizeof(size_t)
+		+ sizeof(ContactModel3D::Position)
+		+ sizeof(ContactModel3D::Force)
+		+ sizeof(double)) * num * 2];
 	char* cur_mem = contact_mem;
-	contact_substep_id_s = (size_t*)cur_mem;
+	// solid
+	contact_substep_ids_s = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * num;
-	prev_contact_pos_s = (Position*)cur_mem;
-	cur_mem += sizeof(Position) * num;
-	prev_contact_tan_force_s = (Force *)cur_mem;
-	cur_mem += sizeof(Force) * num;
-	contact_substep_id_f = (size_t*)cur_mem;
+	prev_contact_poses_s = (ContactModel3D::Position*)cur_mem;
+	cur_mem += sizeof(ContactModel3D::Position) * num;
+	prev_contact_tan_forces_s = (ContactModel3D::Force *)cur_mem;
+	cur_mem += sizeof(ContactModel3D::Force) * num;
+	prev_contact_dists_s = (double *)cur_mem;
+	cur_mem += sizeof(double) * num;
+	// fluid
+	contact_substep_ids_f = (size_t*)cur_mem;
 	cur_mem += sizeof(size_t) * num;
-	prev_contact_pos_f = (Position*)cur_mem;
-	cur_mem += sizeof(Position) * num;
-	prev_contact_tan_force_f = (Force*)cur_mem;
+	prev_contact_poses_f = (ContactModel3D::Position*)cur_mem;
+	cur_mem += sizeof(ContactModel3D::Position) * num;
+	prev_contact_tan_forces_f = (ContactModel3D::Force*)cur_mem;
+	cur_mem += sizeof(ContactModel3D::Force) * num;
+	prev_contact_dists_f = (double *)cur_mem;
+
+	smooth_contact_s.contact_substep_ids = contact_substep_ids_s;
+	smooth_contact_s.prev_contact_dists = prev_contact_dists_s;
+	rough_contact_s.contact_substep_ids = contact_substep_ids_s;
+	rough_contact_s.prev_contact_poses = prev_contact_poses_s;
+	rough_contact_s.prev_contact_tan_forces = prev_contact_tan_forces_s;
+	rough_contact_s.prev_contact_dists = prev_contact_dists_s;
+	fric_contact_s.contact_substep_ids = contact_substep_ids_s;
+	fric_contact_s.prev_contact_poses = prev_contact_poses_s;
+	fric_contact_s.prev_contact_tan_forces = prev_contact_tan_forces_s;
+	fric_contact_s.prev_contact_dists = prev_contact_dists_s;
+	sticky_contact_s.contact_substep_ids = contact_substep_ids_s;
+	sticky_contact_s.prev_contact_poses = prev_contact_poses_s;
+	sticky_contact_s.prev_contact_tan_forces = prev_contact_tan_forces_s;
+	sticky_contact_s.prev_contact_dists = prev_contact_dists_s;
+
+	smooth_contact_f.contact_substep_ids = contact_substep_ids_f;
+	smooth_contact_f.prev_contact_dists = prev_contact_dists_f;
+	rough_contact_f.contact_substep_ids = contact_substep_ids_f;
+	rough_contact_f.prev_contact_poses = prev_contact_poses_f;
+	rough_contact_f.prev_contact_tan_forces = prev_contact_tan_forces_f;
+	rough_contact_f.prev_contact_dists = prev_contact_dists_f;
 }

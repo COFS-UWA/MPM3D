@@ -46,7 +46,7 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
-	model.set_contact_param(20000.0, 20000.0, 0.1);
+	model.set_contact_param(20000.0, 20000.0, 0.1, 0.1);
 
 	//model.init_rigid_cone(0.0, 0.5, 0.5, 0.34641, 0.3, 0.2);
 	//model.set_rigid_cone_velocity(0.0, 0.0, 0.0);

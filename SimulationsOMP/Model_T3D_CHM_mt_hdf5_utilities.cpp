@@ -585,9 +585,12 @@ int output_t3d_rigid_mesh_to_hdf5_file(
 
 	hid_t rm_grp_id = rf.create_group(grp_id, "RigidObjectByT3DMesh");
 
-	rf.write_attribute(rm_grp_id, "Kn_cont", md.Kn_cont);
-	rf.write_attribute(rm_grp_id, "Kt_cont", md.Kt_cont);
+	rf.write_attribute(rm_grp_id, "Ksn_cont", md.Ksn_cont);
+	rf.write_attribute(rm_grp_id, "Kst_cont", md.Kst_cont);
 	rf.write_attribute(rm_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rm_grp_id, "shear_strength", md.shear_strength);
+	rf.write_attribute(rm_grp_id, "Kfn_cont", md.Kfn_cont);
+	rf.write_attribute(rm_grp_id, "Kft_cont", md.Kft_cont);
 
 	RigidObject_hdf5_utilities::output_rigid_object_by_3dmesh_to_hdf5_file(
 		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
@@ -627,11 +630,18 @@ int load_t3d_rigid_mesh_from_hdf5_file(
 
 	hid_t rm_grp_id = rf.open_group(grp_id, "RigidObjectByT3DMesh");
 
-	double Kn_cont, Kt_cont, fric_ratio;
-	rf.read_attribute(rm_grp_id, "Kn_cont", Kn_cont);
-	rf.read_attribute(rm_grp_id, "Kt_cont", Kt_cont);
+	double Ksn_cont, Kst_cont;
+	double fric_ratio, shear_strength;
+	double Kfn_cont, Kft_cont;
+	rf.read_attribute(rm_grp_id, "Ksn_cont", Ksn_cont);
+	rf.read_attribute(rm_grp_id, "Kst_cont", Kst_cont);
 	rf.read_attribute(rm_grp_id, "fric_ratio", fric_ratio);
-	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio);
+	rf.read_attribute(rm_grp_id, "shear_strength", shear_strength);
+	rf.read_attribute(rm_grp_id, "Kfn_cont", Kfn_cont);
+	rf.read_attribute(rm_grp_id, "Kft_cont", Kft_cont);
+	md.set_contact_param(Ksn_cont, Kst_cont,
+		fric_ratio, shear_strength,
+		Kfn_cont, Kft_cont);
 
 	RigidObject_hdf5_utilities::load_rigid_object_by_3dmesh_from_hdf5_file(
 		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
@@ -708,6 +718,12 @@ int load_model_from_hdf5_file(
 
 	// model data
 	hid_t md_grp_id = rf.get_model_data_grp_id();
+	// fluid properties
+	double miu, k, Kf;
+	rf.read_attribute(md_grp_id, "miu", miu);
+	rf.read_attribute(md_grp_id, "k", k);
+	rf.read_attribute(md_grp_id, "Kf", Kf);
+	md.set_fluid_props(Kf, k, miu);
 	// background mesh
 	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
 	// search mesh
@@ -741,6 +757,12 @@ int load_model_from_hdf5_file(
 
 	// model data
 	hid_t md_grp_id = rf.get_model_data_grp_id();
+	// fluid properties
+	double miu, k, Kf;
+	rf.read_attribute(md_grp_id, "miu", miu);
+	rf.read_attribute(md_grp_id, "k", k);
+	rf.read_attribute(md_grp_id, "Kf", Kf);
+	md.set_fluid_props(Kf, k, miu);
 	// background mesh
 	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
 	// search mesh

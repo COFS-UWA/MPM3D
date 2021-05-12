@@ -12,6 +12,7 @@
 #include "RigidObject/SmoothContact3D.h"
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
+#include "RigidObject/StickyContact3D.h"
 
 class Model_T3D_CHM_mt;
 class Step_T3D_CHM_mt;
@@ -217,6 +218,8 @@ public:
 	inline double get_miu() const noexcept { return miu; }
 	inline double get_k() const noexcept { return k; }
 	inline double get_Kf() const noexcept { return Kf; }
+	inline void set_fluid_props(double _Kf, double _k, double _miu) noexcept
+	{ Kf = _Kf; k = _k; miu = _miu; }
 	inline size_t get_ori_pcl_num() const noexcept { return ori_pcl_num; }
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
 	inline const size_t* get_pcl_index0() const noexcept { return sorted_pcl_var_arrays[0].pcl_index; }
@@ -410,25 +413,32 @@ public:
 	}
 
 protected:
-	size_t* contact_substep_id_s; // ori_pcl_num
-	Position* prev_contact_pos_s; // ori_pcl_num
-	Force* prev_contact_tan_force_s; // ori_pcl_num
-	size_t* contact_substep_id_f; // ori_pcl_num
-	Position* prev_contact_pos_f; // ori_pcl_num
-	Force* prev_contact_tan_force_f; // ori_pcl_num
-
 	bool rigid_cylinder_is_valid;
-	bool rigid_t3d_mesh_is_valid;
 	RigidCylinder rigid_cylinder;
+	bool rigid_t3d_mesh_is_valid;
 	RigidObjectByT3DMesh rigid_t3d_mesh;
 	
 	// ad hoc design for output
-	double Kn_cont, Kt_cont, fric_ratio;
+	double Ksn_cont, Kst_cont;
+	double fric_ratio, shear_strength;
+	double Kfn_cont, Kft_cont;
+	SmoothContact3D smooth_contact_s, smooth_contact_f;
+	RoughContact3D rough_contact_s, rough_contact_f;
+	FrictionalContact3D fric_contact_s;
+	StickyContact3D sticky_contact_s;
 	ContactModel3D *pcm_s, *pcm_f;
-	SmoothContact3D smooth_contact;
-	RoughContact3D rough_contact;
-	FrictionalContact3D fric_contact;
-	
+
+	// solid
+	size_t* contact_substep_ids_s; // ori_pcl_num
+	ContactModel3D::Position* prev_contact_poses_s; // ori_pcl_num
+	ContactModel3D::Force* prev_contact_tan_forces_s; // ori_pcl_num
+	double * prev_contact_dists_s; // ori_pcl_num
+	// fluid
+	size_t* contact_substep_ids_f; // ori_pcl_num
+	ContactModel3D::Position* prev_contact_poses_f; // ori_pcl_num
+	ContactModel3D::Force* prev_contact_tan_forces_f; // ori_pcl_num
+	double * prev_contact_dists_f; // ori_pcl_num
+
 	char* contact_mem;
 	void clear_contact_mem();
 	void alloc_contact_mem(size_t num);
@@ -451,6 +461,7 @@ public:
 	// t3d rigid mesh
 	bool has_t3d_rigid_mesh() const noexcept { return rigid_t3d_mesh_is_valid; }
 	RigidObjectByT3DMesh &get_t3d_rigid_mesh() noexcept { return rigid_t3d_mesh; }
+	void clear_t3d_rigid_mesh() noexcept { rigid_t3d_mesh_is_valid = false; }
 	inline void init_t3d_rigid_mesh(
 		double _density, const char *filename,
 		double dx, double dy, double dz,
@@ -465,16 +476,32 @@ public:
 	{ rigid_t3d_mesh.set_translation_velocity_bc(vx, vy, vz); }
 
 	// for contact model
-	inline void set_contact_param(double _Kn_cont, double _Kt_cont, double _fric_ratio)
+	inline void set_contact_param(
+		double _Ksn_cont, double _Kst_cont,
+		double _fric_ratio, double _shear_strength,
+		double _Kfn_cont, double _Kft_cont)
 	{
-		Kn_cont = _Kn_cont;
-		Kt_cont = _Kt_cont;
+		Ksn_cont = _Ksn_cont;
+		Kst_cont = _Kst_cont;
 		fric_ratio = _fric_ratio;
-		smooth_contact.set_Kn_cont(_Kn_cont);
-		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
-		fric_contact.set_K_cont(_Kn_cont, _Kt_cont);
-		fric_contact.set_friction_ratio(_fric_ratio);
+		shear_strength = _shear_strength;
+		Kfn_cont = _Kfn_cont;
+		Kft_cont = _Kft_cont;
+		smooth_contact_s.set_Kn_cont(_Ksn_cont);
+		rough_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
+		fric_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
+		fric_contact_s.set_friction_ratio(_fric_ratio);
+		sticky_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
+		sticky_contact_s.set_shear_strength(_shear_strength);
+		smooth_contact_f.set_Kn_cont(_Kfn_cont);
+		rough_contact_f.set_K_cont(_Kfn_cont, _Kft_cont);
 	}
+	inline void set_smooth_contact_between_spcl_and_rect() noexcept { pcm_s = &smooth_contact_s; }
+	inline void set_rough_contact_between_spcl_and_rect() noexcept { pcm_s = &rough_contact_s; }
+	inline void set_frictional_contact_between_spcl_and_rect() noexcept { pcm_s = &fric_contact_s; }
+	inline void set_sticky_contact_between_spcl_and_rect() noexcept { pcm_s = &sticky_contact_s; }
+	inline void set_smooth_contact_between_fpcl_and_rect() noexcept { pcm_f = &smooth_contact_f; }
+	inline void set_rough_contact_between_fpcl_and_rect() noexcept { pcm_f = &rough_contact_f; }
 
 protected:
 	friend struct Model_T3D_CHM_mt_hdf5_utilities::ParticleData;

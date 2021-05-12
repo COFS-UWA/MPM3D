@@ -94,12 +94,9 @@ int Step_T3D_ME_mt::init_calculation()
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 
-	pcf = md.pcm;
+	pcm = md.pcm;
 	cf_tmp.reset();
-	contact_substep_id = md.contact_substep_id;
-	prev_contact_pos = md.prev_contact_pos;
-	prev_contact_tan_force = md.prev_contact_tan_force;
-	memset(contact_substep_id, 0xFF, sizeof(size_t) * md.ori_pcl_num);
+	memset(md.contact_substep_ids, 0xFF, sizeof(size_t) * md.ori_pcl_num);
 
 	if (md.has_rigid_cylinder())
 	{
@@ -739,8 +736,7 @@ int substep_func_omp_T3D_ME_mt(
 			pcl_in_elem0,
 			spva0, cf,
 			substp_id,
-			thd
-		);
+			thd);
 
 #pragma omp critical
 		self.cf_tmp.combine(cf);
@@ -755,8 +751,7 @@ int substep_func_omp_T3D_ME_mt(
 			pcl_in_elem0,
 			spva0, cf,
 			substp_id,
-			thd
-		);
+			thd);
 
 #pragma omp critical
 		self.cf_tmp.combine(cf);
@@ -1324,23 +1319,19 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 		p_z = p_p.z + p_d.uz;
 		p_r = 0.5 * pow(pcl_vol[p_id], one_third);
 		if (prcy->detect_collision_with_point(
-			p_x, p_y, p_z, p_r,
-			dist, lnorm, cur_cont_pos))
+			p_x, p_y, p_z, p_r, dist, lnorm, cur_cont_pos))
 		{
 			pv_getter.pcl_id = p_id;
 			prcy->get_global_vector(lnorm, gnorm);
-			pcf->cal_contact_force(
+			pcm->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
 				p_r + p_r,
 				pv_getter,
-				contact_substep_id[ori_p_id],
-				prev_contact_pos[ori_p_id].pt,
-				prev_contact_tan_force[ori_p_id].vec,
-				lcont_f.vec
-				);
+				lcont_f.vec);
 			prcy->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
@@ -1363,11 +1354,9 @@ int Step_T3D_ME_mt::apply_rigid_cylinder(
 			en_f4.fz += p_N.N4 * gcont_f.fz;
 			// apply contact force to rigid body
 			const Point3D& rc_cen = prcy->get_centre();
-			rc_cf.add_force(
-				p_x, p_y, p_z,
+			rc_cf.add_force(p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
-				rc_cen.x, rc_cen.y, rc_cen.z
-			);
+				rc_cen.x, rc_cen.y, rc_cen.z);
 		}
 	}
 
@@ -1408,18 +1397,15 @@ int Step_T3D_ME_mt::apply_rigid_cube(
 		{
 			pv_getter.pcl_id = p_id;
 			prcu->get_global_vector(lnorm, gnorm);
-			pcf->cal_contact_force(
+			pcm->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
 				p_r + p_r,
 				pv_getter,
-				contact_substep_id[ori_p_id],
-				prev_contact_pos[ori_p_id].pt,
-				prev_contact_tan_force[ori_p_id].vec,
-				lcont_f.vec
-			);
+				lcont_f.vec);
 			prcu->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];
@@ -1487,18 +1473,15 @@ int Step_T3D_ME_mt::apply_t3d_rigid_object(
 		{
 			pv_getter.pcl_id = p_id;
 			prmesh->get_global_vector(lnorm, gnorm);
-			pcf->cal_contact_force(
+			pcm->cal_contact_force(
 				substp_id,
+				ori_p_id,
 				dist,
 				lnorm,
 				cur_cont_pos,
 				p_r + p_r,
 				pv_getter,
-				contact_substep_id[ori_p_id],
-				prev_contact_pos[ori_p_id].pt,
-				prev_contact_tan_force[ori_p_id].vec,
-				lcont_f.vec
-				);
+				lcont_f.vec);
 			prmesh->get_global_vector(lcont_f.vec, gcont_f.vec);
 			// apply contact force to mesh
 			ShapeFunc& p_N = pcl_N[p_id];

@@ -29,17 +29,17 @@ add_executable(
 	#test_t2d_me_mt_pipe_conference.cpp
     test_t2d_me_mt_strip_footing_smaller.cpp
     test_t2d_me_mt_strip_footing.cpp
+    test_t2d_chm_mt_1d_consolidation.cpp
+    test_t2d_chm_mt_test_rigid_circle.cpp
+    test_t2d_chm_mt_pipe_conference.cpp
+    test_t2d_chm_mt_pipe_conference_restart.cpp
+    test_t2d_chm_mt_pipe_conference_den.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_me_mt_1d_compression.cpp
     test_t3d_me_mt_cap_compression.cpp
     test_t3d_me_mt_triaxial_compression.cpp
     test_t3d_me_mt_block_sliding.cpp
     test_t3d_me_mt_test_rigid_mesh.cpp
-    test_t2d_chm_mt_1d_consolidation.cpp
-    test_t2d_chm_mt_test_rigid_circle.cpp
-    test_t2d_chm_mt_pipe_conference.cpp
-    test_t2d_chm_mt_pipe_conference_restart.cpp
-    test_t2d_chm_mt_pipe_conference_den.cpp
 	test_t3d_me_mt_cylinder_foundation.cpp
     test_t3d_me_mt_cylinder_foundation_den.cpp
 	test_t3d_me_mt_cylinder_foundation_ch_den.cpp
@@ -47,6 +47,7 @@ add_executable(
     test_t3d_chm_mt_1d_consolidation.cpp
     # sand hypoplasticity
     test_t3d_me_mt_spudcan_sand_hypo.cpp
+    test_t3d_chm_mt_spudcan_sand_hypo.cpp
     # using tbb
     test_tbb_sorting.cpp
     test_tbb_sort_tri_mesh_node_task.cpp

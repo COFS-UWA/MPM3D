@@ -67,8 +67,8 @@ void RoughContact2D::cal_contact_force(
 		const double dctfy_sign = sign(ctfy - prev_cont_tan_force.y);
 		prev_cont_tan_force.x = ctfx;
 		prev_cont_tan_force.y = ctfy;
-		cont_force.x += ctfx + dctfx_sign * abs(ctfx) * 0.05;
-		cont_force.y += ctfy + dctfy_sign * abs(ctfy) * 0.05;
+		cont_force.x += ctfx + dctfx_sign * abs(ctfx) * 0.02;
+		cont_force.y += ctfy + dctfy_sign * abs(ctfy) * 0.02;
 	}
 	cont_substp_id = substp_id + 1;
 }
