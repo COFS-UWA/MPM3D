@@ -1,7 +1,7 @@
 import h5py as py
 import matplotlib.pyplot as plt
 
-hdf5_file = py.File("../Build/TestsParallel/t2d_chm_mt_pipe_conference1.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t2d_chm_mt_pipe_conference1_rough_k1e7_k5e-13_v0.05.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']
