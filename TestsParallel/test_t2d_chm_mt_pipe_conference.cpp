@@ -26,7 +26,10 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	model.init_search_grid(tri_mesh, 0.05, 0.05);
 	tri_mesh.clear();
 	// undrained
-	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 1.0e7, 1.0e-12, 1.0e-3);
+	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 1.0e7, 1.0e-12, 1.0e-3); // dt = 1e-6
+	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 1.0e7, 5.0e-13, 1.0e-3); // dt = 1e-6
+	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e7, 2.0e-13, 1.0e-3); // dt = 4e-7
+	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e7, 1.0e-13, 1.0e-3); // dt = 2e-7
 	// drained
 	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 0.0, 1.0, 1.0e-3);
 	pcl_generator.clear();
@@ -49,9 +52,12 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 
 	model.init_rigid_circle(0.0, 0.5, 0.5, 1.0);
 	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
+	// pcl size = 0.02
 	model.set_contact_param(1.0e5 / 0.02, 1.0e5 / 0.02, 0.0, 10.0, 1.0e3 / 0.02, 1.0e3 / 0.02);
-	//model.set_rough_contact_between_spcl_and_circle();
-	//model.set_rough_contact_between_fpcl_and_circle();
+	// old ver
+	//model.set_contact_param(1.0e5, 1.0e5, 0.0, 10.0, 1.0e3, 1.0e3);
+	model.set_rough_contact_between_spcl_and_circle();
+	model.set_rough_contact_between_fpcl_and_circle();
 
 	IndexArray left_right_bc_pt_array(100);
 	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, -3.5);
@@ -67,16 +73,26 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1800, 950);
 	//md_disp.set_model(model);
+<<<<<<< HEAD
 	//md_disp.set_pts_from_vx_s_bc(0.03);
 	////md_disp.set_pts_from_vx_f_bc(0.03);
 	////md_disp.set_pts_from_vy_s_bc(0.03);
+=======
+	////md_disp.set_pts_from_vx_s_bc(0.03);
+	////md_disp.set_pts_from_vx_f_bc(0.03);
+	//md_disp.set_pts_from_vy_s_bc(0.03);
+>>>>>>> 51fc9b445c10bb7323ab4d43058ee6ed93a1d7ac
 	////md_disp.set_pts_from_vy_f_bc(0.03);
 	//// all
 	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//// left
 	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
 	//// middle
+<<<<<<< HEAD
 	//md_disp.set_display_range(-2.25, 2.25, -1.3, 1.3);
+=======
+	////md_disp.set_display_range(-2.25, 2.25, -1.3, 1.3);
+>>>>>>> 51fc9b445c10bb7323ab4d43058ee6ed93a1d7ac
 	//// right
 	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
 	//md_disp.start();
@@ -98,9 +114,11 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 
 	Step_T2D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(10.0);
+	step.set_step_time(10.0); // 10.0
 	//step.set_step_time(5.0e-4);
-	step.set_dtime(1.0e-6);
+	//step.set_dtime(1.0e-6);
+	//step.set_dtime(4.0e-7);
+	step.set_dtime(2.0e-7);
 	step.set_thread_num(22);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
@@ -139,6 +157,6 @@ void test_t2d_chm_mt_pipe_conference_result(int argc, char** argv)
 	app.set_color_map_geometry(1.75f, 0.45f, 0.5f);
 	//app.set_mono_color_pcl();
 	//app.set_png_name("t2d_chm_mt_pipe_conference1");
-	app.set_gif_name("t2d_chm_mt_pipe_conference1");
+	//app.set_gif_name("t2d_chm_mt_pipe_conference1");
 	app.start();
 }

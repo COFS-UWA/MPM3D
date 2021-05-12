@@ -119,9 +119,13 @@ int Step_T2D_CHM_mt::init_calculation()
 	{
 		prc = &md.get_rigid_circle();
 		prc->reset_cont_force();
-		cf_tmp.reset();
+		Ksn_cont = md.Ksn_cont;
+		Kfn_cont = md.Kfn_cont;
 		pcm_s = md.pcm_s;
 		pcm_f = md.pcm_f;
+		md.rc_scf.reset();
+		md.rc_fcf.reset();
+		cf_tmp.reset();
 		contact_substep_id = md.contact_substep_id;
 		prev_contact_pos = md.prev_contact_pos;
 		prev_contact_tan_force = md.prev_contact_tan_force;
@@ -337,6 +341,12 @@ int substep_func_omp_T2D_CHM_mt(
 	double* const node_de_vol_s = self.node_de_vol_s;
 	double* const node_de_vol_f = self.node_de_vol_f;
 	
+#pragma omp master
+	{
+		md.rc_scf.reset();
+		md.rc_fcf.reset();
+	}
+
 	union
 	{
 		struct
@@ -756,24 +766,38 @@ int substep_func_omp_T2D_CHM_mt(
 	
 	if (md.has_rigid_circle())
 	{
-		md.rc_scf.reset();
-		md.rc_fcf.reset();;
+		Force2D rc_cf, rc_scf, rc_fcf;
+		rc_cf.reset();
+		rc_scf.reset();
+		rc_fcf.reset();
+
 		self.apply_rigid_circle(
 			p_id0, p_id1,
 			pcl_in_elem0,
 			spva0, 
-			md.rc_scf,
-			md.rc_fcf,
+			rc_scf,
+			rc_fcf,
 			substp_id,
 			thd);
 
-		Force2D rc_cf;
-		rc_cf.reset();
-		rc_cf.combine(md.rc_scf);
-		rc_cf.combine(md.rc_fcf);
+		// old version
+		//self.apply_rigid_circle(
+		//	p_id0, p_id1,
+		//	pcl_in_elem0,
+		//	spva0,
+		//	rc_cf,
+		//	substp_id,
+		//	thd);
+
+		rc_cf.combine(rc_scf);
+		rc_cf.combine(rc_fcf);
 
 #pragma omp critical
-		self.cf_tmp.combine(rc_cf);
+		{
+			md.rc_scf.combine(rc_scf);
+			md.rc_fcf.combine(rc_fcf);
+			self.cf_tmp.combine(rc_cf);
+		}
 	}
 
 #pragma omp barrier
@@ -1269,80 +1293,81 @@ int substep_func_omp_T2D_CHM_mt(
 	return 0;
 }
 
-//int Step_T2D_CHM_mt::apply_rigid_circle(
-//	size_t p_id0, size_t p_id1,
-//	const size_t* pcl_in_elem,
-//	const SortedPclVarArrays& cur_spva,
-//	Force2D& rc_cf,
-//	size_t substp_id,
-//	ThreadData& thd
-//	) noexcept
-//{
-//	double p_x, p_y, p_r, dist;
-//	double fs_cont, fsx_cont, fsy_cont;
-//	double ff_cont, ffx_cont, ffy_cont;
-//	size_t e_id , pcl_ori_id;
-//	Model_T2D_CHM_mt& md = *(Model_T2D_CHM_mt*)model;
-//	RigidObject::RigidCircle& rc = md.get_rigid_circle();
-//	const Point2D &rc_centre = rc.get_centre();
-//	Vector2D lnorm;
-//	Point2D lcontpos;
-//	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
-//	{
-//		pcl_ori_id = cur_spva.pcl_index[p_id];
-//		const Position& p_p = pcl_pos[pcl_ori_id];
-//		const Displacement& p_u_s = cur_spva.pcl_u_s[p_id];
-//		p_x = p_p.x + p_u_s.ux;
-//		p_y = p_p.y + p_u_s.uy;
-//		p_r = 0.5 * sqrt(pcl_vol[p_id] / 3.14159265359);
-//		if (rc.detect_collision_with_point(
-//			p_x, p_y, p_r,
-//			dist, lnorm, lcontpos))
-//		{
-//			fs_cont = Ksn_cont * dist;
-//			fsx_cont = fs_cont * lnorm.x;
-//			fsy_cont = fs_cont * lnorm.y;
-//			ff_cont = Kfn_cont * dist;
-//			ffx_cont = ff_cont * lnorm.x;
-//			ffy_cont = ff_cont * lnorm.y;
-//			// apply contact force to rigid body
-//			rc_cf.add_force(p_x, p_y,
-//				-(fsx_cont + ffx_cont),
-//				-(fsy_cont + ffy_cont),
-//				rc_centre.x, rc_centre.y);
-//			// apply contact force to mesh
-//			const ShapeFunc &p_N = cur_spva.pcl_N[p_id];
-//			e_id = pcl_in_elem[p_id];
-//			// solid
-//			Force& en_fs1 = elem_node_force_s[e_id * 3];
-//			en_fs1.fx += p_N.N1 * fsx_cont;
-//			en_fs1.fy += p_N.N1 * fsy_cont;
-//			Force& en_fs2 = elem_node_force_s[e_id * 3 + 1];
-//			en_fs2.fx += p_N.N2 * fsx_cont;
-//			en_fs2.fy += p_N.N2 * fsy_cont;
-//			Force& en_fs3 = elem_node_force_s[e_id * 3 + 2];
-//			en_fs3.fx += p_N.N3 * fsx_cont;
-//			en_fs3.fy += p_N.N3 * fsy_cont;
-//			// fluid
-//			Force& en_ff1 = elem_node_force_f[e_id * 3];
-//			en_ff1.fx += p_N.N1 * ffx_cont;
-//			en_ff1.fy += p_N.N1 * ffy_cont;
-//			Force& en_ff2 = elem_node_force_f[e_id * 3 + 1];
-//			en_ff2.fx += p_N.N2 * ffx_cont;
-//			en_ff2.fy += p_N.N2 * ffy_cont;
-//			Force& en_ff3 = elem_node_force_f[e_id * 3 + 2];
-//			en_ff3.fx += p_N.N3 * ffx_cont;
-//			en_ff3.fy += p_N.N3 * ffy_cont;
-//		}
-//	}
-//	return 0;
-//}
+int Step_T2D_CHM_mt::apply_rigid_circle(
+	size_t p_id0, size_t p_id1,
+	const size_t* pcl_in_elem,
+	const SortedPclVarArrays& cur_spva,
+	Force2D& rc_cf,
+	size_t substp_id,
+	ThreadData& thd
+	) noexcept
+{
+	double p_x, p_y, p_r, dist;
+	double fs_cont, fsx_cont, fsy_cont;
+	double ff_cont, ffx_cont, ffy_cont;
+	size_t e_id , pcl_ori_id;
+	Model_T2D_CHM_mt& md = *(Model_T2D_CHM_mt*)model;
+	RigidObject::RigidCircle& rc = md.get_rigid_circle();
+	const Point2D &rc_centre = rc.get_centre();
+	Vector2D lnorm;
+	Point2D lcontpos;
+	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+	{
+		pcl_ori_id = cur_spva.pcl_index[p_id];
+		const Position& p_p = pcl_pos[pcl_ori_id];
+		const Displacement& p_u_s = cur_spva.pcl_u_s[p_id];
+		p_x = p_p.x + p_u_s.ux;
+		p_y = p_p.y + p_u_s.uy;
+		//p_r = 0.5 * sqrt(pcl_vol[p_id] / 3.14159265359);
+		p_r = 0.5 * sqrt(pcl_vol[p_id]);
+		if (rc.detect_collision_with_point(
+			p_x, p_y, p_r,
+			dist, lnorm, lcontpos))
+		{
+			fs_cont = Ksn_cont * dist;
+			fsx_cont = fs_cont * lnorm.x;
+			fsy_cont = fs_cont * lnorm.y;
+			ff_cont = Kfn_cont * dist;
+			ffx_cont = ff_cont * lnorm.x;
+			ffy_cont = ff_cont * lnorm.y;
+			// apply contact force to rigid body
+			rc_cf.add_force(p_x, p_y,
+				-(fsx_cont + ffx_cont),
+				-(fsy_cont + ffy_cont),
+				rc_centre.x, rc_centre.y);
+			// apply contact force to mesh
+			const ShapeFunc &p_N = cur_spva.pcl_N[p_id];
+			e_id = pcl_in_elem[p_id];
+			// solid
+			Force& en_fs1 = elem_node_force_s[e_id * 3];
+			en_fs1.fx += p_N.N1 * fsx_cont;
+			en_fs1.fy += p_N.N1 * fsy_cont;
+			Force& en_fs2 = elem_node_force_s[e_id * 3 + 1];
+			en_fs2.fx += p_N.N2 * fsx_cont;
+			en_fs2.fy += p_N.N2 * fsy_cont;
+			Force& en_fs3 = elem_node_force_s[e_id * 3 + 2];
+			en_fs3.fx += p_N.N3 * fsx_cont;
+			en_fs3.fy += p_N.N3 * fsy_cont;
+			// fluid
+			Force& en_ff1 = elem_node_force_f[e_id * 3];
+			en_ff1.fx += p_N.N1 * ffx_cont;
+			en_ff1.fy += p_N.N1 * ffy_cont;
+			Force& en_ff2 = elem_node_force_f[e_id * 3 + 1];
+			en_ff2.fx += p_N.N2 * ffx_cont;
+			en_ff2.fy += p_N.N2 * ffy_cont;
+			Force& en_ff3 = elem_node_force_f[e_id * 3 + 2];
+			en_ff3.fx += p_N.N3 * ffx_cont;
+			en_ff3.fy += p_N.N3 * ffy_cont;
+		}
+	}
+	return 0;
+}
 
 int Step_T2D_CHM_mt::apply_rigid_circle(
 	size_t p_id0, size_t p_id1,
 	size_t* pcl_in_elem,
 	SortedPclVarArrays& cur_spva,
-	Force2D& rc_scf,
+	Force2D &rc_scf,
 	Force2D &rc_fcf,
 	size_t substp_id,
 	ThreadData& thd
@@ -1355,9 +1380,9 @@ int Step_T2D_CHM_mt::apply_rigid_circle(
 	Force lcont_sf, gcont_sf;
 	Force lcont_ff, gcont_ff;
 	Point2D cur_cont_pos;
-	size_t* pcl_index = cur_spva.pcl_index;
-	Displacement* pcl_disp = cur_spva.pcl_u_s;
-	ShapeFunc* pcl_N = cur_spva.pcl_N;
+	const size_t* pcl_index = cur_spva.pcl_index;
+	const Displacement* pcl_disp = cur_spva.pcl_u_s;
+	const ShapeFunc* pcl_N = cur_spva.pcl_N;
 	PclVar_T2D_CHM_mt& pv_getter = thd.pcl_var_getter;
 	pv_getter.cur_sorted_pcl_vars = &cur_spva;
 	for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
@@ -1402,7 +1427,7 @@ int Step_T2D_CHM_mt::apply_rigid_circle(
 				lcont_ff.vec);
 			prc->get_global_vector(lcont_ff.vec, gcont_ff.vec);
 			// apply contact force to mesh
-			ShapeFunc& p_N = pcl_N[p_id];
+			const ShapeFunc& p_N = pcl_N[p_id];
 			e_id = pcl_in_elem[p_id];
 			// solid
 			Force& en_sf1 = elem_node_force_s[e_id * 3];
