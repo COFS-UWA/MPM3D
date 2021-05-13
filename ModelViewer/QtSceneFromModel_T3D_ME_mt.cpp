@@ -212,8 +212,7 @@ int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 		model->get_pcl_density0(),
 		model->get_pcl_num(),
 		moccasin,
-		0.5f
-		);
+		0.5f);
 
 	// init pts
 	init_pts_buffer();

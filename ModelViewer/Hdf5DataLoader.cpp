@@ -170,8 +170,7 @@ int Hdf5DataLoader::load_frame_data(
 				"VonMises",
 				VonMises_num,
 				vm_mem,
-				vm_dt
-				);
+				vm_dt);
 			mm_pt.type = MatModelType::VonMises;
 			for (size_t mm_id = 0; mm_id < VonMises_num; ++mm_id)
 			{
@@ -195,8 +194,7 @@ int Hdf5DataLoader::load_frame_data(
 				"Tresca",
 				Tresca_num,
 				tc_mem,
-				tc_dt
-				);
+				tc_dt);
 			mm_pt.type = MatModelType::Tresca;
 			for (size_t mm_id = 0; mm_id < Tresca_num; ++mm_id)
 			{
@@ -206,6 +204,30 @@ int Hdf5DataLoader::load_frame_data(
 			}
 			H5Tclose(tc_dt);
 			rf.close_dataset(tc_grp);
+		}
+
+		if (rf.has_dataset(mat_model_id, "SandHypoplasticity"))
+		{
+			hid_t shp_grp = rf.open_dataset(mat_model_id, "SandHypoplasticity");
+			hid_t shp_dt = Model_hdf5_utilities::get_sand_hypoplasticity_hdf5_dt_id();
+			rf.read_attribute(mat_model_id, "SandHypoplasticity_num", SandHypoplasticity_num);
+			SandHypoplasticity_mem.reserve(SandHypoplasticity_num);
+			SandHypoplasticityStateData* shp_mem = SandHypoplasticity_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"SandHypoplasticity",
+				SandHypoplasticity_num,
+				shp_mem,
+				shp_dt);
+			mm_pt.type = MatModelType::SandHypoplasticity;
+			for (size_t mm_id = 0; mm_id < SandHypoplasticity_num; ++mm_id)
+			{
+				SandHypoplasticityStateData& mm = shp_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			H5Tclose(shp_dt);
+			rf.close_dataset(shp_grp);
 		}
 
 		rf.close_group(mat_model_id);
@@ -260,5 +282,14 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(TrescaStateData, s12),
 		offsetof(TrescaStateData, s23),
 		offsetof(TrescaStateData, s31)
+	},
+	{
+		sizeof(SandHypoplasticityStateData),
+		offsetof(SandHypoplasticityStateData, s11),
+		offsetof(SandHypoplasticityStateData, s22),
+		offsetof(SandHypoplasticityStateData, s33),
+		offsetof(SandHypoplasticityStateData, s12),
+		offsetof(SandHypoplasticityStateData, s23),
+		offsetof(SandHypoplasticityStateData, s31)
 	}
 };
