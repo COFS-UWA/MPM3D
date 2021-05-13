@@ -190,7 +190,7 @@ void test_t3d_chm_mt_spudcan_sand_hypo(int argc, char** argv)
 void test_t3d_chm_mt_spudcan_sand_hypo_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_spudcan_sand_hypo.h5");
+	rf.open("t3d_chm_mt_spudcan_sand_hypo.h5");
 
 	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	////app.set_res_file(rf, "penetration", 50, Hdf5Field::s33);
@@ -208,14 +208,21 @@ void test_t3d_chm_mt_spudcan_sand_hypo_result(int argc, char** argv)
 	app.set_light_dist_scale(1.0f);
 	app.set_view_dist_scale(0.7f);
 	app.set_display_bg_mesh(false);
-	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-20.0, 0.0);
+	// s33
+	app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	app.set_color_map_fld_range(-5000.0, 0.0);
+	// shear strength
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
-	app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
-	app.set_color_map_fld_range(0.0, 0.1);
+	// plastic mises strain
+	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
+	//app.set_color_map_fld_range(0.0, 0.35);
+	// p
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_color_map_fld_range(-1000.0, 1000.0);
+	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_png_name("t3d_me_mt_spudcan_sand_hypo");
-	app.set_gif_name("t3d_me_mt_spudcan_sand_hypo");
+	//app.set_png_name("t3d_chm_mt_spudcan_sand_hypo");
+	app.set_gif_name("t3d_chm_mt_spudcan_sand_hypo");
 	app.start();
 }
