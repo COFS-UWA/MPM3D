@@ -230,8 +230,7 @@ int QtSceneFromHdf5_T3D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	need_mat_model_data = pfld->need_mat_model_data();
 	res = data_loader.load_frame_data(
 		frame_id,
-		need_mat_model_data
-		);
+		need_mat_model_data);
 	if (res)
 		return res;
 
