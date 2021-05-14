@@ -57,6 +57,8 @@ add_executable(
     test_t2d_chm_tbb_1d_consolidation.cpp
     test_t3d_me_tbb_1d_compression.cpp
     test_t3d_chm_tbb_1d_consolidation.cpp
+    # piezofoundation
+    test_t3d_me_mt_piezofoundation.cpp
     )
 
 target_include_directories(

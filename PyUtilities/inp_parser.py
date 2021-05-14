@@ -118,5 +118,7 @@ if __name__ == "__main__":
     
     # nodes, elems = get_mesh_from_inp("../Asset/spudcan_model.inp", "Part-1")
     # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_model.h5")
-    nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_quarter.inp", "Part-1")
-    output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter.h5")
+    # nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_quarter.inp", "Part-1")
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter.h5")
+    nodes, elems = get_mesh_from_inp("../Asset/piezofoundation_soil_quarter.inp", "Part-1")
+    output_mesh_to_hdf5(nodes, elems, "../Asset/piezofoundation_soil_quarter.h5")
