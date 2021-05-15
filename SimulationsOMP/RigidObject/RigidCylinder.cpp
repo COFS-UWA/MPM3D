@@ -158,11 +158,11 @@ bool RigidCylinder::detect_collision_with_point(
 		}
 		else // inside cylinder
 		{
-			dist = lbbox.zu - p_z + p_r;
+			dist = lbbox.zu - lp_z + p_r;
 			lnorm.x = 0.0;
 			lnorm.y = 0.0;
 			lnorm.z = 1.0;
-			tmp = p_z + p_r - lbbox.zl;
+			tmp = lp_z + p_r - lbbox.zl;
 			if (tmp < dist)
 			{
 				dist = tmp;
@@ -194,8 +194,8 @@ bool RigidCylinder::detect_collision_with_point(
 	if (dist < 0.0)
 		return false;
 
-	lcontpos.x = lp_x - p_r * lnorm.x;
-	lcontpos.y = lp_y - p_r * lnorm.y;
-	lcontpos.z = lp_z - p_r * lnorm.z;
+	lcontpos.x = lp_x;
+	lcontpos.y = lp_y;
+	lcontpos.z = lp_z;
 	return true;
 }
