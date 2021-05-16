@@ -9,6 +9,7 @@
 #include "QtTetrahedronMeshGLObject.h"
 #include "QtMultiColorBallGLObject.h"
 #include "UniformColorMap_Abaqus.h"
+#include "UniformColorMap_Mono.h"
 #include "QtUniformColorMapObject.h"
 #include "QtRigidCylinderObject.h"
 #include "QtRigidConeObject.h"
@@ -44,7 +45,9 @@ protected:
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 
+	bool pcl_is_mono_color;
 	UniformColorMap_Abaqus color_map;
+	UniformColorMap_Mono color_map1;
 	GLuint color_map_texture;
 	QtMultiColorBallGLObject pcls_obj;
 
@@ -166,8 +169,11 @@ public:
 	{ color_map.set_range(min, max); }
 	inline void set_color_map_geometry(float xpos, float ypos, float ht)
 	{
-		has_color_map = true; cm_xpos = xpos; cm_ypos = ypos; cm_ht = ht;
+		has_color_map = true;
+		cm_xpos = xpos; cm_ypos = ypos; cm_ht = ht;
 	}
+	inline void set_mono_color_pcl(bool _op = true) noexcept
+	{ pcl_is_mono_color = _op; }
 
 	size_t get_frame_num();
 	double get_frame_time(size_t frame_id);

@@ -29,7 +29,8 @@ QtSceneFromHdf5_T3D_ME_mt::QtSceneFromHdf5_T3D_ME_mt(
 	display_rcy(true), has_rcy(false), rcy_obj(_gl),
 	display_rco(true), has_rco(false), rco_obj(_gl),
 	display_rcu(true), has_rcu(false), rcu_obj(_gl),
-	display_rmesh(true), has_rmesh(false), rmesh_obj(_gl)
+	display_rmesh(true), has_rmesh(false), rmesh_obj(_gl),
+	pcl_is_mono_color(false)
 {
 	amb_coef = 0.3f;
 	diff_coef = 1.0f;
@@ -512,7 +513,11 @@ bool QtSceneFromHdf5_T3D_ME_mt::init_color_map_texture()
 {
 	// color map texture
 	size_t color_map_texture_size;
-	unsigned char* color_map_texture_data = color_map.gen_1Dtexture(20, color_map_texture_size);
+	unsigned char* color_map_texture_data;
+	if (pcl_is_mono_color)
+		color_map_texture_data = color_map1.gen_1Dtexture(1, color_map_texture_size);
+	else
+		color_map_texture_data = color_map.gen_1Dtexture(20, color_map_texture_size);
 	if (!color_map_texture_data || !color_map_texture_size)
 		return false;
 	gl.glGenTextures(1, &color_map_texture);
