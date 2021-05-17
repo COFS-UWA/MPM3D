@@ -14,16 +14,17 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 {
 	TetrahedronMesh teh_mesh;
 	teh_mesh.load_mesh_from_hdf5("../../Asset/piezofoundation_soil_quarter.h5");
-	teh_mesh.init_search_grid(2.0e-3, 2.0e-3, 2.0e-3);
+	teh_mesh.init_search_grid(0.1, 0.1, 0.1);
 	std::cout << "node_num: " << teh_mesh.get_node_num() << "\n"
 		<< "elem_num: " << teh_mesh.get_elem_num() << "\n";
 
-	constexpr double depth = 0.14;
-	constexpr double coarse_depth = 0.076;
-	constexpr double width = 0.11;
-	constexpr double coarse_width = 0.066;
-	constexpr double sml_pcl_size = 0.625e-3;
-	constexpr double lgr_pcl_size = 1.250e-3;
+	constexpr double pzf_radius = 1.0;
+	constexpr double depth = 7.0 * pzf_radius;
+	constexpr double coarse_depth = 3.8 * pzf_radius;
+	constexpr double width = 5.5 * pzf_radius;
+	constexpr double coarse_width = 3.3 * pzf_radius;
+	constexpr double sml_pcl_size = 0.03125;
+	constexpr double lgr_pcl_size = 0.0625;
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	// dense area
 	pcl_generator.generate_pcls_grid(
@@ -75,9 +76,11 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		const double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		//const double pcl_z = -0.04; //debug
-		ini_stress[2] = pcl_z * 49.0 * 9.81 * den_float;
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		if (pcl_z > -0.2)
+			pcl_z = -0.2;
+		//const double pcl_z = -0.5; //debug
+		ini_stress[2] = pcl_z * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
 		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
@@ -88,8 +91,8 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 		mms[pcl_id] = &shp;
 	}
 
-	model.init_rigid_cylinder(0.0, 0.0, 0.0225, 0.045, 0.02);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.03);
+	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0);
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
 	model.set_contact_param(1000.0 / (sml_pcl_size * sml_pcl_size),
 		1000.0 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);
 
@@ -119,10 +122,9 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	md_disp.set_view_dir(-90.0f, 30.0f);
 	md_disp.set_light_dir(-60.0f, 15.0f);
 	md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(0.7);
-	//md_disp.set_pts_from_vx_bc(9.0e-4);
-	//md_disp.set_pts_from_vy_bc(9.0e-4);
-	//md_disp.set_pts_from_vz_bc(9.0e-4);
+	//md_disp.set_pts_from_vx_bc(0.05);
+	md_disp.set_pts_from_vy_bc(0.05);
+	//md_disp.set_pts_from_vz_bc(0.05);
 	md_disp.start();
 }
 

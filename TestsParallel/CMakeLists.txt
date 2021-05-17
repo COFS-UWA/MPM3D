@@ -14,6 +14,7 @@ add_executable(
     # entry
     TestsParallel_main.cpp
     test_sand_hypoplasticity.cpp
+    test_sand_hypoplasticity_wrapper.cpp
     test_rigid_mesh_contact.cpp
     test_rigid_object.cpp
     test_contact_model_3d.cpp
