@@ -75,8 +75,9 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		const double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		//const double pcl_z = -0.04; //debug
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		if (pcl_z > -0.01) pcl_z = -0.01;
+		//const double pcl_z = -0.02; //debug
 		ini_stress[2] = pcl_z * 49.0 * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
