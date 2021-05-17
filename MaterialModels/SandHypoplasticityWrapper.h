@@ -27,7 +27,7 @@ namespace MatModel
 			__Float_Type__ e0,
 			__Float_Type__ phi,
 			__Float_Type__ hs, __Float_Type__ n,
-			__Float_Type__ ei0, __Float_Type__ ec0, __Float_Type__ ed0,
+			__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
 			__Float_Type__ alpha, __Float_Type__ beta);
 		__Float_Type__ get_phi() const noexcept { return glb.phi; }
 		__Float_Type__ get_hs() const noexcept { return glb.hs; }

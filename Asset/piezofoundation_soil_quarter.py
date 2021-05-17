@@ -4,7 +4,7 @@ from abaqus import *
 from abaqusConstants import *
 from caeModules import *
 
-spudcan_radius = 0.02
+spudcan_radius = 1.0
 
 top = 0.5 * spudcan_radius
 depth = 7.0 * spudcan_radius
