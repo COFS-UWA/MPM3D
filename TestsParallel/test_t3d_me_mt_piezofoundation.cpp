@@ -2,9 +2,11 @@
 
 #include "ParticleGenerator3D.hpp"
 #include "Model_T3D_ME_mt.h"
-#include "Step_T3D_ME_mt.h"
 #include "ModelData_T3D_ME_mt.h"
+#include "Step_T3D_ME_mt.h"
 #include "TimeHistory_T3D_ME_mt_complete.h"
+#include "Step_T3D_ME_mt_Geo.h"
+#include "TimeHistory_T3D_ME_mt_Geo_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_ME_mt.h"
 #include "test_parallel_utils.h"
@@ -83,6 +85,10 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 		ini_stress[2] = pcl_z * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
+		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+		pcl_s.s11 = ini_stress[0];
+		pcl_s.s22 = ini_stress[1];
+		pcl_s.s33 = ini_stress[2];
 		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
 		shp.set_param(ini_stress, e0,
 			30.0, 1354.0e6, 0.34,
@@ -90,6 +96,17 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 			0.18, 1.27);
 		mms[pcl_id] = &shp;
 	}
+
+	// gravity force, float unit weight
+	IndexArray bfz_pcl_array(pcl_num);
+	MemoryUtils::ItemArray<double> bfz_array(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		double bfz = -9.81 * den_float / den_sat;
+		bfz_pcl_array.add(pcl_id);
+		bfz_array.add(bfz);
+	}
+	model.init_bfzs(pcl_num, bfz_pcl_array.get_mem(), bfz_array.get_mem());
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
@@ -128,11 +145,44 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	md_disp.start();
 }
 
-void test_t3d_me_mt_piezofoundation(int argc, char** argv)
+void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 {
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, "t3d_me_mt_piezofoundation_model.h5");
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_me_mt_piezofoundation_geo.h5");
+
+	ModelData_T3D_ME_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T3D_ME_mt_Geo_complete out1("geostatic");
+	out1.set_interval_num(20);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_res_file(res_file_hdf5);
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
+
+	Step_T3D_ME_mt_Geo step("step1");
+	step.set_model(model);
+	//step.set_thread_num(22);
+	//step.set_step_time(0.1);
+	step.set_thread_num(5);
+	step.set_step_time(5.0e-5);
+	step.set_dtime(1.0e-5);
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
+}
+
+void test_t3d_me_mt_piezofoundation(int argc, char** argv)
+{
+	Model_T3D_ME_mt model;
+	Step_T3D_ME_mt step("step2");
+	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
+		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 6);
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
@@ -161,10 +211,8 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(2000);
 
-	Step_T3D_ME_mt step("step1");
-	step.set_model(model);
 	step.set_thread_num(22);
-	step.set_step_time(0.5);//0.15
+	step.set_step_time(0.5); //0.15
 	//step.set_step_time(2.0); // 0.5D
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
