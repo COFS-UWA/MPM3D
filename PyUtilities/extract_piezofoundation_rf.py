@@ -3,7 +3,7 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_piezofoundation.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_piezofoundation_constant.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']

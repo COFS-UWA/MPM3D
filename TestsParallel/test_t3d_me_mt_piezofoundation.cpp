@@ -76,10 +76,11 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		if (pcl_z > -0.2)
-			pcl_z = -0.2;
-		//const double pcl_z = -0.5; //debug
+		//double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		//if (pcl_z > -0.2)
+		//	pcl_z = -0.2;
+		//const double pcl_z = -1.0; //debug
+		const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
 		ini_stress[2] = pcl_z * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
@@ -93,8 +94,8 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
-	model.set_contact_param(1000.0 / (sml_pcl_size * sml_pcl_size),
-		1000.0 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);
+	model.set_contact_param(20000.0 / (sml_pcl_size * sml_pcl_size),
+		20000.0 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
@@ -164,7 +165,7 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_thread_num(22);
-	step.set_step_time(0.5);//0.15
+	step.set_step_time(0.55);//0.15
 	//step.set_step_time(2.0); // 0.5D
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
@@ -178,7 +179,7 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_piezofoundation.h5");
+	rf.open("t3d_me_mt_piezofoundation_ground.h5");
 
 	// Single frame
 	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
@@ -189,7 +190,7 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	// Animation
 	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
-	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.001, 0.0);
+	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.06, 0.0);
 	app.set_ani_time(5.0);
 	app.set_win_size(1600, 950);
 	app.set_view_dir(-90.0f, 10.0f);
@@ -200,14 +201,14 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-1.0e3, 0.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	app.set_color_map_fld_range(-1.0e5, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
 	// mises strain
-	app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
-	app.set_color_map_fld_range(0.0, 0.1);
+	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
+	//app.set_color_map_fld_range(0.0, 0.01);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	app.set_png_name("t3d_me_mt_piezofoundation");
