@@ -906,7 +906,7 @@ int substep_func_omp_T3D_ME_mt_Geo(
 		}
 
 		if (self.e_kin_max_is_init)
-			self.e_kin_ratio = sqrt(self.e_kin_prev / self.e_kin_max);
+			self.e_kin_ratio = sqrt(self.e_kin / self.e_kin_max);
 		else
 			self.e_kin_ratio = 1.0;
 

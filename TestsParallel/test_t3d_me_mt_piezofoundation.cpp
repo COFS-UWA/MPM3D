@@ -78,18 +78,18 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		//double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		//if (pcl_z > -0.2)
-		//	pcl_z = -0.2;
 		//const double pcl_z = -1.0; //debug
-		const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
+		//const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+		pcl_s.s33 = pcl_z * 9.81 * den_float;
+		pcl_s.s22 = K0 * pcl_s.s33;
+		pcl_s.s11 = pcl_s.s22;
+		if (pcl_z > -0.2)
+			pcl_z = -0.2;
 		ini_stress[2] = pcl_z * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
-		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
-		pcl_s.s11 = ini_stress[0];
-		pcl_s.s22 = ini_stress[1];
-		pcl_s.s33 = ini_stress[2];
 		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
 		shp.set_param(ini_stress, e0,
 			30.0, 1354.0e6, 0.34,
@@ -187,13 +187,13 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(-90.0f, -30.0f);
+	//md_disp.set_view_dir(-90.0f, -20.0f);
 	//md_disp.set_light_dir(-60.0f, 15.0f);
 	//md_disp.set_display_bg_mesh(false);
 	////md_disp.set_view_dist_scale(0.6);
-	////md_disp.set_pts_from_vx_bc(5.0e-4);
-	////md_disp.set_pts_from_vy_bc(5.0e-4);
-	//md_disp.set_pts_from_vz_bc(5.0e-4);
+	//md_disp.set_pts_from_vx_bc(0.05);
+	////md_disp.set_pts_from_vy_bc(0.05);
+	////md_disp.set_pts_from_vz_bc(0.05);
 	//md_disp.start();
 	//return;
 
@@ -213,11 +213,9 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	std::cout << "Start solving...\n";
-	//step.set_thread_num(22);
-	//step.set_step_time(0.5); //0.15
+	step.set_thread_num(22);
+	step.set_step_time(0.2); //0.15, 0.5
 	//step.set_step_time(2.0); // 0.5D
-	step.set_thread_num(5);
-	step.set_step_time(5.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -230,14 +228,22 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_piezofoundation_ground.h5");
+	rf.open("t3d_me_mt_piezofoundation_geo.h5");
 
 	// Single frame
 	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
-	////app.set_res_file(rf, "penetration", 50, Hdf5Field::s33);
-	////app.set_res_file(rf, "penetration", 50, Hdf5Field::max_shear_stress);
-	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
-	
+	//app.set_res_file(rf, "geostatic", 21, Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
+	//app.set_win_size(1600, 950);
+	//app.set_view_dir(-90.0f, 20.0f);
+	//app.set_light_dir(-135.0f, 20.0f);
+	//app.set_light_dist_scale(1.0f);
+	//app.set_fog_coef(0.02f);
+	//app.set_view_dist_scale(0.85);
+	//app.set_display_bg_mesh(false);
+	//app.start();
+
 	// Animation
 	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
@@ -248,12 +254,12 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	app.set_light_dir(-135.0f, 20.0f);
 	app.set_light_dist_scale(1.0f);
 	app.set_fog_coef(0.02f);
-	app.set_view_dist_scale(0.7);
+	app.set_view_dist_scale(0.85);
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-1.0e5, 0.0);
+	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
@@ -262,7 +268,55 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 0.01);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	app.set_png_name("t3d_me_mt_piezofoundation");
-	app.set_gif_name("t3d_me_mt_piezofoundation");
+	//app.set_png_name("t3d_me_mt_piezofoundation_geo");
+	app.set_gif_name("t3d_me_mt_piezofoundation_geo");
+	app.start();
+}
+
+void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
+{
+	ResultFile_hdf5 rf;
+	rf.open("t3d_me_mt_piezofoundation_geo.h5");
+
+	// Single frame
+	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
+	//app.set_res_file(rf, "geostatic", 21, Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
+	//app.set_win_size(1600, 950);
+	//app.set_view_dir(-90.0f, 20.0f);
+	//app.set_light_dir(-135.0f, 20.0f);
+	//app.set_light_dist_scale(1.0f);
+	//app.set_fog_coef(0.02f);
+	//app.set_view_dist_scale(0.85);
+	//app.set_display_bg_mesh(false);
+	//app.start();
+
+	// Animation
+	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
+		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
+	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.06, 0.0);
+	app.set_ani_time(5.0);
+	app.set_win_size(1600, 950);
+	app.set_view_dir(-90.0f, 10.0f);
+	app.set_light_dir(-135.0f, 20.0f);
+	app.set_light_dist_scale(1.0f);
+	app.set_fog_coef(0.02f);
+	app.set_view_dist_scale(0.85);
+	app.set_display_bg_mesh(false);
+	//app.set_mono_color_pcl(true);
+	// s33
+	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	app.set_color_map_fld_range(-8.0e4, 0.0);
+	// shear stress
+	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
+	//app.set_color_map_fld_range(0.0, 5.0);
+	// mises strain
+	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
+	//app.set_color_map_fld_range(0.0, 0.01);
+	//
+	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
+	//app.set_png_name("t3d_me_mt_piezofoundation_geo");
+	app.set_gif_name("t3d_me_mt_piezofoundation_geo");
 	app.start();
 }
