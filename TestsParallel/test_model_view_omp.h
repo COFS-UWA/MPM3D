@@ -12,6 +12,7 @@ void test_t2d_me_mt_strip_footing_result(int argc, char** argv);
 
 void test_t3d_me_mt_1d_compression_result(int argc, char** argv);
 void test_t3d_me_s_1d_compression_result(int argc, char** argv);
+void test_t3d_me_mt_1d_geostatic_result(int argc, char** argv);
 
 void test_t3d_me_mt_cap_compression_result(int argc, char** argv);
 void test_t3d_me_mt_cap_compression_result_div(int argc, char** argv);

@@ -31,6 +31,7 @@ void test_t2d_me_mt_block_collision(int argc, char** argv);
 
 void test_t3d_me_mt_1d_compression(int argc, char** argv);
 void test_t3d_me_s_1d_compression(int argc, char** argv);
+void test_t3d_me_mt_1d_geostatic(int argc, char** argv);
 
 void test_t3d_me_mt_cap_compression(int argc, char** argv);
 void test_t3d_me_mt_cap_compression_restart(int argc, char** argv);
@@ -98,6 +99,7 @@ void test_t3d_chm_mt_spudcan_sand_hypo(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_sand_hypo_result(int argc, char** argv);
 
 void test_t3d_me_mt_piezofoundation_model(int argc, char** argv);
+void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation_result(int argc, char** argv);
 

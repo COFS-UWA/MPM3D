@@ -6,6 +6,7 @@
 #include "Model_T3D_ME_mt.h"
 #include "Step_T3D_ME_mt.h"
 #include "Step_T3D_ME_TBB.h"
+#include "Step_T3D_ME_mt_Geo.h"
 
 namespace Model_T3D_ME_mt_hdf5_utilities
 {
@@ -205,12 +206,72 @@ struct ParticleData
 		elem_id = cd.pcl_sort_mem.get_prev_res_keys()[pcl_offset];
 	}
 	
+	void from_pcl(
+		Step_T3D_ME_mt_Geo &stp,
+		size_t sorted_var_id,
+		size_t pcl_offset)
+	{
+		typedef Step_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+		sorted_var_id ^= 1;
+		SortedPclVarArrays& spva = stp.sorted_pcl_var_arrays[sorted_var_id];
+		id = spva.pcl_index[pcl_offset];
+		Step_T3D_ME_mt::Position& p_p = stp.pcl_pos[id];
+		Step_T3D_ME_mt::Displacement& p_d = spva.pcl_disp[pcl_offset];
+		x = p_p.x + p_d.ux;
+		y = p_p.y + p_d.uy;
+		z = p_p.z + p_d.uz;
+		Step_T3D_ME_mt::Force& p_bf = stp.pcl_bf[id];
+		bfx = p_bf.fx;
+		bfy = p_bf.fy;
+		bfz = p_bf.fz;
+		Step_T3D_ME_mt::Force& p_t = stp.pcl_t[id];
+		tx = p_t.fx;
+		ty = p_t.fy;
+		tz = p_t.fz;
+		m = stp.pcl_m[id];
+		density = spva.pcl_density[pcl_offset];
+		vol = m / density;
+		Step_T3D_ME_mt::Velocity& p_v = spva.pcl_v[pcl_offset];
+		vx = p_v.vx;
+		vy = p_v.vy;
+		vz = p_v.vz;
+		Step_T3D_ME_mt::Stress& p_s = spva.pcl_stress[pcl_offset];
+		s11 = p_s.s11;
+		s22 = p_s.s22;
+		s33 = p_s.s33;
+		s12 = p_s.s12;
+		s23 = p_s.s23;
+		s31 = p_s.s31;
+		Step_T3D_ME_mt::Strain& p_e = spva.pcl_strain[pcl_offset];
+		e11 = p_e.e11;
+		e22 = p_e.e22;
+		e33 = p_e.e33;
+		e12 = p_e.e12;
+		e23 = p_e.e23;
+		e31 = p_e.e31;
+		Step_T3D_ME_mt::Strain& p_ee = spva.pcl_estrain[pcl_offset];
+		ee11 = p_ee.e11;
+		ee22 = p_ee.e22;
+		ee33 = p_ee.e33;
+		ee12 = p_ee.e12;
+		ee23 = p_ee.e23;
+		ee31 = p_ee.e31;
+		Step_T3D_ME_mt::Strain& p_pe = spva.pcl_pstrain[pcl_offset];
+		pe11 = p_pe.e11;
+		pe22 = p_pe.e22;
+		pe33 = p_pe.e33;
+		pe12 = p_pe.e12;
+		pe23 = p_pe.e23;
+		pe31 = p_pe.e31;
+		mat_id = stp.pcl_mat_model[id]->get_id();
+		elem_id = stp.get_pcl_in_elem()[pcl_offset];
+	}
+
 	void to_pcl(
 		Model_T3D_ME_mt &md,
 		size_t sorted_pcl_var_id,
 		size_t pcl_offset,
-		MatModel::MaterialModel &mm
-		)
+		MatModel::MaterialModel &mm)
 	{
 		typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 		SortedPclVarArrays& spva = md.sorted_pcl_var_arrays[sorted_pcl_var_id];
@@ -395,6 +456,7 @@ int load_search_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hi
 int output_ori_pcl_data_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
+int output_pcl_data_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt_Geo &stp, ResultFile_hdf5& rf, hid_t grp_id);
 int load_pcl_data_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 int output_material_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -419,6 +481,7 @@ int output_model_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf);
 // output the particle data and material models to hdf5 (used by time history)
 int time_history_complete_output_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 int time_history_complete_output_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+int time_history_complete_output_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_mt_Geo& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 
 // load model data from hdf5 to model data
 int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, const char* hdf5_name);
