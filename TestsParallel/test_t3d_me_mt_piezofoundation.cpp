@@ -181,7 +181,7 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Step_T3D_ME_mt step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 6);
+		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 21);
 	std::cout << "Load model completed.\n";
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
@@ -214,7 +214,7 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 
 	std::cout << "Start solving...\n";
 	step.set_thread_num(22);
-	step.set_step_time(0.2); //0.15, 0.5
+	step.set_step_time(0.5); //0.15, 0.5
 	//step.set_step_time(2.0); // 0.5D
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
@@ -225,7 +225,7 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 #include "QtApp_Posp_T3D_ME_mt_Div.h"
 #include "test_model_view_omp.h"
 
-void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
+void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	rf.open("t3d_me_mt_piezofoundation_geo.h5");
@@ -273,10 +273,10 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	app.start();
 }
 
-void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
+void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_piezofoundation_geo.h5");
+	rf.open("t3d_me_mt_piezofoundation.h5");
 
 	// Single frame
 	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
@@ -306,7 +306,7 @@ void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	app.set_res_file(rf, "penetration", Hdf5Field::s33);
 	app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
@@ -316,7 +316,7 @@ void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 0.01);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_png_name("t3d_me_mt_piezofoundation_geo");
-	app.set_gif_name("t3d_me_mt_piezofoundation_geo");
+	//app.set_png_name("t3d_me_mt_piezofoundation");
+	app.set_gif_name("t3d_me_mt_piezofoundation");
 	app.start();
 }
