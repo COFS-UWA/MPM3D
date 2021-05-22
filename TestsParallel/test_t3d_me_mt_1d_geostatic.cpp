@@ -6,6 +6,7 @@
 #include "ModelData_T3D_ME_mt.h"
 #include "Step_T3D_ME_mt_Geo.h"
 #include "TimeHistory_T3D_ME_mt_Geo_complete.h"
+#include "TimeHistory_T3D_ME_mt_Geo_ratio.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_ME_mt.h"
 #include "test_parallel_utils.h"
@@ -79,6 +80,9 @@ void test_t3d_me_mt_1d_geostatic(int argc, char** argv)
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_interval_num(100);
+	TimeHistory_T3D_ME_mt_Geo_ratio out2("Ratio");
+	out2.set_res_file("t3d_me_mt_1d_geostatic_ratio.csv");
+	out2.set_interval_num(200);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
 	Step_T3D_ME_mt_Geo step("step1");
@@ -88,6 +92,7 @@ void test_t3d_me_mt_1d_geostatic(int argc, char** argv)
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(3);
 	step.add_time_history(out1);
+	step.add_time_history(out2);
 	step.add_time_history(out_cpb);
 	step.solve();
 }

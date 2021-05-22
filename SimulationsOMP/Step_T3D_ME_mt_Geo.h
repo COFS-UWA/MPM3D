@@ -140,6 +140,8 @@ public:
 	inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
 	inline size_t *get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
+	inline double get_f_ub() const noexcept { return f_ub; }
+	inline double get_e_kin() const noexcept { return e_kin; }
 	inline double get_f_ub_ratio() const noexcept { return f_ub_ratio; }
 	inline double get_e_kin_ratio() const noexcept { return e_kin_ratio; }
 	

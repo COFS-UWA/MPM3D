@@ -28,6 +28,7 @@ add_library(
     TimeHistory_T3D_ME_mt_complete.h TimeHistory_T3D_ME_mt_complete.cpp
     Step_T3D_ME_mt_Geo.h Step_T3D_ME_mt_Geo.cpp
     TimeHistory_T3D_ME_mt_Geo_complete.h TimeHistory_T3D_ME_mt_Geo_complete.cpp
+    TimeHistory_T3D_ME_mt_Geo_ratio.h TimeHistory_T3D_ME_mt_Geo_ratio.cpp
     # 2D CHM MPM
     Model_T2D_CHM_mt.h Model_T2D_CHM_mt.cpp
     Step_T2D_CHM_mt.h Step_T2D_CHM_mt.cpp Step_T2D_CHM_mt2.cpp
