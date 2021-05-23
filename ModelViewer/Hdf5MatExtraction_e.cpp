@@ -23,6 +23,7 @@ bool Hdf5MatExtraction_e::validate_data_type()
 			break;
 		}
 	}
+	data_loader - ;
 	var_is_found = (var_found == 2);
 	return var_is_found;
 }

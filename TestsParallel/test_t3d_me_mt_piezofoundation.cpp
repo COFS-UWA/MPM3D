@@ -258,13 +258,13 @@ void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
-	app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
-	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
 	// mises strain
-	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
@@ -306,14 +306,17 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
 	// mises strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
+	// mat e
+	app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
+	app.set_color_map_fld_range(0.4, 0.8);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_piezofoundation");
