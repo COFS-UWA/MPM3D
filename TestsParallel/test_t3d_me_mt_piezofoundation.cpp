@@ -168,8 +168,10 @@ void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 
 	Step_T3D_ME_mt_Geo step("step1");
 	step.set_model(model);
-	step.set_thread_num(22);
-	step.set_step_time(0.2);
+	//step.set_thread_num(22);
+	//step.set_step_time(0.2);
+	step.set_thread_num(4);
+	step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -225,54 +227,6 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 #include "QtApp_Posp_T3D_ME_mt_Div.h"
 #include "test_model_view_omp.h"
 
-void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
-{
-	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_piezofoundation_geo.h5");
-
-	// Single frame
-	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
-	//app.set_res_file(rf, "geostatic", 21, Hdf5Field::s33);
-	//app.set_color_map_fld_range(-8.0e4, 0.0);
-	//app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_win_size(1600, 950);
-	//app.set_view_dir(-90.0f, 20.0f);
-	//app.set_light_dir(-135.0f, 20.0f);
-	//app.set_light_dist_scale(1.0f);
-	//app.set_fog_coef(0.02f);
-	//app.set_view_dist_scale(0.85);
-	//app.set_display_bg_mesh(false);
-	//app.start();
-
-	// Animation
-	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
-		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
-	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.06, 0.0);
-	app.set_ani_time(5.0);
-	app.set_win_size(1600, 950);
-	app.set_view_dir(-90.0f, 10.0f);
-	app.set_light_dir(-135.0f, 20.0f);
-	app.set_light_dist_scale(1.0f);
-	app.set_fog_coef(0.02f);
-	app.set_view_dist_scale(0.85);
-	app.set_display_bg_mesh(false);
-	//app.set_mono_color_pcl(true);
-	// s33
-	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
-	app.set_color_map_fld_range(-8.0e4, 0.0);
-	// shear stress
-	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
-	//app.set_color_map_fld_range(0.0, 5.0);
-	// mises strain
-	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.01);
-	//
-	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_png_name("t3d_me_mt_piezofoundation_geo");
-	app.set_gif_name("t3d_me_mt_piezofoundation_geo");
-	app.start();
-}
-
 void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
@@ -306,14 +260,80 @@ void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
-	app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
 	// mises strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
+	// mat_e
+	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_e);
+	//app.set_color_map_fld_range(0.5, 0.8);
+	// mat_s11
+	app.set_res_file(rf, "geostatic", Hdf5Field::mat_s11);
+	app.set_color_map_fld_range(-4.0e4, 0.0);
+	// mat_s33
+	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	//
+	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
+	//app.set_png_name("t3d_me_mt_piezofoundation_geo");
+	app.set_gif_name("t3d_me_mt_piezofoundation_geo");
+	app.start();
+}
+
+void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
+{
+	ResultFile_hdf5 rf;
+	rf.open("t3d_me_mt_piezofoundation_geo.h5");
+
+	// Single frame
+	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
+	//app.set_res_file(rf, "geostatic", 21, Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
+	//app.set_win_size(1600, 950);
+	//app.set_view_dir(-90.0f, 20.0f);
+	//app.set_light_dir(-135.0f, 20.0f);
+	//app.set_light_dist_scale(1.0f);
+	//app.set_fog_coef(0.02f);
+	//app.set_view_dist_scale(0.85);
+	//app.set_display_bg_mesh(false);
+	//app.start();
+
+	// Animation
+	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
+		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
+	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.06, 0.0);
+	app.set_ani_time(5.0);
+	app.set_win_size(1600, 950);
+	app.set_view_dir(-90.0f, 10.0f);
+	app.set_light_dir(-135.0f, 20.0f);
+	app.set_light_dist_scale(1.0f);
+	app.set_fog_coef(0.02f);
+	app.set_view_dist_scale(0.85);
+	app.set_display_bg_mesh(false);
+	//app.set_mono_color_pcl(true);
+	// s33
+	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	// shear stress
+	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
+	//app.set_color_map_fld_range(0.0, 5.0);
+	// mises strain
+	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
+	//app.set_color_map_fld_range(0.0, 0.01);
+	// mat_e
+	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
+	//app.set_color_map_fld_range(0.5, 0.8);
+	// mat_s11
+	app.set_res_file(rf, "penetration", Hdf5Field::mat_s11);
+	app.set_color_map_fld_range(-4.0e4, 0.0);
+	// mat_s33
+	//app.set_res_file(rf, "penetration", Hdf5Field::mat_s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_piezofoundation_geo");

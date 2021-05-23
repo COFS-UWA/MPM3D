@@ -51,6 +51,13 @@
 #include "Hdf5FieldExtraction_vz_f.h"
 #include "Hdf5FieldExtraction_p.h"
 #include "Hdf5MatExtraction_max_shear_stress.h"
+#include "Hdf5MatExtraction_e.h"
+#include "Hdf5MatExtraction_s11.h"
+#include "Hdf5MatExtraction_s22.h"
+#include "Hdf5MatExtraction_s33.h"
+#include "Hdf5MatExtraction_s12.h"
+#include "Hdf5MatExtraction_s23.h"
+#include "Hdf5MatExtraction_s31.h"
 
 namespace Hdf5Field
 {
@@ -103,7 +110,14 @@ namespace Hdf5Field
 		pe23 = 44,
 		pe31 = 45,
 		plastic_mises_strain_2d = 46,
-		max_shear_stress = 47
+		max_shear_stress = 47,
+		mat_e = 48,
+		mat_s11 = 49,
+		mat_s22 = 50,
+		mat_s33 = 51,
+		mat_s12 = 52,
+		mat_s23 = 53,
+		mat_s31 = 54
 	};
 
 	namespace Hdf5Field_internal
@@ -163,7 +177,14 @@ namespace Hdf5Field
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe23>, // 44
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_pe31>, // 45
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_plastic_mises_strain_2d>, // 46
-			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_max_shear_stress> // 47
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_max_shear_stress>, // 47
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_e>, // 48
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s11>, // 49
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s22>, // 50
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s33>, // 51
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s12>, // 52
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s23>, // 53
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s31> // 54
 		};
 		const size_t make_func_num = sizeof(make_funcs) / sizeof(make_funcs[0]);
 	}

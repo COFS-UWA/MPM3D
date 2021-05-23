@@ -103,8 +103,7 @@ void QtSceneFromHdf5_T3D_ME_mt::update_light_pos()
 int QtSceneFromHdf5_T3D_ME_mt::set_res_file(
 	ResultFile_hdf5& rf,
 	const char* th_name,
-	Hdf5Field::FieldType fld_type
-	)
+	Hdf5Field::FieldType fld_type)
 {
 	char exception_msg[256];
 	close_file();
@@ -234,8 +233,7 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	need_mat_model_data = pfld->need_mat_model_data();
 	res = data_loader.load_frame_data(
 		frame_id,
-		need_mat_model_data
-		);
+		need_mat_model_data);
 	if (res)
 		return res;
 

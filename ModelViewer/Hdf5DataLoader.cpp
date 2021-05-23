@@ -6,6 +6,7 @@
 
 Hdf5DataLoader::Hdf5DataLoader() :
 	res_file(nullptr), th_id(-1), pcl_dt_id(-1), pcl_size(0),
+	mat_dt_id(-1),
 	frame_id(std::numeric_limits<size_t>::max()), pcl_num(0) {}
 
 Hdf5DataLoader::~Hdf5DataLoader() { close_res_file(); }
@@ -26,12 +27,16 @@ void Hdf5DataLoader::close_res_file()
 		pcl_dt_id = -1;
 	}
 	res_file = nullptr;
+	if (mat_dt_id >= 0)
+	{
+		H5Tclose(mat_dt_id);
+		mat_dt_id = -1;
+	}
 }
 
 int Hdf5DataLoader::set_time_history(
 	ResultFile_hdf5& rf,
-	const char* th_name
-	)
+	const char* th_name)
 {
 	char exception_msg[250];
 	close_res_file();
@@ -67,14 +72,34 @@ int Hdf5DataLoader::set_time_history(
 	pcl_size = H5Tget_size(pcl_dt_id);
 	rf.close_dataset(pcl_dset_id);
 	rf.close_group(pcl_grp_id);
+
+	if (rf.has_group(frame_grp_id, "MaterialModel"))
+	{
+		hid_t mat_model_id = rf.open_group(frame_grp_id, "MaterialModel");
+
+		if (rf.has_dataset(mat_model_id, "LinearElasticity"))
+			mat_dt_id = Model_hdf5_utilities::get_le_hdf5_dt_id();
+	
+		if (rf.has_dataset(mat_model_id, "ModifiedCamClay"))
+			mat_dt_id = Model_hdf5_utilities::get_mcc_hdf5_dt_id();
+
+		if (rf.has_dataset(mat_model_id, "VonMises"))
+			mat_dt_id = Model_hdf5_utilities::get_von_mises_hdf5_dt_id();
+
+		if (rf.has_dataset(mat_model_id, "Tresca"))
+			mat_dt_id = Model_hdf5_utilities::get_tresca_hdf5_dt_id();
+
+		if (rf.has_dataset(mat_model_id, "SandHypoplasticity"))
+			mat_dt_id = Model_hdf5_utilities::get_sand_hypoplasticity_hdf5_dt_id();
+	}
+
 	rf.close_group(frame_grp_id);
 	return 0;
 }
 
 int Hdf5DataLoader::load_frame_data(
 	size_t fm_id,
-	bool need_mat_model
-	)
+	bool need_mat_model)
 {
 	if (frame_id == fm_id)
 		return 0;
@@ -111,7 +136,7 @@ int Hdf5DataLoader::load_frame_data(
 		if (rf.has_dataset(mat_model_id, "LinearElasticity"))
 		{
 			hid_t le_grp = rf.open_dataset(mat_model_id, "LinearElasticity");
-			hid_t le_dt = Model_hdf5_utilities::get_le_hdf5_dt_id();
+			//mat_dt_id = Model_hdf5_utilities::get_le_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "LinearElasticity_num", LinearElasticity_num);
 			LinearElasticity_mem.reserve(LinearElasticity_num);
 			LinearElasticityStateData *le_mem = LinearElasticity_mem.get_mem();
@@ -120,8 +145,7 @@ int Hdf5DataLoader::load_frame_data(
 				"LinearElasticity",
 				LinearElasticity_num,
 				le_mem,
-				le_dt
-				);
+				mat_dt_id);
 			mm_pt.type = MatModelType::LinearElasticity;
 			for (size_t mm_id = 0; mm_id < LinearElasticity_num; ++mm_id)
 			{
@@ -129,14 +153,13 @@ int Hdf5DataLoader::load_frame_data(
 				mm_pt.pmat = &mm;
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
-			H5Tclose(le_dt);
 			rf.close_dataset(le_grp);
 		}
 
 		if (rf.has_dataset(mat_model_id, "ModifiedCamClay"))
 		{
 			hid_t mcc_grp = rf.open_dataset(mat_model_id, "ModifiedCamClay");
-			hid_t mcc_dt = Model_hdf5_utilities::get_mcc_hdf5_dt_id();
+			//mat_dt_id = Model_hdf5_utilities::get_mcc_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "ModifiedCamClay_num", ModifiedCamClay_num);
 			ModifiedCamClay_mem.reserve(ModifiedCamClay_num);
 			ModifiedCamClayStateData* mcc_mem = ModifiedCamClay_mem.get_mem();
@@ -145,8 +168,7 @@ int Hdf5DataLoader::load_frame_data(
 				"ModifiedCamClay",
 				ModifiedCamClay_num,
 				mcc_mem,
-				mcc_dt
-				);
+				mat_dt_id);
 			mm_pt.type = MatModelType::ModifiedCamClay;
 			for (size_t mm_id = 0; mm_id < ModifiedCamClay_num; ++mm_id)
 			{
@@ -154,14 +176,13 @@ int Hdf5DataLoader::load_frame_data(
 				mm_pt.pmat = &mm;
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
-			H5Tclose(mcc_dt);
 			rf.close_dataset(mcc_grp);
 		}
 
 		if (rf.has_dataset(mat_model_id, "VonMises"))
 		{
 			hid_t vm_grp = rf.open_dataset(mat_model_id, "VonMises");
-			hid_t vm_dt = Model_hdf5_utilities::get_von_mises_hdf5_dt_id();
+			//mat_dt_id = Model_hdf5_utilities::get_von_mises_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "VonMises_num", VonMises_num);
 			VonMises_mem.reserve(VonMises_num);
 			VonMisesStateData* vm_mem = VonMises_mem.get_mem();
@@ -170,7 +191,7 @@ int Hdf5DataLoader::load_frame_data(
 				"VonMises",
 				VonMises_num,
 				vm_mem,
-				vm_dt);
+				mat_dt_id);
 			mm_pt.type = MatModelType::VonMises;
 			for (size_t mm_id = 0; mm_id < VonMises_num; ++mm_id)
 			{
@@ -178,14 +199,13 @@ int Hdf5DataLoader::load_frame_data(
 				mm_pt.pmat = &mm;
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
-			H5Tclose(vm_dt);
 			rf.close_dataset(vm_grp);
 		}
 
 		if (rf.has_dataset(mat_model_id, "Tresca"))
 		{
 			hid_t tc_grp = rf.open_dataset(mat_model_id, "Tresca");
-			hid_t tc_dt = Model_hdf5_utilities::get_tresca_hdf5_dt_id();
+			//mat_dt_id = Model_hdf5_utilities::get_tresca_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "Tresca_num", Tresca_num);
 			Tresca_mem.reserve(Tresca_num);
 			TrescaStateData* tc_mem = Tresca_mem.get_mem();
@@ -194,7 +214,7 @@ int Hdf5DataLoader::load_frame_data(
 				"Tresca",
 				Tresca_num,
 				tc_mem,
-				tc_dt);
+				mat_dt_id);
 			mm_pt.type = MatModelType::Tresca;
 			for (size_t mm_id = 0; mm_id < Tresca_num; ++mm_id)
 			{
@@ -202,14 +222,13 @@ int Hdf5DataLoader::load_frame_data(
 				mm_pt.pmat = &mm;
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
-			H5Tclose(tc_dt);
 			rf.close_dataset(tc_grp);
 		}
 
 		if (rf.has_dataset(mat_model_id, "SandHypoplasticity"))
 		{
 			hid_t shp_grp = rf.open_dataset(mat_model_id, "SandHypoplasticity");
-			hid_t shp_dt = Model_hdf5_utilities::get_sand_hypoplasticity_hdf5_dt_id();
+			//mat_dt_id = Model_hdf5_utilities::get_sand_hypoplasticity_hdf5_dt_id();
 			rf.read_attribute(mat_model_id, "SandHypoplasticity_num", SandHypoplasticity_num);
 			SandHypoplasticity_mem.reserve(SandHypoplasticity_num);
 			SandHypoplasticityStateData* shp_mem = SandHypoplasticity_mem.get_mem();
@@ -218,7 +237,7 @@ int Hdf5DataLoader::load_frame_data(
 				"SandHypoplasticity",
 				SandHypoplasticity_num,
 				shp_mem,
-				shp_dt);
+				mat_dt_id);
 			mm_pt.type = MatModelType::SandHypoplasticity;
 			for (size_t mm_id = 0; mm_id < SandHypoplasticity_num; ++mm_id)
 			{
@@ -226,7 +245,6 @@ int Hdf5DataLoader::load_frame_data(
 				mm_pt.pmat = &mm;
 				mat_model_map.emplace(mm.id, mm_pt);
 			}
-			H5Tclose(shp_dt);
 			rf.close_dataset(shp_grp);
 		}
 

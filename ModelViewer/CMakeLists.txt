@@ -86,6 +86,12 @@ add_library(
     # Constitutive model
     Hdf5MatExtraction_max_shear_stress.h Hdf5MatExtraction_max_shear_stress.cpp
     Hdf5MatExtraction_e.h Hdf5MatExtraction_e.cpp
+    Hdf5MatExtraction_s11.h Hdf5MatExtraction_s11.cpp
+    Hdf5MatExtraction_s22.h Hdf5MatExtraction_s22.cpp
+    Hdf5MatExtraction_s33.h Hdf5MatExtraction_s33.cpp
+    Hdf5MatExtraction_s12.h Hdf5MatExtraction_s12.cpp
+    Hdf5MatExtraction_s23.h Hdf5MatExtraction_s23.cpp
+    Hdf5MatExtraction_s31.h Hdf5MatExtraction_s31.cpp
     # Set for display division in 3D
     DivisionSet.h DivisionSet.cpp
     ################## 2D MPM model display ######################
