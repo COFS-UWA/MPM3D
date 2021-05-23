@@ -55,7 +55,13 @@ namespace Hdf5Field
 			"pe31",  // 45
 			"plastic mises strain 2d", // 46
 			"maximum shear stress", // 47
-			"mat_e" // 48
+			"mat_e", // 48
+			"mat_s11", // 49
+			"mat_s22", // 50
+			"mat_s33", // 51
+			"mat_s12", // 52
+			"mat_s23", // 53
+			"mat_s31" // 54
 		};
 	}
 }
