@@ -12,4 +12,9 @@
 #define sqrt3 (ffmat(1.73205080756887719317660412344))
 #define sqrt6 (ffmat(2.44948974278317788133563226438))
 
+// degree to radian
+#define ToRadian(angle) ((angle) / ffmat(180.0) * PI)
+// radian to degree
+#define ToDegree(angle) ((angle) / PI * ffmat(180.0))
+
 #endif

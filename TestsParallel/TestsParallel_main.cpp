@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	//test_sand_hypoplasticity_wrapper();
 
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
-	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
+	test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);
 	//test_t3d_chm_mt_1d_consolidation_restart(argc, argv);
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation_model(argc, argv);
 	//test_t3d_me_mt_piezofoundation_geo(argc, argv);
 	//test_t3d_me_mt_piezofoundation(argc, argv);
-	test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
+	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
 
 	// tbb parallelism

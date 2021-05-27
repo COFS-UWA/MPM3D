@@ -11,6 +11,7 @@ add_library(
     MaterialModelPrecision.h
     MatModelUtils.h MatModelUtils.cpp
     MatModelConstants.h
+    StressInvariant.h
     SymMatEigen.h SymMatEigen.cpp
     #MatModelTestUtils.h MatModelTestUtils.cpp
     # Base class
@@ -30,6 +31,9 @@ add_library(
     # Sand hypoplasticity
     sand_hypoplasticity.h sand_hypoplasticity.cpp
     SandHypoplasticityWrapper.h SandHypoplasticityWrapper.cpp
+    # Sand hypoplasticity with yield surface
+    sand_hypoplasticity_stb.h sand_hypoplasticity_stb.cpp
+    SandHypoplasticityStbWrapper.h SandHypoplasticityStbWrapper.cpp
     # MohrCoulomb
     mohr_coulomb.h mohr_coulomb.cpp
     MohrCoulombWrapper.h MohrCoulombWrapper.cpp

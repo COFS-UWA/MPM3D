@@ -83,17 +83,17 @@ void test_sand_hypoplasticity_wrapper()
 		Consolidation = 2
 	};
 
-	//AnalysisType tp = AnalysisType::TriaxialDrained;
-	//double de = -0.2;
-	//const double ini_stress[6] = { -60.0e3, -60.0e3, -120.0e3, 0.0, 0.0, 0.0 };
-	//constexpr size_t inc_num = 20000;
-	//constexpr size_t out_num = 200;
+	AnalysisType tp = AnalysisType::TriaxialDrained;
+	double de = -0.2;
+	const double ini_stress[6] = { -60.0e3, -60.0e3, -120.0e3, 0.0, 0.0, 0.0 };
+	constexpr size_t inc_num = 20000;
+	constexpr size_t out_num = 200;
 	
-	AnalysisType tp = AnalysisType::Consolidation;
-	double de = -0.03;
-	const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	constexpr size_t inc_num = 3000;
-	constexpr size_t out_num = 100;
+	//AnalysisType tp = AnalysisType::Consolidation;
+	//double de = -0.03;
+	//const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	//constexpr size_t inc_num = 3000;
+	//constexpr size_t out_num = 100;
 
 	const double ini_sr = ini_stress[0]; // radial stress
 	MatModel::SandHypoplasticityWrapper shp;

@@ -492,6 +492,58 @@ namespace Model_hdf5_utilities
 		return res;
 	}
 
+	// MohrCoulomb
+	struct MohrCoulombStateData
+	{
+		unsigned long long id;
+		double phi, psi, cohesion;
+		double E, niu;
+		union
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
+		int status_code;
+
+		inline void from_mm(MatModel::MohrCoulombWrapper& mm)
+		{
+			id = mm.get_id();
+			phi = mm.get_phi();
+			psi = mm.get_psi();
+			cohesion = mm.get_cohesion();
+			E = mm.get_E();
+			niu = mm.get_niu();
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
+			status_code = mm.get_status_code();
+		}
+
+		inline void to_mm(MatModel::MohrCoulombWrapper& mm)
+		{
+			mm.set_id(id);
+			mm.set_param(stress, phi, psi, cohesion, E, niu);
+			status_code = 0;
+		}
+	};
+
+	inline hid_t get_mohr_coulomb_hdf5_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(MohrCoulombStateData));
+		H5Tinsert(res, "id", HOFFSET(MohrCoulombStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "phi", HOFFSET(MohrCoulombStateData, phi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "psi", HOFFSET(MohrCoulombStateData, psi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "cohesion", HOFFSET(MohrCoulombStateData, cohesion), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "E", HOFFSET(MohrCoulombStateData, E), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "niu", HOFFSET(MohrCoulombStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "status_code", HOFFSET(MohrCoulombStateData, status_code), H5T_NATIVE_INT);
+		return res;
+	}
+
 	// SandHypoplasticityByUmat
 	struct SandHypoplasticityByUmatStateData
 	{
@@ -684,26 +736,36 @@ namespace Model_hdf5_utilities
 		return res;
 	}
 
-	// MohrCoulomb
-	struct MohrCoulombStateData
+	// SandHypoplasticityStb
+	struct SandHypoplasticityStbStateData
 	{
 		unsigned long long id;
-		double phi, psi, cohesion;
-		double E, niu;
+		double phi, hs, n;
+		double alpha, beta;
+		double ed0, ec0, ei0;
+		double Ig, niu;
 		union
 		{
 			double stress[6];
 			struct { double s11, s22, s33, s12, s23, s31; };
 		};
+		double e;
+		double substep_size;
+		double p_i;
 		int status_code;
 
-		inline void from_mm(MatModel::MohrCoulombWrapper& mm)
+		inline void from_mm(MatModel::SandHypoplasticityStbWrapper& mm)
 		{
 			id = mm.get_id();
 			phi = mm.get_phi();
-			psi = mm.get_psi();
-			cohesion = mm.get_cohesion();
-			E = mm.get_E();
+			hs = mm.get_hs();
+			n = mm.get_n();
+			alpha = mm.get_alpha();
+			beta = mm.get_beta();
+			ed0 = mm.get_ed0();
+			ec0 = mm.get_ec0();
+			ei0 = mm.get_ei0();
+			Ig = mm.get_Ig();
 			niu = mm.get_niu();
 			const double* mm_stress = mm.get_stress();
 			s11 = mm_stress[0];
@@ -712,27 +774,45 @@ namespace Model_hdf5_utilities
 			s12 = mm_stress[3];
 			s23 = mm_stress[4];
 			s31 = mm_stress[5];
+			e = mm.get_e();
+			substep_size = mm.get_substp_size();
 			status_code = mm.get_status_code();
+			p_i = mm.get_p_i();
 		}
 
-		inline void to_mm(MatModel::MohrCoulombWrapper& mm)
+		inline void to_mm(MatModel::SandHypoplasticityStbWrapper& mm)
 		{
 			mm.set_id(id);
-			mm.set_param(stress, phi, psi, cohesion, E, niu);
+			mm.set_param(stress, e, phi, hs, n, ed0, ec0, ei0, alpha, beta, Ig, niu);
+			mm.set_substep_size(substep_size);
 			status_code = 0;
 		}
 	};
 
-	inline hid_t get_mohr_coulomb_hdf5_dt_id()
+	inline hid_t get_sand_hypoplasticity_stb_hdf5_dt_id()
 	{
-		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(MohrCoulombStateData));
-		H5Tinsert(res, "id", HOFFSET(MohrCoulombStateData, id), H5T_NATIVE_ULLONG);
-		H5Tinsert(res, "phi", HOFFSET(MohrCoulombStateData, phi), H5T_NATIVE_DOUBLE);
-		H5Tinsert(res, "psi", HOFFSET(MohrCoulombStateData, psi), H5T_NATIVE_DOUBLE);
-		H5Tinsert(res, "cohesion", HOFFSET(MohrCoulombStateData, cohesion), H5T_NATIVE_DOUBLE);
-		H5Tinsert(res, "E", HOFFSET(MohrCoulombStateData, E), H5T_NATIVE_DOUBLE);
-		H5Tinsert(res, "niu", HOFFSET(MohrCoulombStateData, niu), H5T_NATIVE_DOUBLE);
-		H5Tinsert(res, "status_code", HOFFSET(MohrCoulombStateData, status_code), H5T_NATIVE_INT);
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(SandHypoplasticityStbStateData));
+		H5Tinsert(res, "id", HOFFSET(SandHypoplasticityStbStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "phi", HOFFSET(SandHypoplasticityStbStateData, phi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "hs", HOFFSET(SandHypoplasticityStbStateData, hs), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "n", HOFFSET(SandHypoplasticityStbStateData, n), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "alpha", HOFFSET(SandHypoplasticityStbStateData, alpha), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "beta", HOFFSET(SandHypoplasticityStbStateData, beta), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ed0", HOFFSET(SandHypoplasticityStbStateData, ed0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ec0", HOFFSET(SandHypoplasticityStbStateData, ec0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ei0", HOFFSET(SandHypoplasticityStbStateData, ei0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "Ig", HOFFSET(SandHypoplasticityStbStateData, Ig), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "niu", HOFFSET(SandHypoplasticityStbStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(SandHypoplasticityStbStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(SandHypoplasticityStbStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(SandHypoplasticityStbStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(SandHypoplasticityStbStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(SandHypoplasticityStbStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(SandHypoplasticityStbStateData, s31), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e", HOFFSET(SandHypoplasticityStbStateData, e), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "substep_size", HOFFSET(SandHypoplasticityStbStateData, substep_size), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "status_code", HOFFSET(SandHypoplasticityStbStateData, status_code), H5T_NATIVE_INT);
+		H5Tinsert(res, "p_i", HOFFSET(SandHypoplasticityStbStateData, p_i), H5T_NATIVE_DOUBLE);
 		return res;
 	}
 
