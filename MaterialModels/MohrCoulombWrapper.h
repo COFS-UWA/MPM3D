@@ -18,7 +18,8 @@ namespace MatModel
 		int32_t status_code;
 
 	public:
-		MohrCoulombWrapper() {}
+		MohrCoulombWrapper() :
+			MaterialModel(mohr_coulomb_wrapper_integration_function, "MohrCoulomb") {}
 		MohrCoulombWrapper(const MohrCoulombWrapper& other);
 		~MohrCoulombWrapper() {}
 

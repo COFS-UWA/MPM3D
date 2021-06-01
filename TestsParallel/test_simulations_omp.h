@@ -9,6 +9,7 @@ void test_rigid_mesh_contact(int argc, char** argv);
 void test_rigid_mesh_contact2(int argc, char** argv);
 void test_contact_model_3d(int argc, char** argv);
 
+void test_mohr_coulomb();
 void test_sand_hypoplasticity_integration();
 void test_sand_hypoplasticity_Herleand_Gudehus_1999();
 void test_sand_hypoplasticity_Wichtmann_2019();

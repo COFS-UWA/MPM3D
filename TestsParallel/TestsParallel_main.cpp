@@ -105,6 +105,8 @@ int main(int argc, char *argv[])
 	//test_sand_hypoplasticity_triaxial();
 	//test_triaxial_secant();
 	//test_sand_hypoplasticity_wrapper();
+	
+	//test_mohr_coulomb();
 
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
 	test_t3d_me_mt_triaxial_compression_result(argc, argv);

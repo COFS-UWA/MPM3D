@@ -35,7 +35,9 @@ struct MohrCoulombGlobal
 		__Float_Type__ i2[2][3];
 		struct { __Float_Type__ v2x, v2y, v2z; };
 	};
-	__Float_Type__ v1x2_v1y2_v1z2, v2x2_v2y2_v2z2;
+	__Float_Type__ u1x, u1y, u1z;
+	__Float_Type__ u2x, u2y, u2z;
+	__Float_Type__ uv1x_uv1y_uv1z, uv2x_uv2y_uv2z;
 
 	void set_param(__Float_Type__ _phi,
 		__Float_Type__ _psi, __Float_Type__ _cohesion,

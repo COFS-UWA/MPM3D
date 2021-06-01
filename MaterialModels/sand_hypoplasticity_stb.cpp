@@ -264,6 +264,8 @@ void SandHypoplasticityStb::update_Norsand_p_i(
 	};
 	cal_p_q(stress, invars);
 	p_i = -p / (__Float_Type__)exp(ffmat(1.0) + q / (M_i * p));
+	//if (p_i < 150.0)
+	//	p_i = 150.0;
 }
 
 int32_t integrate_sand_hypoplasticity_stb(

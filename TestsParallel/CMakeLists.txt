@@ -13,6 +13,7 @@ add_executable(
     test_model_view_omp.h
     # entry
     TestsParallel_main.cpp
+    test_mohr_coulomb.cpp
     test_sand_hypoplasticity.cpp
     test_sand_hypoplasticity_wrapper.cpp
     test_rigid_mesh_contact.cpp
