@@ -168,11 +168,11 @@ void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 
 	Step_T3D_ME_mt_Geo step("step1");
 	step.set_model(model);
-	//step.set_thread_num(22);
-	//step.set_step_time(0.2);
-	step.set_thread_num(4);
-	step.set_step_time(1.0e-5);
-	step.set_dtime(1.0e-5);
+	step.set_thread_num(22);
+	step.set_step_time(0.5);
+	//step.set_thread_num(4);
+	//step.set_step_time(1.0e-5);
+	step.set_dtime(2.5e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -272,11 +272,11 @@ void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_e);
 	//app.set_color_map_fld_range(0.5, 0.8);
 	// mat_s11
-	app.set_res_file(rf, "geostatic", Hdf5Field::mat_s11);
-	app.set_color_map_fld_range(-4.0e4, 0.0);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_s11);
+	//app.set_color_map_fld_range(-4.0e4, 0.0);
 	// mat_s33
-	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_s33);
-	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	app.set_res_file(rf, "geostatic", Hdf5Field::mat_s33);
+	app.set_color_map_fld_range(-8.0e4, 0.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_piezofoundation_geo");
@@ -317,11 +317,7 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-<<<<<<< HEAD
-	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-=======
 	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
->>>>>>> e6c2c85f0aa168453903af0474c598c23f828502
 	//app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
@@ -329,24 +325,18 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	// mises strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
-<<<<<<< HEAD
-	// mat e
-	app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
-	app.set_color_map_fld_range(0.4, 0.8);
-=======
 	// mat_e
 	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
-	//app.set_color_map_fld_range(0.5, 0.8);
+	//app.set_color_map_fld_range(0.5, 0.6);
 	// mat_s11
-	app.set_res_file(rf, "penetration", Hdf5Field::mat_s11);
-	app.set_color_map_fld_range(-4.0e4, 0.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::mat_s11);
+	//app.set_color_map_fld_range(-4.0e4, 0.0);
 	// mat_s33
-	//app.set_res_file(rf, "penetration", Hdf5Field::mat_s33);
-	//app.set_color_map_fld_range(-8.0e4, 0.0);
->>>>>>> e6c2c85f0aa168453903af0474c598c23f828502
+	app.set_res_file(rf, "penetration", Hdf5Field::mat_s33);
+	app.set_color_map_fld_range(-1.0e5, 0.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_png_name("t3d_me_mt_piezofoundation");
+	app.set_png_name("t3d_me_mt_piezofoundation");
 	app.set_gif_name("t3d_me_mt_piezofoundation");
 	app.start();
 }

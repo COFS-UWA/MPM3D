@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_spudcan_coarse(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_result(argc, argv);
 
-	//MatModel::MaterialModelInitializer::init();
+	MatModel::MaterialModelInitializer::init();
 	//test_sand_hypoplasticity_integration();
 	//test_sand_hypoplasticity_Herleand_Gudehus_1999();
 	//test_sand_hypoplasticity_Wichtmann_2019();
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	//test_triaxial_secant();
 	//test_sand_hypoplasticity_wrapper();
 
-	//test_t3d_me_mt_triaxial_compression(argc, argv);
+	test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation_model(argc, argv);
 	//test_t3d_me_mt_piezofoundation_geo(argc, argv);
 	//test_t3d_me_mt_piezofoundation(argc, argv);
-	test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
+	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
 
 	// tbb parallelism
