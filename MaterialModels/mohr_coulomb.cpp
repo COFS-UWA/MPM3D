@@ -6,12 +6,6 @@
 #include "MatModelConstants.h"
 #include "SymMatEigen.h"
 
-#include <math.h>
-
-#include "mohr_coulomb.h"
-#include "MatModelUtils.h"
-#include "SymMatEigen.h"
-
 void MohrCoulombGlobal::set_param(
 	__Float_Type__ _phi, __Float_Type__ _psi,
 	__Float_Type__ _cohesion,
@@ -41,9 +35,9 @@ void MohrCoulombGlobal::set_param(
 	one_plus_sin_phi_psi = ffmat(1.0) + sin_phi * sin_psi;
 
 	__Float_Type__ len_tmp;
-	i1[0][0] = ffmat(1.0) + sin_phi;
-	i1[0][1] = ffmat(1.0) - sin_phi;
-	i1[0][2] = ffmat(1.0) - sin_phi;
+	i1[0][0] = one_plus_sin_phi_psi * (ffmat(1.0) + sin_psi);
+	i1[0][1] = (ffmat(1.0) - sin_phi) * (ffmat(1.0) + sin_psi * sin_psi);
+	i1[0][2] = one_plus_sin_phi_psi * (ffmat(1.0) - sin_psi);
 	len_tmp = (__Float_Type__)sqrt(i1[0][0] * i1[0][0] + i1[0][1] * i1[0][1] + i1[0][2] * i1[0][2]);
 	i1[0][0] /= len_tmp;
 	i1[0][1] /= len_tmp;
@@ -56,9 +50,9 @@ void MohrCoulombGlobal::set_param(
 	i1[1][1] /= len_tmp;
 	i1[1][2] /= len_tmp;
 
-	i2[0][0] = ffmat(1.0) + sin_phi;
-	i2[0][1] = ffmat(1.0) + sin_phi;
-	i2[0][2] = ffmat(1.0) - sin_phi;
+	i2[0][0] = one_plus_sin_phi_psi * (ffmat(1.0) + sin_psi);
+	i2[0][1] = (ffmat(1.0) + sin_phi) * (ffmat(1.0) + sin_psi * sin_psi);
+	i2[0][2] = one_plus_sin_phi_psi * (ffmat(1.0) - sin_psi);
 	len_tmp = (__Float_Type__)sqrt(i2[0][0] * i2[0][0] + i2[0][1] * i2[0][1] + i2[0][2] * i2[0][2]);
 	i2[0][0] /= len_tmp;
 	i2[0][1] /= len_tmp;
@@ -71,6 +65,12 @@ void MohrCoulombGlobal::set_param(
 	i2[1][1] /= len_tmp;
 	i2[1][2] /= len_tmp;
 
+	v1x = ffmat(1.0) + sin_phi;
+	v1y = ffmat(1.0) - sin_phi;
+	v1z = ffmat(1.0) - sin_phi;
+	v2x = ffmat(1.0) + sin_phi;
+	v2y = ffmat(1.0) + sin_phi;
+	v2z = ffmat(1.0) - sin_phi;
 	u1x = ffmat(1.0) + sin_psi;
 	u1y = ffmat(1.0) - sin_psi;
 	u1z = ffmat(1.0) - sin_psi;
