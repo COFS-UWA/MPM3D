@@ -72,10 +72,10 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	// Sand hypoplasticity
 	const double K0 = 1.0 - sin(30.0 / 180.0 * 3.14159265359);
 	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	// Mohr Coulomb
+	MatModel::MohrCoulombWrapper *mcs = model.add_MohrCoulombWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		//const double pcl_z = -1.0; //debug
@@ -85,18 +85,36 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 		pcl_s.s33 = pcl_z * 9.81 * den_float;
 		pcl_s.s22 = K0 * pcl_s.s33;
 		pcl_s.s11 = pcl_s.s22;
-		if (pcl_z > -0.2)
-			pcl_z = -0.2;
-		ini_stress[2] = pcl_z * 9.81 * den_float;
-		ini_stress[0] = K0 * ini_stress[2];
-		ini_stress[1] = ini_stress[0];
-		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
-		shp.set_param(ini_stress, e0,
-			30.0, 1354.0e6, 0.34,
-			0.49, 0.76, 0.86,
-			0.18, 1.27);
-		mms[pcl_id] = &shp;
+		ini_stress[2] = pcl_s.s33;
+		ini_stress[0] = pcl_s.s22;
+		ini_stress[1] = pcl_s.s11;
+		MatModel::MohrCoulombWrapper &mc = mcs[pcl_id];
+		mc.set_param(ini_stress, 30.0, 0.0, 5.0, 1.0e6, 0.15);
+		mms[pcl_id] = &mc;
 	}
+	// Sand hypoplasticity
+	//MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	//const double pcl_z = -1.0; //debug
+	//	//const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
+	//	double pcl_z = model.get_pcl_pos()[pcl_id].z;
+	//	auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
+	//	pcl_s.s22 = K0 * pcl_s.s33;
+	//	pcl_s.s11 = pcl_s.s22;
+	//	if (pcl_z > -0.2)
+	//		pcl_z = -0.2;
+	//	ini_stress[2] = pcl_z * 9.81 * den_float;
+	//	ini_stress[0] = K0 * ini_stress[2];
+	//	ini_stress[1] = ini_stress[0];
+	//	MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
+	//	shp.set_param(ini_stress, e0,
+	//		30.0, 1354.0e6, 0.34,
+	//		0.49, 0.76, 0.86,
+	//		0.18, 1.27);
+	//	mms[pcl_id] = &shp;
+	//}
 
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);
@@ -151,6 +169,18 @@ void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, "t3d_me_mt_piezofoundation_model.h5");
+
+	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	//md_disp.set_model(model);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(-90.0f, 30.0f);
+	//md_disp.set_light_dir(-60.0f, 15.0f);
+	//md_disp.set_display_bg_mesh(false);
+	////md_disp.set_pts_from_vx_bc(0.05);
+	//md_disp.set_pts_from_vy_bc(0.05);
+	////md_disp.set_pts_from_vz_bc(0.05);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_piezofoundation_geo.h5");
@@ -216,8 +246,10 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 
 	std::cout << "Start solving...\n";
 	step.set_thread_num(22);
-	step.set_step_time(0.5); //0.15, 0.5
-	//step.set_step_time(2.0); // 0.5D
+	step.set_step_time(2.0); // 0.5D
+	//step.set_step_time(0.2); //0.15, 0.5
+	//step.set_thread_num(4);
+	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -260,8 +292,8 @@ void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "geostatic", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
@@ -275,8 +307,8 @@ void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv)
 	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_s11);
 	//app.set_color_map_fld_range(-4.0e4, 0.0);
 	// mat_s33
-	app.set_res_file(rf, "geostatic", Hdf5Field::mat_s33);
-	app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_piezofoundation_geo");

@@ -6,7 +6,7 @@
 #include "MatModelConstants.h"
 #include "SymMatEigen.h"
 
-void MohrCoulombGlobal:: set_param(
+void MohrCoulombGlobal::set_param(
 	__Float_Type__ _phi, __Float_Type__ _psi,
 	__Float_Type__ _cohesion,
 	__Float_Type__ _E, __Float_Type__ _niu)
@@ -23,43 +23,36 @@ void MohrCoulombGlobal:: set_param(
 	phi = _phi;
 	psi = _psi;
 	cohesion = _cohesion;
-	const __Float_Type__ sin_phi = (__Float_Type__)sin(phi / ffmat(180.0) * PI);
+	const __Float_Type__ sin_phi = (__Float_Type__)sin(ToRadian(phi));
 	half_one_minus_sin_phi = ffmat(0.5) * (ffmat(1.0) - sin_phi);
 	half_one_plus_sin_phi = ffmat(0.5) * (ffmat(1.0) + sin_phi);
-	const __Float_Type__ cos_phi = (__Float_Type__)cos(phi / ffmat(180.0) * PI);
+	const __Float_Type__ cos_phi = (__Float_Type__)cos(ToRadian(phi));
 	c_cos_phi = cohesion * cos_phi;
-	c_div_tan_phi = cohesion / (__Float_Type__)tan(phi / ffmat(180.0) * PI);
-	const __Float_Type__ sin_psi = (__Float_Type__)sin(psi / ffmat(180.0) * PI);
-	one_plus_sin_phi_psi = ffmat(1.0) + sin_phi * sin_psi;
+	c_div_tan_phi = cohesion / (__Float_Type__)tan(ToRadian(phi));
+	const __Float_Type__ sin_psi = (__Float_Type__)sin(ToRadian(psi));
 	one_minus_sin_psi = ffmat(1.0) - sin_psi;
 	one_plus_sin_psi = ffmat(1.0) + sin_psi;
+	one_plus_sin_phi_psi = ffmat(1.0) + sin_phi * sin_psi;
 
 	__Float_Type__ len_tmp;
-	i1[0][0] = ffmat(1.0) + sin_phi;
-	i1[0][1] = ffmat(1.0) - sin_phi;
-	i1[0][2] = ffmat(1.0) - sin_phi;
-	len_tmp = (__Float_Type__)sqrt(i1[0][0]*i1[0][0] + i1[0][1]*i1[0][1] + i1[0][2]*i1[0][2]);
+	i1[0][0] = one_plus_sin_phi_psi * (ffmat(1.0) + sin_psi);
+	i1[0][1] = (ffmat(1.0) - sin_phi) * (ffmat(1.0) + sin_psi * sin_psi);
+	i1[0][2] = one_plus_sin_phi_psi * (ffmat(1.0) - sin_psi);
+	len_tmp = (__Float_Type__)sqrt(i1[0][0] * i1[0][0] + i1[0][1] * i1[0][1] + i1[0][2] * i1[0][2]);
 	i1[0][0] /= len_tmp;
 	i1[0][1] /= len_tmp;
 	i1[0][2] /= len_tmp;
 	i1[1][0] = (ffmat(1.0) - sin_phi) * (ffmat(1.0) + sin_psi);
 	i1[1][1] = -ffmat(2.0) * (ffmat(1.0) + sin_phi * sin_psi);
 	i1[1][2] = (ffmat(1.0) - sin_phi) * (ffmat(1.0) - sin_psi);
-	len_tmp = (__Float_Type__)sqrt(i1[1][0]* i1[1][0] + i1[1][1]*i1[1][1] + i1[1][2]*i1[1][2]);
+	len_tmp = (__Float_Type__)sqrt(i1[1][0] * i1[1][0] + i1[1][1] * i1[1][1] + i1[1][2] * i1[1][2]);
 	i1[1][0] /= len_tmp;
 	i1[1][1] /= len_tmp;
 	i1[1][2] /= len_tmp;
-	//i1[2][0] = ffmat(1.0) - sin_psi;
-	//i1[2][1] = ffmat(0.0);
-	//i1[2][2] = -(ffmat(1.0) + sin_psi);
-	//len_tmp = (__Float_Type__)sqrt(i1[2][0] * i1[2][0] + i1[2][1] * i1[2][1] + i1[2][2] * i1[2][2]);
-	//i1[2][0] /= len_tmp;
-	//i1[2][1] /= len_tmp;
-	//i1[2][2] /= len_tmp;
 
-	i2[0][0] = ffmat(1.0) + sin_phi;
-	i2[0][1] = ffmat(1.0) + sin_phi;
-	i2[0][2] = ffmat(1.0) - sin_phi;
+	i2[0][0] = one_plus_sin_phi_psi * (ffmat(1.0) + sin_psi);
+	i2[0][1] = (ffmat(1.0) + sin_phi) * (ffmat(1.0) + sin_psi * sin_psi);
+	i2[0][2] = one_plus_sin_phi_psi * (ffmat(1.0) - sin_psi);
 	len_tmp = (__Float_Type__)sqrt(i2[0][0] * i2[0][0] + i2[0][1] * i2[0][1] + i2[0][2] * i2[0][2]);
 	i2[0][0] /= len_tmp;
 	i2[0][1] /= len_tmp;
@@ -71,21 +64,26 @@ void MohrCoulombGlobal:: set_param(
 	i2[1][0] /= len_tmp;
 	i2[1][1] /= len_tmp;
 	i2[1][2] /= len_tmp;
-	//i2[2][0] = ffmat(1.0) - sin_psi;
-	//i2[2][1] = ffmat(0.0);
-	//i2[2][2] = -(ffmat(1.0) + sin_phi);
-	//len_tmp = (__Float_Type__)sqrt(i2[2][0] * i2[2][0] + i2[2][1] * i2[2][1] + i2[2][2] * i2[2][2]);
-	//i2[2][0] /= len_tmp;
-	//i2[2][1] /= len_tmp;
-	//i2[2][2] /= len_tmp;
 
-	v1x2_v1y2_v1z2 = v1x * v1x + v1y * v1y + v1z * v1z;
-	v2x2_v2y2_v2z2 = v2x * v2x + v2y * v2y + v2z * v2z;
+	v1x = ffmat(1.0) + sin_phi;
+	v1y = ffmat(1.0) - sin_phi;
+	v1z = ffmat(1.0) - sin_phi;
+	v2x = ffmat(1.0) + sin_phi;
+	v2y = ffmat(1.0) + sin_phi;
+	v2z = ffmat(1.0) - sin_phi;
+	u1x = ffmat(1.0) + sin_psi;
+	u1y = ffmat(1.0) - sin_psi;
+	u1z = ffmat(1.0) - sin_psi;
+	u2x = ffmat(1.0) + sin_psi;
+	u2y = ffmat(1.0) + sin_psi;
+	u2z = ffmat(1.0) - sin_psi;
+	uv1x_uv1y_uv1z = u1x * v1x + u1y * v1y + u1z * v1z;
+	uv2x_uv2y_uv2z = u2x * v2x + u2y * v2y + u2z * v2z;
 }
 
 int32_t integrate_mohr_coulomb(
 	const MohrCoulombGlobal& glb_dat,
-	MohrCoulomb &mat_dat,
+	MohrCoulomb& mat_dat,
 	const __Float_Type__ dstrain[6],
 	__Float_Type__ destrain[6],
 	__Float_Type__ dpstrain[6])
@@ -148,10 +146,10 @@ int32_t integrate_mohr_coulomb(
 	else if (sy_1 > ffmat(0.0) && sx_1 > ffmat(0.0))
 	{
 		// area 1
-		t = (glb_dat.v1x * (s1 + glb_dat.c_div_tan_phi)
-			+ glb_dat.v1y * (s2 + glb_dat.c_div_tan_phi)
-			+ glb_dat.v1z * (s3 + glb_dat.c_div_tan_phi))
-			/ glb_dat.v1x2_v1y2_v1z2;
+		t = (glb_dat.u1x * (s1 + glb_dat.c_div_tan_phi)
+			+ glb_dat.u1y * (s2 + glb_dat.c_div_tan_phi)
+			+ glb_dat.u1z * (s3 + glb_dat.c_div_tan_phi))
+			/ glb_dat.uv1x_uv1y_uv1z;
 		s1 = -glb_dat.c_div_tan_phi + glb_dat.v1x * t;
 		s2 = -glb_dat.c_div_tan_phi + glb_dat.v1y * t;
 		s3 = -glb_dat.c_div_tan_phi + glb_dat.v1z * t;
@@ -159,10 +157,10 @@ int32_t integrate_mohr_coulomb(
 	else if (sy_2 < ffmat(0.0) && sx_2 > ffmat(0.0))
 	{
 		// area 2
-		t = (glb_dat.v2x * (s1 + glb_dat.c_div_tan_phi)
-			+ glb_dat.v2y * (s2 + glb_dat.c_div_tan_phi)
-			+ glb_dat.v2z * (s3 + glb_dat.c_div_tan_phi))
-			/ glb_dat.v2x2_v2y2_v2z2;
+		t = (glb_dat.u2x * (s1 + glb_dat.c_div_tan_phi)
+			+ glb_dat.u2y * (s2 + glb_dat.c_div_tan_phi)
+			+ glb_dat.u2z * (s3 + glb_dat.c_div_tan_phi))
+			/ glb_dat.uv2x_uv2y_uv2z;
 		s1 = -glb_dat.c_div_tan_phi + glb_dat.v2x * t;
 		s2 = -glb_dat.c_div_tan_phi + glb_dat.v2y * t;
 		s3 = -glb_dat.c_div_tan_phi + glb_dat.v2z * t;
@@ -174,7 +172,7 @@ int32_t integrate_mohr_coulomb(
 		s2 = -glb_dat.c_div_tan_phi;
 		s3 = -glb_dat.c_div_tan_phi;
 	}
-	
+
 	eigen_vals[0] = -s3;
 	eigen_vals[1] = -s2;
 	eigen_vals[2] = -s1;
@@ -212,5 +210,11 @@ int32_t integrate_mohr_coulomb(
 	destrain[3] = dstrain[3] - dpstrain[3];
 	destrain[4] = dstrain[4] - dpstrain[4];
 	destrain[5] = dstrain[5] - dpstrain[5];
+	mat_dat.stress[0] = s_corrected[0];
+	mat_dat.stress[1] = s_corrected[1];
+	mat_dat.stress[2] = s_corrected[2];
+	mat_dat.stress[3] = s_corrected[3];
+	mat_dat.stress[4] = s_corrected[4];
+	mat_dat.stress[5] = s_corrected[5];
 	return 1;
 }
