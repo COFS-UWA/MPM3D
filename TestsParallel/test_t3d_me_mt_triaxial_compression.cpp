@@ -90,12 +90,13 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-		shp.set_param(ini_stress, 0.817,
+		shp.set_param(
+			ini_stress, 0.817,
 			33.1, 4000.0e6, 0.27,
 			0.14, 2.5,
 			0.677, 1.054, 1.212,
 			0.3, 3.0, 500.0,
-			200.0, 0.1);
+			600.0, 0.2);
 		mms[pcl_id] = &shp;
 	}
 	

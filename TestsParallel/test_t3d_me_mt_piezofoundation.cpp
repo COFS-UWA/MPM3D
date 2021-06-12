@@ -75,25 +75,7 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	const double K0 = 1.0 - sin(30.0 / 180.0 * 3.14159265359);
 	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	// Mohr Coulomb
-	MatModel::MohrCoulombWrapper *mcs = model.add_MohrCoulombWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		//const double pcl_z = -1.0; //debug
-		//const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
-		double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
-		pcl_s.s33 = pcl_z * 9.81 * den_float;
-		pcl_s.s22 = K0 * pcl_s.s33;
-		pcl_s.s11 = pcl_s.s22;
-		ini_stress[2] = pcl_s.s33;
-		ini_stress[0] = pcl_s.s22;
-		ini_stress[1] = pcl_s.s11;
-		MatModel::MohrCoulombWrapper &mc = mcs[pcl_id];
-		mc.set_param(ini_stress, 30.0, 0.0, 5.0, 1.0e6, 0.15);
-		mms[pcl_id] = &mc;
-	}
-	// Sand hypoplasticity
-	//MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	//MatModel::MohrCoulombWrapper *mcs = model.add_MohrCoulombWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
 	//	//const double pcl_z = -1.0; //debug
@@ -103,18 +85,39 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
 	//	pcl_s.s22 = K0 * pcl_s.s33;
 	//	pcl_s.s11 = pcl_s.s22;
-	//	if (pcl_z > -0.2)
-	//		pcl_z = -0.2;
-	//	ini_stress[2] = pcl_z * 9.81 * den_float;
-	//	ini_stress[0] = K0 * ini_stress[2];
-	//	ini_stress[1] = ini_stress[0];
-	//	MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
-	//	shp.set_param(ini_stress, e0,
-	//		30.0, 1354.0e6, 0.34,
-	//		0.49, 0.76, 0.86,
-	//		0.18, 1.27);
-	//	mms[pcl_id] = &shp;
+	//	ini_stress[2] = pcl_s.s33;
+	//	ini_stress[0] = pcl_s.s22;
+	//	ini_stress[1] = pcl_s.s11;
+	//	MatModel::MohrCoulombWrapper &mc = mcs[pcl_id];
+	//	mc.set_param(ini_stress, 30.0, 0.0, 5.0, 1.0e6, 0.15);
+	//	mms[pcl_id] = &mc;
 	//}
+	// Sand hypoplasticity
+	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		//const double pcl_z = -1.0; //debug
+		//const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+		pcl_s.s33 = pcl_z * 9.81 * den_float;
+		pcl_s.s22 = K0 * pcl_s.s33;
+		pcl_s.s11 = pcl_s.s22;
+		if (pcl_z > -0.2)
+			pcl_z = -0.2;
+		ini_stress[2] = pcl_z * 9.81 * den_float;
+		ini_stress[0] = K0 * ini_stress[2];
+		ini_stress[1] = ini_stress[0];
+		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
+		shp.set_param(
+			ini_stress, e0,
+			30.0, 1354.0e6, 0.34,
+			0.18, 1.27,
+			0.49, 0.76, 0.86,
+			0.3, 3.0, 500.0, // need calibrate
+			600.0, 0.2);
+		mms[pcl_id] = &shp;
+	}
 
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);

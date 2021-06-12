@@ -59,7 +59,8 @@ namespace MatModel
 			alpha, beta,
 			ei0, ec0, ed0,
 			N, chi, H,
-			Ig, niu, 1000.0, 0.48);
+			Ig, niu,
+			1000.0, 0.0);
 		SandHypoplasticityStb_set_NC_param(
 			mat, glb,
 			ini_stress,
