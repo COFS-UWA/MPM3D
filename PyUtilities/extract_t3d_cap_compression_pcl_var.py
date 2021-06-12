@@ -46,7 +46,7 @@ for th_id in range(th_num):
         pcl_s33[p_id].append(pcl_var['s33'])
         mat_id = pcl_var['mat_id']
         mat_var = mat_fld[mat_id]
-        #pcl_pi[p_id].append(mat_var['p_i'])
+        pcl_pi[p_id].append(mat_var['pi'])
 
 hdf5_file.close()
 
@@ -70,8 +70,8 @@ for p_id in range(len(pcl_ids)):
     line2, = plot1.plot(rb_z, pcl_e11[p_id])
     #line2, = plot1.plot(rb_z, pcl_e33[p_id])
     #line2, = plot1.plot(rb_z, pcl_s11[p_id])
-    line2, = plot1.plot(rb_z, pcl_s33[p_id])
-    #line2, = plot1.plot(rb_z, pcl_pi[p_id])
+    #line2, = plot1.plot(rb_z, pcl_s33[p_id])
+    line2, = plot1.plot(rb_z, pcl_pi[p_id])
     lines.append(line2)
     line_lb.append('%d' % pcl_ids[p_id])
 

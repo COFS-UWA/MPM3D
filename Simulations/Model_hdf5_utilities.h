@@ -743,6 +743,7 @@ namespace Model_hdf5_utilities
 		double phi, hs, n;
 		double alpha, beta;
 		double ed0, ec0, ei0;
+		double N, chi, H;
 		double Ig, niu;
 		union
 		{
@@ -751,7 +752,8 @@ namespace Model_hdf5_utilities
 		};
 		double e;
 		double substep_size;
-		double p_i;
+		double Mi, pi;
+		double pl;
 		int status_code;
 
 		inline void from_mm(MatModel::SandHypoplasticityStbWrapper& mm)
@@ -777,14 +779,22 @@ namespace Model_hdf5_utilities
 			e = mm.get_e();
 			substep_size = mm.get_substp_size();
 			status_code = mm.get_status_code();
-			p_i = mm.get_p_i();
+			Mi = mm.get_Mi();
+			pi = mm.get_pi();
+			pl = mm.get_pl();
 		}
 
 		inline void to_mm(MatModel::SandHypoplasticityStbWrapper& mm)
 		{
 			mm.set_id(id);
-			mm.set_param(stress, e, phi, hs, n, ed0, ec0, ei0, alpha, beta, Ig, niu);
+			mm.set_param(stress, e,
+				phi, hs, n,
+				alpha, beta,
+				ed0, ec0, ei0,
+				N, chi, H,
+				Ig, niu);
 			mm.set_substep_size(substep_size);
+			mm.set_yield_surface(Mi, pi, pl);
 			status_code = 0;
 		}
 	};
@@ -801,6 +811,9 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "ed0", HOFFSET(SandHypoplasticityStbStateData, ed0), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "ec0", HOFFSET(SandHypoplasticityStbStateData, ec0), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "ei0", HOFFSET(SandHypoplasticityStbStateData, ei0), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "N", HOFFSET(SandHypoplasticityStbStateData, N), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "chi", HOFFSET(SandHypoplasticityStbStateData, chi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "H", HOFFSET(SandHypoplasticityStbStateData, H), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "Ig", HOFFSET(SandHypoplasticityStbStateData, Ig), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "niu", HOFFSET(SandHypoplasticityStbStateData, niu), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "s11", HOFFSET(SandHypoplasticityStbStateData, s11), H5T_NATIVE_DOUBLE);
@@ -811,8 +824,84 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "s31", HOFFSET(SandHypoplasticityStbStateData, s31), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "e", HOFFSET(SandHypoplasticityStbStateData, e), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "substep_size", HOFFSET(SandHypoplasticityStbStateData, substep_size), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "Mi", HOFFSET(SandHypoplasticityStbStateData, Mi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "pi", HOFFSET(SandHypoplasticityStbStateData, pi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "pl", HOFFSET(SandHypoplasticityStbStateData, pl), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "status_code", HOFFSET(SandHypoplasticityStbStateData, status_code), H5T_NATIVE_INT);
-		H5Tinsert(res, "p_i", HOFFSET(SandHypoplasticityStbStateData, p_i), H5T_NATIVE_DOUBLE);
+		return res;
+	}
+
+	// Norsand
+	struct NorsandStateData
+	{
+		unsigned long long id;
+		double phi;
+		double gamma, lambda;
+		double N, chi, H;
+		double Ig, niu;	
+		union
+		{
+			double stress[6];
+			struct { double s11, s22, s33, s12, s23, s31; };
+		};
+		double e;
+		double pi;
+
+		inline void from_mm(MatModel::NorsandWrapper& mm)
+		{
+			id = mm.get_id();
+			phi = mm.get_phi();
+			gamma = mm.get_gamma();
+			lambda = mm.get_lambda();
+			N = mm.get_N();
+			chi = mm.get_chi();
+			H = mm.get_H();
+			Ig = mm.get_Ig();
+			niu = mm.get_niu();
+			const double* mm_stress = mm.get_stress();
+			s11 = mm_stress[0];
+			s22 = mm_stress[1];
+			s33 = mm_stress[2];
+			s12 = mm_stress[3];
+			s23 = mm_stress[4];
+			s31 = mm_stress[5];
+			e = mm.get_e();
+			pi = mm.get_pi();
+		}
+
+		inline void to_mm(MatModel::NorsandWrapper& mm)
+		{
+			mm.set_id(id);
+			mm.set_param(
+				stress, e,
+				phi,
+				gamma, lambda,
+				N, chi, H,
+				Ig, niu);
+			mm.set_pi(pi);
+		}
+	};
+
+	inline hid_t get_norsand_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(NorsandStateData));
+		H5Tinsert(res, "id", HOFFSET(NorsandStateData, id), H5T_NATIVE_ULLONG);
+		H5Tinsert(res, "phi", HOFFSET(NorsandStateData, phi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "gamma", HOFFSET(NorsandStateData, gamma), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "lambda", HOFFSET(NorsandStateData, lambda), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "N", HOFFSET(NorsandStateData, N), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "chi", HOFFSET(NorsandStateData, chi), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "H", HOFFSET(NorsandStateData, H), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "Ig", HOFFSET(NorsandStateData, Ig), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "niu", HOFFSET(NorsandStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(NorsandStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(NorsandStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(NorsandStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(NorsandStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(NorsandStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(NorsandStateData, s31), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e", HOFFSET(NorsandStateData, e), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "pi", HOFFSET(NorsandStateData, pi), H5T_NATIVE_DOUBLE);
 		return res;
 	}
 

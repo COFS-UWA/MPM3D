@@ -29,9 +29,11 @@ namespace MatModel
 			__Float_Type__ e0,
 			__Float_Type__ phi,
 			__Float_Type__ hs, __Float_Type__ n,
-			__Float_Type__ ei0, __Float_Type__ ec0, __Float_Type__ ed0,
 			__Float_Type__ alpha, __Float_Type__ beta,
+			__Float_Type__ ei0, __Float_Type__ ec0, __Float_Type__ ed0,
+			__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
 			__Float_Type__ Ig, __Float_Type__ niu);
+		void set_yield_surface(__Float_Type__ Mi, __Float_Type__ pi, __Float_Type__ pl);
 		__Float_Type__ get_phi() const noexcept { return glb.phi; }
 		__Float_Type__ get_hs() const noexcept { return glb.hs; }
 		__Float_Type__ get_n() const noexcept { return glb.n; }
@@ -44,7 +46,9 @@ namespace MatModel
 		__Float_Type__ get_niu() const noexcept { return glb.niu; }
 		const __Float_Type__* get_stress() const noexcept { return mat.stress; }
 		__Float_Type__ get_e() const noexcept { return mat.e; }
-		__Float_Type__ get_p_i() const noexcept { return mat.p_i; }
+		__Float_Type__ get_pi() const noexcept { return mat.pi; }
+		__Float_Type__ get_Mi() const noexcept { return mat.Mi; }
+		__Float_Type__ get_pl() const noexcept { return mat.pl; }
 		__Float_Type__ get_substp_size() const noexcept { return mat.substp_size; }
 		int32_t get_status_code() const noexcept { return status_code; }
 	};

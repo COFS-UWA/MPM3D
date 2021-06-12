@@ -2,9 +2,9 @@
 
 #include <math.h>
 
-#include "sand_hypoplasticity_stb.h"
 #include "StressInvariant.h"
 #include "SymMatEigen.h"
+#include "sand_hypoplasticity_stb.h"
 
 // minimum compressive stress for
 // hypoplasticity to be meaning
@@ -22,38 +22,87 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-void SandHypoplasticityStbGlobal::set_param(
-	__Float_Type__ _phi,
-	__Float_Type__ _hs, __Float_Type__ _n,
-	__Float_Type__ _alpha, __Float_Type__ _beta,
-	__Float_Type__ _ed0, __Float_Type__ _ec0, __Float_Type__ _ei0,
-	__Float_Type__ _Ig, __Float_Type__ _niu,
-	__Float_Type__ _tE, __Float_Type__ _tniu)
+void SandHypoplasticityStbGlobal_set_param(
+	SandHypoplasticityStbGlobal& dat,
+	__Float_Type__ phi,
+	__Float_Type__ hs, __Float_Type__ n,
+	__Float_Type__ alpha, __Float_Type__ beta,
+	__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
+	__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
+	__Float_Type__ Ig, __Float_Type__ niu,
+	__Float_Type__ tE, __Float_Type__ tniu)
 {
-	phi = _phi;
-	hs = _hs;
-	n = _n;
-	alpha = _alpha;
-	beta = _beta;
-	const __Float_Type__ sin_phi = (__Float_Type__)sin(phi / ffmat(180.0) * PI);
-	a = sqrt3 * (ffmat(3.0) - sin_phi) / (ffmat(2.0) * sqrt2 * sin_phi);
+	dat.phi = phi;
+	dat.hs = hs;
+	dat.n = n;
+	dat.alpha = alpha;
+	dat.beta = beta;
+	const __Float_Type__ sin_phi = (__Float_Type__)sin(ToRadian(phi));
+	dat.a = sqrt3 * (ffmat(3.0) - sin_phi) / (ffmat(2.0) * sqrt2 * sin_phi);
 
-	ed0 = _ed0;
-	ec0 = _ec0;
-	ei0 = _ei0;
-	fbfe_coef = hs * (__Float_Type__)pow(ei0 / ec0, beta) /
-		(n * (ffmat(3.0) + a * a - a * sqrt3 * (__Float_Type__)pow((ei0 - ed0) / (ec0 - ed0), alpha)));
+	dat.ed0 = ed0;
+	dat.ec0 = ec0;
+	dat.ei0 = ei0;
+	dat.fbfe_coef = hs * (__Float_Type__)pow(ei0 / ec0, beta) /
+		(n * (ffmat(3.0) + dat.a * dat.a - dat.a * sqrt3 * (__Float_Type__)pow((ei0 - ed0) / (ec0 - ed0), alpha)));
 
-	Ig = _Ig;
-	niu = _niu;
-	const __Float_Type__ sin_phi2 = sin_phi * sin_phi;
-	MN_ls_phi_coef = (ffmat(1.0) - sin_phi2) / (ffmat(9.0) - sin_phi2);
+	dat.N = N;
+	dat.chi = chi;
+	dat.H = H;
+	dat.Mtc = ffmat(6.0) * sin_phi / (ffmat(3.0) - sin_phi);
+	dat.N_chi_div_Mtc = N * chi / dat.Mtc;
 
-	ten_E = _tE;
-	ten_niu = _tniu;
-	ten_G = ten_E / (ffmat(1.0) + ten_niu);
-	ten_lambda = ten_E * ten_niu / ((ffmat(1.0) + ten_niu) * (ffmat(1.0) - ten_niu - ten_niu));
-	ten_lambda_2G = ten_lambda + ten_G;
+	dat.Ig = Ig;
+	dat.niu = niu;
+
+	dat.ten_E = tE;
+	dat.ten_niu = tniu;
+
+	dat.ten_G = dat.ten_E / (ffmat(1.0) + dat.ten_niu);
+	dat.ten_lambda = dat.ten_E * dat.ten_niu /
+		((ffmat(1.0) + dat.ten_niu) * (ffmat(1.0) - dat.ten_niu - dat.ten_niu));
+	dat.ten_lambda_2G = dat.ten_lambda + dat.ten_G;
+}
+
+void SandHypoplasticityStb_set_NC_param(
+	SandHypoplasticityStb& dat,
+	const SandHypoplasticityStbGlobal& glb_dat,
+	const __Float_Type__ stress[6],
+	__Float_Type__ e,
+	__Float_Type__ substp_size)
+{
+	dat.s11 = stress[0];
+	dat.s22 = stress[1];
+	dat.s33 = stress[2];
+	dat.s12 = stress[3];
+	dat.s23 = stress[4];
+	dat.s31 = stress[5];
+	dat.e = e;
+	dat.substp_size = substp_size;
+
+	union
+	{
+		__Float_Type__ invars[3];
+		struct { __Float_Type__ p, q, lode_angle; };
+	};
+	cal_p_q_lode_angle(dat.stress, invars);
+	const __Float_Type__ state_param = dat.e - glb_dat.ec0 * (__Float_Type__)exp(-pow(-ffmat(3.0) * p / glb_dat.hs, glb_dat.n));
+	const __Float_Type__ M = glb_dat.Mtc * (ffmat(1.0) - glb_dat.Mtc / (ffmat(3.0) + glb_dat.Mtc)) * (__Float_Type__)log(ffmat(1.5) * lode_angle);
+	const __Float_Type__ M_coef = ffmat(1.0) - glb_dat.N_chi_div_Mtc * (__Float_Type__)fabs(state_param);
+	dat.Mi = M * M_coef;
+	dat.pi = -p / (__Float_Type__)exp(ffmat(1.0) + q / (dat.Mi * p));
+	dat.pl = dat.pi;
+}
+
+void SandHypoplasticityStb_set_OC_param(
+	SandHypoplasticityStb& dat,
+	const SandHypoplasticityStbGlobal& glb_dat,
+	const __Float_Type__ stress[6],
+	__Float_Type__ e,
+	__Float_Type__ OCR,
+	__Float_Type__ substp_size)
+{
+
 }
 
 int32_t SandHypoplasticityStbGlobal::hypoplasticity_substp(
@@ -95,7 +144,7 @@ int32_t SandHypoplasticityStbGlobal::hypoplasticity_substp(
 	const __Float_Type__ fd = e > ed ? (__Float_Type__)pow((e - ed) / (ec - ed), alpha) : ffmat(0.0);
 	const __Float_Type__ fbfe = fbfe_coef * (ffmat(1.0) + ei) / ei * (__Float_Type__)pow(-I1 / hs, ffmat(1.0) - n)
 		* (__Float_Type__)pow(ec / e, beta);
-	
+
 	const __Float_Type__ s_star_norm = (__Float_Type__)sqrt(
 		s_star[0] * s_star[0]
 		+ s_star[1] * s_star[1]
@@ -192,28 +241,6 @@ void SandHypoplasticityStbGlobal::ten_elasticity(
 	stress[5] += ten_G * dstrain[5];
 }
 
-void SandHypoplasticityStbGlobal::elasticity(
-	const __Float_Type__ dstrain[6],
-	__Float_Type__ stress[6]) const
-{
-	const double I1 = -(stress[0] + stress[1] + stress[2]) / 3.0;
-	const double G = 2.0 * Ig * I1;
-	const double lambda = G * niu / (ffmat(1.0) - niu - niu);
-	const double lambda_2G = lambda + G;
-	stress[0] += lambda_2G * dstrain[0]
-			   + lambda * dstrain[1]
-			   + lambda * dstrain[2];
-	stress[1] += lambda * dstrain[0]
-			   + lambda_2G * dstrain[1]
-			   + lambda * dstrain[2];
-	stress[2] += lambda * dstrain[0]
-			   + lambda * dstrain[1]
-			   + lambda_2G * dstrain[2];
-	stress[3] += G * dstrain[3];
-	stress[4] += G * dstrain[4];
-	stress[5] += G * dstrain[5];
-}
-
 inline static bool in_tensile_state(__Float_Type__ stress[6])
 {
 	const __Float_Type__ I1 = stress[0] + stress[1] + stress[2];
@@ -224,48 +251,6 @@ inline static bool in_tensile_state(__Float_Type__ stress[6])
 	if (-prin_s[2] < min_com_stress)
 		return true;
 	return false;
-}
-
-//inline static __Float_Type__ Matsuoka_Nakai_f(
-//	const SandHypoplasticityStbGlobal &glb_dat,
-//	__Float_Type__ I1, __Float_Type__ I2, __Float_Type__ I3)
-//{
-//	return I3 + glb_dat.MN_ls_phi_coef * I1 * I2;
-//}
-
-//inline static __Float_Type__ Mohr_Coulomb_f(
-//	const SandHypoplasticityStbGlobal& glb_dat,
-//	__Float_Type__ s1, __Float_Type__ s3)
-//{
-//	const __Float_Type__ sin_phi = (__Float_Type__)sin(ToRadian(glb_dat.phi));
-//	return s1 - s3 + (s1 + s3) * sin_phi;
-//	//return -1.0;
-//}
-
-inline static __Float_Type__ Norsand_f(
-	const SandHypoplasticityStbGlobal& glb_dat,
-	const SandHypoplasticityStb &mat_dat,
-	__Float_Type__ p, __Float_Type__ q)
-{
-	const __Float_Type__ sin_phi = (__Float_Type__)sin(ToRadian(glb_dat.phi));
-	const __Float_Type__ M_i = ffmat(6.0) * sin_phi / (ffmat(3.0) - sin_phi);
-	return q + M_i * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.p_i));
-}
-
-void SandHypoplasticityStb::update_Norsand_p_i(
-	const SandHypoplasticityStbGlobal& glb_dat)
-{
-	const __Float_Type__ sin_phi = (__Float_Type__)sin(ToRadian(glb_dat.phi));
-	const __Float_Type__ M_i = ffmat(6.0) * sin_phi / (ffmat(3.0) - sin_phi);
-	union
-	{
-		__Float_Type__ invars[2];
-		struct { __Float_Type__ p, q; };
-	};
-	cal_p_q(stress, invars);
-	p_i = -p / (__Float_Type__)exp(ffmat(1.0) + q / (M_i * p));
-	//if (p_i < 150.0)
-	//	p_i = 150.0;
 }
 
 int32_t integrate_sand_hypoplasticity_stb(
@@ -280,41 +265,36 @@ int32_t integrate_sand_hypoplasticity_stb(
 		return 0;
 	}
 
-	double trial_stress[6];
-	trial_stress[0] = mat_dat.stress[0];
-	trial_stress[1] = mat_dat.stress[1];
-	trial_stress[2] = mat_dat.stress[2];
-	trial_stress[3] = mat_dat.stress[3];
-	trial_stress[4] = mat_dat.stress[4];
-	trial_stress[5] = mat_dat.stress[5];
-	// may apply RKF23 for non-linear elasticity
-	glb_dat.elasticity(dstrain, trial_stress);
+	union
+	{
+		__Float_Type__ trial_stress[6];
+		__Float_Type__ ori_stress[6];
+		__Float_Type__ dstress[6];
+	};
+	__Float_Type__ I1 = -(mat_dat.s11 + mat_dat.s22 + mat_dat.s33) / ffmat(3.0);
+	__Float_Type__ G = ffmat(2.0) * glb_dat.Ig * I1;
+	const __Float_Type__ lambda = G * glb_dat.niu / (ffmat(1.0) - glb_dat.niu - glb_dat.niu);
+	const __Float_Type__ lambda_2G = lambda + G;
+	trial_stress[0] = mat_dat.stress[0] + lambda_2G * dstrain[0]
+		+ lambda * dstrain[1] + lambda * dstrain[2];
+	trial_stress[1] = mat_dat.stress[1] + lambda * dstrain[0]
+		+ lambda_2G * dstrain[1] + lambda * dstrain[2];
+	trial_stress[2] = mat_dat.stress[2] + lambda * dstrain[0]
+		+ lambda * dstrain[1] + lambda_2G * dstrain[2];
+	trial_stress[3] = mat_dat.stress[3] + G * dstrain[3];
+	trial_stress[4] = mat_dat.stress[4] + G * dstrain[4];
+	trial_stress[5] = mat_dat.stress[5] + G * dstrain[5];
 	if (in_tensile_state(trial_stress))
 		return 0;
-	//union
-	//{
-	//	__Float_Type__ invars[3];
-	//	struct { __Float_Type__ I1, I2, I3; };
-	//};
-	//cal_I1_I2_I3(trial_stress, invars);
-	////const __Float_Type__ p = I1 / ffmat(3.0);
-	////const __Float_Type__ q = (__Float_Type__)sqrt(I1 * I1 - ffmat(3.0) * I2); // sqrt3 * J2
-	//double mn_f = Matsuoka_Nakai_f(glb_dat, I1, I2, I3);
+
 	union
 	{
-		__Float_Type__ evs[3];
-		struct { __Float_Type__ s1, s2, s3; };
-	};
-	cal_sym_mat_eigen(trial_stress, evs);
-	union
-	{
-		__Float_Type__ invars[2];
-		struct { __Float_Type__ p, q; };
+		__Float_Type__ invars[3];
+		struct { __Float_Type__ p, q, lode_angle; };
 	};
 	cal_p_q(trial_stress, invars);
-	if (//Matsuoka_Nakai_f(glb_dat, I1, I2, I3) < ffmat(0.0) &&
-		//Mohr_Coulomb_f(glb_dat, s1, s3) < ffmat(0.0) &&
-		Norsand_f(glb_dat, mat_dat, p, q) < ffmat(0.0)) // inside yield surface
+	// yield surface need get intersection in the future
+	if ((q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pl))) < ffmat(0.0))
 	{
 		mat_dat.s11 = trial_stress[0];
 		mat_dat.s22 = trial_stress[1];
@@ -325,7 +305,14 @@ int32_t integrate_sand_hypoplasticity_stb(
 		mat_dat.e += (ffmat(1.0) + mat_dat.e) * (dstrain[0] + dstrain[1] + dstrain[2]);
 		return 0;
 	}
-	// need get intersection point with yield surface
+
+	// for plastic strain
+	ori_stress[0] = mat_dat.s11;
+	ori_stress[1] = mat_dat.s22;
+	ori_stress[2] = mat_dat.s33;
+	ori_stress[3] = mat_dat.s12;
+	ori_stress[4] = mat_dat.s23;
+	ori_stress[5] = mat_dat.s31;
 
 	// RKF23 hypoplasticity integration
 	__Float_Type__ ddstrain[6];
@@ -461,8 +448,50 @@ int32_t integrate_sand_hypoplasticity_stb(
 		if (substp_size < min_substp_size)
 			return -1;
 	}
+	// complete RKF23 integration successfully
 	mat_dat.substp_size = substp_size;
-	// update MN yield surface
-	mat_dat.update_Norsand_p_i(glb_dat);
+
+	// plastic strain
+	dstress[0] = mat_dat.s11 - ori_stress[0];
+	dstress[1] = mat_dat.s22 - ori_stress[1];
+	dstress[2] = mat_dat.s33 - ori_stress[2];
+	dstress[3] = mat_dat.s12 - ori_stress[3];
+	dstress[4] = mat_dat.s23 - ori_stress[4];
+	dstress[5] = mat_dat.s31 - ori_stress[5];
+	I1 = -(mat_dat.s11 + mat_dat.s22 + mat_dat.s33) / ffmat(3.0);
+	G = ffmat(2.0) * glb_dat.Ig * I1;
+	const __Float_Type__ inv_E = ffmat(1.0) / ((ffmat(1.0) + glb_dat.niu) * G);
+	const __Float_Type__ niu_div_E = glb_dat.niu * inv_E;
+	const __Float_Type__ inv_G = ffmat(1.0) / G;
+	const __Float_Type__ dpe[6] = {
+		dstrain[0] - (inv_E * dstress[0] - niu_div_E * dstress[1] - niu_div_E * dstress[2]),
+		dstrain[1] - (-niu_div_E * dstress[0] + inv_E * dstress[1] - niu_div_E * dstress[2]),
+		dstrain[2] - (-niu_div_E * dstress[0] - niu_div_E * dstress[1] + inv_E * dstress[2]),
+		dstrain[3] - inv_G * dstress[3],
+		dstrain[4] - inv_G * dstress[4],
+		dstrain[5] - inv_G * dstress[5]
+	};
+	const __Float_Type__ dpe01 = dpe[0] - dpe[1];
+	const __Float_Type__ dpe12 = dpe[1] - dpe[2];
+	const __Float_Type__ dpe20 = dpe[2] - dpe[0];
+
+	// update yield surface (Mi and pi)
+	cal_p_q_lode_angle(mat_dat.stress, invars);
+	const __Float_Type__ state_param = mat_dat.e - glb_dat.ec0 * (__Float_Type__)exp(-pow(-ffmat(3.0) * p / glb_dat.hs, glb_dat.n));
+	const __Float_Type__ M = glb_dat.Mtc
+		* (ffmat(1.0) - glb_dat.Mtc / (ffmat(3.0) + glb_dat.Mtc) * (__Float_Type__)cos(ffmat(1.5) * lode_angle));
+	const __Float_Type__ M_coef = (ffmat(1.0) - glb_dat.N_chi_div_Mtc * (__Float_Type__)fabs(state_param));
+	mat_dat.Mi = M * M_coef;
+	const __Float_Type__ Mi_tc = glb_dat.Mtc * M_coef;
+	const __Float_Type__ pi_max = -p * (__Float_Type__)exp(-glb_dat.chi * state_param / Mi_tc);
+	mat_dat.pi += glb_dat.H * mat_dat.Mi * (-p) / (Mi_tc * mat_dat.pi) * (pi_max - mat_dat.pi)
+		* (__Float_Type__)sqrt((dpe01 * dpe01 + dpe12 * dpe12 + dpe20 * dpe20) * ffmat(0.5)
+			+ (dpe[3] * dpe[3] + dpe[4] * dpe[4] + dpe[5] * dpe[5]) * ffmat(3.0)) * ffmat(2.0) / ffmat(3.0);
+
+	// update loading surface (pl)
+	mat_dat.pl = -p / (__Float_Type__)exp(ffmat(1.0) + q / (mat_dat.Mi * p));
+	if (mat_dat.pl < mat_dat.pi)
+		mat_dat.pl = mat_dat.pi;
+
 	return substp_id;
 }

@@ -45,14 +45,14 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	//	mms[pcl_id] = &tc;
 	//}
 	// Mohr Coulomb
-	const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		MatModel::MohrCoulombWrapper& mc = mcs[pcl_id];
-		mc.set_param(ini_stress, 30.0, 0.0, 100.0, 10000.0, 0.3);
-		mms[pcl_id] = &mc;
-	}
+	//const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	//MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::MohrCoulombWrapper& mc = mcs[pcl_id];
+	//	mc.set_param(ini_stress, 30.0, 0.0, 100.0, 10000.0, 0.3);
+	//	mms[pcl_id] = &mc;
+	//}
 	//// sand hypoplasticity by umat
 	//MatModel::SandHypoplasticityByUmat* shps = model.add_SandHypoplasticityByUmat(pcl_num);
 	//const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
@@ -85,18 +85,19 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	//	mms[pcl_id] = &shp;
 	//}
 	// sand hypoplasticity with yield surface
-	//const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
-	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-	//	shp.set_param(ini_stress, 0.817,
-	//		33.1, 4000.0e6, 0.27,
-	//		0.677, 1.054, 1.212,
-	//		0.14, 2.5,
-	//		200.0, 0.1);
-	//	mms[pcl_id] = &shp;
-	//}
+	const double ini_stress[6] = { -100.0, -100.0, -100.0, 0.0, 0.0, 0.0 };
+	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
+		shp.set_param(ini_stress, 0.817,
+			33.1, 4000.0e6, 0.27,
+			0.14, 2.5,
+			0.677, 1.054, 1.212,
+			0.3, 3.0, 500.0,
+			200.0, 0.1);
+		mms[pcl_id] = &shp;
+	}
 	
 	// rigid cap
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
@@ -125,7 +126,7 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	//size_t pcl_id = 2305;
+	//size_t pcl_id = 2369;
 	//md_disp.set_pts_from_pcl_id(&pcl_id, 1, 0.01);
 	//md_disp.start();
 	//return;
@@ -147,10 +148,9 @@ void test_t3d_me_mt_triaxial_compression(int argc, char **argv)
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_step_time(2.5); // 2.5
-	//step.set_step_time(0.5);
-	//step.set_step_time(1.0e-4);
+	//step.set_step_time(5.0e-5);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(10);
+	step.set_thread_num(5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

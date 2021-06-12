@@ -37,6 +37,9 @@ add_library(
     # MohrCoulomb
     mohr_coulomb.h mohr_coulomb.cpp
     MohrCoulombWrapper.h MohrCoulombWrapper.cpp
+    # Norsand
+    norsand.h norsand.cpp
+    NorsandWrapper.h NorsandWrapper.cpp
     # ModelContainer
     MatModelContainer.h MatModelContainer.cpp
     # Map from material model id to pointer

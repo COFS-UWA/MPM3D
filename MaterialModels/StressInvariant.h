@@ -64,7 +64,8 @@ inline void cal_p_q(const __Float_Type__ stress[6], __Float_Type__ invariant[2])
 		 + stress[5] * stress[5]) * ffmat(3.0));
 }
 
-// calculate invariant p, q and lode_angle 
+// calculate invariant p, q and lode_angle
+// lode_angle in radian
 inline void cal_p_q_lode_angle(const __Float_Type__ stress[6], __Float_Type__ invariant[3])
 {
 	// p
@@ -88,10 +89,23 @@ inline void cal_p_q_lode_angle(const __Float_Type__ stress[6], __Float_Type__ in
 		- sxx * stress[4] * stress[4] // yz
 		- syy * stress[5] * stress[5] // zx
 		- szz * stress[3] * stress[3]; // xy
-	invariant[2] = (__Float_Type__)acos(ffmat(27.0) / ffmat(2.0) * J3 / (q*q*q)) / ffmat(3.0);
+	// hydrostatic state taken as compression
+	__Float_Type__ cos_3_theta;
+	if (q < ffmat(1.0e-8))
+		cos_3_theta = J3 > ffmat(0.0) ? 1.0 : -1.0;
+	else
+	{
+		cos_3_theta = ffmat(27.0) / ffmat(2.0) * J3 / (q * q * q);
+		if (cos_3_theta > ffmat(1.0))
+			cos_3_theta = ffmat(1.0);
+		if (cos_3_theta < ffmat(-1.0))
+			cos_3_theta = ffmat(-1.0);
+	}
+	invariant[2] = (__Float_Type__)acos(cos_3_theta) / ffmat(3.0);
 }
 
 // principle stress s1, s2 and s3
+// not so accurate as cal_sym_mat_eigen()
 inline void cal_s1_s2_s3(const __Float_Type__ stress[6], __Float_Type__ ps[3])
 {
 	union
@@ -100,9 +114,9 @@ inline void cal_s1_s2_s3(const __Float_Type__ stress[6], __Float_Type__ ps[3])
 		struct { __Float_Type__ p, q, theta ; };
 	};
 	cal_p_q_lode_angle(stress, invars);
-	ps[0] = p + ffmat(2.0) / ffmat(3.0) * q * cos(theta + ffmat(2.0) / ffmat(3.0) * PI);
-	ps[1] = p + ffmat(2.0) / ffmat(3.0) * q * cos(theta);
-	ps[2] = p + ffmat(2.0) / ffmat(3.0) * q * cos(theta - ffmat(2.0) / ffmat(3.0) * PI);
+	ps[0] = p + ffmat(2.0) / ffmat(3.0) * q * cos(theta);
+	ps[1] = p + ffmat(2.0) / ffmat(3.0) * q * cos(theta - ffmat(2.0) / ffmat(3.0) * PI);
+	ps[2] = p + ffmat(2.0) / ffmat(3.0) * q * cos(theta + ffmat(2.0) / ffmat(3.0) * PI);
 }
 
 #endif

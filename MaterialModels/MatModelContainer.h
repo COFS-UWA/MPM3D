@@ -13,6 +13,7 @@
 #include "SandHypoplasticityByUmat.h"
 #include "SandHypoplasticityWrapper.h"
 #include "SandHypoplasticityStbWrapper.h"
+#include "NorsandWrapper.h"
 
 namespace MatModel
 {
@@ -95,6 +96,7 @@ public:                                          \
 		__Add_Mat_Model_to_Model_Container__(SandHypoplasticityByUmat);
 		__Add_Mat_Model_to_Model_Container__(SandHypoplasticityWrapper);
 		__Add_Mat_Model_to_Model_Container__(SandHypoplasticityStbWrapper);
+		__Add_Mat_Model_to_Model_Container__(NorsandWrapper);
 	};
 
 #undef __Add_Mat_Model_to_Model_Container__

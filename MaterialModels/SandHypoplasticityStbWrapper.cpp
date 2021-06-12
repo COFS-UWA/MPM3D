@@ -23,9 +23,11 @@ namespace MatModel
 			"SandHypoplasticityStbWrapper")
 	{
 		const auto& o_glb = other.glb;
-		glb.set_param(o_glb.phi, o_glb.hs, o_glb.n,
+		SandHypoplasticityStbGlobal_set_param(glb,
+			o_glb.phi, o_glb.hs, o_glb.n,
 			o_glb.alpha, o_glb.beta,
 			o_glb.ei0, o_glb.ec0, o_glb.ed0,
+			o_glb.N, glb.chi, glb.H,
 			o_glb.Ig, o_glb.niu,
 			o_glb.ten_E, o_glb.ten_niu);
 		const auto& o_mat = other.mat;
@@ -37,7 +39,9 @@ namespace MatModel
 		mat.stress[5] = o_mat.stress[5];
 		mat.e = o_mat.e;
 		mat.substp_size = o_mat.substp_size;
-		mat.update_Norsand_p_i(o_glb);
+		mat.Mi = o_mat.Mi;
+		mat.pi = o_mat.pi;
+		mat.pl = o_mat.pl;
 	}
 
 	void SandHypoplasticityStbWrapper::set_param(
@@ -45,21 +49,27 @@ namespace MatModel
 		__Float_Type__ e0,
 		__Float_Type__ phi,
 		__Float_Type__ hs, __Float_Type__ n,
-		__Float_Type__ ei0, __Float_Type__ ec0, __Float_Type__ ed0,
 		__Float_Type__ alpha, __Float_Type__ beta,
+		__Float_Type__ ei0, __Float_Type__ ec0, __Float_Type__ ed0,
+		__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
 		__Float_Type__ Ig, __Float_Type__ niu)
 	{
-		glb.set_param(phi, hs, n, alpha, beta, ei0, ec0, ed0,
+		SandHypoplasticityStbGlobal_set_param(
+			glb, phi, hs, n,
+			alpha, beta,
+			ei0, ec0, ed0,
+			N, chi, H,
 			Ig, niu, 1000.0, 0.48);
-		mat.stress[0] = ini_stress[0];
-		mat.stress[1] = ini_stress[1];
-		mat.stress[2] = ini_stress[2];
-		mat.stress[3] = ini_stress[3];
-		mat.stress[4] = ini_stress[4];
-		mat.stress[5] = ini_stress[5];
-		mat.e = e0;
-		mat.substp_size = ffmat(1.0);
-		mat.update_Norsand_p_i(glb);
+		SandHypoplasticityStb_set_NC_param(
+			mat, glb,
+			ini_stress,
+			e0, ffmat(1.0));
+	}
+
+	void SandHypoplasticityStbWrapper::set_yield_surface(
+		__Float_Type__ Mi, __Float_Type__ pi, __Float_Type__ pl)
+	{
+		mat.Mi = Mi; mat.pi = pi; mat.pl = pl;
 	}
 
 	int sand_hypoplasticity_stb_wrapper_integration_function(MaterialModel* _self, double dstrain[6])
