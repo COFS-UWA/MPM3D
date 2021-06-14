@@ -50,14 +50,14 @@ namespace MatModel
 		__Float_Type__ phi,
 		__Float_Type__ hs, __Float_Type__ n,
 		__Float_Type__ alpha, __Float_Type__ beta,
-		__Float_Type__ ei0, __Float_Type__ ec0, __Float_Type__ ed0,
+		__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
 		__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
 		__Float_Type__ Ig, __Float_Type__ niu)
 	{
 		SandHypoplasticityStbGlobal_set_param(
 			glb, phi, hs, n,
 			alpha, beta,
-			ei0, ec0, ed0,
+			ed0, ec0, ei0,
 			N, chi, H,
 			Ig, niu,
 			1000.0, 0.0);

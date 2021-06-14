@@ -108,8 +108,24 @@ namespace MatModel
 			}
 		}
 
+		// Mohr Coulomb
+		for (MatModel::MohrCoulombWrapper* iter = mc.first_MohrCoulombWrapper();
+			mc.is_not_end_MohrCoulombWrapper(iter);
+			iter = mc.next_MohrCoulombWrapper(iter))
+		{
+			res = map.emplace(iter->get_id(), iter);
+			if (!res.second)
+			{
+				snprintf(exception_msg,
+					EXCEPTION_MSG_LEN,
+					"class MatModelIdToPointerMap error: MohrCoulomb model %zu already exists.",
+					iter->get_id());
+				throw std::exception(exception_msg);
+			}
+		}
+
 		// Sandhypoplasticity
-		for (MatModel::SandHypoplasticityWrapper *iter = mc.first_SandHypoplasticityWrapper();
+		for (MatModel::SandHypoplasticityWrapper* iter = mc.first_SandHypoplasticityWrapper();
 			mc.is_not_end_SandHypoplasticityWrapper(iter);
 			iter = mc.next_SandHypoplasticityWrapper(iter))
 		{
@@ -123,18 +139,18 @@ namespace MatModel
 				throw std::exception(exception_msg);
 			}
 		}
-
-		// MohrCoulomb
-		for (MatModel::MohrCoulombWrapper* iter = mc.first_MohrCoulombWrapper();
-			mc.is_not_end_MohrCoulombWrapper(iter);
-			iter = mc.next_MohrCoulombWrapper(iter))
+		
+		// SandhypoplasticityStb
+		for (MatModel::SandHypoplasticityStbWrapper* iter = mc.first_SandHypoplasticityStbWrapper();
+			mc.is_not_end_SandHypoplasticityStbWrapper(iter);
+			iter = mc.next_SandHypoplasticityStbWrapper(iter))
 		{
 			res = map.emplace(iter->get_id(), iter);
 			if (!res.second)
 			{
 				snprintf(exception_msg,
 					EXCEPTION_MSG_LEN,
-					"class MatModelIdToPointerMap error: MohrCoulomb model %zu already exists.",
+					"class MatModelIdToPointerMap error: SandHypoplasticityStb model %zu already exists.",
 					iter->get_id());
 				throw std::exception(exception_msg);
 			}

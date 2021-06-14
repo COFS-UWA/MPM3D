@@ -216,7 +216,7 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Step_T3D_ME_mt step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 21);
+		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 5); // 21
 	std::cout << "Load model completed.\n";
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
@@ -248,11 +248,10 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	std::cout << "Start solving...\n";
-	step.set_thread_num(22);
-	//step.set_step_time(2.0); // 0.5D
-	step.set_step_time(1.0); //0.15, 0.5
-	//step.set_thread_num(4);
-	//step.set_step_time(1.0e-5);
+	//step.set_thread_num(22);
+	//step.set_step_time(1.0); //0.15, 0.5
+	step.set_thread_num(4);
+	step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

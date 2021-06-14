@@ -87,7 +87,8 @@ void SandHypoplasticityStb_set_NC_param(
 	};
 	cal_p_q_lode_angle(dat.stress, invars);
 	const __Float_Type__ state_param = dat.e - glb_dat.ec0 * (__Float_Type__)exp(-pow(-ffmat(3.0) * p / glb_dat.hs, glb_dat.n));
-	const __Float_Type__ M = glb_dat.Mtc * (ffmat(1.0) - glb_dat.Mtc / (ffmat(3.0) + glb_dat.Mtc)) * (__Float_Type__)log(ffmat(1.5) * lode_angle);
+	const __Float_Type__ M = glb_dat.Mtc *
+		(ffmat(1.0) - glb_dat.Mtc / (ffmat(3.0) + glb_dat.Mtc) * (__Float_Type__)cos(ffmat(1.5) * lode_angle));
 	const __Float_Type__ M_coef = ffmat(1.0) - glb_dat.N_chi_div_Mtc * (__Float_Type__)fabs(state_param);
 	dat.Mi = M * M_coef;
 	dat.pi = -p / (__Float_Type__)exp(ffmat(1.0) + q / (dat.Mi * p));
