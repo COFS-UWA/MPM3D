@@ -767,6 +767,9 @@ namespace Model_hdf5_utilities
 			ed0 = mm.get_ed0();
 			ec0 = mm.get_ec0();
 			ei0 = mm.get_ei0();
+			N = mm.get_N();
+			chi = mm.get_chi();
+			H = mm.get_H();
 			Ig = mm.get_Ig();
 			niu = mm.get_niu();
 			const double* mm_stress = mm.get_stress();
