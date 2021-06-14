@@ -201,10 +201,10 @@ void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 
 	Step_T3D_ME_mt_Geo step("step1");
 	step.set_model(model);
-	step.set_thread_num(22);
-	step.set_step_time(0.5);
-	//step.set_thread_num(4);
-	//step.set_step_time(1.0e-5);
+	//step.set_thread_num(22);
+	//step.set_step_time(0.5);
+	step.set_thread_num(4);
+	step.set_step_time(1.0e-4);
 	step.set_dtime(2.5e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
