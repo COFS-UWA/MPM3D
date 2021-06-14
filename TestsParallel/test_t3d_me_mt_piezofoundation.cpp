@@ -114,8 +114,8 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			0.3, 3.0, 500.0, // need calibrate
-			600.0, 0.2);
+			0.3, 3.6, 120.0,
+			400.0, 0.2);
 		mms[pcl_id] = &shp;
 	}
 
