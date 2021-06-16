@@ -35,7 +35,7 @@ print(rb_fz)
 
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
-line1, = plot1.plot(rb_fz, rb_z)
+line1, = plot1.plot(rb_fz[:-1], rb_z[:-1])
 
 plt.xlim(0.0)
 plt.ylim(rb_z[0], rb_z[-1])

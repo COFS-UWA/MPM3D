@@ -115,7 +115,7 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
 			0.3, 3.6, 120.0,
-			400.0, 0.2);
+			100.0, 0.2);
 		mms[pcl_id] = &shp;
 	}
 
@@ -201,10 +201,10 @@ void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 
 	Step_T3D_ME_mt_Geo step("step1");
 	step.set_model(model);
-	//step.set_thread_num(22);
-	//step.set_step_time(0.5);
-	step.set_thread_num(4);
-	step.set_step_time(1.0e-4);
+	step.set_thread_num(22);
+	step.set_step_time(0.5);
+	//step.set_thread_num(4);
+	//step.set_step_time(1.0e-4);
 	step.set_dtime(2.5e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -216,7 +216,7 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Step_T3D_ME_mt step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 5); // 21
+		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 21); // 21
 	std::cout << "Load model completed.\n";
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
@@ -248,11 +248,11 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	std::cout << "Start solving...\n";
-	//step.set_thread_num(22);
-	//step.set_step_time(1.0); //0.15, 0.5
-	step.set_thread_num(4);
-	step.set_step_time(1.0e-5);
-	step.set_dtime(5.0e-6);
+	step.set_thread_num(22);
+	step.set_step_time(0.6); // 0.45D
+	//step.set_thread_num(4);
+	//step.set_step_time(1.0e-5);
+	step.set_dtime(2.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -351,8 +351,8 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-8.0e4, 0.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
@@ -360,8 +360,8 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
 	// mat_e
-	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
-	//app.set_color_map_fld_range(0.5, 0.6);
+	app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
+	app.set_color_map_fld_range(0.5, 0.6);
 	// mat_s11
 	//app.set_res_file(rf, "penetration", Hdf5Field::mat_s11);
 	//app.set_color_map_fld_range(-4.0e4, 0.0);

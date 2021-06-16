@@ -91,6 +91,9 @@ int Hdf5DataLoader::set_time_history(
 
 		if (rf.has_dataset(mat_model_id, "SandHypoplasticity"))
 			mat_dt_id = Model_hdf5_utilities::get_sand_hypoplasticity_hdf5_dt_id();
+	
+		if (rf.has_dataset(mat_model_id, "SandHypoplasticityStb"))
+			mat_dt_id = Model_hdf5_utilities::get_sand_hypoplasticity_stb_hdf5_dt_id();
 	}
 
 	rf.close_group(frame_grp_id);
@@ -248,6 +251,29 @@ int Hdf5DataLoader::load_frame_data(
 			rf.close_dataset(shp_grp);
 		}
 
+		if (rf.has_dataset(mat_model_id, "SandHypoplasticityStb"))
+		{
+			hid_t shp_grp = rf.open_dataset(mat_model_id, "SandHypoplasticityStb");
+			//mat_dt_id = Model_hdf5_utilities::get_sand_hypoplasticity_hdf5_dt_id();
+			rf.read_attribute(mat_model_id, "SandHypoplasticityStb_num", SandHypoplasticityStb_num);
+			SandHypoplasticityStb_mem.reserve(SandHypoplasticityStb_num);
+			SandHypoplasticityStbStateData* shp_mem = SandHypoplasticityStb_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"SandHypoplasticityStb",
+				SandHypoplasticityStb_num,
+				shp_mem,
+				mat_dt_id);
+			mm_pt.type = MatModelType::SandHypoplasticityStb;
+			for (size_t mm_id = 0; mm_id < SandHypoplasticityStb_num; ++mm_id)
+			{
+				SandHypoplasticityStbStateData& mm = shp_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			rf.close_dataset(shp_grp);
+		}
+		
 		rf.close_group(mat_model_id);
 	}
 
