@@ -59,7 +59,7 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 
-	constexpr double e0 = 0.56;
+	constexpr double e0 = 0.66;
 	constexpr double den_grain = 2670.0;
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
@@ -115,7 +115,7 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
 			0.3, 3.6, 120.0,
-			100.0, 0.2);
+			200.0, 0.2);
 		mms[pcl_id] = &shp;
 	}
 
@@ -351,8 +351,8 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	//app.set_mono_color_pcl(true);
 	// s33
-	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-8.0e4, 0.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	app.set_color_map_fld_range(-8.0e4, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5.0);
@@ -360,8 +360,8 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
 	// mat_e
-	app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
-	app.set_color_map_fld_range(0.5, 0.6);
+	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
+	//app.set_color_map_fld_range(0.5, 0.6);
 	// mat_s11
 	//app.set_res_file(rf, "penetration", Hdf5Field::mat_s11);
 	//app.set_color_map_fld_range(-4.0e4, 0.0);
@@ -370,7 +370,7 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv)
 	//app.set_color_map_fld_range(-1.0e5, 0.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	app.set_png_name("t3d_me_mt_piezofoundation");
+	//app.set_png_name("t3d_me_mt_piezofoundation");
 	app.set_gif_name("t3d_me_mt_piezofoundation");
 	app.start();
 }
