@@ -63,6 +63,7 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	constexpr double den_grain = 2670.0;
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
+	constexpr double depth_limit = -0.02;
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
@@ -96,27 +97,43 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		//const double pcl_z = -1.0; //debug
-		//const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
 		double pcl_z = model.get_pcl_pos()[pcl_id].z;
 		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
 		pcl_s.s33 = pcl_z * 9.81 * den_float;
 		pcl_s.s22 = K0 * pcl_s.s33;
 		pcl_s.s11 = pcl_s.s22;
-		if (pcl_z > -0.2)
-			pcl_z = -0.2;
-		ini_stress[2] = pcl_z * 9.81 * den_float;
-		ini_stress[0] = K0 * ini_stress[2];
-		ini_stress[1] = ini_stress[0];
-		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-		shp.set_param(
-			ini_stress, e0,
-			30.0, 1354.0e6, 0.34,
-			0.18, 1.27,
-			0.49, 0.76, 0.86,
-			0.3, 3.6, 120.0,
-			200.0, 0.2);
-		mms[pcl_id] = &shp;
+		if (pcl_z > depth_limit) // shallow depth
+		{
+			// loose
+			pcl_z = depth_limit;
+			ini_stress[2] = pcl_z * 9.81 * den_float;
+			ini_stress[0] = K0 * ini_stress[2];
+			ini_stress[1] = ini_stress[0];
+			MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
+			shp.set_param(
+				ini_stress, 0.76,
+				30.0, 1354.0e6, 0.34,
+				0.18, 1.27,
+				0.49, 0.76, 0.86,
+				0.3, 3.6, 120.0,
+				200.0, 0.2);
+			mms[pcl_id] = &shp;
+		}
+		else // normal
+		{
+			ini_stress[2] = pcl_z * 9.81 * den_float;
+			ini_stress[0] = K0 * ini_stress[2];
+			ini_stress[1] = ini_stress[0];
+			MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
+			shp.set_param(
+				ini_stress, e0,
+				30.0, 1354.0e6, 0.34,
+				0.18, 1.27,
+				0.49, 0.76, 0.86,
+				0.3, 3.6, 120.0,
+				200.0, 0.2);
+			mms[pcl_id] = &shp;
+		}
 	}
 
 	// gravity force, float unit weight
@@ -130,8 +147,14 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	}
 	model.init_bfzs(pcl_num, bfz_pcl_array.get_mem(), bfz_array.get_mem());
 
-	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
+	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0, 2000.0);
+	// velocity bc
+	//model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
+	// free motion
+	model.set_rigid_cylinder_ext_force(0.0, 0.0, -10.0 * model.get_rigid_cylinder_m());
+	model.fix_rigid_cylinder_vx();
+	model.fix_rigid_cylinder_vy();
+	model.set_rigid_cylinder_init_velocity(0.0, 0.0, -2.0);
 	model.set_contact_param(20000.0 / (sml_pcl_size * sml_pcl_size),
 		20000.0 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);
 
@@ -204,7 +227,7 @@ void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 	step.set_thread_num(22);
 	step.set_step_time(0.5);
 	//step.set_thread_num(4);
-	//step.set_step_time(1.0e-4);
+	//step.set_step_time(5.0e-5);
 	step.set_dtime(2.5e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -249,9 +272,9 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 
 	std::cout << "Start solving...\n";
 	step.set_thread_num(22);
-	step.set_step_time(0.6); // 0.45D
+	step.set_step_time(0.3); // 0.6=0.45D
 	//step.set_thread_num(4);
-	//step.set_step_time(1.0e-5);
+	//step.set_step_time(6.0e-6);
 	step.set_dtime(2.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

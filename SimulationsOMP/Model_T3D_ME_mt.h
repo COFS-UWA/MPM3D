@@ -425,14 +425,23 @@ public:
 	void clear_rigid_cylinder() noexcept { rigid_cylinder_is_valid = false; }
 	inline void init_rigid_cylinder(
 		double x, double y, double z,
-		double h, double r)
+		double h, double r, double den = 1.0)
 	{
 		rigid_cylinder_is_valid = true;
-		rigid_cylinder.init(x, y, z, h, r);
+		rigid_cylinder.init(x, y, z, h, r, den);
 	}
+	inline void fix_rigid_cylinder_vx() { rigid_cylinder.set_vx_bc(0.0); }
+	inline void fix_rigid_cylinder_vy() { rigid_cylinder.set_vy_bc(0.0); }
 	inline void set_rigid_cylinder_velocity(
 		double vx, double vy, double vz)
 	{ rigid_cylinder.set_vbc(vx, vy, vz); }
+	inline void set_rigid_cylinder_init_velocity(
+		double vx, double vy, double vz)
+	{ rigid_cylinder.set_init_v(vx, vy, vz); }
+	inline void set_rigid_cylinder_ext_force(
+		double fx, double fy, double fz)
+	{ rigid_cylinder.set_ext_force(fx, fy, fz, 0.0, 0.0, 0.0); }
+	inline double get_rigid_cylinder_m() { return rigid_cylinder.get_m(); }
 	// cone
 	bool has_rigid_cone() const noexcept { return rigid_cone_is_valid; }
 	RigidCone& get_rigid_cone() { return rigid_cone; }

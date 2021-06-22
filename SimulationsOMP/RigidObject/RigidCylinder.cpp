@@ -2,10 +2,18 @@
 
 #include "RigidCylinder.h"
 
-RigidCylinder::RigidCylinder() : 
+RigidCylinder::RigidCylinder() :
+	r(0.0), h(0.0), density(1.0),
+	x(0.0), y(0.0), z(0.0),
+	ax(0.0), ay(0.0), az(0.0),
 	vx(0.0), vy(0.0), vz(0.0),
 	fx_cont(0.0), fy_cont(0.0), fz_cont(0.0),
-	mx_cont(0.0), my_cont(0.0), mz_cont(0.0) {}
+	fx_ext(0.0), fy_ext(0.0), fz_ext(0.0),
+	ax_bc_mask(0), ay_bc_mask(0), az_bc_mask(0),
+	vx_bc_mask(0), vy_bc_mask(0), vz_bc_mask(0),
+	ax_bc(0.0), ay_bc(0.0), az_bc(0.0),
+	vx_bc(0.0), vy_bc(0.0), vz_bc(0.0),
+	r2(0.0), m(0.0), inv_m(0.0) {}
 
 RigidCylinder::~RigidCylinder() {}
 
@@ -14,7 +22,8 @@ void RigidCylinder::init(
 	double _y,
 	double _z,
 	double _h,
-	double _r
+	double _r,
+	double _den
 	) noexcept
 {
 	x = _x;
@@ -22,8 +31,11 @@ void RigidCylinder::init(
 	z = _z;
 	h = _h;
 	r = _r;
+	density = _den;
 	r2 = r * r;
 	h_div_2 = 0.5 * h;
+	m = 3.14159265359 * r2 * h * density;
+	inv_m = 1.0 / m;
 	lbbox.xl = -r;
 	lbbox.xu = r;
 	lbbox.yl = -r;
@@ -32,7 +44,29 @@ void RigidCylinder::init(
 	lbbox.zu = h_div_2;
 }
 
-void RigidCylinder::set_vbc(
+void RigidCylinder::update_motion(double dt) noexcept
+{
+	// only translation, no rotation
+	ax = (fx_cont + fx_ext) * inv_m;
+	ay = (fy_cont + fy_ext) * inv_m;
+	az = (fz_cont + fz_ext) * inv_m;
+	iax = (iax & ~ax_bc_mask) | (iax_bc & ax_bc_mask);
+	iay = (iay & ~ay_bc_mask) | (iay_bc & ay_bc_mask);
+	iaz = (iaz & ~az_bc_mask) | (iaz_bc & az_bc_mask);
+	// update velocity
+	vx += ax * dt;
+	vy += ay * dt;
+	vz += az * dt;
+	ivx = (ivx & ~vx_bc_mask) | (ivx_bc & vx_bc_mask);
+	ivy = (ivy & ~vy_bc_mask) | (ivy_bc & vy_bc_mask);
+	ivz = (ivz & ~vz_bc_mask) | (ivz_bc & vz_bc_mask);
+	// update position
+	x += vx * dt;
+	y += vy * dt;
+	z += vz * dt;
+}
+
+void RigidCylinder::set_init_v(
 	double _vx,
 	double _vy,
 	double _vz
@@ -41,6 +75,38 @@ void RigidCylinder::set_vbc(
 	vx = _vx;
 	vy = _vy;
 	vz = _vz;
+}
+
+void RigidCylinder::set_vx_bc(double _vx) noexcept
+{
+	vx_bc_mask = SIZE_MAX;
+	vx_bc = _vx;
+}
+
+void RigidCylinder::set_vy_bc(double _vy) noexcept
+{
+	vy_bc_mask = SIZE_MAX;
+	vy_bc = _vy;
+}
+
+void RigidCylinder::set_vz_bc(double _vz) noexcept
+{
+	vz_bc_mask = SIZE_MAX;
+	vz_bc = _vz;
+}
+
+void RigidCylinder::set_vbc(
+	double _vx,
+	double _vy,
+	double _vz
+	) noexcept
+{
+	vx_bc_mask = SIZE_MAX;
+	vy_bc_mask = SIZE_MAX;
+	vz_bc_mask = SIZE_MAX;
+	vx_bc = _vx;
+	vy_bc = _vy;
+	vz_bc = _vz;
 }
 
 void RigidCylinder::set_cont_force(
@@ -70,6 +136,15 @@ void RigidCylinder::set_cont_force(
 	mx_cont = cf.mx;
 	my_cont = cf.my;
 	mz_cont = cf.mz;
+}
+
+void RigidCylinder::set_ext_force(
+	double fx, double fy, double fz,
+	double mx, double my, double mz
+	) noexcept
+{
+	fx_ext = fx; fy_ext = fy; fz_ext = fz;
+	mx_ext = mx; my_ext = my; mz_ext = mz;
 }
 
 bool RigidCylinder::detect_collision_with_point(

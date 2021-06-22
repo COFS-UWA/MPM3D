@@ -8,16 +8,25 @@ class RigidCylinder
 {
 protected:
 	double h, r;
-	
+	double density;
+
 	union
 	{
 		struct { double x, y, z; };
 		Point3D centre;
 	};
 
+	union // acceleration
+	{
+		struct { double ax, ay, az; };
+		struct { size_t iax, iay, iaz; };
+		Vector3D acceleration;
+	};
+	
 	union
 	{
 		struct { double vx, vy, vz; };
+		struct { size_t ivx, ivy, ivz; };
 		Vector3D velocity;
 	};
 
@@ -31,7 +40,34 @@ protected:
 		Force3D cont_force;
 	};
 	
+	union
+	{
+		struct
+		{
+			double fx_ext, fy_ext, fz_ext;
+			double mx_ext, my_ext, mz_ext;
+		};
+		Force3D ext_force;
+	};
+
+	size_t ax_bc_mask, ay_bc_mask, az_bc_mask;
+	size_t vx_bc_mask, vy_bc_mask, vz_bc_mask;
+
+	union
+	{
+		struct { double ax_bc, ay_bc, az_bc; };
+		struct { size_t iax_bc, iay_bc, iaz_bc; };
+		Vector3D acceleration_bc;
+	};
+	union
+	{
+		struct { double vx_bc, vy_bc, vz_bc; };
+		struct { size_t ivx_bc, ivy_bc, ivz_bc; };
+		Vector3D velocity_bc;
+	};
+
 	double h_div_2, r2;
+	double m, inv_m;
 	Cube lbbox;
 	
 public:
@@ -40,9 +76,18 @@ public:
 
 	inline double get_h() const noexcept { return h; }
 	inline double get_r() const noexcept { return r; }
+	inline double get_density() const noexcept { return density; }
 	inline const Point3D &get_centre() const noexcept { return centre; }
+	inline const Vector3D& get_acceleration() const noexcept { return acceleration; }
 	inline const Vector3D &get_velocity() const noexcept { return velocity; }
+	inline const size_t get_vx_bc_mask() const noexcept { return vx_bc_mask; }
+	inline const size_t get_vy_bc_mask() const noexcept { return vy_bc_mask; }
+	inline const size_t get_vz_bc_mask() const noexcept { return vz_bc_mask; }
+	inline const Vector3D& get_acceleration_bc() const noexcept { return acceleration_bc; }
+	inline const Vector3D& get_velocity_bc() const noexcept { return velocity_bc; }
 	inline const Force3D &get_cont_force() const noexcept { return cont_force; }
+	inline const Force3D& get_ext_force() const noexcept { return ext_force; }
+	inline const double get_m() const noexcept { return m; }
 	Cube get_bbox() const noexcept
 	{
 		return Cube(lbbox.xl + x, lbbox.xu + x,
@@ -51,11 +96,17 @@ public:
 	}
 
 	void init(double _x, double _y, double _z,
-			  double _h, double _r) noexcept;
+			  double _h, double _r, double _den = 1.0) noexcept;
+	void set_init_v(double _vx, double _vy, double _vz) noexcept;
+	void set_vx_bc(double _vx) noexcept;
+	void set_vy_bc(double _vy) noexcept;
+	void set_vz_bc(double _vz) noexcept;
 	void set_vbc(double _vx, double _vy, double _vz) noexcept;
 	void set_cont_force(double fx, double fy, double fz,
 						double mx, double my, double mz) noexcept;
 	void set_cont_force(const Force3D &cf) noexcept;
+	void set_ext_force(double fx, double fy, double fz,
+			double mx, double my, double mz) noexcept;
 
 	inline void reset_cont_force() noexcept
 	{
@@ -63,12 +114,7 @@ public:
 		mx_cont = 0.0; my_cont = 0.0; mz_cont = 0.0;
 	}
 
-	inline void update_motion(double dt) noexcept
-	{
-		x += vx * dt;
-		y += vy * dt;
-		z += vz * dt;
-	}
+	void update_motion(double dt) noexcept;
 	
 	inline void get_global_point(
 		const Point3D &lp,
