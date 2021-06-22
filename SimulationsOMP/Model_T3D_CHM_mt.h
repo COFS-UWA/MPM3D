@@ -19,6 +19,9 @@ class Step_T3D_CHM_mt;
 int substep_func_omp_T3D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 int substep_func_omp_T3D_CHM_mt2(void* _self, size_t my_th_id, double dt, double cur_time, size_t substp_id);
+class Step_T3D_CHM_mt_Geo;
+int substep_func_omp_T3D_CHM_mt_Geo(void* _self,
+	size_t my_th_id, double dt, double cur_time, size_t substp_id);
 class Step_T3D_CHM_TBB;
 int substep_func_T3D_CHM_TBB(void* _self);
 namespace Step_T3D_CHM_Task { class CalData; }
@@ -52,6 +55,10 @@ struct Model_T3D_CHM_mt : public Model,
 	friend int substep_func_omp_T3D_CHM_mt2(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 	
+	friend class Step_T3D_CHM_mt_Geo;
+	friend int substep_func_omp_T3D_CHM_mt_Geo(void* _self,
+		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+
 	friend class Step_T3D_CHM_TBB;
 	friend int substep_func_T3D_CHM_TBB(void* _self);
 	friend class Step_T3D_CHM_Task::CalData;
@@ -225,6 +232,7 @@ public:
 	inline const size_t* get_pcl_index0() const noexcept { return sorted_pcl_var_arrays[0].pcl_index; }
 	inline const Position *get_pcl_pos() const noexcept { return pcl_pos; }
 	inline const double *get_pcl_vol() const noexcept { return pcl_vol; }
+	inline Stress* get_pcl_stress0() noexcept { return sorted_pcl_var_arrays[0].pcl_stress; }
 	inline size_t get_node_num() const noexcept { return node_num; }
 	inline const Position *get_node_pos() const noexcept { return node_pos; }
 	inline size_t get_elem_num() const noexcept { return elem_num; }

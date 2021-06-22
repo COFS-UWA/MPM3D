@@ -51,6 +51,7 @@ add_executable(
     # sand hypoplasticity
     test_t3d_me_mt_spudcan_sand_hypo.cpp
     test_t3d_chm_mt_spudcan_sand_hypo.cpp
+    test_t3d_chm_mt_piezofoundation.cpp
     # using tbb
     test_tbb_sorting.cpp
     test_tbb_sort_tri_mesh_node_task.cpp
