@@ -51,7 +51,7 @@ void test_t2d_me_mt_block_sliding(int argc, char** argv)
 	model.set_contact_param(Kcn, Kct, 0.2, 1.5); // pcl_len = 0.05
 	//model.set_frictional_contact_between_pcl_and_rect();
 	//model.set_sticky_contact_between_pcl_and_rect();
-	model.set_rough_contact_between_pcl_and_rect();
+	//model.set_rough_contact_between_pcl_and_rect();
 
 	const size_t node_num = model.get_node_num();
 	IndexArray all_n_array(node_num);
@@ -108,6 +108,6 @@ void test_t2d_me_mt_block_sliding_result(int argc, char** argv)
 	app.set_color_map_fld_range(-50.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_me_mt_block_sliding");
-	//app.set_gif_name("t2d_me_mt_block_sliding");
+	app.set_gif_name("t2d_me_mt_block_sliding");
 	app.start();
 }
