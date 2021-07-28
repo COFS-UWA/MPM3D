@@ -129,6 +129,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation_model(argc, argv);
 	//test_t3d_me_mt_piezofoundation_geo(argc, argv);
 	//test_t3d_me_mt_piezofoundation(argc, argv);
+	test_t3d_me_mt_piezofoundation2(argc, argv);
 	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
 
