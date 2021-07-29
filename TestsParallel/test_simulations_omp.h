@@ -78,6 +78,7 @@ void test_t3d_me_mt_spudcan_coarse(int argc, char** argv);
 void test_t3d_chm_mt_1d_consolidation(int argc, char** argv);
 void test_t3d_chm_mt_1d_consolidation_restart(int argc, char** argv);
 void test_t3d_chm_mt_1d_geostatic(int argc, char** argv);
+void test_t3d_chm_mt_1d_geostatic_restart(int argc, char** argv);
 
 void test_sort_pcl_task();
 void test_sort_pcl_task2();
@@ -106,5 +107,11 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation2(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation_result(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_model(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv);
+void test_t3d_chm_mt_spudcan(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_geo_result(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_result(int argc, char** argv);
 
 #endif

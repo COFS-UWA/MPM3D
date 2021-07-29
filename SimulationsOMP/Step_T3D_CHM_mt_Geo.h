@@ -89,6 +89,8 @@ protected:
 		struct
 		{
 			size_t p_id0, p_id1;
+			size_t valid_elem_num;
+			size_t *valid_elem_id;
 			size_t ve_id0, ve_id1;
 		};
 		char padding[Cache_Alignment];

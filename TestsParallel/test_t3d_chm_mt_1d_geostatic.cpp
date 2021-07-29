@@ -5,8 +5,10 @@
 #include "Model_T3D_CHM_mt.h"
 #include "ModelData_T3D_CHM_mt.h"
 #include "Step_T3D_CHM_mt_Geo.h"
+#include "Step_T3D_CHM_mt.h"
 #include "TimeHistory_T3D_CHM_mt_Geo_complete.h"
 #include "TimeHistory_T3D_CHM_mt_Geo_ratio.h"
+#include "TimeHistory_T3D_CHM_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt.h"
 #include "test_parallel_utils.h"
@@ -38,7 +40,7 @@ void test_t3d_chm_mt_1d_geostatic(int argc, char** argv)
 	IndexArray tbc_pcl_array(100);
 	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
 	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	double tz_mag = 0.025 * 0.025 * -10.0;
+	double tz_mag = 0.025 * 0.025 * -1.0;
 	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
 		tzs_mem.add(tz_mag);
 	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
@@ -60,17 +62,17 @@ void test_t3d_chm_mt_1d_geostatic(int argc, char** argv)
 	model.init_fixed_vz_s_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 	model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
-	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(30.0f, 30.0f);
-	md_disp.set_light_dir(90.0f, 30.0f);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(30.0f, 30.0f);
+	//md_disp.set_light_dir(90.0f, 30.0f);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_mt_1d_geostatic.h5");
@@ -94,8 +96,59 @@ void test_t3d_chm_mt_1d_geostatic(int argc, char** argv)
 	//step.set_step_time(1.0e-3);
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(3);
+	//step.set_thread_num(1);
 	step.add_time_history(out1);
 	step.add_time_history(out2);
+	step.add_time_history(out_cpb);
+	step.solve();
+}
+
+void test_t3d_chm_mt_1d_geostatic_restart(int argc, char** argv)
+{
+	Model_T3D_CHM_mt model;
+	Step_T3D_CHM_mt step("step1");
+	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
+		model, step, "t3d_chm_mt_1d_geostatic.h5", "Geostatic", 101);
+
+	IndexArray tbc_pcl_array(100);
+	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
+	double tz_mag = 0.025 * 0.025 * -2.0;
+	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
+		tzs_mem.add(tz_mag);
+	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
+
+	//QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(30.0f, 30.0f);
+	//md_disp.set_light_dir(90.0f, 30.0f);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	//md_disp.start();
+	//return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_chm_mt_1d_geostatic_restart.h5");
+
+	ModelData_T3D_CHM_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T3D_CHM_mt_complete out1("compression");
+	out1.set_res_file(res_file_hdf5);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_interval_num(100);
+	TimeHistory_ConsoleProgressBar out_cpb;
+
+	step.set_model(model);
+	step.set_step_time(0.5);
+	//step.set_step_time(5.0e-5);
+	step.set_dtime(1.0e-5);
+	step.set_thread_num(6);
+	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }
@@ -106,17 +159,19 @@ void test_t3d_chm_mt_1d_geostatic(int argc, char** argv)
 void test_t3d_chm_mt_1d_geostatic_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_chm_mt_1d_geostatic.h5");
+	//rf.open("t3d_chm_mt_1d_geostatic.h5");
+	rf.open("t3d_chm_mt_1d_geostatic_restart.h5");
 
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
-	app.set_res_file(rf, "Geostatic", Hdf5Field::s33);
+	//app.set_res_file(rf, "Geostatic", Hdf5Field::s33);
+	app.set_res_file(rf, "compression", Hdf5Field::s33);
 	app.set_ani_time(5.0);
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(90.0f, 30.0f);
-	app.set_color_map_fld_range(-10.0, 0.0);
+	app.set_color_map_fld_range(-2.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
-	//app.set_png_name("t3d_chm_mt_1d_geostatic");
-	//app.set_gif_name("t3d_chm_mt_1d_geostatic");
+	//app.set_png_name("t3d_chm_mt_1d_geostatic_restart");
+	//app.set_gif_name("t3d_chm_mt_1d_geostatic_restart");
 	app.start();
 }

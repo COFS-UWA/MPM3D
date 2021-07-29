@@ -45,34 +45,13 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 	SortedPclVarArrays& spva0 = sorted_pcl_var_arrays[0];
 	spva0.pcl_index = md_spva0.pcl_index;
 	spva0.pcl_n = md_spva0.pcl_n;
-	spva0.pcl_density_f = md_spva0.pcl_density_f;
 	spva0.pcl_v_s = md_spva0.pcl_v_s;
-	spva0.pcl_v_f = md_spva0.pcl_v_f;
 	spva0.pcl_u_s = md_spva0.pcl_u_s;
-	spva0.pcl_u_f = md_spva0.pcl_u_f;
 	spva0.pcl_stress = md_spva0.pcl_stress;
-	spva0.pcl_p = md_spva0.pcl_p;
 	spva0.pcl_strain = md_spva0.pcl_strain;
 	spva0.pcl_estrain = md_spva0.pcl_estrain;
 	spva0.pcl_pstrain = md_spva0.pcl_pstrain;
 	spva0.pcl_N = md_spva0.pcl_N;
-
-	Model_T3D_CHM_mt::SortedPclVarArrays& md_spva1
-		= md.sorted_pcl_var_arrays[1];
-	SortedPclVarArrays& spva1 = sorted_pcl_var_arrays[1];
-	spva1.pcl_index = md_spva1.pcl_index;
-	spva1.pcl_n = md_spva1.pcl_n;
-	spva1.pcl_density_f = md_spva1.pcl_density_f;
-	spva1.pcl_v_s = md_spva1.pcl_v_s;
-	spva1.pcl_v_f = md_spva1.pcl_v_f;
-	spva1.pcl_u_s = md_spva1.pcl_u_s;
-	spva1.pcl_u_f = md_spva1.pcl_u_f;
-	spva1.pcl_stress = md_spva1.pcl_stress;
-	spva1.pcl_p = md_spva1.pcl_p;
-	spva1.pcl_strain = md_spva1.pcl_strain;
-	spva1.pcl_estrain = md_spva1.pcl_estrain;
-	spva1.pcl_pstrain = md_spva1.pcl_pstrain;
-	spva1.pcl_N = md_spva1.pcl_N;
 
 	elem_num = md.elem_num;
 	node_num = md.node_num;
@@ -132,6 +111,8 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 	
 	pcl_in_elems[0][-1] = SIZE_MAX;
 	pcl_in_elems[1][-1] = SIZE_MAX;
+	pcl_in_elems[0][md.pcl_num] = SIZE_MAX;
+	pcl_in_elems[1][md.pcl_num] = SIZE_MAX;
 	node_has_elems[0][-1] = SIZE_MAX;
 	node_has_elems[1][-1] = SIZE_MAX;
 
@@ -180,8 +161,8 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 		new (&thd) ThreadData;
 
 		size_t p_id, ori_p_id, e_id;
-		size_t p_id0 = Block_Low(my_th_id, thread_num, md.pcl_num);
-		size_t p_id1 = Block_Low(my_th_id + 1, thread_num, md.pcl_num);
+		const size_t p_id0 = Block_Low(my_th_id, thread_num, md.pcl_num);
+		const size_t p_id1 = Block_Low(my_th_id + 1, thread_num, md.pcl_num);
 		size_t pcl_in_mesh_num = 0;
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
@@ -266,22 +247,23 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 #pragma omp barrier
 		}
 		
-#pragma omp master
+#pragma omp single
 		{
 			pcl_in_elems[0] = pcl_in_elem0;
 			pcl_in_elems[1] = pcl_in_elem1;
 			prev_pcl_ids[0] = prev_pcl_id0;
 			prev_pcl_ids[1] = prev_pcl_id1;
+			md.pcl_num = valid_pcl_num;
 		}
 
 		thd.p_id0 = Block_Low(my_th_id, thread_num, valid_pcl_num);
 		e_id = pcl_in_elem0[thd.p_id0];
-		while (thd.p_id0 != SIZE_MAX && e_id == pcl_in_elem0[--p_id0]);
+		while (thd.p_id0 != SIZE_MAX && e_id == pcl_in_elem0[--thd.p_id0]);
 		++thd.p_id0;
 		assert(thd.p_id0 <= valid_pcl_num);
 		thd.p_id1 = Block_Low(my_th_id + 1, thread_num, valid_pcl_num);
 		e_id = pcl_in_elem0[thd.p_id1];
-		while (thd.p_id1 != SIZE_MAX && e_id == pcl_in_elem0[--p_id1]);
+		while (thd.p_id1 != SIZE_MAX && e_id == pcl_in_elem0[--thd.p_id1]);
 		++thd.p_id1;
 		assert(thd.p_id1 <= valid_pcl_num);
 
@@ -312,6 +294,9 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 				assert(e_id < elem_num || e_id == SIZE_MAX);
 			}
 		}
+
+		thd.valid_elem_num = my_valid_elem_num;
+		thd.valid_elem_id = my_valid_elem_id;
 
 #pragma omp critical
 		valid_elem_num += my_valid_elem_num;
@@ -463,6 +448,16 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 #pragma omp barrier
 		}
 
+#pragma omp single
+		{
+			node_has_elems[0] = node_has_elem0;
+			node_has_elems[1] = node_has_elem1;
+			node_elem_pairs[0] = node_elem_pair0;
+			node_elem_pairs[1] = node_elem_pair1;
+			node_has_elems[0][valid_elem_num * 4] = SIZE_MAX;
+			node_has_elems[1][valid_elem_num * 4] = SIZE_MAX;
+		}
+
 		// modify ne_id0, ne_id1
 		size_t n_id;
 		n_id = node_has_elem0[ve_id0];
@@ -475,21 +470,7 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 		assert(ve_id1 <= valid_elem_num * 4);
 		thd.ve_id0 = ve_id0;
 		thd.ve_id1 = ve_id1;
-
-#pragma omp master
-		{
-			node_has_elems[0] = node_has_elem0;
-			node_has_elems[1] = node_has_elem1;
-			node_elem_pairs[0] = node_elem_pair0;
-			node_elem_pairs[1] = node_elem_pair1;
-		}
 	}
-
-	pcl_in_elems[0][md.pcl_num] = SIZE_MAX;
-	pcl_in_elems[1][md.pcl_num] = SIZE_MAX;
-	node_has_elems[0][valid_elem_num * 4] = SIZE_MAX;
-	node_has_elems[1][valid_elem_num * 4] = SIZE_MAX;
-	md.pcl_num = valid_pcl_num;
 
 	return 0;
 }
@@ -543,7 +524,6 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	const double* const pcl_density_s = self.pcl_density_s;
 	const double* const pcl_vol_s = self.pcl_vol_s;
 	const Force* const pcl_bf_s = self.pcl_bf_s;
-	const Force* const pcl_bf_f = self.pcl_bf_f;
 	const Force* const pcl_t = self.pcl_t;
 	const Position* const pcl_pos = self.pcl_pos;
 	double* const pcl_vol = self.pcl_vol;
@@ -554,13 +534,9 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	SortedPclVarArrays &spva0 = self.sorted_pcl_var_arrays[0];
 	size_t* const pcl_index0 = spva0.pcl_index;
 	double* const pcl_n0 = spva0.pcl_n;
-	double* const pcl_density_f0 = spva0.pcl_density_f;
 	Displacement* const pcl_u_s0 = spva0.pcl_u_s;
-	Displacement* const pcl_u_f0 = spva0.pcl_u_f;
 	Velocity* const pcl_v_s0 = spva0.pcl_v_s;
-	Velocity* const pcl_v_f0 = spva0.pcl_v_f;
 	Stress* const pcl_stress0 = spva0.pcl_stress;
-	double *const pcl_p0 = spva0.pcl_p;
 	Strain* const pcl_strain0 = spva0.pcl_strain;
 	Strain* const pcl_estrain0 = spva0.pcl_estrain;
 	Strain* const pcl_pstrain0 = spva0.pcl_pstrain;
@@ -585,10 +561,10 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	double* const node_am_s = self.node_am_s;
 	double* const node_de_vol_s = self.node_de_vol_s;
 	
-	size_t* prev_pcl_id0 = self.prev_pcl_ids[0];
-	size_t* pcl_in_elem0 = self.pcl_in_elems[0];
-	size_t* node_has_elem0 = self.node_has_elems[0];
-	size_t* node_elem_pair0 = self.node_elem_pairs[0];
+	const size_t* prev_pcl_id0 = self.prev_pcl_ids[0];
+	const size_t* pcl_in_elem0 = self.pcl_in_elems[0];
+	const size_t* node_has_elem0 = self.node_has_elems[0];
+	const size_t* node_elem_pair0 = self.node_elem_pairs[0];
 	
 #pragma omp master
 	{
@@ -648,7 +624,6 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 		// ori_p_id
 		ori_p_id = pcl_index0[prev_p_id];
 		assert(ori_p_id < md.ori_pcl_num);
-		pcl_index0[p_id] = ori_p_id;
 
 		// map pcl mass and volume
 		// m_s
@@ -695,9 +670,6 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 		en4_vmx_s += p_N_m * p_v_s0.vx;
 		en4_vmy_s += p_N_m * p_v_s0.vy;
 		en4_vmz_s += p_N_m * p_v_s0.vz;
-
-		// displacement (for contact)
-		Displacement& p_u_s0 = pcl_u_s0[p_id];
 
 		// solid external load
 		const Force &p_bf_s = self.pcl_bf_s[ori_p_id];
@@ -834,8 +806,6 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	
 #pragma omp barrier
 	// update node variables
-	double f_ub = 0.0;
-	double e_kin = 0.0;
 	size_t ve_id, n_id, bc_mask;
 	const size_t ve_id0 = thd.ve_id0;
 	const size_t ve_id1 = thd.ve_id1;
@@ -852,6 +822,8 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	n_fx_s = 0.0;
 	n_fy_s = 0.0;
 	n_fz_s = 0.0;
+	double f_ub = 0.0;
+	double e_kin = 0.0;
 	n_id = node_has_elem0[ve_id0];
 	assert(n_id < self.node_num);
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
@@ -999,8 +971,8 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	}
 
 	// cal element strain and "enhancement"
-	const size_t my_valid_elem_num = self.valid_elem_num;
-	const size_t* my_valid_elem_id = self.valid_elem_id;
+	const size_t* my_valid_elem_id = thd.valid_elem_id;
+	const size_t my_valid_elem_num = thd.valid_elem_num;
 	double e_de_vol_s;
 	for (ve_id = 0; ve_id < my_valid_elem_num; ++ve_id)
 	{
@@ -1093,18 +1065,9 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 		p_v_s0.vx += (p_N.N1 * pn1_a_s->ax + p_N.N2 * pn2_a_s->ax + p_N.N3 * pn3_a_s->ax + p_N.N4 * pn4_a_s->ax) * dt;
 		p_v_s0.vy += (p_N.N1 * pn1_a_s->ay + p_N.N2 * pn2_a_s->ay + p_N.N3 * pn3_a_s->ay + p_N.N4 * pn4_a_s->ay) * dt;
 		p_v_s0.vz += (p_N.N1 * pn1_a_s->az + p_N.N2 * pn2_a_s->az + p_N.N3 * pn3_a_s->az + p_N.N4 * pn4_a_s->az) * dt;
-
-		// update displacement
-		Displacement& p_u_s0 = pcl_u_s0[p_id];
-		p_u_s0.ux += (p_N.N1 * pn1_v_s->vx + p_N.N2 * pn2_v_s->vx + p_N.N3 * pn3_v_s->vx + p_N.N4 * pn4_v_s->vx) * dt;
-		p_u_s0.uy += (p_N.N1 * pn1_v_s->vy + p_N.N2 * pn2_v_s->vy + p_N.N3 * pn3_v_s->vy + p_N.N4 * pn4_v_s->vy) * dt;
-		p_u_s0.uz += (p_N.N1 * pn1_v_s->vz + p_N.N2 * pn2_v_s->vz + p_N.N3 * pn3_v_s->vz + p_N.N4 * pn4_v_s->vz) * dt;
-
-		// update location (in which element)
-		ori_p_id = pcl_index0[p_id];
-		assert(ori_p_id < md.ori_pcl_num);
 		
 		// update stress
+		assert(ori_p_id < md.ori_pcl_num);
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
 		pcl_mm.integrate(pe_de->de);
 		dstress = pcl_mm.get_dstress();
@@ -1117,9 +1080,7 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 		p_s.s31 += dstress[5];
 
 		prev_p_id = prev_pcl_id0[p_id];
-#ifdef _DEBUG
 		assert(prev_p_id < md.pcl_num);
-#endif
 		Strain& p_e0 = pcl_strain0[p_id];
 		p_e0.e11 += pe_de->de11;
 		p_e0.e22 += pe_de->de22;
