@@ -54,10 +54,11 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	pcl_generator.generate_pcls_grid(
 		Cube(0.0, width, 0.0, width, -depth, -coarse_depth),
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
-	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	//
+	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
-	constexpr double e0 = 0.55;
+	constexpr double e0 = 0.66;
 	constexpr double den_grain = 2670.0;
 	constexpr double den_dry = den_grain / (e0 + 1.0);
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
@@ -118,9 +119,9 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);
 	MemoryUtils::ItemArray<double> bfz_array(pcl_num);
+	double bfz = -9.81 * den_float / den_dry;
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		double bfz = -9.81 * den_float / den_dry;
 		bfz_pcl_array.add(pcl_id);
 		bfz_array.add(bfz);
 	}
@@ -152,13 +153,13 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-50.0f, 5.0f);
+	md_disp.set_view_dir(-50.0f, -35.0f);
 	md_disp.set_light_dir(-60.0f, -15.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.7);
 	//md_disp.set_pts_from_vx_bc_s(0.025);
-	md_disp.set_pts_from_vy_bc_s(0.025);
-	//md_disp.set_pts_from_vz_bc_s(0.025);
+	//md_disp.set_pts_from_vy_bc_s(0.025);
+	md_disp.set_pts_from_vz_bc_s(0.025);
 	//md_disp.set_pts_from_vx_bc_f(0.025);
 	//md_disp.set_pts_from_vy_bc_f(0.025);
 	//md_disp.set_pts_from_vz_bc_f(0.025);
@@ -202,10 +203,10 @@ void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv)
 	Step_T3D_CHM_mt_Geo step("step1");
 	step.set_model(model);
 	step.set_thread_num(22);
-	step.set_step_time(1.0);
+	step.set_step_time(0.001); // 1.0
 	//step.set_thread_num(5);
-	//step.set_step_time(2.0e-5);
-	step.set_dtime(1.0e-5);
+	//step.set_step_time(1.0e-5);
+	step.set_dtime(2.5e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

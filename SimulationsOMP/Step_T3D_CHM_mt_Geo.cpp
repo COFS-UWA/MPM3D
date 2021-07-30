@@ -351,55 +351,6 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 		}
 
 #pragma omp barrier
-		// sort node-elem pair according to node id
-		memset(my_cbin, 0, 0x100 * sizeof(size_t));
-		for (ve_id = 0; ve_id < my_valid_elem_num; ++ve_id)
-		{
-			++my_cbin[data_digit(my_node_has_elem[ve_id * 4], 0)];
-			++my_cbin[data_digit(my_node_has_elem[ve_id * 4 + 1], 0)];
-			++my_cbin[data_digit(my_node_has_elem[ve_id * 4 + 2], 0)];
-			++my_cbin[data_digit(my_node_has_elem[ve_id * 4 + 3], 0)];
-		}
-
-		my_sbin[0] = my_cbin[0];
-		for (bin_id = 1; bin_id < 0x100; ++bin_id)
-		{
-			my_cbin[bin_id] += my_cbin[bin_id - 1];
-			my_sbin[bin_id] = my_cbin[bin_id];
-		}
-
-#pragma omp barrier
-
-		for (th_id = 0; th_id < my_th_id; ++th_id)
-		{
-			other_cbin = elem_count_bin + th_id * 0x100;
-			for (bin_id = 0; bin_id < 0x100; ++bin_id)
-				my_sbin[bin_id] += other_cbin[bin_id];
-		}
-		for (th_id = my_th_id + 1; th_id < thread_num; ++th_id)
-		{
-			other_cbin = elem_count_bin + th_id * 0x100;
-			for (bin_id = 1; bin_id < 0x100; ++bin_id)
-				my_sbin[bin_id] += other_cbin[bin_id - 1];
-		}
-
-		for (ve_id = my_valid_elem_num; ve_id-- > 0;)
-		{
-			pos_id = --my_sbin[data_digit(my_node_has_elem[ve_id * 4], 0)];
-			node_has_elem0[pos_id] = my_node_has_elem[ve_id * 4];
-			node_elem_pair0[pos_id] = my_node_elem_pair[ve_id * 4];
-			pos_id = --my_sbin[data_digit(my_node_has_elem[ve_id * 4 + 1], 0)];
-			node_has_elem0[pos_id] = my_node_has_elem[ve_id * 4 + 1];
-			node_elem_pair0[pos_id] = my_node_elem_pair[ve_id * 4 + 1];
-			pos_id = --my_sbin[data_digit(my_node_has_elem[ve_id * 4 + 2], 0)];
-			node_has_elem0[pos_id] = my_node_has_elem[ve_id * 4 + 2];
-			node_elem_pair0[pos_id] = my_node_elem_pair[ve_id * 4 + 2];
-			pos_id = --my_sbin[data_digit(my_node_has_elem[ve_id * 4 + 3], 0)];
-			node_has_elem0[pos_id] = my_node_has_elem[ve_id * 4 + 3];
-			node_elem_pair0[pos_id] = my_node_elem_pair[ve_id * 4 + 3];
-		}
-
-#pragma omp barrier
 		size_t ve_id0 = Block_Low(my_th_id, thread_num, valid_elem_num * 4);
 		size_t ve_id1 = Block_Low(my_th_id + 1, thread_num, valid_elem_num * 4);
 		size_t node_num_tmp = node_num >> 8;
@@ -1078,34 +1029,6 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 		p_s.s12 += dstress[3];
 		p_s.s23 += dstress[4];
 		p_s.s31 += dstress[5];
-
-		prev_p_id = prev_pcl_id0[p_id];
-		assert(prev_p_id < md.pcl_num);
-		Strain& p_e0 = pcl_strain0[p_id];
-		p_e0.e11 += pe_de->de11;
-		p_e0.e22 += pe_de->de22;
-		p_e0.e33 += pe_de->de33;
-		p_e0.e12 += pe_de->de12;
-		p_e0.e23 += pe_de->de23;
-		p_e0.e31 += pe_de->de31;
-
-		estrain = pcl_mm.get_dstrain_e();
-		Strain& p_ee0 = pcl_estrain0[p_id];
-		p_ee0.e11 += estrain[0];
-		p_ee0.e22 += estrain[1];
-		p_ee0.e33 += estrain[2];
-		p_ee0.e12 += estrain[3];
-		p_ee0.e23 += estrain[4];
-		p_ee0.e31 += estrain[5];
-
-		pstrain = pcl_mm.get_dstrain_p();
-		Strain& p_pe0 = pcl_pstrain0[p_id];
-		p_pe0.e11 += pstrain[0];
-		p_pe0.e22 += pstrain[1];
-		p_pe0.e33 += pstrain[2];
-		p_pe0.e12 += pstrain[3];
-		p_pe0.e23 += pstrain[4];
-		p_pe0.e31 += pstrain[5];
 	}
 
 #pragma omp critical

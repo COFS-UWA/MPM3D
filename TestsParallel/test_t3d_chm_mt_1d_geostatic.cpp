@@ -37,13 +37,23 @@ void test_t3d_chm_mt_1d_geostatic(int argc, char** argv)
 		mms[pcl_id] = &le;
 	}
 
-	IndexArray tbc_pcl_array(100);
-	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
-	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	double tz_mag = 0.025 * 0.025 * -1.0;
-	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
-		tzs_mem.add(tz_mag);
-	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
+	//IndexArray tbc_pcl_array(100);
+	//find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	//MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
+	//double tz_mag = 0.025 * 0.025 * -1.0;
+	//for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
+	//	tzs_mem.add(tz_mag);
+	//model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
+
+	IndexArray bfz_pcl_array(pcl_num);
+	MemoryUtils::ItemArray<double> bfz_array(pcl_num);
+	double bfz = -9.81;
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		bfz_pcl_array.add(pcl_id);
+		bfz_array.add(bfz);
+	}
+	model.init_bfz_ss(pcl_num, bfz_pcl_array.get_mem(), bfz_array.get_mem());
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
@@ -159,17 +169,17 @@ void test_t3d_chm_mt_1d_geostatic_restart(int argc, char** argv)
 void test_t3d_chm_mt_1d_geostatic_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t3d_chm_mt_1d_geostatic.h5");
-	rf.open("t3d_chm_mt_1d_geostatic_restart.h5");
+	rf.open("t3d_chm_mt_1d_geostatic.h5");
+	//rf.open("t3d_chm_mt_1d_geostatic_restart.h5");
 
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
-	//app.set_res_file(rf, "Geostatic", Hdf5Field::s33);
-	app.set_res_file(rf, "compression", Hdf5Field::s33);
+	app.set_res_file(rf, "Geostatic", Hdf5Field::s33);
+	//app.set_res_file(rf, "compression", Hdf5Field::s33);
 	app.set_ani_time(5.0);
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(90.0f, 30.0f);
-	app.set_color_map_fld_range(-2.0, 0.0);
+	app.set_color_map_fld_range(-140.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_chm_mt_1d_geostatic_restart");
 	//app.set_gif_name("t3d_chm_mt_1d_geostatic_restart");
