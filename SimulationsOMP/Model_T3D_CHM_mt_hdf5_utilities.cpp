@@ -688,6 +688,32 @@ int load_t3d_rigid_mesh_from_hdf5_file(
 	return 0;
 }
 
+int load_t3d_rigid_mesh_state_from_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_t3d_rigid_mesh())
+		return 0;
+
+	if (grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(grp_id, "RigidObjectByT3DMesh"))
+		return 0;
+
+	hid_t rm_grp_id = rf.open_group(grp_id, "RigidObjectByT3DMesh");
+
+	RigidObject_hdf5_utilities::load_rigid_object_by_3dmesh_state_from_hdf5_file(
+		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
+
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T3D_CHM_mt &md,
@@ -821,6 +847,8 @@ int load_model_from_hdf5_file(
 	load_search_mesh_from_hdf5_file(md, rf, md_grp_id);
 	// boundary condition
 	load_boundary_condition_from_hdf5_file(md, rf, md_grp_id);
+	// rigid object
+	load_t3d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
 
 	// time history
 	hid_t th_grp_id = rf.get_time_history_grp_id();
@@ -833,8 +861,8 @@ int load_model_from_hdf5_file(
 	load_material_model_from_hdf5_file(md, rf, th_frame_id);
 	// particle data
 	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
-	// rigid object
-	load_t3d_rigid_mesh_from_hdf5_file(md, rf, th_frame_id);
+	// rigid object state
+	load_t3d_rigid_mesh_state_from_hdf5_file(md, rf, th_frame_id);
 
 	step.set_model(md);
 	step.is_first_step = false;
