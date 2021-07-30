@@ -137,6 +137,8 @@ public:
 	inline void set_f_ub_ratio_limit(double _lim) noexcept { f_ub_ratio_limit = _lim; }
 	inline void set_e_kin_ratio_limit(double _lim) noexcept { e_kin_ratio_limit = _lim; }
 
+	static void reorder(Model_T3D_CHM_mt& md, size_t valid_pcl_num, const size_t* prev_pcl_ids);
+
 	//friend int Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 	//	Model_T3D_CHM_mt &md, Step_T3D_CHM_mt_Geo &step, const char *hdf5_name,
 	//	const char* th_name, size_t frame_id);

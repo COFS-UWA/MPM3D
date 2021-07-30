@@ -48,9 +48,6 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 	spva0.pcl_v_s = md_spva0.pcl_v_s;
 	spva0.pcl_u_s = md_spva0.pcl_u_s;
 	spva0.pcl_stress = md_spva0.pcl_stress;
-	spva0.pcl_strain = md_spva0.pcl_strain;
-	spva0.pcl_estrain = md_spva0.pcl_estrain;
-	spva0.pcl_pstrain = md_spva0.pcl_pstrain;
 	spva0.pcl_N = md_spva0.pcl_N;
 
 	elem_num = md.elem_num;
@@ -423,6 +420,8 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 		thd.ve_id1 = ve_id1;
 	}
 
+	reorder(md, valid_pcl_num, prev_pcl_ids[0]);
+
 	return 0;
 }
 
@@ -488,9 +487,6 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	Displacement* const pcl_u_s0 = spva0.pcl_u_s;
 	Velocity* const pcl_v_s0 = spva0.pcl_v_s;
 	Stress* const pcl_stress0 = spva0.pcl_stress;
-	Strain* const pcl_strain0 = spva0.pcl_strain;
-	Strain* const pcl_estrain0 = spva0.pcl_estrain;
-	Strain* const pcl_pstrain0 = spva0.pcl_pstrain;
 	ShapeFunc* const pcl_N0 = spva0.pcl_N;
 
 	const ElemNodeIndex* const elem_node_id = self.elem_node_id;
@@ -526,7 +522,7 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	// update p_id0, p_id1
 	const size_t p_id0 = thd.p_id0;
 	const size_t p_id1 = thd.p_id1;
-	size_t p_id, ori_p_id, prev_p_id, e_id, ne_id;
+	size_t p_id, ori_p_id, e_id, ne_id;
 	double p_n, p_m_s, p_vol, p_N_m;
 	double one_fourth_bfx_s, one_fourth_bfy_s, one_fourth_bfz_s;
 	double en1_vm_s = 0.0;
@@ -569,11 +565,8 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	e_id = pcl_in_elem0[p_id0];
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
-		prev_p_id = prev_pcl_id0[p_id];
-		assert(prev_p_id < md.pcl_num);
-		
 		// ori_p_id
-		ori_p_id = pcl_index0[prev_p_id];
+		ori_p_id = pcl_index0[p_id];
 		assert(ori_p_id < md.ori_pcl_num);
 
 		// map pcl mass and volume
@@ -583,7 +576,7 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 		// e_n
 		e_n += pcl_vol_s[ori_p_id];
 		// vol
-		p_n = pcl_n0[prev_p_id];
+		p_n = pcl_n0[p_id];
 		p_vol = pcl_vol_s[ori_p_id] / (1.0 - p_n);
 		pcl_vol[p_id] = p_vol;
 		e_p_vol += p_vol;
@@ -1018,6 +1011,7 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 		p_v_s0.vz += (p_N.N1 * pn1_a_s->az + p_N.N2 * pn2_a_s->az + p_N.N3 * pn3_a_s->az + p_N.N4 * pn4_a_s->az) * dt;
 		
 		// update stress
+		ori_p_id = spva0.pcl_index[p_id];
 		assert(ori_p_id < md.ori_pcl_num);
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
 		pcl_mm.integrate(pe_de->de);
@@ -1041,4 +1035,263 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 
 #pragma omp barrier
 	return 0;
+}
+
+void Step_T3D_CHM_mt_Geo::reorder(
+	Model_T3D_CHM_mt& md,
+	size_t valid_pcl_num,
+	const size_t* prev_pcl_ids)
+{
+	MemoryUtils::ItemArrayFast<char> tmp_mem;
+	size_t tmp_mem_size;
+
+	SortedPclVarArrays& spva = md.sorted_pcl_var_arrays[0];
+
+	size_t* pcl_index = spva.pcl_index;
+	tmp_mem_size = sizeof(size_t) * valid_pcl_num;
+	size_t* pcl_index_tmp = (size_t*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_index_tmp, pcl_index, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+		pcl_index[p_id] = pcl_index_tmp[prev_pcl_ids[p_id]];
+
+	//double* pcl_m_s = md.pcl_m_s;
+	//tmp_mem_size = sizeof(double) * md.pcl_num;
+	//double* pcl_m_s_tmp = (double*)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_m_s_tmp, pcl_m_s, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//	pcl_m_s[p_id] = pcl_m_s_tmp[pcl_index[p_id]];
+
+	//double* pcl_density_s = md.pcl_density_s;
+	//tmp_mem_size = sizeof(double) * md.pcl_num;
+	//double* pcl_density_s_tmp = (double*)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_density_s_tmp, pcl_density_s, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//	pcl_density_s[p_id] = pcl_density_s_tmp[pcl_index[p_id]];
+
+	//double* pcl_vol_s = md.pcl_vol_s;
+	//tmp_mem_size = sizeof(double) * md.pcl_num;
+	//double* pcl_vol_s_tmp = (double*)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_vol_s_tmp, pcl_vol_s, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//	pcl_vol_s[p_id] = pcl_vol_s_tmp[pcl_index[p_id]];
+
+	//Force* pcl_bf_s = md.pcl_bf_s;
+	//tmp_mem_size = sizeof(Force) * md.pcl_num;
+	//Force *pcl_bf_s_tmp = (Force *)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_bf_s_tmp, pcl_bf_s, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//{
+	//	Force &p_bf = pcl_bf_s[p_id];
+	//	Force& p_bf_tmp = pcl_bf_s_tmp[pcl_index[p_id]];
+	//	p_bf.fx = p_bf_tmp.fx;
+	//	p_bf.fy = p_bf_tmp.fy;
+	//	p_bf.fz = p_bf_tmp.fz;
+	//}
+
+	//Force* pcl_bf_f = md.pcl_bf_f;
+	//tmp_mem_size = sizeof(Force) * md.pcl_num;
+	//Force* pcl_bf_f_tmp = (Force*)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_bf_f_tmp, pcl_bf_f, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//{
+	//	Force& p_bf = pcl_bf_f[p_id];
+	//	Force& p_bf_tmp = pcl_bf_f_tmp[pcl_index[p_id]];
+	//	p_bf.fx = p_bf_tmp.fx;
+	//	p_bf.fy = p_bf_tmp.fy;
+	//	p_bf.fz = p_bf_tmp.fz;
+	//}
+
+	//Force* pcl_t = md.pcl_t;
+	//tmp_mem_size = sizeof(Force) * md.pcl_num;
+	//Force* pcl_t_tmp = (Force*)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_t_tmp, pcl_t, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//{
+	//	Force& p_t = pcl_t[p_id];
+	//	Force& p_t_tmp = pcl_t_tmp[pcl_index[p_id]];
+	//	p_t.fx = p_t_tmp.fx;
+	//	p_t.fy = p_t_tmp.fy;
+	//	p_t.fz = p_t_tmp.fz;
+	//}
+
+	//Position *pcl_pos = md.pcl_pos;
+	//tmp_mem_size = sizeof(Position) * md.pcl_num;
+	//Position* pcl_pos_tmp = (Position *)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_pos_tmp, pcl_pos, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//{
+	//	Position& p_pos = pcl_pos[p_id];
+	//	Position& p_pos_tmp = pcl_pos_tmp[pcl_index[p_id]];
+	//	p_pos.x = p_pos_tmp.x;
+	//	p_pos.y = p_pos_tmp.y;
+	//	p_pos.z = p_pos_tmp.z;
+	//}
+
+	//double* pcl_vol = md.pcl_vol;
+	//tmp_mem_size = sizeof(double) * md.pcl_num;
+	//double* pcl_vol_tmp = (double *)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_vol_tmp, pcl_vol, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//	pcl_vol[p_id] = pcl_vol_tmp[pcl_index[p_id]];
+
+	//MatModel::MaterialModel** pcl_mat_model = md.pcl_mat_model;
+	//tmp_mem_size = sizeof(MatModel::MaterialModel*) * md.pcl_num;
+	//MatModel::MaterialModel** pcl_mat_model_tmp = (MatModel::MaterialModel**)tmp_mem.resize(tmp_mem_size);
+	//memcpy(pcl_mat_model_tmp, pcl_mat_model, tmp_mem_size);
+	//for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	//	pcl_mat_model[p_id] = pcl_mat_model_tmp[pcl_index[p_id]];
+
+	//for (size_t p_id = 0; p_id < valid_pcl_num; p_id++)
+	//	pcl_index[p_id] = p_id;
+
+	double* pcl_n = spva.pcl_n;
+	tmp_mem_size = sizeof(double) * valid_pcl_num;
+	double* pcl_n_tmp = (double *)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_n_tmp, pcl_n, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+		pcl_n[p_id] = pcl_n_tmp[prev_pcl_ids[p_id]];
+
+	double* pcl_density_f = spva.pcl_density_f;
+	tmp_mem_size = sizeof(double) * valid_pcl_num;
+	double* pcl_density_f_tmp = (double*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_density_f_tmp, pcl_density_f, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+		pcl_density_f[p_id] = pcl_density_f_tmp[prev_pcl_ids[p_id]];
+
+	Velocity* pcl_v_s = spva.pcl_v_s;
+	tmp_mem_size = sizeof(Velocity) * valid_pcl_num;
+	Velocity* pcl_v_s_tmp = (Velocity*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_v_s_tmp, pcl_v_s, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Velocity& p_v = pcl_v_s[p_id];
+		Velocity& p_v_tmp = pcl_v_s_tmp[prev_pcl_ids[p_id]];
+		p_v.vx = p_v_tmp.vx;
+		p_v.vy = p_v_tmp.vy;
+		p_v.vz = p_v_tmp.vz;
+	}
+
+	Velocity* pcl_v_f = spva.pcl_v_f;
+	tmp_mem_size = sizeof(Velocity) * valid_pcl_num;
+	Velocity* pcl_v_f_tmp = (Velocity*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_v_f_tmp, pcl_v_f, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Velocity& p_v = pcl_v_f[p_id];
+		Velocity& p_v_tmp = pcl_v_f_tmp[prev_pcl_ids[p_id]];
+		p_v.vx = p_v_tmp.vx;
+		p_v.vy = p_v_tmp.vy;
+		p_v.vz = p_v_tmp.vz;
+	}
+
+	Displacement* pcl_u_s = spva.pcl_u_s;
+	tmp_mem_size = sizeof(Displacement) * valid_pcl_num;
+	Displacement* pcl_u_s_tmp = (Displacement*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_u_s_tmp, pcl_u_s, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Displacement& p_u = pcl_u_s[p_id];
+		Displacement& p_u_tmp = pcl_u_s_tmp[prev_pcl_ids[p_id]];
+		p_u.ux = p_u_tmp.ux;
+		p_u.uy = p_u_tmp.uy;
+		p_u.uz = p_u_tmp.uz;
+	}
+
+	Displacement* pcl_u_f = spva.pcl_u_f;
+	tmp_mem_size = sizeof(Displacement) * valid_pcl_num;
+	Displacement* pcl_u_f_tmp = (Displacement*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_u_f_tmp, pcl_u_f, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Displacement& p_u = pcl_u_f[p_id];
+		Displacement& p_u_tmp = pcl_u_f_tmp[prev_pcl_ids[p_id]];
+		p_u.ux = p_u_tmp.ux;
+		p_u.uy = p_u_tmp.uy;
+		p_u.uz = p_u_tmp.uz;
+	}
+
+	Stress* pcl_stress = spva.pcl_stress;
+	tmp_mem_size = sizeof(Stress) * valid_pcl_num;
+	Stress* pcl_stress_tmp = (Stress*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_stress_tmp, pcl_stress, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Stress& p_s = pcl_stress[p_id];
+		Stress& p_s_tmp = pcl_stress_tmp[prev_pcl_ids[p_id]];
+		p_s.s11 = p_s_tmp.s11;
+		p_s.s22 = p_s_tmp.s22;
+		p_s.s33 = p_s_tmp.s33;
+		p_s.s12 = p_s_tmp.s12;
+		p_s.s23 = p_s_tmp.s23;
+		p_s.s31 = p_s_tmp.s31;
+	}
+
+	double* pcl_p = spva.pcl_p;
+	tmp_mem_size = sizeof(double) * valid_pcl_num;
+	double* pcl_p_tmp = (double*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_p_tmp, pcl_p, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+		pcl_p[p_id] = pcl_p_tmp[prev_pcl_ids[p_id]];
+
+	Strain* pcl_strain = spva.pcl_strain;
+	tmp_mem_size = sizeof(Strain) * valid_pcl_num;
+	Strain* pcl_strain_tmp = (Strain*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_strain_tmp, pcl_strain, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Strain& p_e = pcl_strain[p_id];
+		Strain& p_e_tmp = pcl_strain_tmp[prev_pcl_ids[p_id]];
+		p_e.e11 = p_e_tmp.e11;
+		p_e.e22 = p_e_tmp.e22;
+		p_e.e33 = p_e_tmp.e33;
+		p_e.e12 = p_e_tmp.e12;
+		p_e.e23 = p_e_tmp.e23;
+		p_e.e31 = p_e_tmp.e31;
+	}
+
+	Strain* pcl_estrain = spva.pcl_estrain;
+	tmp_mem_size = sizeof(Strain) * valid_pcl_num;
+	Strain* pcl_estrain_tmp = (Strain*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_estrain_tmp, pcl_estrain, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Strain& p_e = pcl_estrain[p_id];
+		Strain& p_e_tmp = pcl_estrain_tmp[prev_pcl_ids[p_id]];
+		p_e.e11 = p_e_tmp.e11;
+		p_e.e22 = p_e_tmp.e22;
+		p_e.e33 = p_e_tmp.e33;
+		p_e.e12 = p_e_tmp.e12;
+		p_e.e23 = p_e_tmp.e23;
+		p_e.e31 = p_e_tmp.e31;
+	}
+
+	Strain* pcl_pstrain = spva.pcl_pstrain;
+	tmp_mem_size = sizeof(Strain) * valid_pcl_num;
+	Strain* pcl_pstrain_tmp = (Strain*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_pstrain_tmp, pcl_pstrain, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		Strain& p_e = pcl_pstrain[p_id];
+		Strain& p_e_tmp = pcl_pstrain_tmp[prev_pcl_ids[p_id]];
+		p_e.e11 = p_e_tmp.e11;
+		p_e.e22 = p_e_tmp.e22;
+		p_e.e33 = p_e_tmp.e33;
+		p_e.e12 = p_e_tmp.e12;
+		p_e.e23 = p_e_tmp.e23;
+		p_e.e31 = p_e_tmp.e31;
+	}
+
+	ShapeFunc* pcl_N = spva.pcl_N;
+	tmp_mem_size = sizeof(ShapeFunc) * valid_pcl_num;
+	ShapeFunc* pcl_N_tmp = (ShapeFunc *)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_N_tmp, pcl_N, tmp_mem_size);
+	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
+	{
+		ShapeFunc& p_N = pcl_N[p_id];
+		ShapeFunc& p_N_tmp = pcl_N_tmp[prev_pcl_ids[p_id]];
+		p_N.N1 = p_N_tmp.N1;
+		p_N.N2 = p_N_tmp.N2;
+		p_N.N3 = p_N_tmp.N3;
+		p_N.N4 = p_N_tmp.N4;
+	}
 }
