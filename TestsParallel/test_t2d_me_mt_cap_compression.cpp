@@ -15,19 +15,19 @@
 void test_t2d_me_mt_cap_compression(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
-	//tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
+	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh.h5");
 	//tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh_005.h5");
-	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh_0025.h5");
+	//tri_mesh.load_mesh_from_hdf5("../../Asset/rect_mesh_0025.h5");
 
 	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
 	model.init_search_grid(tri_mesh, 0.05, 0.05);
 	
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.015, 0.015);
 	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.01, 0.01);
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.005, 0.005);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.005, 0.005);
 	model.init_pcls(pcl_generator, 10.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(model.get_pcl_num());
@@ -92,21 +92,21 @@ void test_t2d_me_mt_cap_compression_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_mt_cap_compression.h5");
 
-	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
-	//app.set_win_size(900, 900);
-	//app.set_ani_time(5.0);
-	//app.set_res_file(rf, "loading", Hdf5Field::s22);
-	//app.set_mono_color_pcl();
-	////app.set_color_map_fld_range(-50.0, 0.0);
-	////app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
-	////app.set_png_name("t2d_me_mt_cap_compression");
-	//app.set_gif_name("t2d_me_mt_cap_compression");
-	//app.start();
-
-	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
-	app.set_win_size(600, 950);
-	app.set_res_file(rf, "loading", 101, Hdf5Field::s22);
+	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
+	app.set_win_size(900, 900);
+	app.set_ani_time(5.0);
+	app.set_res_file(rf, "loading", Hdf5Field::s22);
 	app.set_mono_color_pcl();
+	//app.set_color_map_fld_range(-50.0, 0.0);
+	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_me_mt_cap_compression");
+	app.set_gif_name("t2d_me_mt_cap_compression");
 	app.start();
+
+	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
+	//app.set_win_size(600, 950);
+	//app.set_res_file(rf, "loading", 101, Hdf5Field::s22);
+	//app.set_mono_color_pcl();
+	////app.set_png_name("t2d_me_mt_cap_compression");
+	//app.start();
 }

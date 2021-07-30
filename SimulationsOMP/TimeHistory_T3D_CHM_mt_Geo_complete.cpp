@@ -1,7 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
 #include "Model_T3D_CHM_mt.h"
-#include "Step_T3D_CHM_mt.h"
+#include "Step_T3D_CHM_mt_Geo.h"
 
 #include "Model_T3D_CHM_mt_hdf5_utilities.h"
 
@@ -133,7 +133,7 @@ int time_history_output_func_t3d_chm_mt_geo_to_xml_res_file(TimeHistory &_self)
 int time_history_output_func_t3d_chm_mt_geo_to_hdf5_res_file(TimeHistory &_self)
 {
 	TimeHistory_T3D_CHM_mt_Geo_complete &th = static_cast<TimeHistory_T3D_CHM_mt_Geo_complete &>(_self);
-	Step_T3D_CHM_mt &step = static_cast<Step_T3D_CHM_mt &>(th.get_step());
+	Step_T3D_CHM_mt_Geo &step = static_cast<Step_T3D_CHM_mt_Geo &>(th.get_step());
 	Model_T3D_CHM_mt &md = static_cast<Model_T3D_CHM_mt &>(step.get_model());
 	ResultFile_hdf5 &rf = static_cast<ResultFile_hdf5 &>(*th.res_file);
 
@@ -145,6 +145,8 @@ int time_history_output_func_t3d_chm_mt_geo_to_hdf5_res_file(TimeHistory &_self)
 	rf.write_attribute(frame_grp_id, "total_time", step.get_total_time());
 	rf.write_attribute(frame_grp_id, "substep_num", step.get_substep_index());
 	rf.write_attribute(frame_grp_id, "total_substep_num", step.get_total_substep_index());
+	rf.write_attribute(frame_grp_id, "f_ub_ratio", step.get_f_ub_ratio());
+	rf.write_attribute(frame_grp_id, "e_kin_ratio", step.get_e_kin_ratio());
 
 	using Model_T3D_CHM_mt_hdf5_utilities::time_history_complete_output_to_hdf5_file;
 	time_history_complete_output_to_hdf5_file(md, step, rf, frame_grp_id);

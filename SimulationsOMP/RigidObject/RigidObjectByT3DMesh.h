@@ -37,6 +37,15 @@ public:
 		bbox.zu = z + rz;
 	}
 
+	inline void set_position(double _x, double _y, double _z) noexcept
+	{ x = _x; y = _y; z = _z; }
+	inline void set_pos_ang(double _x_ang, double _y_ang, double _z_ang) noexcept
+	{ x_ang = _x_ang; y_ang = _y_ang; z_ang = _z_ang; }
+	inline void set_velocity(double _vx, double _vy, double _vz) noexcept
+	{ vx = _vx; vy = _vy; vz = _vz; }
+	inline void set_v_ang(double _vx_ang, double _vy_ang, double _vz_ang) noexcept
+	{ vx_ang = _vx_ang; vy_ang = _vy_ang; vz_ang = _vz_ang; }
+
 	inline void set_cont_force(const Force3D& cf) noexcept
 	{
 		fx_cont = cf.fx; fy_cont = cf.fy; fz_cont = cf.fz;

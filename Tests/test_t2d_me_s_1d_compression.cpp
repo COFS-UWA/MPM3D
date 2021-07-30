@@ -18,8 +18,10 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 	model.init_search_grid(0.05, 0.05);
 
 	ParticleGenerator2D<Model_T2D_ME_s> pcl_generator;
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
-	model.init_pcls(pcl_generator, 10.0);
+	pcl_generator.generate_pcls_at_2nd_gauss(model);
+	model.init_pcls(pcl_generator, 1.0);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
+	//model.init_pcls(pcl_generator, 10.0);
 
 	size_t pcl_num = model.get_pcl_num();
 	Model_T2D_ME_s::Particle* pcls = model.get_pcls();
@@ -72,18 +74,18 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 	{
 		TractionBCAtPcl &tbc = tys[t_id];
 		tbc.pcl_id = tbc_pcl_id[t_id];
-		//tbc.t = 0.05 * -1.0;
-		tbc.t = 0.02 * -10.0;
+		tbc.t = 0.05 * -0.1;
+		//tbc.t = 0.02 * -1.0;
 	}
 
-	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
-	//md_disp.set_win_size(900, 900);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T2D_ME_s md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_s_1d_compression.h5");
