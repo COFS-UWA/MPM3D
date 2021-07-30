@@ -221,8 +221,7 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		node_num,
 		elems_data,
 		elem_num,
-		gray
-		);
+		gray);
 	delete[] nodes_data;
 	delete[] elems_data;
 	rf.close_group(bg_mesh_id);
@@ -263,11 +262,18 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 			pcl_z_data,
 			pcl_vol_data,
 			pcl_fld_data,
-			0.5
-		);
+			0.5);
 	}
 
+	// read rigid object
 	init_rigid_objects_buffer(mh_bbox, rf);
+	// use new pos
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	update_rigid_objects_buffer(frame_grp_id, rf);
+	rf.close_group(frame_grp_id);
+
 	if (!init_color_map_texture())
 		return -2;
 	init_shaders(mh_bbox, wd, ht);
@@ -379,8 +385,7 @@ void QtSceneFromHdf5_T3D_ME_mt::resize(int wd, int ht)
 
 void QtSceneFromHdf5_T3D_ME_mt::init_rigid_objects_buffer(
 	Cube &mh_bbox,
-	ResultFile_hdf5& rf
-	)
+	ResultFile_hdf5& rf)
 {
 	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 	hid_t md_data_grp_id = rf.get_model_data_grp_id();
@@ -552,8 +557,7 @@ bool QtSceneFromHdf5_T3D_ME_mt::init_color_map_texture()
 void QtSceneFromHdf5_T3D_ME_mt::init_shaders(
 	Cube& mh_bbox,
 	int wd,
-	int ht
-	)
+	int ht)
 {
 	// init shaders
 	// shader_plain3D
@@ -684,8 +688,7 @@ void QtSceneFromHdf5_T3D_ME_mt::init_shaders(
 
 void QtSceneFromHdf5_T3D_ME_mt::update_rigid_objects_buffer(
 	hid_t frame_grp_id,
-	ResultFile_hdf5& rf
-	)
+	ResultFile_hdf5& rf)
 {
 	if (rf.has_group(frame_grp_id, "RigidCylinder"))
 	{

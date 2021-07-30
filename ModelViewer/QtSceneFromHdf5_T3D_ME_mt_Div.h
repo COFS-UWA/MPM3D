@@ -132,7 +132,15 @@ int QtSceneFromHdf5_T3D_ME_mt_Div<DivisionSet>
 			);
 	}
 
+	// rigid object
 	init_rigid_objects_buffer(mh_bbox, rf);
+	// use new pos
+	char frame_name[50];
+	snprintf(frame_name, 50, "frame_%zu", frame_id);
+	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+	update_rigid_objects_buffer(frame_grp_id, rf);
+	rf.close_group(frame_grp_id);
+
 	if (!init_color_map_texture())
 		return -2;
 	init_shaders(mh_bbox, wd, ht);
