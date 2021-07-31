@@ -9,6 +9,7 @@
 #include "TimeHistory_T3D_CHM_mt_Geo_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt.h"
+#include "QtApp_Prep_T3D_CHM_mt_Div.h"
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
@@ -172,17 +173,21 @@ void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv)
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 		model, "t3d_chm_mt_spudcan_model.h5");
 
-	//QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
+	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
 	//md_disp.set_view_dir(0.0f, 5.0f);
 	//md_disp.set_light_dir(10.0f, 5.0f);
 	//md_disp.set_display_bg_mesh(false);
 	//md_disp.set_view_dist_scale(0.6);
-	////md_disp.set_pts_from_vx_bc(0.2);
-	////md_disp.set_pts_from_vy_bc(0.2);
-	////md_disp.set_pts_from_vz_bc(0.2);
+	//md_disp.set_pts_from_vx_s_bc(0.05);
+	////md_disp.set_pts_from_vy_s_bc(0.05);
+	////md_disp.set_pts_from_vz_s_bc(0.05);
+	////md_disp.set_pts_from_vx_f_bc(0.05);
+	////md_disp.set_pts_from_vy_f_bc(0.05);
+	////md_disp.set_pts_from_vz_f_bc(0.05);
 	//md_disp.start();
 	//return;
 
@@ -220,17 +225,21 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 		//model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 21);
 		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 1);
 
-	//QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
+	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
 	//md_disp.set_view_dir(0.0f, 5.0f);
 	//md_disp.set_light_dir(10.0f, 5.0f);
 	//md_disp.set_display_bg_mesh(false);
 	//md_disp.set_view_dist_scale(0.6);
-	////md_disp.set_pts_from_vx_bc(0.2);
-	////md_disp.set_pts_from_vy_bc(0.2);
-	////md_disp.set_pts_from_vz_bc(0.2);
+	//md_disp.set_pts_from_vx_s_bc(0.05);
+	////md_disp.set_pts_from_vy_s_bc(0.05);
+	////md_disp.set_pts_from_vz_s_bc(0.05);
+	////md_disp.set_pts_from_vx_f_bc(0.05);
+	////md_disp.set_pts_from_vy_f_bc(0.05);
+	////md_disp.set_pts_from_vz_f_bc(0.05);
 	//md_disp.start();
 	//return;
 

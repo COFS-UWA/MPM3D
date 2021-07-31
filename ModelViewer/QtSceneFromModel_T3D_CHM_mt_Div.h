@@ -30,8 +30,8 @@ public:
 		// init bg_mesh
 		QVector3D gray(0.5f, 0.5f, 0.5f);
 		bg_mesh_obj.init_from_elements<
-			Model_T3D_ME_mt::Position,
-			Model_T3D_ME_mt::ElemNodeIndex,
+			Model_T3D_CHM_mt::Position,
+			Model_T3D_CHM_mt::ElemNodeIndex,
 			DivisionSet>(
 			model->get_node_pos(),
 			model->get_node_num(),
@@ -47,14 +47,15 @@ public:
 		double* pcl_z = pcl_y + pcl_num;
 		double* pcl_vol = pcl_z + pcl_num;
 		auto *p_pos = model->get_pcl_pos();
-		auto *p_m = model->get_pcl_m();
-		auto *p_d = model->get_pcl_density0();
+		auto *p_m_s = model->get_pcl_m_s();
+		auto *p_d_s = model->get_pcl_density_s();
+		auto* p_n = model->get_pcl_n0();
 		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
 		{
 			pcl_x[p_id] = p_pos[p_id].x;
 			pcl_y[p_id] = p_pos[p_id].y;
 			pcl_z[p_id] = p_pos[p_id].z;
-			pcl_vol[p_id] = p_m[p_id] / p_d[p_id];
+			pcl_vol[p_id] = p_m_s[p_id] / (p_d_s[p_id] * (1.0 - p_n[p_id]));
 		}
 		QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
 		pcls_obj.init<DivisionSet>(pcl_x, pcl_y, pcl_z, pcl_vol,
