@@ -9,6 +9,7 @@
 #include "TimeHistory_T3D_CHM_mt_Geo_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt.h"
+#include "QtApp_Prep_T3D_CHM_mt_Div.h"
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
@@ -58,7 +59,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
-	constexpr double e0 = 0.66;
+	constexpr double e0 = 0.55;
 	constexpr double den_grain = 2670.0;
 	constexpr double den_dry = den_grain / (e0 + 1.0);
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
@@ -69,7 +70,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	teh_mesh.clear();
-	model.init_pcls(pcl_generator, e0 / (1.0+e0), den_grain, 1000.0, 1.0e7, 1.5e-7, 0.7);
+	model.init_pcls(pcl_generator, e0 / (1.0+e0), den_grain, 1000.0, 2.0e6, 1.5e-7, 0.7);
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
@@ -129,20 +130,20 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
+	model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, width, false);
 	model.init_fixed_vx_s_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
-	model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 	
 	IndexArray vy_bc_pt_array(100);
 	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
+	model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, width, false);
 	model.init_fixed_vy_s_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
-	model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
 	IndexArray vz_bc_pt_array(100);
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -depth);
 	model.init_fixed_vz_s_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
-	model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
+	//model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_mt_spudcan_model.h5");
@@ -203,10 +204,10 @@ void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv)
 	Step_T3D_CHM_mt_Geo step("step1");
 	step.set_model(model);
 	step.set_thread_num(22);
-	step.set_step_time(0.001); // 1.0
+	step.set_step_time(1.0); // 1.0
 	//step.set_thread_num(5);
 	//step.set_step_time(1.0e-5);
-	step.set_dtime(2.5e-6);
+	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -217,8 +218,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	Model_T3D_CHM_mt model;
 	Step_T3D_CHM_mt step("step2");
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
-		//model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 21);
-		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 1);
+		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 21);
 
 	//QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	//md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -250,7 +250,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(22);
-	step.set_step_time(3.0);
+	step.set_step_time(1.5); // 3.0
 	//step.set_thread_num(3);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
@@ -325,8 +325,8 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	app.set_view_dist_scale(0.7f);
 	app.set_display_bg_mesh(false);
 	// s33
-	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-56000.0, 0.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-56000.0, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5000.0);
@@ -334,11 +334,11 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.35);
 	// p
-	//app.set_res_file(rf, "penetration", Hdf5Field::p);
-	//app.set_color_map_fld_range(-1000.0, 1000.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::p);
+	app.set_color_map_fld_range(-3000.0, 3000.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	app.set_png_name("t3d_chm_mt_spudcan");
-	//app.set_gif_name("t3d_chm_mt_spudcan");
+	//app.set_png_name("t3d_chm_mt_spudcan");
+	app.set_gif_name("t3d_chm_mt_spudcan");
 	app.start();
 }
