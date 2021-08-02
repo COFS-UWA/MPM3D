@@ -231,6 +231,9 @@ public:
 	inline size_t get_pcl_num() const noexcept { return pcl_num; }
 	inline const size_t* get_pcl_index0() const noexcept { return sorted_pcl_var_arrays[0].pcl_index; }
 	inline const Position *get_pcl_pos() const noexcept { return pcl_pos; }
+	inline const double* get_pcl_m_s() const noexcept { return pcl_m_s; }
+	inline const double* get_pcl_density_s() const noexcept { return pcl_density_s; }
+	inline const double* get_pcl_n0() const noexcept { return sorted_pcl_var_arrays[0].pcl_n; }
 	inline const double *get_pcl_vol() const noexcept { return pcl_vol; }
 	inline Stress* get_pcl_stress0() noexcept { return sorted_pcl_var_arrays[0].pcl_stress; }
 	inline size_t get_node_num() const noexcept { return node_num; }
@@ -255,6 +258,10 @@ public:
 	inline const size_t* get_grid_elem_list_id_array() const noexcept { return grid_elem_list_id_array; }
 	inline const size_t* get_grid_elem_list() const noexcept { return grid_elem_list; }
 	
+	inline void set_Kf(double _Kf) noexcept { Kf = _Kf; }
+	inline void set_k(double _k) noexcept { k = _k; }
+	inline void set_miu(double _miu) noexcept { miu = _miu; }
+
 	void clear_mesh();
 	void alloc_mesh(size_t n_num, size_t e_num);
 	void init_mesh(const TetrahedronMesh &mesh);
