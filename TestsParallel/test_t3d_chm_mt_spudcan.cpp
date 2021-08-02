@@ -250,7 +250,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(22);
-	step.set_step_time(1.5); // 3.0
+	step.set_step_time(3.0); // 3.0
 	//step.set_thread_num(3);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
