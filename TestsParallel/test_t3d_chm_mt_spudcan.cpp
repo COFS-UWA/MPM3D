@@ -78,6 +78,21 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	const double K0 = 1.0 - sin(30.0 / 180.0 * 3.14159265359);
 	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	// Sand hypoplasticity
+	constexpr double fric_ang = 30.0;
+	constexpr double hs = 1354.0e6;
+	constexpr double n = 0.34;
+	constexpr double alpha = 0.18;
+	constexpr double beta = 1.27;
+	constexpr double ed0 = 0.49;
+	constexpr double ec0 = 0.76;
+	constexpr double ei0 = 0.86;
+	//
+	constexpr double Ig = 400.0; // 200.0
+	constexpr double niu = 0.2;
+	//
+	constexpr double N = 0.3;
+	constexpr double chi = 6.0; // 3.6
+	constexpr double H = 500.0;
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -96,26 +111,26 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 		if (pcl_z > void_depth_limit)
 			shp.set_param(
 				ini_stress, 0.76, // critical state
-				30.0, 1354.0e6, 0.34,
-				0.18, 1.27,
-				0.49, 0.76, 0.86,
-				0.3, 3.6, 120.0,
-				200.0, 0.2);
+				fric_ang, hs, n,
+				alpha, beta,
+				ed0, ec0, ei0,
+				N, chi, H,
+				Ig, niu);
 		else // normal
 			shp.set_param(
 				ini_stress, e0,
-				30.0, 1354.0e6, 0.34,
-				0.18, 1.27,
-				0.49, 0.76, 0.86,
-				0.3, 3.6, 120.0,
-				200.0, 0.2);
+				fric_ang, hs, n,
+				alpha, beta,
+				ed0, ec0, ei0,
+				N, chi, H,
+				Ig, niu);
 	}
 
-	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model2.h5",
+	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.13);
-	constexpr double K_cont = 1.0e5 / (sml_pcl_size * sml_pcl_size);
-	model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont/10.0, K_cont/10.0);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
+	constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
+	model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont/50.0, K_cont/50.0);
 
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);
@@ -143,7 +158,6 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	IndexArray vz_bc_pt_array(100);
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -depth);
 	model.init_fixed_vz_s_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
-	//model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_mt_spudcan_model.h5");
@@ -154,8 +168,8 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-50.0f, -35.0f);
-	md_disp.set_light_dir(-60.0f, -15.0f);
+	md_disp.set_view_dir(-100.0f, 5.0f);
+	md_disp.set_light_dir(-90.0f, -5.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.7);
 	//md_disp.set_pts_from_vx_bc_s(0.025);
@@ -225,11 +239,11 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 21);
 	
 	// modified velocity
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.13);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
 	// modified contact stiffness
-	constexpr double sml_pcl_size = 0.04;
-	constexpr double K_cont = 1.0e5 / (sml_pcl_size * sml_pcl_size);
-	model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont / 10.0, K_cont / 10.0);
+	//constexpr double sml_pcl_size = 0.04;
+	//constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
+	//model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont / 50.0, K_cont / 50.0);
 	// modified permeability
 	model.set_k(1.0e-9);
 
