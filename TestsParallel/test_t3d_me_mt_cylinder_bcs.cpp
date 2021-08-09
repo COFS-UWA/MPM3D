@@ -25,8 +25,9 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 	model.init_search_grid(teh_mesh);
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
-	pcl_generator.generate_pcls_grid(Cube(-1.0, 1.0, -1.0, 1.0, 0.0, 2.0), 0.05, 0.05, 0.05);
-	pcl_generator.clear_pcls_outside_cylinder(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0);
+	//pcl_generator.generate_pcls_grid(Cube(-1.0, 1.0, -1.0, 1.0, 0.0, 2.0), 0.05, 0.05, 0.05);
+	//pcl_generator.clear_pcls_outside_cylinder(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0);
+	pcl_generator.generate_pcls_in_cylinder(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 0.05, 0.05, 0.05);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	model.init_pcls(pcl_generator, 10.0);
 	size_t pcl_num = model.get_pcl_num();
@@ -74,8 +75,8 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(30.0f, -30.0f);
-	//md_disp.set_light_dir(90.0f, 0.0f);
+	//md_disp.set_view_dir(60.0f, 30.0f);
+	//md_disp.set_light_dir(45.0f, 20.0f);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vbc_size_pt_array.get_mem(), vbc_size_pt_array.get_num(), 0.025);
 	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.025);
@@ -88,39 +89,39 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_ME_mt_Geo_complete out1("geostatic");
-	out1.set_res_file(res_file_hdf5);
-	out1.set_output_init_state();
-	out1.set_output_final_state();
-	out1.set_interval_num(100);
-	TimeHistory_ConsoleProgressBar out_cpb;
-
-	Step_T3D_ME_mt_Geo step("step1");
-	step.set_model(model);
-	step.set_step_time(2.0); // 10.0
-	//step.set_step_time(1.0e-5);
-	step.set_dtime(1.0e-4);
-	step.set_thread_num(4);
-	step.add_time_history(out1);
-	step.add_time_history(out_cpb);
-	step.solve();
-
-	//TimeHistory_T3D_ME_mt_complete out1("geostatic");
+	//TimeHistory_T3D_ME_mt_Geo_complete out1("geostatic");
 	//out1.set_res_file(res_file_hdf5);
 	//out1.set_output_init_state();
 	//out1.set_output_final_state();
 	//out1.set_interval_num(100);
 	//TimeHistory_ConsoleProgressBar out_cpb;
 
-	//Step_T3D_ME_mt step("step1");
+	//Step_T3D_ME_mt_Geo step("step1");
 	//step.set_model(model);
-	//step.set_step_time(1.0); // 10.0
+	//step.set_step_time(2.0); // 10.0
 	////step.set_step_time(1.0e-5);
 	//step.set_dtime(1.0e-4);
-	//step.set_thread_num(5);
+	//step.set_thread_num(4);
 	//step.add_time_history(out1);
 	//step.add_time_history(out_cpb);
 	//step.solve();
+
+	TimeHistory_T3D_ME_mt_complete out1("geostatic");
+	out1.set_res_file(res_file_hdf5);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_interval_num(100);
+	TimeHistory_ConsoleProgressBar out_cpb;
+
+	Step_T3D_ME_mt step("step1");
+	step.set_model(model);
+	step.set_step_time(1.0); // 10.0
+	//step.set_step_time(1.0e-5);
+	step.set_dtime(1.0e-4);
+	step.set_thread_num(5);
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
 }
 
 #include "QtApp_Posp_T3D_ME_mt.h"

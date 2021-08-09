@@ -71,6 +71,11 @@ public:
 	void generate_pcls_grid(Cube &range, double pcl_dx, double pcl_dy, double pcl_dz);
 	void replace_with_pcls_grid(Cube &range, double pcl_dx, double pcl_dy, double pcl_dz);
 	
+	void generate_pcls_in_cylinder(
+		double xb, double yb, double zb, // bottom position of cylinder
+		double xd, double yd, double zd, // direction of cylinder axis
+		double radius, double height,
+		double hr, double htheta, double hz);
 	void clear_pcls_outside_cylinder(
 		double xb, double yb, double zb, // bottom position of cylinder
 		double xd, double yd, double zd, // direction of cylinder axis
@@ -204,6 +209,70 @@ void ParticleGenerator3D<TetrahedronMesh>::replace_with_pcls_grid(
 {
 	clear_pcls_in_cube(range);
 	generate_pcls_grid(range, pcl_dx, pcl_dy, pcl_dz);
+}
+
+template <typename TetrahedronMesh>
+void ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
+	double xb, double yb, double zb, // bottom position of cylinder
+	double xd, double yd, double zd, // direction of cylinder axis
+	double radius, double height,
+	double hr, double htheta, double hz)
+{
+	Vector3D cyz(xd, yd, zd);
+	if (cyz.norm() == 0.0)
+		return;
+	cyz.normalize();
+	Vector3D cyy(0.0, cyz.z, -cyz.y);
+	cyy.normalize();
+	Vector3D cyx(cyz.z * cyz.z + cyz.y * cyz.y, -cyz.x * cyz.y, -cyz.z * cyz.x);
+	cyx.normalize();
+	
+	size_t r_num = size_t(ceil((radius - 0.5*hr) / hr));
+	hr = radius / (double(r_num) + 0.5);
+	size_t z_num = size_t(ceil(height / hz));
+	hz = height / double(z_num);
+	const double pi = asin(1.0) * 2.0;
+	// pcl at centre line
+	size_t z_id;
+	Particle pcl, pcl_tmp;
+	pcl.x = 0.0;
+	pcl.y = 0.0;
+	pcl_tmp.vol = hz * hr * hr * pi * 0.25;
+	const double z0 = hz * 0.5;
+	for (z_id = 0; z_id < z_num; ++z_id)
+	{
+		pcl.z = z0 + double(z_id) * hz;
+		pcl_tmp.x = cyx.x * pcl.x + cyx.y * pcl.y + cyx.z * pcl.z + xb;
+		pcl_tmp.y = cyy.x * pcl.x + cyy.y * pcl.y + cyy.z * pcl.z + yb;
+		pcl_tmp.z = cyz.x * pcl.x + cyz.y * pcl.y + cyz.z * pcl.z + zb;
+		add_pcl(pcl_tmp);
+	}
+	//
+	double pr, ptheta;
+	size_t theta_num;
+	const double r0 = 1.0 * hr;
+	double ht;
+	for (size_t r_id = 0; r_id < r_num; ++r_id)
+	{
+		pr = r0 + double(r_id) * hr;
+		theta_num = size_t(ceil(2.0*pi*pr/htheta));
+		ht = 2.0 * pi / double(theta_num);
+		pcl_tmp.vol = ((pr + 0.5 * hr)*(pr + 0.5 * hr) - (pr - 0.5 * hr) * (pr - 0.5 * hr)) * ht * 0.5;
+		for (size_t t_id = 0; t_id < theta_num; ++t_id)
+		{
+			ptheta = double(t_id) * ht;
+			pcl.x = pr * sin(ptheta);
+			pcl.y = pr * cos(ptheta);
+			for (z_id = 0; z_id < z_num; ++z_id)
+			{
+				pcl.z = z0 + double(z_id) * hz;
+				pcl_tmp.x = cyx.x * pcl.x + cyx.y * pcl.y + cyx.z * pcl.z + xb;
+				pcl_tmp.y = cyy.x * pcl.x + cyy.y * pcl.y + cyy.z * pcl.z + yb;
+				pcl_tmp.z = cyz.x * pcl.x + cyz.y * pcl.y + cyz.z * pcl.z + zb;
+				add_pcl(pcl_tmp);
+			}
+		}
+	}
 }
 
 template <typename TetrahedronMesh>
