@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
 
-	test_t3d_chm_mt_spudcan_model(argc, argv);
+	//test_t3d_chm_mt_spudcan_model(argc, argv);
 	//test_t3d_chm_mt_spudcan_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan(argc, argv);
 	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
@@ -146,6 +146,9 @@ int main(int argc, char *argv[])
 	//test_sort_tri_mesh_node_task();
 	//test_sort_tri_mesh_node_task2();
 	//test_sort_teh_mesh_node_task();
+
+	//test_t3d_me_mt_cylinder_bcs(argc, argv);
+	test_t3d_me_mt_cylinder_bcs_result(argc, argv);
 
 	//test_t2d_me_tbb_1d_compression(argc, argv);
 	//test_t2d_me_tbb_1d_compression_result(argc, argv);

@@ -142,6 +142,38 @@ void find_3d_nodes_on_z_plane(Model& md, IndexArray& id_array,
 	}
 }
 
+template <typename Model, typename NodePos = typename Model::Position>
+void find_3d_nodes_on_cylinder(Model& md, IndexArray& id_array,
+	const Vector3D &cy_bp, const Vector3D &cy_dir, double radius, double height,
+	bool need_reset_array = true, double tol = 1.0e-3)
+{
+	if (cy_dir.norm() == 0.0)
+		return;
+
+	if (need_reset_array)
+		id_array.reset();
+	const size_t node_num = md.get_node_num();
+	const NodePos* node_pos = md.get_node_pos();
+	Vector3D ndir(cy_dir);
+	ndir.normalize();
+	const double radius2 = radius * radius;
+	const double raidus_tol = radius * tol;
+	const double radius2_tol = radius2 * tol;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		const NodePos& n = node_pos[n_id];
+		const double dx = n.x - cy_bp.x;
+		const double dy = n.y - cy_bp.y;
+		const double dz = n.z - cy_bp.z;
+		const double dir_len = ndir.x * dx + ndir.y * dy + ndir.z * dz;
+		if (dir_len < -raidus_tol || dir_len > (height + raidus_tol))
+			continue;
+		const double rad_len2 = dx*dx + dy*dy + dz*dz - dir_len*dir_len;
+		if (abs(rad_len2 - radius2) < radius2_tol)
+			id_array.add(n_id);
+	}
+}
+
 inline void print_array(
 	const size_t* data,
 	size_t num,

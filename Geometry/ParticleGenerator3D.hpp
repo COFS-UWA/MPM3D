@@ -71,6 +71,11 @@ public:
 	void generate_pcls_grid(Cube &range, double pcl_dx, double pcl_dy, double pcl_dz);
 	void replace_with_pcls_grid(Cube &range, double pcl_dx, double pcl_dy, double pcl_dz);
 	
+	void clear_pcls_outside_cylinder(
+		double xb, double yb, double zb, // bottom position of cylinder
+		double xd, double yd, double zd, // direction of cylinder axis
+		double radius, double height);
+
 protected: // generate particle from tetrahedron mesh
 	// parameters
 	TetrahedronMesh *mesh;
@@ -199,6 +204,31 @@ void ParticleGenerator3D<TetrahedronMesh>::replace_with_pcls_grid(
 {
 	clear_pcls_in_cube(range);
 	generate_pcls_grid(range, pcl_dx, pcl_dy, pcl_dz);
+}
+
+template <typename TetrahedronMesh>
+void ParticleGenerator3D<TetrahedronMesh>::clear_pcls_outside_cylinder(
+	double xb, double yb, double zb, // bottom position of cylinder
+	double xd, double yd, double zd, // direction of cylinder axis
+	double radius, double height)
+{
+	const double radius2 = radius * radius;
+	for (Particle* p_iter = first(); is_not_end(p_iter); p_iter = next(p_iter))
+	{
+		Particle& pcl = *p_iter;
+		const double dx = pcl.x - xb;
+		const double dy = pcl.y - yb;
+		const double dz = pcl.z - zb;
+		const double dir_len = xd * dx + yd * dy + zd * dz;
+		if (dir_len < 0.0 || dir_len > height)
+		{
+			del_pcl(pcl);
+			continue;
+		}
+		const double rad_len2 = dx * dx + dy * dy + dz * dz - dir_len * dir_len;
+		if (rad_len2 > radius2)
+			del_pcl(pcl);
+	}
 }
 
 /* =========== Generate particles from tetrahedron mesh =========== */

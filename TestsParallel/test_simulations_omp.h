@@ -33,6 +33,8 @@ void test_t2d_me_mt_block_collision(int argc, char** argv);
 void test_t3d_me_mt_1d_compression(int argc, char** argv);
 void test_t3d_me_s_1d_compression(int argc, char** argv);
 void test_t3d_me_mt_1d_geostatic(int argc, char** argv);
+void test_t3d_me_mt_cylinder_bcs(int argc, char** argv);
+void test_t3d_me_mt_cylinder_bcs_result(int argc, char** argv);
 
 void test_t3d_me_mt_cap_compression(int argc, char** argv);
 void test_t3d_me_mt_cap_compression_restart(int argc, char** argv);

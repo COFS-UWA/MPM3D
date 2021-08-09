@@ -101,7 +101,8 @@ void Model_T3D_ME_mt::alloc_mesh(size_t n_num, size_t e_num)
 		+ sizeof(Force) * 4) * e_num
 		+ (sizeof(size_t) * 2 + sizeof(Position)
 		+ sizeof(Acceleration) + sizeof(Velocity)
-		+ sizeof(NodeHasVBC) + sizeof(double) * 2) * n_num
+		+ sizeof(NodeHasVBC) + sizeof(NodeVBCVec)
+		+ sizeof(double) * 2) * n_num
 		+ sizeof(size_t);
 	mesh_mem_raw = new char[mem_len];
 
@@ -140,6 +141,8 @@ void Model_T3D_ME_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(Velocity) * node_num;
 	node_has_vbc = (NodeHasVBC *)cur_mem; // node_num
 	cur_mem += sizeof(NodeHasVBC) * node_num;
+	node_vbc_vec = (NodeVBCVec *)cur_mem; // node_num
+	cur_mem += sizeof(NodeVBCVec) * node_num;
 	node_am = (double *)cur_mem; // node_num
 	cur_mem += sizeof(double) * node_num;
 	node_de_vol = (double *)cur_mem; // node_num
@@ -166,6 +169,10 @@ void Model_T3D_ME_mt::init_mesh(const TetrahedronMesh &mesh)
 		n_vbc.has_vx_bc = false;
 		n_vbc.has_vy_bc = false;
 		n_vbc.has_vz_bc = false;
+		NodeVBCVec& n_vbcv = node_vbc_vec[n_id];
+		n_vbcv.x = 0.0;
+		n_vbcv.y = 0.0;
+		n_vbcv.z = 0.0;
 	}
 
 	const size_t elem_num4 = elem_num * 4;
@@ -821,6 +828,22 @@ void Model_T3D_ME_mt::init_fixed_vz_bc(
 	{
 		if (bcs[bc_id] < node_num)
 			node_has_vbc[bcs[bc_id]].has_vz_bc = true;
+	}
+}
+
+void Model_T3D_ME_mt::set_vbc_vec(
+	size_t n_id,
+	double vecx,
+	double vecy,
+	double vecz)
+{
+	const double len = sqrt(vecx * vecx + vecy * vecy + vecz * vecz);
+	if (len != 0.0)
+	{
+		NodeVBCVec& nbcv = node_vbc_vec[n_id];
+		nbcv.x = vecx / len;
+		nbcv.y = vecy / len;
+		nbcv.z = vecz / len;
 	}
 }
 

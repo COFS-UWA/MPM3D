@@ -83,6 +83,7 @@ int Step_T3D_ME_mt_Geo::init_calculation()
 	node_a = md.node_a;
 	node_v = md.node_v;
 	node_has_vbc = md.node_has_vbc;
+	node_vbc_vec = md.node_vbc_vec;
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 
@@ -203,6 +204,7 @@ int substep_func_omp_T3D_ME_mt_Geo(
 	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
+	typedef Model_T3D_ME_mt::NodeVBCVec NodeVBCVec;
 	typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Step_T3D_ME_mt_Geo::ThreadData ThreadData;
 
@@ -274,6 +276,7 @@ int substep_func_omp_T3D_ME_mt_Geo(
 	Acceleration* const node_a = self.node_a;
 	Velocity* const node_v = self.node_v;
 	NodeHasVBC* const node_has_vbc = self.node_has_vbc;
+	NodeVBCVec* const node_vbc_vec = self.node_vbc_vec;
 	double* const node_am = self.node_am;
 	double* const node_de_vol = self.node_de_vol;
 
@@ -847,6 +850,11 @@ int substep_func_omp_T3D_ME_mt_Geo(
 			n_v.vx = n_vmx / n_vm + n_a.ax * dt;
 			n_v.vy = n_vmy / n_vm + n_a.ay * dt;
 			n_v.vz = n_vmz / n_vm + n_a.az * dt;
+			NodeVBCVec& n_vbc_vec = node_vbc_vec[n_id];
+			const double vbc_v = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+			n_v.vx -= vbc_v * n_vbc_vec.x;
+			n_v.vy -= vbc_v * n_vbc_vec.y;
+			n_v.vz -= vbc_v * n_vbc_vec.z;
 			NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 			bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 			n_a.iax &= bc_mask;
@@ -1106,39 +1114,6 @@ int substep_func_omp_T3D_ME_mt_Geo(
 #ifdef _DEBUG
 		assert(prev_p_id < self.prev_valid_pcl_num_tmp);
 #endif
-		Strain& p_e1 = pcl_strain1[prev_p_id];
-		Strain& p_e0 = pcl_strain0[p_id];
-		p_e0.e11 = p_e1.e11 + pe_de->de11;
-		p_e0.e22 = p_e1.e22 + pe_de->de22;
-		p_e0.e33 = p_e1.e33 + pe_de->de33;
-		p_e0.e12 = p_e1.e12 + pe_de->de12;
-		p_e0.e23 = p_e1.e23 + pe_de->de23;
-		p_e0.e31 = p_e1.e31 + pe_de->de31;
-
-		estrain = pcl_mm.get_dstrain_e();
-		Strain& p_ee1 = pcl_estrain1[prev_p_id];
-		Strain& p_ee0 = pcl_estrain0[p_id];
-		p_ee0.e11 = p_ee1.e11 + estrain[0];
-		p_ee0.e22 = p_ee1.e22 + estrain[1];
-		p_ee0.e33 = p_ee1.e33 + estrain[2];
-		p_ee0.e12 = p_ee1.e12 + estrain[3];
-		p_ee0.e23 = p_ee1.e23 + estrain[4];
-		p_ee0.e31 = p_ee1.e31 + estrain[5];
-
-		pstrain = pcl_mm.get_dstrain_p();
-		Strain& p_pe1 = pcl_pstrain1[prev_p_id];
-		Strain& p_pe0 = pcl_pstrain0[p_id];
-		p_pe0.e11 = p_pe1.e11 + pstrain[0];
-		p_pe0.e22 = p_pe1.e22 + pstrain[1];
-		p_pe0.e33 = p_pe1.e33 + pstrain[2];
-		p_pe0.e12 = p_pe1.e12 + pstrain[3];
-		p_pe0.e23 = p_pe1.e23 + pstrain[4];
-		p_pe0.e31 = p_pe1.e31 + pstrain[5];
-	}
-
-	if (self.substep_index == 10791)
-	{
-		int efef = 0;
 	}
 
 #pragma omp critical

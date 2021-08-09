@@ -91,6 +91,7 @@ int Step_T3D_ME_mt::init_calculation()
 	node_a = md.node_a;
 	node_v = md.node_v;
 	node_has_vbc = md.node_has_vbc;
+	node_vbc_vec = md.node_vbc_vec;
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 
@@ -253,6 +254,7 @@ int substep_func_omp_T3D_ME_mt(
 	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
+	typedef Model_T3D_ME_mt::NodeVBCVec NodeVBCVec;
 	typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Step_T3D_ME_mt::ThreadData ThreadData;
 
@@ -320,6 +322,7 @@ int substep_func_omp_T3D_ME_mt(
 	Acceleration* const node_a = self.node_a;
 	Velocity* const node_v = self.node_v;
 	NodeHasVBC* const node_has_vbc = self.node_has_vbc;
+	NodeVBCVec* const node_vbc_vec = self.node_vbc_vec;
 	double* const node_am = self.node_am;
 	double* const node_de_vol = self.node_de_vol;
 
@@ -956,6 +959,11 @@ int substep_func_omp_T3D_ME_mt(
 			n_v.vx = n_vmx / n_vm + n_a.ax * dt;
 			n_v.vy = n_vmy / n_vm + n_a.ay * dt;
 			n_v.vz = n_vmz / n_vm + n_a.az * dt;
+			NodeVBCVec &n_vbc_vec = node_vbc_vec[n_id];
+			const double vbc_v = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+			n_v.vx -= vbc_v * n_vbc_vec.x;
+			n_v.vy -= vbc_v * n_vbc_vec.y;
+			n_v.vz -= vbc_v * n_vbc_vec.z;
 			NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 			bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 			n_a.iax &= bc_mask;

@@ -130,6 +130,7 @@ public:
 	struct ElemNodeVM { double vm, vmx, vmy, vmz; };
 
 	struct NodeHasVBC { bool has_vx_bc, has_vy_bc, has_vz_bc; };
+	struct NodeVBCVec { double x, y, z; };
 
 	struct SortedPclVarArrays
 	{

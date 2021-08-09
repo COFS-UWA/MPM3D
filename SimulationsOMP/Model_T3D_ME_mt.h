@@ -134,6 +134,7 @@ public:
 	struct ElemNodeVM { double vm, vmx, vmy, vmz; };
 
 	struct NodeHasVBC { bool has_vx_bc, has_vy_bc, has_vz_bc; };
+	struct NodeVBCVec { double x, y, z; };
 
 	struct SortedPclVarArrays
 	{
@@ -191,6 +192,7 @@ protected:
 	Acceleration* node_a; // node_num
 	Velocity* node_v; // node_num
 	NodeHasVBC* node_has_vbc; // node_num
+	NodeVBCVec *node_vbc_vec;
 	double* node_am; // node_num
 	double* node_de_vol; // node_num
 
@@ -265,6 +267,7 @@ public:
 	void init_fixed_vx_bc(size_t vx_bc_num, const size_t* vx_bcs);
 	void init_fixed_vy_bc(size_t vy_bc_num, const size_t* vy_bcs);
 	void init_fixed_vz_bc(size_t vz_bc_num, const size_t* vz_bcs);
+	void set_vbc_vec(size_t n_id, double vecx, double vecy, double vecz);
 
 protected:
 public:

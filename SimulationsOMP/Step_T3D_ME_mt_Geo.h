@@ -44,6 +44,7 @@ public:
 	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
+	typedef Model_T3D_ME_mt::NodeVBCVec NodeVBCVec;
 	typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	
 protected:
@@ -74,6 +75,7 @@ protected:
 	Acceleration *node_a;
 	Velocity *node_v;
 	NodeHasVBC* node_has_vbc;
+	NodeVBCVec* node_vbc_vec;
 	double *node_am;
 	double *node_de_vol;
 

@@ -38,6 +38,7 @@ add_executable(
     test_t2d_chm_mt_pipe_conference_den.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_me_mt_1d_compression.cpp
+    test_t3d_me_mt_cylinder_bcs.cpp
     test_t3d_me_mt_1d_geostatic.cpp
     test_t3d_me_mt_cap_compression.cpp
     test_t3d_me_mt_triaxial_compression.cpp
