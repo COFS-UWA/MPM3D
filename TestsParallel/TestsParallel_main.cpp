@@ -151,8 +151,8 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
 
 	//test_t3d_chm_mt_cylinder_bcs(argc, argv);
-	test_t3d_chm_mt_cylinder_bcs2(argc, argv);
-	//test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
+	//test_t3d_chm_mt_cylinder_bcs2(argc, argv);
+	test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
 
 	//test_t2d_me_tbb_1d_compression(argc, argv);
 	//test_t2d_me_tbb_1d_compression_result(argc, argv);

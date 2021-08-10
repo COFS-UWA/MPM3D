@@ -181,8 +181,8 @@ void test_t3d_chm_mt_cylinder_bcs2(int argc, char** argv)
 void test_t3d_chm_mt_cylinder_bcs_result(int argc, char **argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_chm_mt_cylinder_bcs.h5");
-	//rf.open("t3d_chm_mt_cylinder_bcs2.h5");
+	//rf.open("t3d_chm_mt_cylinder_bcs.h5");
+	rf.open("t3d_chm_mt_cylinder_bcs2.h5");
 
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
@@ -194,14 +194,15 @@ void test_t3d_chm_mt_cylinder_bcs_result(int argc, char **argv)
 	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-30.0, 0.0);
 	//
-	app.set_res_file(rf, "geostatic", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 2.0);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::p);
+	//app.set_color_map_fld_range(0.0, 2.0);
 	//
 	//app.set_res_file(rf, "consolidation", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-30.0, 0.0);
 	//
-	//app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	//app.set_color_map_fld_range(0.0, 2.0);
+	app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	app.set_color_map_fld_range(0.0, 10.0);
+	//
 	//app.set_png_name("t3d_chm_mt_cylinder_bcs");
 	app.set_gif_name("t3d_chm_mt_cylinder_bcs2");
 	app.start();
