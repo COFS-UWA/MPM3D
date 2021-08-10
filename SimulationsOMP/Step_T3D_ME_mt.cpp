@@ -930,6 +930,7 @@ int substep_func_omp_T3D_ME_mt(
 	double n_vmy = 0.0;
 	double n_vmz = 0.0;
 	n_id = node_has_elem0[ve_id0];
+	double vbc_len;
 	assert(n_id < self.node_num);
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
@@ -959,11 +960,15 @@ int substep_func_omp_T3D_ME_mt(
 			n_v.vx = n_vmx / n_vm + n_a.ax * dt;
 			n_v.vy = n_vmy / n_vm + n_a.ay * dt;
 			n_v.vz = n_vmz / n_vm + n_a.az * dt;
-			NodeVBCVec &n_vbc_vec = node_vbc_vec[n_id];
-			const double vbc_v = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
-			n_v.vx -= vbc_v * n_vbc_vec.x;
-			n_v.vy -= vbc_v * n_vbc_vec.y;
-			n_v.vz -= vbc_v * n_vbc_vec.z;
+			NodeVBCVec& n_vbc_vec = node_vbc_vec[n_id];
+			vbc_len = n_a.ax * n_vbc_vec.x + n_a.ay * n_vbc_vec.y + n_a.az * n_vbc_vec.z;
+			n_a.ax -= vbc_len * n_vbc_vec.x;
+			n_a.ay -= vbc_len * n_vbc_vec.y;
+			n_a.az -= vbc_len * n_vbc_vec.z;
+			vbc_len = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+			n_v.vx -= vbc_len * n_vbc_vec.x;
+			n_v.vy -= vbc_len * n_vbc_vec.y;
+			n_v.vz -= vbc_len * n_vbc_vec.z;
 			NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 			bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 			n_a.iax &= bc_mask;

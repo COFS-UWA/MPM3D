@@ -71,6 +71,7 @@ int Step_T3D_CHM_mt_Geo::init_calculation()
 	node_a_s = md.node_a_s;
 	node_v_s = md.node_v_s;
 	node_has_vbc_s = md.node_has_vbc_s;
+	node_vbc_vec_s = md.node_vbc_vec_s;
 	node_am_s = md.node_am_s;
 	node_de_vol_s = md.node_de_vol_s;
 
@@ -455,6 +456,7 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	typedef Model_T3D_CHM_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
+	typedef Model_T3D_CHM_mt::NodeVBCVec NodeVBCVec;
 	typedef Step_T3D_CHM_mt_Geo::ThreadData ThreadData;
 
 	Step_T3D_CHM_mt_Geo& self = *(Step_T3D_CHM_mt_Geo*)(_self);
@@ -505,6 +507,7 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	Acceleration* const node_a_s = self.node_a_s;
 	Velocity* const node_v_s = self.node_v_s;
 	NodeHasVBC* const node_has_vbc_s = self.node_has_vbc_s;
+	NodeVBCVec* const node_vbc_vec_s = self.node_vbc_vec_s;
 	double* const node_am_s = self.node_am_s;
 	double* const node_de_vol_s = self.node_de_vol_s;
 	
@@ -769,6 +772,7 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 	double f_ub = 0.0;
 	double e_kin = 0.0;
 	n_id = node_has_elem0[ve_id0];
+	double vbc_len;
 	assert(n_id < self.node_num);
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
@@ -801,6 +805,15 @@ int substep_func_omp_T3D_CHM_mt_Geo(
 			n_v_s.vx = n_vmx_s / n_vm_s + n_a_s.ax * dt;
 			n_v_s.vy = n_vmy_s / n_vm_s + n_a_s.ay * dt;
 			n_v_s.vz = n_vmz_s / n_vm_s + n_a_s.az * dt;
+			NodeVBCVec& n_vbc_v_s = node_vbc_vec_s[n_id];
+			vbc_len = n_a_s.ax * n_vbc_v_s.x + n_a_s.ay * n_vbc_v_s.y + n_a_s.az * n_vbc_v_s.z;
+			n_a_s.ax -= vbc_len * n_vbc_v_s.x;
+			n_a_s.ay -= vbc_len * n_vbc_v_s.y;
+			n_a_s.az -= vbc_len * n_vbc_v_s.z;
+			vbc_len = n_v_s.vx * n_vbc_v_s.x + n_v_s.vy * n_vbc_v_s.y + n_v_s.vz * n_vbc_v_s.z;
+			n_v_s.vx -= vbc_len * n_vbc_v_s.x;
+			n_v_s.vy -= vbc_len * n_vbc_v_s.y;
+			n_v_s.vz -= vbc_len * n_vbc_v_s.z;
 			NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
 			bc_mask = size_t(n_has_vbc_s.has_vx_bc) + SIZE_MAX;
 			n_a_s.iax &= bc_mask;

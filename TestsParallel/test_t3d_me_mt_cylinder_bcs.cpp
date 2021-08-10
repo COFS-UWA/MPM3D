@@ -29,6 +29,7 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 	//pcl_generator.clear_pcls_outside_cylinder(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0);
 	pcl_generator.generate_pcls_in_cylinder(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 0.05, 0.05, 0.05);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	//pcl_generator.generate_pcls_in_cylinder(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.8, 0.0, asin(1.0) * 2.0/3.0, 1.0, 0.05, 0.05, 0.05);
 	model.init_pcls(pcl_generator, 10.0);
 	size_t pcl_num = model.get_pcl_num();
 	std::cout << "pcl_num: " << pcl_num << "\n"
@@ -41,7 +42,7 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		MatModel::LinearElasticity &le = les[pcl_id];
-		le.set_param(1000.0, 0.0);
+		le.set_param(1000.0, 0.3);
 		mms[pcl_id] = &le;
 	}
 
@@ -73,22 +74,23 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, 0.0);
 	model.init_fixed_vz_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
-	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(60.0f, 30.0f);
-	//md_disp.set_light_dir(45.0f, 20.0f);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vbc_size_pt_array.get_mem(), vbc_size_pt_array.get_num(), 0.025);
+	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(0.0f, 50.0f);
+	md_disp.set_light_dir(20.0f, 30.0f);
+	md_disp.set_model(model);
+	md_disp.set_pts_from_vec_bc(0.025);
+	//md_disp.set_pts_from_node_id(vbc_size_pt_array.get_mem(), vbc_size_pt_array.get_num(), 0.025);
 	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.025);
-	//md_disp.start();
-	//return;
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_cylinder_bcs.h5");
 
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
-
+	
 	//TimeHistory_T3D_ME_mt_Geo_complete out1("geostatic");
 	//out1.set_res_file(res_file_hdf5);
 	//out1.set_output_init_state();
@@ -138,9 +140,12 @@ void test_t3d_me_mt_cylinder_bcs_result(int argc, char **argv)
 	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(90.0f, 30.0f);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
-	//
-	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
-	app.set_color_map_fld_range(-20.0, 0.0);
+	// s33
+	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-20.0, 0.0);
+	// s11
+	app.set_res_file(rf, "geostatic", Hdf5Field::s11);
+	app.set_color_map_fld_range(-9.0 * 2.0, 0.0);
 	//app.set_png_name("t3d_me_mt_cylinder_bcs");
 	app.set_gif_name("t3d_me_mt_cylinder_bcs");
 	app.start();

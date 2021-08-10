@@ -237,6 +237,7 @@ public:
 	inline const size_t* get_grid_elem_list_id_array() const noexcept { return grid_elem_list_id_array; }
 	inline const size_t* get_grid_elem_list() const noexcept { return grid_elem_list; }
 	inline const NodeHasVBC* get_node_has_vbc() const noexcept { return node_has_vbc; }
+	inline const NodeVBCVec *get_node_vbc_vec() const noexcept { return node_vbc_vec; }
 
 	void clear_mesh();
 	void alloc_mesh(size_t n_num, size_t e_num);

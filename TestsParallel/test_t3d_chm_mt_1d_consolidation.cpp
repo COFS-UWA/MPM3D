@@ -86,10 +86,10 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 
 	Step_T3D_CHM_mt step("step1");
 	step.set_model(model);
-	//step.set_step_time(10.0);
-	step.set_step_time(1.0e-4);
+	step.set_step_time(10.0);
+	//step.set_step_time(1.0e-4);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(5);
+	step.set_thread_num(5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

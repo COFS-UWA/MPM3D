@@ -221,6 +221,20 @@ int output_boundary_condition_to_hdf5_file(
 	rf.write_dataset(bc_grp_id, "NodeVelocityBC", md.node_num, nvbc_data, n_vbc_dt_id);
 	delete[] nvbc_data;
 	H5Tclose(n_vbc_dt_id);
+
+	hid_t n_vbc_vec_dt_id = get_node_vbc_vec_dt_id();
+	NodeVBCVecData* nvbc_vec = new NodeVBCVecData[md.node_num];
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	{
+		NodeVBCVecData& nvbc = nvbc_vec[n_id];
+		Model_T3D_ME_mt::NodeVBCVec& md_nvbc = md.node_vbc_vec[n_id];
+		nvbc.x = md_nvbc.x;
+		nvbc.y = md_nvbc.y;
+		nvbc.z = md_nvbc.z;
+	}
+	rf.write_dataset(bc_grp_id, "NodeVBCVector", md.node_num, nvbc_vec, n_vbc_vec_dt_id);
+	delete[] nvbc_vec;
+	H5Tclose(n_vbc_vec_dt_id);
 	
 	rf.close_group(bc_grp_id);
 	return 0;
@@ -229,8 +243,7 @@ int output_boundary_condition_to_hdf5_file(
 int load_boundary_condition_from_hdf5_file(
 	Model_T3D_ME_mt& md,
 	ResultFile_hdf5& rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
@@ -255,6 +268,20 @@ int load_boundary_condition_from_hdf5_file(
 	delete[] nvbc_data;
 	H5Tclose(n_vbc_dt_id);
 
+	hid_t n_vbc_vec_dt_id = get_node_vbc_vec_dt_id();
+	NodeVBCVecData* nvbc_vec = new NodeVBCVecData[md.node_num];
+	rf.read_dataset(bc_id, "NodeVBCVector", md.node_num, nvbc_vec, n_vbc_vec_dt_id);
+	for (size_t n_id = 0; n_id < md.node_num; ++n_id)
+	{
+		NodeVBCVecData& nvbc = nvbc_vec[n_id];
+		Model_T3D_ME_mt::NodeVBCVec& md_nvbc = md.node_vbc_vec[n_id];
+		md_nvbc.x = nvbc.x;
+		md_nvbc.y = nvbc.y;
+		md_nvbc.z = nvbc.z;
+	}
+	delete[] nvbc_vec;
+	H5Tclose(n_vbc_vec_dt_id);
+	
 	rf.close_group(bc_id);
 	return 0;
 }

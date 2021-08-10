@@ -148,6 +148,8 @@ public:
 	int set_pts_from_vx_bc(float radius);
 	int set_pts_from_vy_bc(float radius);
 	int set_pts_from_vz_bc(float radius);
+	int set_pts_from_vec_bc(float radius);
+
 	template<typename Point3D>
 	int set_pts(Point3D* _pts, size_t _pt_num, float radius)
 	{

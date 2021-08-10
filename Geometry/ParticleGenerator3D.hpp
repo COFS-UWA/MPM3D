@@ -71,12 +71,24 @@ public:
 	void generate_pcls_grid(Cube &range, double pcl_dx, double pcl_dy, double pcl_dz);
 	void replace_with_pcls_grid(Cube &range, double pcl_dx, double pcl_dy, double pcl_dz);
 	
-	void generate_pcls_in_cylinder(
+	// return hz (height of pcl layers)
+	double generate_pcls_in_cylinder(
 		double xb, double yb, double zb, // bottom position of cylinder
 		double xd, double yd, double zd, // direction of cylinder axis
 		double radius, double height,
 		double hr, double htheta, double hz);
+	double generate_pcls_in_cylinder(
+		double xb, double yb, double zb, // bottom position of cylinder
+		double xd, double yd, double zd, // direction of cylinder axis
+		double radius0, double radius1,
+		double theta0, double theta1,
+		double height,
+		double hr, double htheta, double hz);
 	void clear_pcls_outside_cylinder(
+		double xb, double yb, double zb, // bottom position of cylinder
+		double xd, double yd, double zd, // direction of cylinder axis
+		double radius, double height);
+	void clear_pcls_inside_cylinder(
 		double xb, double yb, double zb, // bottom position of cylinder
 		double xd, double yd, double zd, // direction of cylinder axis
 		double radius, double height);
@@ -212,7 +224,7 @@ void ParticleGenerator3D<TetrahedronMesh>::replace_with_pcls_grid(
 }
 
 template <typename TetrahedronMesh>
-void ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
+double ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
 	double xb, double yb, double zb, // bottom position of cylinder
 	double xd, double yd, double zd, // direction of cylinder axis
 	double radius, double height,
@@ -220,7 +232,7 @@ void ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
 {
 	Vector3D cyz(xd, yd, zd);
 	if (cyz.norm() == 0.0)
-		return;
+		return 0.0;
 	cyz.normalize();
 	Vector3D cyy(0.0, cyz.z, -cyz.y);
 	cyy.normalize();
@@ -273,6 +285,62 @@ void ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
 			}
 		}
 	}
+	return hz;
+}
+
+template <typename TetrahedronMesh>
+double ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
+	double xb, double yb, double zb, // bottom position of cylinder
+	double xd, double yd, double zd, // direction of cylinder axis
+	double radius0, double radius1,
+	double theta0, double theta1,
+	double height,
+	double hr, double htheta, double hz)
+{
+	Vector3D cyz(xd, yd, zd);
+	if (cyz.norm() == 0.0)
+		return 0.0;
+	cyz.normalize();
+	Vector3D cyy(0.0, cyz.z, -cyz.y);
+	cyy.normalize();
+	Vector3D cyx(cyz.z * cyz.z + cyz.y * cyz.y, -cyz.x * cyz.y, -cyz.z * cyz.x);
+	cyx.normalize();
+
+	const double dradius = radius1 - radius0;
+	size_t r_num = size_t(ceil(dradius / hr));
+	hr = dradius / double(r_num);
+	size_t z_num = size_t(ceil(height / hz));
+	hz = height / double(z_num);
+	const double pi = asin(1.0) * 2.0;
+	// pcl at centre line
+	Particle pcl, pcl_tmp;
+	double pr, ptheta;
+	const double z0 = hz * 0.5;
+	const double r0 = radius0 + 0.5 * hr;
+	for (size_t r_id = 0; r_id < r_num; ++r_id)
+	{
+		pr = r0 + double(r_id) * hr;
+		const double dtheta = theta1 - theta0;
+		const size_t theta_num = size_t(ceil(dtheta * pr / htheta));
+		const double ht = dtheta / double(theta_num);
+		const double t0 = theta0 + 0.5 * ht;
+		pcl_tmp.vol = ((pr + 0.5 * hr) * (pr + 0.5 * hr) - (pr - 0.5 * hr) * (pr - 0.5 * hr)) * ht * 0.5;
+		for (size_t t_id = 0; t_id < theta_num; ++t_id)
+		{
+			ptheta = t0 + double(t_id) * ht;
+			pcl.x = pr * sin(ptheta);
+			pcl.y = pr * cos(ptheta);
+			for (size_t z_id = 0; z_id < z_num; ++z_id)
+			{
+				pcl.z = z0 + double(z_id) * hz;
+				pcl_tmp.x = cyx.x * pcl.x + cyx.y * pcl.y + cyx.z * pcl.z + xb;
+				pcl_tmp.y = cyy.x * pcl.x + cyy.y * pcl.y + cyy.z * pcl.z + yb;
+				pcl_tmp.z = cyz.x * pcl.x + cyz.y * pcl.y + cyz.z * pcl.z + zb;
+				add_pcl(pcl_tmp);
+			}
+		}
+	}
+	return hz;
 }
 
 template <typename TetrahedronMesh>
@@ -296,6 +364,26 @@ void ParticleGenerator3D<TetrahedronMesh>::clear_pcls_outside_cylinder(
 		}
 		const double rad_len2 = dx * dx + dy * dy + dz * dz - dir_len * dir_len;
 		if (rad_len2 > radius2)
+			del_pcl(pcl);
+	}
+}
+
+template <typename TetrahedronMesh>
+void ParticleGenerator3D<TetrahedronMesh>::clear_pcls_inside_cylinder(
+	double xb, double yb, double zb, // bottom position of cylinder
+	double xd, double yd, double zd, // direction of cylinder axis
+	double radius, double height)
+{
+	const double radius2 = radius * radius;
+	for (Particle* p_iter = first(); is_not_end(p_iter); p_iter = next(p_iter))
+	{
+		Particle& pcl = *p_iter;
+		const double dx = pcl.x - xb;
+		const double dy = pcl.y - yb;
+		const double dz = pcl.z - zb;
+		const double dir_len = xd * dx + yd * dy + zd * dz;
+		const double rad_len2 = dx * dx + dy * dy + dz * dz - dir_len * dir_len;
+		if (dir_len >= 0.0 && dir_len <= height && rad_len2 <= radius2)
 			del_pcl(pcl);
 	}
 }

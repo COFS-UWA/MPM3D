@@ -198,6 +198,8 @@ protected:
 	Velocity *node_v_f; // node_num
 	NodeHasVBC *node_has_vbc_s; // node_num
 	NodeHasVBC *node_has_vbc_f; // node_num
+	NodeVBCVec* node_vbc_vec_s; // node_num
+	NodeVBCVec* node_vbc_vec_f; // node_num
 	double *node_am_s; // node_num
 	double *node_am_f; // node_num
 	double *node_de_vol_s; // node_num
@@ -246,6 +248,8 @@ public:
 
 	inline const NodeHasVBC *get_node_has_vbc_s() const noexcept { return node_has_vbc_s; }
 	inline const NodeHasVBC* get_node_has_vbc_f() const noexcept { return node_has_vbc_f; }
+	inline const NodeVBCVec* get_node_vbc_vec_s() const noexcept { return node_vbc_vec_s; }
+	inline const NodeVBCVec* get_node_vbc_vec_f() const noexcept { return node_vbc_vec_f; }
 
 	inline double get_bg_grid_xl() const noexcept { return grid_xl; }
 	inline double get_bg_grid_yl() const noexcept { return grid_yl; }
@@ -305,7 +309,9 @@ public:
 	void init_fixed_vx_f_bc(size_t vx_bc_num, const size_t* vx_bcs);
 	void init_fixed_vy_f_bc(size_t vy_bc_num, const size_t* vy_bcs);
 	void init_fixed_vz_f_bc(size_t vz_bc_num, const size_t* vz_bcs);
-	
+	void set_vbc_vec_s(size_t n_id, double vecx, double vecy, double vecz);
+	void set_vbc_vec_f(size_t n_id, double vecx, double vecy, double vecz);
+
 protected:
 	// background grid for mesh
 	double grid_xl, grid_yl, grid_zl;

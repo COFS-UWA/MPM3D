@@ -84,6 +84,8 @@ public:
 	inline int set_pts_from_vx_bc(float radius) { return scene.set_pts_from_vx_bc(radius); }
 	inline int set_pts_from_vy_bc(float radius) { return scene.set_pts_from_vy_bc(radius); }
 	inline int set_pts_from_vz_bc(float radius) { return scene.set_pts_from_vz_bc(radius); }
+	inline int set_pts_from_vec_bc(float radius) { return scene.set_pts_from_vec_bc(radius); }
+
 	template <typename Point3D>
 	inline int set_pts(Point3D* pts, size_t pt_num, float radius)
 	{

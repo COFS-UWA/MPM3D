@@ -444,6 +444,17 @@ inline hid_t get_node_vbc_dt_id()
 	return res;
 }
 
+struct NodeVBCVecData { double x, y, z; };
+
+inline hid_t get_node_vbc_vec_dt_id()
+{
+	hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(NodeVBCVecData));
+	H5Tinsert(res, "x", HOFFSET(NodeVBCVecData, x), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "y", HOFFSET(NodeVBCVecData, y), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "z", HOFFSET(NodeVBCVecData, z), H5T_NATIVE_DOUBLE);
+	return res;
+}
+
 int output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_background_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 

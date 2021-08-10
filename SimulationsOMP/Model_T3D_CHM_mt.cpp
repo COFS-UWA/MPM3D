@@ -97,8 +97,8 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
 		+ sizeof(double) * 9 + sizeof(StrainInc)
 		+ sizeof(ElemNodeVM) * 8 + sizeof(Force) * 9) * e_num
-		+ (sizeof(Position) + sizeof(Acceleration) * 2
-		+ sizeof(Velocity) * 2 + sizeof(NodeHasVBC) * 2
+		+ (sizeof(Position) + sizeof(Acceleration) * 2 + sizeof(Velocity) * 2
+		+ sizeof(NodeHasVBC) * 2 + sizeof(NodeVBCVec) * 2
 		+ sizeof(double) * 4) * n_num;
 	mesh_mem_raw = new char[mem_len];
 
@@ -154,6 +154,10 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(NodeHasVBC) * node_num;
 	node_has_vbc_f = (NodeHasVBC*)cur_mem;
 	cur_mem += sizeof(NodeHasVBC) * node_num;
+	node_vbc_vec_s = (NodeVBCVec*)cur_mem;
+	cur_mem += sizeof(NodeVBCVec) * node_num;
+	node_vbc_vec_f = (NodeVBCVec*)cur_mem;
+	cur_mem += sizeof(NodeVBCVec) * node_num;
 	node_am_s = (double*)cur_mem;
 	cur_mem += sizeof(double) * node_num;
 	node_am_f = (double*)cur_mem;
@@ -191,6 +195,14 @@ void Model_T3D_CHM_mt::init_mesh(const TetrahedronMesh &mesh)
 		n_vbc_f.has_vx_bc = false;
 		n_vbc_f.has_vy_bc = false;
 		n_vbc_f.has_vz_bc = false;
+		NodeVBCVec& n_vbcv_s = node_vbc_vec_s[n_id];
+		n_vbcv_s.x = 0.0;
+		n_vbcv_s.y = 0.0;
+		n_vbcv_s.z = 0.0;
+		NodeVBCVec& n_vbcv_f = node_vbc_vec_f[n_id];
+		n_vbcv_f.x = 0.0;
+		n_vbcv_f.y = 0.0;
+		n_vbcv_f.z = 0.0;
 	}
 
 	// init elem connectivity, area and shape functions
@@ -935,6 +947,38 @@ void Model_T3D_CHM_mt::init_fixed_vz_f_bc(
 	{
 		if (bcs[bc_id] < node_num)
 			node_has_vbc_f[bcs[bc_id]].has_vz_bc = true;
+	}
+}
+
+void Model_T3D_CHM_mt::set_vbc_vec_s(
+	size_t n_id,
+	double vecx,
+	double vecy,
+	double vecz)
+{
+	const double len = sqrt(vecx * vecx + vecy * vecy + vecz * vecz);
+	if (len != 0.0)
+	{
+		NodeVBCVec& nbcv = node_vbc_vec_s[n_id];
+		nbcv.x = vecx / len;
+		nbcv.y = vecy / len;
+		nbcv.z = vecz / len;
+	}
+}
+
+void Model_T3D_CHM_mt::set_vbc_vec_f(
+	size_t n_id,
+	double vecx,
+	double vecy,
+	double vecz)
+{
+	const double len = sqrt(vecx * vecx + vecy * vecy + vecz * vecz);
+	if (len != 0.0)
+	{
+		NodeVBCVec& nbcv = node_vbc_vec_f[n_id];
+		nbcv.x = vecx / len;
+		nbcv.y = vecy / len;
+		nbcv.z = vecz / len;
 	}
 }
 

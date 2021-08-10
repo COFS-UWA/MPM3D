@@ -38,6 +38,7 @@ protected:
 	typedef Model_T3D_CHM_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
+	typedef Model_T3D_CHM_mt::NodeVBCVec NodeVBCVec;
 
 	double* pcl_m_s; // ori_pcl_num
 	double* pcl_density_s; // ori_pcl_num
@@ -79,6 +80,8 @@ protected:
 	Velocity* node_v_f; // node_num
 	NodeHasVBC* node_has_vbc_s; // node_num
 	NodeHasVBC* node_has_vbc_f; // node_num
+	NodeVBCVec* node_vbc_vec_s; // node_num
+	NodeVBCVec* node_vbc_vec_f; // node_num
 	double* node_am_s; // node_num
 	double* node_am_f; // node_num
 	double* node_de_vol_s; // node_num

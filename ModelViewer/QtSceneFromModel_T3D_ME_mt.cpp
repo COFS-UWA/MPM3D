@@ -185,6 +185,33 @@ int QtSceneFromModel_T3D_ME_mt::set_pts_from_vz_bc(float radius)
 	return 0;
 }
 
+int QtSceneFromModel_T3D_ME_mt::set_pts_from_vec_bc(float radius)
+{
+	Model_T3D_ME_mt& md = *model;
+	size_t node_num = md.get_node_num();
+	const Model_T3D_ME_mt::NodeVBCVec* nvbcv = md.get_node_vbc_vec();
+	const Position* node_pos = md.get_node_pos();
+	pt_radius = radius;
+	pt_num = 0;
+	pts_mem.reserve(100);
+	PointData pd_tmp;
+	for (size_t n_id = 0; n_id < node_num; ++n_id)
+	{
+		if (nvbcv[n_id].x != 0.0 || nvbcv[n_id].y != 0.0 ||
+			nvbcv[n_id].z != 0.0)
+		{
+			const Position& n = node_pos[n_id];
+			pd_tmp.x = n.x;
+			pd_tmp.y = n.y;
+			pd_tmp.z = n.z;
+			pts_mem.add(pd_tmp);
+			++pt_num;
+		}
+	}
+	pts = pts_mem.get_mem();
+	return 0;
+}
+
 int QtSceneFromModel_T3D_ME_mt::initialize(int wd, int ht)
 {
 	gl.glEnable(GL_DEPTH_TEST);
