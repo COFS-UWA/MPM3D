@@ -40,6 +40,7 @@ add_library(
     Model_T3D_CHM_mt_hdf5_utilities.h Model_T3D_CHM_mt_hdf5_utilities.cpp
     ModelData_T3D_CHM_mt.h ModelData_T3D_CHM_mt.cpp
     Step_T3D_CHM_mt.h Step_T3D_CHM_mt.cpp Step_T3D_CHM_mt2.cpp
+    Step_T3D_CHM_ud_mt.h Step_T3D_CHM_ud_mt.cpp
     TimeHistory_T3D_CHM_mt_complete.h TimeHistory_T3D_CHM_mt_complete.cpp
     Step_T3D_CHM_mt_Geo.h Step_T3D_CHM_mt_Geo.cpp
     TimeHistory_T3D_CHM_mt_Geo_complete.h TimeHistory_T3D_CHM_mt_Geo_complete.cpp

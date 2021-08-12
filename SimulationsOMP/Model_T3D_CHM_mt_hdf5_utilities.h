@@ -408,6 +408,9 @@ int load_pcl_data_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_
 int output_material_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_material_model_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
+int output_rigid_cylinder_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_cylinder_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+
 int output_t3d_rigid_mesh_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int output_t3d_rigid_mesh_state_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_t3d_rigid_mesh_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

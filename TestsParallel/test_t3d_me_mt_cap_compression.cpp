@@ -43,6 +43,21 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//	le.set_param(1000.0, 0.0);
 	//	mms[pcl_id] = &le;
 	//}
+	// Stb hypoplasticity
+	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
+	//	shp.set_param(
+	//		ini_stress, 0.55,
+	//		30.0, 1354.0e6, 0.34,
+	//		0.18, 1.27,
+	//		0.49, 0.76, 0.86,
+	//		0.3, 3.6, 200.0,
+	//		200.0, 0.2);
+	//	mms[pcl_id] = &shp;
+	//}
 
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.02);
@@ -98,7 +113,7 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	step.set_step_time(2.5);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(4);
+	step.set_thread_num(5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -212,16 +227,19 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::max_shear_stress);
 	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
-	//app.set_res_file(rf, "compression", Hdf5Field::s33);
-	app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);
 	app.set_win_size(1200, 950);
 	app.set_ani_time(5.0);
 	app.set_view_dir(30.0f, 0.0f);
 	app.set_light_dir(30.0f, 20.0f);
 	//app.set_view_dist_scale(1.1);
-	//app.set_color_map_fld_range(-50.0, 0.0);
-	app.set_color_map_fld_range(0.0, 30.0);
 	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
+	// s33
+	app.set_res_file(rf, "compression", Hdf5Field::s33);
+	app.set_color_map_fld_range(-200.0e3, 0.0);
+	// shear stress
+	//app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);
+	//app.set_color_map_fld_range(0.0, 30.0);
+	//
 	//app.set_png_name("t3d_me_mt_cap_compression");
 	app.set_gif_name("t3d_me_mt_cap_compression");
 	app.start();

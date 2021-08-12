@@ -19,6 +19,9 @@ class Step_T3D_CHM_mt;
 int substep_func_omp_T3D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 int substep_func_omp_T3D_CHM_mt2(void* _self, size_t my_th_id, double dt, double cur_time, size_t substp_id);
+class Step_T3D_CHM_ud_mt;
+int substep_func_omp_T3D_CHM_ud_mt(void* _self,
+	size_t my_th_id, double dt, double cur_time, size_t substp_id);
 class Step_T3D_CHM_mt_Geo;
 int substep_func_omp_T3D_CHM_mt_Geo(void* _self,
 	size_t my_th_id, double dt, double cur_time, size_t substp_id);
@@ -41,6 +44,8 @@ namespace Model_T3D_CHM_mt_hdf5_utilities
 	int load_pcl_data_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_material_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_material_model_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_rigid_cylinder_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_rigid_cylinder_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_t3d_rigid_mesh_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_t3d_rigid_mesh_state_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_t3d_rigid_mesh_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -55,6 +60,10 @@ struct Model_T3D_CHM_mt : public Model,
 	friend int substep_func_omp_T3D_CHM_mt2(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 	
+	friend class Step_T3D_CHM_ud_mt;
+	friend int substep_func_omp_T3D_CHM_ud_mt(void* _self,
+		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+
 	friend class Step_T3D_CHM_mt_Geo;
 	friend int substep_func_omp_T3D_CHM_mt_Geo(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
@@ -538,6 +547,8 @@ protected:
 	friend int Model_T3D_CHM_mt_hdf5_utilities::load_pcl_data_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::output_material_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_CHM_mt_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T3D_CHM_mt_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::output_t3d_rigid_mesh_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::output_t3d_rigid_mesh_state_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::load_t3d_rigid_mesh_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

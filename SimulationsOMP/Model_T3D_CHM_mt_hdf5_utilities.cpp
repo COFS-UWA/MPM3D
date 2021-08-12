@@ -4,8 +4,8 @@
 
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
-#include "RigidObject/RigidObject_hdf5_utilities.h"
 #include "Model_T3D_CHM_mt_hdf5_utilities.h"
+#include "RigidObject/RigidObject_hdf5_utilities.h"
 
 namespace Model_T3D_CHM_mt_hdf5_utilities
 {
@@ -655,6 +655,62 @@ int load_material_model_from_hdf5_file(
 	return 0;
 }
 
+int output_rigid_cylinder_to_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_rigid_cylinder())
+		return 0;
+
+	hid_t rc_grp_id = rf.create_group(grp_id, "RigidCylinder");
+
+	rf.write_attribute(rc_grp_id, "Ksn_cont", md.Ksn_cont);
+	rf.write_attribute(rc_grp_id, "Kst_cont", md.Kst_cont);
+	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rc_grp_id, "shear_strength", md.shear_strength);
+	rf.write_attribute(rc_grp_id, "Kfn_cont", md.Kfn_cont);
+	rf.write_attribute(rc_grp_id, "Kft_cont", md.Kft_cont);
+
+	RigidObject_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
+
+	rf.close_group(rc_grp_id);
+	return 0;
+}
+
+int load_rigid_cylinder_from_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(grp_id, "RigidCylinder"))
+		return 0;
+
+	hid_t rc_grp_id = rf.open_group(grp_id, "RigidCylinder");
+
+	double Ksn_cont, Kst_cont, fric_ratio, shear_strength, Kfn_cont, Kft_cont;
+	rf.read_attribute(rc_grp_id, "Ksn_cont", Ksn_cont);
+	rf.read_attribute(rc_grp_id, "Kst_cont", Kst_cont);
+	rf.read_attribute(rc_grp_id, "fric_ratio", fric_ratio);
+	rf.read_attribute(rc_grp_id, "shear_strength", shear_strength);
+	rf.read_attribute(rc_grp_id, "Kfn_cont", Kfn_cont);
+	rf.read_attribute(rc_grp_id, "Kft_cont", Kft_cont);
+	md.set_contact_param(Ksn_cont, Kst_cont,
+		fric_ratio, shear_strength, Kfn_cont, Kft_cont);
+
+	RigidObject_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
+
+	md.rigid_cylinder_is_valid = true;
+	rf.close_group(rc_grp_id);
+	return 0;
+}
+
 int output_t3d_rigid_mesh_to_hdf5_file(
 	Model_T3D_CHM_mt& md,
 	ResultFile_hdf5& rf,
@@ -796,6 +852,7 @@ int time_history_complete_output_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, frame_grp_id);
 	output_t3d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
@@ -811,6 +868,7 @@ int time_history_complete_output_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, frame_grp_id);
 	output_t3d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
@@ -826,6 +884,7 @@ int time_history_complete_output_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, frame_grp_id);
 	output_t3d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
@@ -859,8 +918,8 @@ int load_model_from_hdf5_file(
 	load_material_model_from_hdf5_file(md, rf, md_grp_id);
 	// particle data
 	load_pcl_data_from_hdf5_file(md, rf, md_grp_id);
-
 	// rigid object
+	load_rigid_cylinder_from_hdf5_file(md, rf, md_grp_id);
 	load_t3d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
 
 	return 0;
@@ -908,6 +967,7 @@ int load_model_from_hdf5_file(
 	// particle data
 	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
 	// rigid object state
+	load_rigid_cylinder_from_hdf5_file(md, rf, th_frame_id);
 	load_t3d_rigid_mesh_state_from_hdf5_file(md, rf, th_frame_id);
 
 	step.set_model(md);

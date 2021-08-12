@@ -118,5 +118,6 @@ void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv);
 void test_t3d_chm_mt_spudcan(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_geo_result(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_result(int argc, char** argv);
+void test_t3d_chm_mt_triaxial_compression(int argc, char** argv);
 
 #endif

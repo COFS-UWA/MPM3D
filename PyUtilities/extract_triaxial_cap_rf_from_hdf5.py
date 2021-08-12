@@ -3,7 +3,7 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_triaxial_compression.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_triaxial_compression.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['compression']
 th_num = th_grp.attrs['output_num']
@@ -15,7 +15,7 @@ ini_z = 0.0
 for th_id in range(th_num):
     rb_grp = th_grp['frame_%d' % th_id]['RigidCylinder']
     cen_z = rb_grp.attrs['z']
-    rf_z = rb_grp.attrs['fz']
+    rf_z = rb_grp.attrs['fz_cont']
     if not is_init:
         ini_z = cen_z
         is_init = True

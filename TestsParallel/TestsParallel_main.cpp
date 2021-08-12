@@ -112,8 +112,11 @@ int main(int argc, char *argv[])
 	
 	//test_mohr_coulomb();
 
-	//test_t3d_me_mt_triaxial_compression(argc, argv);
+	test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
+
+	//test_t3d_chm_mt_triaxial_compression(argc, argv);
+	//test_t3d_chm_mt_triaxial_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);
 	//test_t3d_chm_mt_1d_consolidation_restart(argc, argv);
@@ -152,7 +155,7 @@ int main(int argc, char *argv[])
 
 	//test_t3d_chm_mt_cylinder_bcs(argc, argv);
 	//test_t3d_chm_mt_cylinder_bcs2(argc, argv);
-	test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
+	//test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
 
 	//test_t2d_me_tbb_1d_compression(argc, argv);
 	//test_t2d_me_tbb_1d_compression_result(argc, argv);

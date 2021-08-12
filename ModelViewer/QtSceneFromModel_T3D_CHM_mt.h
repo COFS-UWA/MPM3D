@@ -7,6 +7,7 @@
 #include "Model_T3D_CHM_mt.h"
 #include "QtTetrahedronMeshGLObject.h"
 #include "QtMonoColorBallGLObject.h"
+#include "QtRigidCylinderObject.h"
 //#include "QtRigidConeObject.h"
 #include "QtRigidObjectByT3DMesh.h"
 #include "QtSceneFromModel.h"
@@ -27,12 +28,14 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_pts;
+	bool display_rcy, has_rcy;
 	//bool display_rco, has_rco;
 	bool display_rmesh_obj, has_rmesh_obj;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 	QtMonoColorBallGLObject pcls_obj;
 	QtMonoColorBallGLObject pts_obj;
+	QtRigidCylinderObject rcy_obj;
 	//QtRigidConeObject rco_obj;
 	QtRigidObjectByT3DMesh rmesh_obj;
 

@@ -23,6 +23,7 @@ QtSceneFromModel_T3D_CHM_mt::QtSceneFromModel_T3D_CHM_mt(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	display_pts(true), pts_obj(_gl),
+	display_rcy(true), has_rcy(false), rcy_obj(_gl),
 	//display_rco(true), has_rco(false), rco_obj(_gl),
 	display_rmesh_obj(true), has_rmesh_obj(false), rmesh_obj(_gl) {}
 
@@ -384,6 +385,9 @@ void QtSceneFromModel_T3D_CHM_mt::draw()
 
 	shader_rigid_mesh.bind();
 
+	if (display_rcy && has_rcy)
+		rcy_obj.draw(shader_rigid_mesh);
+	
 	//if (display_rco && has_rco)
 	//	rco_obj.draw(shader_rigid_mesh);
 
@@ -444,6 +448,12 @@ void QtSceneFromModel_T3D_CHM_mt::init_shaders()
 
 	// bounding circle
 	Cube mh_bbox = model->get_mesh_bbox();
+	if (model->has_rigid_cylinder())
+	{
+		RigidCylinder& rcy = model->get_rigid_cylinder();
+		Cube rco_bbox = rcy.get_bbox();
+		mh_bbox.envelop(rco_bbox);
+	}
 	//if (model->has_rigid_cone())
 	//{
 	//	RigidCone& rco = model->get_rigid_cone();
@@ -523,6 +533,14 @@ void QtSceneFromModel_T3D_CHM_mt::init_rigid_objects_buffer()
 {
 	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 
+	if (model->has_rigid_cylinder())
+	{
+		const RigidCylinder& rcy = model->get_rigid_cylinder();
+		const Point3D& cen = rcy.get_centre();
+		rcy_obj.init(cen.x, cen.y, cen.z, rcy.get_h(), rcy.get_r(), navajowhite);
+		has_rcy = true;
+	}
+	
 	//if (model->has_rigid_cone())
 	//{
 	//	const RigidCone& rco = model->get_rigid_cone();
