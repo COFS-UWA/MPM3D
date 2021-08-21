@@ -9,7 +9,11 @@ namespace MatModel
 	template <typename MModel> class __Mat_Model_Container__;
 
 	typedef int(*CMIntFunc)(MaterialModel *_self, double dstrain[6]);
-	
+	// store model to mat_model_mem
+	typedef void (*StoreToFunc)(const MaterialModel* _self, char *mat_model_mem);
+	// retrieve model from mat_model_mem
+	typedef void (*RetrieveFromFunc)(MaterialModel* _self, const char* mat_model_mem);
+
 	class MaterialModel
 	{
 	protected:
@@ -48,16 +52,22 @@ namespace MatModel
 		};
 
 		CMIntFunc integration_func;
+		StoreToFunc store_to_func;
+		RetrieveFromFunc retrieve_from_func;
 
 	public:
 		MaterialModel(
 			CMIntFunc _inte_func = nullptr,
-			const char *_type = "MaterialModel"
-			) :
-			integration_func(_inte_func), type(_type) {}
+			const char *_type = "MaterialModel",
+			StoreToFunc _sto_func = nullptr,
+			RetrieveFromFunc _ret_func = nullptr) :
+			integration_func(_inte_func), type(_type),
+			store_to_func(_sto_func), retrieve_from_func(_ret_func){}
 		~MaterialModel() {}
 
 		inline int integrate(double dstrain[6]) { return (*integration_func)(this, dstrain); }
+		inline void store_to(char* mat_model_mem) const noexcept { (*store_to_func)(this, mat_model_mem); }
+		inline void retrieve_from(const char* mat_model_mem) noexcept { (*retrieve_from_func)(this, mat_model_mem); }
 
 		inline size_t get_id() const noexcept { return id; }
 		inline void set_id(size_t _id) noexcept { id = _id; }

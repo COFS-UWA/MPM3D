@@ -45,6 +45,8 @@ add_library(
     Step_T3D_CHM_mt_Geo.h Step_T3D_CHM_mt_Geo.cpp
     TimeHistory_T3D_CHM_mt_Geo_complete.h TimeHistory_T3D_CHM_mt_Geo_complete.cpp
     TimeHistory_T3D_CHM_mt_Geo_ratio.h TimeHistory_T3D_CHM_mt_Geo_ratio.cpp
+    Step_T3D_CHM_ud_mt_subiter.h Step_T3D_CHM_ud_mt_subiter.cpp
+    Step_T3D_CHM_ud_mt_subiter_utils.cpp
     # Parallelism using TBB
     DivideTask.hpp
     MergeTask.hpp

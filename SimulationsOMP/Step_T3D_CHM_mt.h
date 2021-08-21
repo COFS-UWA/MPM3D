@@ -4,7 +4,7 @@
 #include "CacheAlignedMem.h"
 #include "Step_OMP.h"
 #include "Model_T3D_CHM_mt.h"
-#include "RigidObject/Force2D.h"
+//#include "RigidObject/Force3D.h"
 
 class Model_T3D_CHM_mt;
 class Step_T3D_CHM_mt;
@@ -24,8 +24,8 @@ class Step_T3D_CHM_mt : public Step_OMP
 {
 protected:
 	typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
-	typedef Model_T3D_CHM_mt::DShapeFuncABC DShapeFuncAB;
-	typedef Model_T3D_CHM_mt::DShapeFuncD DShapeFuncC;
+	typedef Model_T3D_CHM_mt::DShapeFuncABC DShapeFuncABC;
+	typedef Model_T3D_CHM_mt::DShapeFuncD DShapeFuncD;
 	typedef Model_T3D_CHM_mt::Force Force;
 	typedef Model_T3D_CHM_mt::Position Position;
 	typedef Model_T3D_CHM_mt::Displacement Displacement;
@@ -53,8 +53,8 @@ protected:
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
 
 	ElemNodeIndex *elem_node_id;
-	DShapeFuncAB *elem_N_abc;
-	DShapeFuncC *elem_N_d;
+	DShapeFuncABC *elem_N_abc;
+	DShapeFuncD *elem_N_d;
 	double* elem_vol;
 
 	double* elem_density_f; // elem_num
@@ -144,6 +144,7 @@ protected:
 	ParticleVariablesGetter pv_place_holder;
 
 public:
+	Step_T3D_CHM_mt(const char* _name, const char* _type, CalSubstepFuncOMP _func_omp);
 	int init_calculation() override;
 	friend int substep_func_omp_T3D_CHM_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);

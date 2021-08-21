@@ -22,6 +22,9 @@ int substep_func_omp_T3D_CHM_mt2(void* _self, size_t my_th_id, double dt, double
 class Step_T3D_CHM_ud_mt;
 int substep_func_omp_T3D_CHM_ud_mt(void* _self,
 	size_t my_th_id, double dt, double cur_time, size_t substp_id);
+class Step_T3D_CHM_ud_mt_subiter;
+int substep_func_omp_T3D_CHM_ud_mt_subiter(void* _self,
+	size_t my_th_id, double dt, double cur_time, size_t substp_id);
 class Step_T3D_CHM_mt_Geo;
 int substep_func_omp_T3D_CHM_mt_Geo(void* _self,
 	size_t my_th_id, double dt, double cur_time, size_t substp_id);
@@ -62,6 +65,10 @@ struct Model_T3D_CHM_mt : public Model,
 	
 	friend class Step_T3D_CHM_ud_mt;
 	friend int substep_func_omp_T3D_CHM_ud_mt(void* _self,
+		size_t my_th_id, double dt, double cur_time, size_t substp_id);
+
+	friend class Step_T3D_CHM_ud_mt_subiter;
+	friend int substep_func_omp_T3D_CHM_ud_mt_subiter(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 
 	friend class Step_T3D_CHM_mt_Geo;
@@ -170,8 +177,14 @@ protected:
 	Force* pcl_bf_f; // ori_pcl_num
 	Force *pcl_t; // ori_pcl_num
 	Position *pcl_pos; // ori_pcl_num
-	double *pcl_vol; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
+	size_t *pcl_mat_model_copy_offset;
+	size_t pcl_mat_model_total_size;
+
+	double* pcl_vol; // ori_pcl_num
+	Stress* pcl_prev_stress; // ori_pcl_num
+	StrainInc* pcl_destrain; // ori_pcl_num
+	StrainInc* pcl_dpstrain; // ori_pcl_num
 
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
 
@@ -182,6 +195,7 @@ protected:
 	double* elem_vol; // elem_num
 
 	// element calculation data
+	double* elem_pcl_int_vol; // elem_num
 	double *elem_density_f; // elem_num
 	double *elem_pcl_n; // elem_num
 	double *elem_pcl_m_s; // elem_num
@@ -201,18 +215,27 @@ protected:
 	
 	// node data
 	Position* node_pos; // node_num
+	double* node_am_s; // node_num
+	double* node_am_f; // node_num
 	Acceleration *node_a_s; // node_num
 	Acceleration *node_a_f; // node_num
 	Velocity *node_v_s; // node_num
 	Velocity *node_v_f; // node_num
+	Displacement *node_du_s; // node_num
+	Displacement* node_du_f; // node_num
+	Velocity *node_vn_s; // node_num
+	Velocity* node_vn_f; // node_num
+	Velocity *node_pv_s; // node_num
+	Velocity* node_pv_f; // node_num
+	Displacement* node_pdu_s; // node_num
+	Displacement* node_pdu_f;// node_num
+	double* node_de_vol_s; // node_num
+	double* node_de_vol_f; // node_num
+
 	NodeHasVBC *node_has_vbc_s; // node_num
 	NodeHasVBC *node_has_vbc_f; // node_num
 	NodeVBCVec* node_vbc_vec_s; // node_num
 	NodeVBCVec* node_vbc_vec_f; // node_num
-	double *node_am_s; // node_num
-	double *node_am_f; // node_num
-	double *node_de_vol_s; // node_num
-	double *node_de_vol_f; // node_num
 
 	double Kf, k, miu;
 
@@ -320,6 +343,15 @@ public:
 	void init_fixed_vz_f_bc(size_t vz_bc_num, const size_t* vz_bcs);
 	void set_vbc_vec_s(size_t n_id, double vecx, double vecy, double vecz);
 	void set_vbc_vec_f(size_t n_id, double vecx, double vecy, double vecz);
+
+	inline void add_mat_model(size_t pcl_id,
+		MatModel::MaterialModel &mat_model,
+		size_t model_size)
+	{
+		pcl_mat_model[pcl_id] = &mat_model;
+		pcl_mat_model_copy_offset[pcl_id] = pcl_mat_model_total_size;
+		pcl_mat_model_total_size += model_size;
+	}
 
 protected:
 	// background grid for mesh

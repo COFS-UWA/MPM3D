@@ -2,8 +2,10 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
+file_name = "t3d_chm_mt_triaxial_compression"
+
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_triaxial_compression.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['compression']
 th_num = th_grp.attrs['output_num']
@@ -25,7 +27,7 @@ for th_id in range(th_num):
 
 hdf5_file.close()
 
-data_file = open("../Build/TestsParallel/t3d_me_mt_triaxial_compression.csv", "w")
+data_file = open("../Build/TestsParallel/" + file_name + ".csv", "w")
 for i in range(len(rb_z)):
     data_file.write("%f, %f\n" % (rb_z[i], rb_fz[i]))
 data_file.close()

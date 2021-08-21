@@ -9,6 +9,7 @@
 #include "Model_T3D_CHM_mt.h"
 
 Model_T3D_CHM_mt::Model_T3D_CHM_mt() :
+	pcl_mat_model_total_size(0),
 	ori_pcl_num(0), pcl_num(0),
 	pcl_mem_raw(nullptr),
 	node_num(0), elem_num(0),

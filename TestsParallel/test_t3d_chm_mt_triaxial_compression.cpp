@@ -3,7 +3,7 @@
 #include "ParticleGenerator3D.hpp"
 #include "LinearElasticity.h"
 #include "Model_T3D_CHM_mt.h"
-#include "Step_T3D_CHM_mt.h"
+#include "Step_T3D_CHM_ud_mt.h"
 #include "ModelData_T3D_CHM_mt.h"
 #include "TimeHistory_T3D_CHM_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
@@ -37,7 +37,7 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
-	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 2.0e6, 5.0e-9, 1.0);
+	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 2.0e8, 5.0e-9, 1.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	const size_t pcl_num = model.get_pcl_num();
 	//// linear elasticitiy
@@ -57,7 +57,7 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	//	mms[pcl_id] = &tc;
 	//}
 	// sand hypoplasticity with yield surface
-	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	const double ini_stress[6] = { -10.0e3, -10.0e3, -10.0e3, 0.0, 0.0, 0.0 };
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -74,7 +74,7 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	
 	// rigid cap
 	model.init_rigid_cylinder(0.0, 0.0, 2.1, 0.2, 1.2);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.04);
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
 	const double Kct = 1.0e5 / (0.025 * 0.025);
 	model.set_contact_param(Kct, Kct, 0.1, 0.2, Kct / 100.0, Kct / 100.0);
 	
@@ -98,8 +98,8 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 			  << "node_num: " << model.get_node_num() << "\n";
 	QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(135.0f, -30.0f);
-	md_disp.set_light_dir(120.0f, -20.0f);
+	md_disp.set_view_dir(45.0f, -30.0f);
+	md_disp.set_light_dir(30.0f, -20.0f);
 	//md_disp.set_view_dist_scale(0.5);
 	md_disp.set_model(model);
 	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
@@ -122,10 +122,10 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(500);
 
-	Step_T3D_CHM_mt step("step1");
+	Step_T3D_CHM_ud_mt step("step1");
 	step.set_model(model);
 	step.set_thread_num(5);
-	step.set_step_time(2.5);
+	step.set_step_time(0.8);
 	//step.set_step_time(5.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
@@ -143,6 +143,7 @@ void test_t3d_chm_mt_triaxial_compression_result(int argc, char** argv)
 
 	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::SingleFrame);
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::max_shear_stress);
+	
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_win_size(1200, 950);
 	app.set_ani_time(10.0);
@@ -161,6 +162,6 @@ void test_t3d_chm_mt_triaxial_compression_result(int argc, char** argv)
 	app.set_color_map_fld_range(-10.0e3, 10.0e3);
 	//
 	//app.set_png_name("t3d_chm_mt_triaxial_compression");
-	//app.set_gif_name("t3d_chm_mt_triaxial_compression");
+	app.set_gif_name("t3d_chm_mt_triaxial_compression");
 	app.start();
 }
