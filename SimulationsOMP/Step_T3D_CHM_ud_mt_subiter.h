@@ -176,6 +176,11 @@ public:
 	void set_converge_e_kin_ratio(double con_ratio) noexcept { converge_e_kin_ratio = con_ratio; }
 	void set_pdt(double _pdt) noexcept { pdt = _pdt; }
 	
+
+	inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
+	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }
+	inline size_t* get_prev_pcl_id() const noexcept { return prev_pcl_ids[thread_datas[0].sorted_pcl_in_elem_id]; }
+	inline size_t* get_pcl_in_elem() const noexcept { return pcl_in_elems[thread_datas[0].sorted_pcl_in_elem_id]; }
 	inline size_t get_subiter_index() const noexcept { return subiter_index; }
 	inline double get_cur_e_kin() const noexcept { return cur_e_kin; }
 	inline double get_max_e_kin() const noexcept { return max_e_kin; }
