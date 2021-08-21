@@ -8,7 +8,8 @@ namespace MatModel
 	SandHypoplasticityStbWrapper::SandHypoplasticityStbWrapper() :
 		MaterialModel(&sand_hypoplasticity_stb_wrapper_integration_function,
 			"SandHypoplasticityStbWrapper",
-			&sand_hypoplasticity_stb_wrapper_store_to_function)
+			&sand_hypoplasticity_stb_wrapper_store_to_function,
+			&sand_hypoplasticity_stb_wrapper_retrieve_from_function)
 	{
 		dee11 = 0.0;
 		dee22 = 0.0;

@@ -178,7 +178,7 @@ protected:
 	Force *pcl_t; // ori_pcl_num
 	Position *pcl_pos; // ori_pcl_num
 	MatModel::MaterialModel **pcl_mat_model; // ori_pcl_num
-	size_t *pcl_mat_model_copy_offset;
+	size_t *pcl_mat_model_copy_offset; // ori_pcl_num
 	size_t pcl_mat_model_total_size;
 
 	double* pcl_vol; // ori_pcl_num

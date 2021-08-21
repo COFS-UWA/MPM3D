@@ -85,9 +85,9 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 	elem_vol = md.elem_vol;
 
 	elem_pcl_int_vol = md.elem_pcl_int_vol;
-	elem_pcl_m = md.elem_pcl_m_s;
-	elem_pcl_n = md.elem_pcl_n;
 	elem_density_f = md.elem_density_f;
+	elem_pcl_n = md.elem_pcl_n;
+	elem_pcl_m = md.elem_pcl_m_s;
 	elem_de = md.elem_de;
 	elem_p = md.elem_p;
 	elem_m_de_vol = md.elem_m_de_vol_s;
@@ -159,8 +159,6 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 		thd.sorted_pcl_var_id = 1;
 		thd.sorted_pcl_in_elem_id = 0;
 		thd.max_pcl_vol = 0.0;
-		//PclVar_T3D_ME_mt& pv_getter = thd.pcl_var_getter;
-		//pv_getter.pmodel = &md;
 
 		size_t p_id, ori_p_id, e_id;
 		size_t p_id0 = Block_Low(my_th_id, thread_num, prev_valid_pcl_num);
@@ -480,34 +478,18 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	double en1_vmx_s = 0.0;
 	double en1_vmy_s = 0.0;
 	double en1_vmz_s = 0.0;
-	double en1_vm_f = 0.0;
-	double en1_vmx_f = 0.0;
-	double en1_vmy_f = 0.0;
-	double en1_vmz_f = 0.0;
 	double en2_vm_s = 0.0;
 	double en2_vmx_s = 0.0;
 	double en2_vmy_s = 0.0;
 	double en2_vmz_s = 0.0;
-	double en2_vm_f = 0.0;
-	double en2_vmx_f = 0.0;
-	double en2_vmy_f = 0.0;
-	double en2_vmz_f = 0.0;
 	double en3_vm_s = 0.0;
 	double en3_vmx_s = 0.0;
 	double en3_vmy_s = 0.0;
 	double en3_vmz_s = 0.0;
-	double en3_vm_f = 0.0;
-	double en3_vmx_f = 0.0;
-	double en3_vmy_f = 0.0;
-	double en3_vmz_f = 0.0;
 	double en4_vm_s = 0.0;
 	double en4_vmx_s = 0.0;
 	double en4_vmy_s = 0.0;
 	double en4_vmz_s = 0.0;
-	double en4_vm_f = 0.0;
-	double en4_vmx_f = 0.0;
-	double en4_vmy_f = 0.0;
-	double en4_vmz_f = 0.0;
 	double e_p_m_s = 0.0;
 	double e_p_m_f = 0.0;
 	double e_n = 0.0;
@@ -774,22 +756,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			en4_vmx_s = 0.0;
 			en4_vmy_s = 0.0;
 			en4_vmz_s = 0.0;
-			en1_vm_f = 0.0;
-			en1_vmx_f = 0.0;
-			en1_vmy_f = 0.0;
-			en1_vmz_f = 0.0;
-			en2_vm_f = 0.0;
-			en2_vmx_f = 0.0;
-			en2_vmy_f = 0.0;
-			en2_vmz_f = 0.0;
-			en3_vm_f = 0.0;
-			en3_vmx_f = 0.0;
-			en3_vmy_f = 0.0;
-			en3_vmz_f = 0.0;
-			en4_vm_f = 0.0;
-			en4_vmx_f = 0.0;
-			en4_vmy_f = 0.0;
-			en4_vmz_f = 0.0;
 			en1_fx_ext = 0.0;
 			en1_fy_ext = 0.0;
 			en1_fz_ext = 0.0;
@@ -837,7 +803,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	}
 
 #pragma omp barrier
-
 	// sort node-elem pair according to node id
 	size_t ve_id;
 	memset(my_cbin, 0, 0x100 * sizeof(size_t));
@@ -1198,12 +1163,16 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		subiter_index < self.max_subiter_num) // controlled
 	{
 #pragma omp barrier
-		subiteration_res = self.subiteration(my_th_id,
-			p_id0, p_id1, ve_id0, ve_id1, 
-			my_valid_elem_ids, my_valid_elem_num,
-			spva0, pcl_in_elem0,
-			node_has_elem0, node_elem_pair0);
+		{
+			subiteration_res = self.subiteration(my_th_id,
+				p_id0, p_id1, ve_id0, ve_id1,
+				my_valid_elem_ids, my_valid_elem_num,
+				spva0, pcl_in_elem0,
+				node_has_elem0, node_elem_pair0);
+		}
 		++subiter_index;
+#pragma omp master
+		self.subiter_index = subiter_index;
 	}
 
 #pragma omp barrier

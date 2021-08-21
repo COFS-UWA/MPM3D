@@ -3,9 +3,12 @@
 #include "ParticleGenerator3D.hpp"
 #include "LinearElasticity.h"
 #include "Model_T3D_CHM_mt.h"
-#include "Step_T3D_CHM_ud_mt.h"
 #include "ModelData_T3D_CHM_mt.h"
+#include "Step_T3D_CHM_ud_mt.h"
 #include "TimeHistory_T3D_CHM_mt_complete.h"
+#include "Step_T3D_CHM_ud_mt_subiter.h"
+#include "TimeHistory_T3D_CHM_ud_mt_subiter_complete.h"
+#include "TimeHistory_T3D_CHM_ud_mt_subiter_ratio.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt_Div.h"
 
@@ -114,20 +117,43 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_CHM_mt_complete out1("compression");
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(500);
+
+	//TimeHistory_T3D_CHM_mt_complete out1("compression");
+	//out1.set_interval_num(100);
+	//out1.set_output_init_state();
+	//out1.set_output_final_state();
+	//out1.set_res_file(res_file_hdf5);
+
+	//Step_T3D_CHM_ud_mt step("step1");
+	//step.set_model(model);
+	//step.set_thread_num(5);
+	//step.set_step_time(0.8);
+	////step.set_step_time(5.0e-5);
+	//step.set_dtime(5.0e-6);
+	//step.add_time_history(out1);
+	//step.add_time_history(out_cpb);
+	//step.solve();
+
+	TimeHistory_T3D_CHM_ud_mt_subiter_complete out1("compression");
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
-	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(500);
+	TimeHistory_T3D_CHM_ud_mt_subiter_ratio out2("ratio");
+	out2.set_interval_num(200);
+	out2.set_output_init_state();
+	out2.set_output_final_state();
+	out2.set_name("t3d_chm_mt_triaxial_compression_ratio.csv");
 
-	Step_T3D_CHM_ud_mt step("step1");
+	Step_T3D_CHM_ud_mt_subiter step("step1");
 	step.set_model(model);
 	step.set_thread_num(5);
 	step.set_step_time(0.8);
 	//step.set_step_time(5.0e-5);
 	step.set_dtime(5.0e-6);
+	step.set_pdt(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

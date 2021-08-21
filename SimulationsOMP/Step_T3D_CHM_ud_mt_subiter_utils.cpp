@@ -175,17 +175,19 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 #pragma omp critical
 	cur_e_kin += e_kin;
 
-// judge convergence
 #pragma omp barrier
+	// judge convergence
 #pragma omp master
 	{
 		if (cur_e_kin < prev_e_kin)
 		{
 			cal_status = 1;
+			if (prev_e_kin < converge_e_kin_ratio * max_e_kin)
+				cal_status = 2; // converge
+			else if (prev_e_kin > max_e_kin)
+				prev_e_kin = max_e_kin;
 			cur_e_kin = 0.0;
 			prev_e_kin = 0.0;
-			if (cur_e_kin < converge_e_kin_ratio * max_e_kin)
-				cal_status = 2; // converge
 		}
 		else
 		{
@@ -229,6 +231,7 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 				n_a.ax = (n_v.vx - n_vn.vx) / dtime;
 				n_a.ay = (n_v.vy - n_vn.vy) / dtime;
 				n_a.az = (n_v.vz - n_vn.vz) / dtime;
+
 				n_id = node_has_elem0[ve_id + 1];
 				assert(n_id < node_num || n_id == SIZE_MAX);
 			}
@@ -385,8 +388,7 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 		p_dpe.de23 = pstrain[4];
 		p_dpe.de31 = pstrain[5];
 	}
-
-#pragma omp barrier
+	
 	return 0;
 }
 

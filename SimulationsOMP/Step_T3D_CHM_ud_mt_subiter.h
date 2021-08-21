@@ -150,7 +150,7 @@ protected:
 	double converge_e_kin_ratio;
 	double pdt; // pseudo dt
 	// subiteration state
-	size_t cal_status;
+	size_t cal_status, subiter_index;
 	double cur_e_kin, prev_e_kin, max_e_kin;
 
 	int Step_T3D_CHM_ud_mt_subiter::subiteration(
@@ -175,6 +175,10 @@ public:
 	void set_mass_factor(double m_fac) noexcept { mass_factor = m_fac; }
 	void set_converge_e_kin_ratio(double con_ratio) noexcept { converge_e_kin_ratio = con_ratio; }
 	void set_pdt(double _pdt) noexcept { pdt = _pdt; }
+	
+	inline size_t get_subiter_index() const noexcept { return subiter_index; }
+	inline double get_cur_e_kin() const noexcept { return cur_e_kin; }
+	inline double get_max_e_kin() const noexcept { return max_e_kin; }
 
 	friend int Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 		Model_T3D_CHM_mt &md, Step_T3D_CHM_ud_mt_subiter &step, const char *hdf5_name,

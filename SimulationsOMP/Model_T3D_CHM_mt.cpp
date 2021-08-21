@@ -9,9 +9,9 @@
 #include "Model_T3D_CHM_mt.h"
 
 Model_T3D_CHM_mt::Model_T3D_CHM_mt() :
-	pcl_mat_model_total_size(0),
 	ori_pcl_num(0), pcl_num(0),
 	pcl_mem_raw(nullptr),
+	pcl_mat_model_total_size(0),
 	node_num(0), elem_num(0),
 	mesh_mem_raw(nullptr),
 	bfx_s_num(0), bfx_ss(nullptr),
@@ -96,9 +96,10 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 
 	size_t mem_len = (sizeof(ElemNodeIndex)
 		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
-		+ sizeof(double) * 9 + sizeof(StrainInc)
+		+ sizeof(double) * 10 + sizeof(StrainInc)
 		+ sizeof(ElemNodeVM) * 8 + sizeof(Force) * 9) * e_num
-		+ (sizeof(Position) + sizeof(Acceleration) * 2 + sizeof(Velocity) * 2
+		+ (sizeof(Position) + sizeof(Acceleration) * 2 + sizeof(Velocity) * 6
+		+ sizeof(Displacement) * 4
 		+ sizeof(NodeHasVBC) * 2 + sizeof(NodeVBCVec) * 2
 		+ sizeof(double) * 4) * n_num;
 	mesh_mem_raw = new char[mem_len];
@@ -111,6 +112,8 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 	elem_N_d = (DShapeFuncD*)cur_mem;
 	cur_mem += sizeof(DShapeFuncD) * elem_num;
 	elem_vol = (double*)cur_mem;
+	cur_mem += sizeof(double) * elem_num;
+	elem_pcl_int_vol = (double *)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
 	elem_density_f = (double*)cur_mem;
 	cur_mem += sizeof(double) * elem_num;
@@ -143,6 +146,10 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 
 	node_pos = (Position*)cur_mem;
 	cur_mem += sizeof(Position) * node_num;
+	node_am_s = (double*)cur_mem;
+	cur_mem += sizeof(double) * node_num;
+	node_am_f = (double*)cur_mem;
+	cur_mem += sizeof(double) * node_num;
 	node_a_s = (Acceleration *)cur_mem;
 	cur_mem += sizeof(Acceleration) * node_num;
 	node_a_f = (Acceleration*)cur_mem;
@@ -151,6 +158,26 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(Velocity) * node_num;
 	node_v_f = (Velocity*)cur_mem;
 	cur_mem += sizeof(Velocity) * node_num;
+	node_du_s = (Displacement*)cur_mem;
+	cur_mem += sizeof(Displacement) * node_num;
+	node_du_f = (Displacement*)cur_mem;
+	cur_mem += sizeof(Displacement) * node_num;
+	node_vn_s = (Velocity*)cur_mem;
+	cur_mem += sizeof(Velocity) * node_num;
+	node_vn_f = (Velocity*)cur_mem;
+	cur_mem += sizeof(Velocity) * node_num;
+	node_pv_s = (Velocity*)cur_mem;
+	cur_mem += sizeof(Velocity) * node_num;
+	node_pv_f = (Velocity*)cur_mem;
+	cur_mem += sizeof(Velocity) * node_num;
+	node_pdu_s = (Displacement*)cur_mem;
+	cur_mem += sizeof(Displacement) * node_num;
+	node_pdu_f = (Displacement*)cur_mem;
+	cur_mem += sizeof(Displacement) * node_num;
+	node_de_vol_s = (double*)cur_mem;
+	cur_mem += sizeof(double) * node_num;
+	node_de_vol_f = (double*)cur_mem;
+	cur_mem += sizeof(double) * node_num;
 	node_has_vbc_s = (NodeHasVBC *)cur_mem;
 	cur_mem += sizeof(NodeHasVBC) * node_num;
 	node_has_vbc_f = (NodeHasVBC*)cur_mem;
@@ -159,14 +186,6 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(NodeVBCVec) * node_num;
 	node_vbc_vec_f = (NodeVBCVec*)cur_mem;
 	cur_mem += sizeof(NodeVBCVec) * node_num;
-	node_am_s = (double*)cur_mem;
-	cur_mem += sizeof(double) * node_num;
-	node_am_f = (double*)cur_mem;
-	cur_mem += sizeof(double) * node_num;
-	node_de_vol_s = (double*)cur_mem;
-	cur_mem += sizeof(double) * node_num;
-	node_de_vol_f = (double*)cur_mem;
-	cur_mem += sizeof(double) * node_num;
 }
 
 void Model_T3D_CHM_mt::init_mesh(const TetrahedronMesh &mesh)
@@ -341,7 +360,8 @@ void Model_T3D_CHM_mt::alloc_pcls(size_t num)
 	pcl_num = ori_pcl_num;
 	size_t mem_len = (sizeof(double)  * 4
 		+ sizeof(Force) * 3	+ sizeof(Position)
-		+ sizeof(MatModel::MaterialModel *)
+		+ sizeof(MatModel::MaterialModel *) + sizeof(size_t)
+		+ sizeof(Stress) + sizeof(StrainInc) * 2
 		+ (sizeof(size_t) + sizeof(double) * 3
 		+ sizeof(Velocity) * 2 + sizeof(Displacement) * 2
 		+ sizeof(Stress) + sizeof(Strain) * 3
@@ -363,10 +383,19 @@ void Model_T3D_CHM_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Force) * num;
 	pcl_pos = (Position *)cur_mem;
 	cur_mem += sizeof(Position) * num;
-	pcl_vol = (double *)cur_mem;
-	cur_mem += sizeof(double) * num;
 	pcl_mat_model = (MatModel::MaterialModel **)cur_mem;
 	cur_mem += sizeof(MatModel::MaterialModel *) * num;
+	pcl_mat_model_copy_offset = (size_t*)cur_mem;
+	cur_mem += sizeof(size_t) * num;
+
+	pcl_vol = (double*)cur_mem;
+	cur_mem += sizeof(double) * num;
+	pcl_prev_stress = (Stress*)cur_mem;
+	cur_mem += sizeof(Stress) * num;
+	pcl_destrain = (StrainInc*)cur_mem;
+	cur_mem += sizeof(StrainInc) * num;
+	pcl_dpstrain = (StrainInc*)cur_mem;
+	cur_mem += sizeof(StrainInc) * num;
 
 	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[0];
 	spva0.pcl_index = (size_t*)cur_mem;
