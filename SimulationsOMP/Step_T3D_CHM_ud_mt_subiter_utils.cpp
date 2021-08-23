@@ -38,6 +38,11 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 	Strain* const pcl_pstrain0 = spva0.pcl_pstrain;
 	ShapeFunc* const pcl_N0 = spva0.pcl_N;
 
+#pragma omp master
+	{
+		cur_e_kin = 0.0;
+	}
+
 	size_t e_id, p_id;
 	double p_vol;
 	double e_p_vol = 0.0;
@@ -185,10 +190,11 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 		if (cur_e_kin < prev_e_kin)
 		{
 			cal_status = 1;
-			if (prev_e_kin < converge_e_kin_ratio * max_e_kin)
+			//if (prev_e_kin < converge_e_kin_ratio * max_e_kin)
+			if (prev_e_kin < 1.0e-6)
 				cal_status = 2; // converge
-			else if (prev_e_kin > max_e_kin)
-				prev_e_kin = max_e_kin;
+			if (max_e_kin < prev_e_kin)
+				max_e_kin = prev_e_kin;
 			cur_e_kin = 0.0;
 			prev_e_kin = 0.0;
 		}
@@ -197,8 +203,8 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			cal_status = 0;
 			prev_e_kin = cur_e_kin;
 		}
-		//t3d_chm_ud_mt_subit_db_file << cur_e_kin << ", " << prev_e_kin << ", "
-		//	<< max_e_kin << "\n";
+		t3d_chm_ud_mt_subit_db_file << cur_e_kin << ", " << prev_e_kin << ", "
+			<< max_e_kin << "\n";
 	}
 
 #pragma omp barrier
@@ -226,16 +232,16 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 				n_du.uz += n_pdu_tmp;
 				n_pdu.uz += n_pdu_tmp;
 
-				// modify velocity and acceleration
-				Velocity& n_v = node_v[n_id];
-				n_v.vx = n_du.ux / dtime;
-				n_v.vy = n_du.uy / dtime;
-				n_v.vz = n_du.uz / dtime;
-				Acceleration& n_a = node_a[n_id];
-				Velocity& n_vn = node_vn[n_id];
-				n_a.ax = (n_v.vx - n_vn.vx) / dtime;
-				n_a.ay = (n_v.vy - n_vn.vy) / dtime;
-				n_a.az = (n_v.vz - n_vn.vz) / dtime;
+				//// modify velocity and acceleration
+				//Velocity& n_v = node_v[n_id];
+				//n_v.vx = n_du.ux / dtime;
+				//n_v.vy = n_du.uy / dtime;
+				//n_v.vz = n_du.uz / dtime;
+				//Acceleration& n_a = node_a[n_id];
+				//Velocity& n_vn = node_vn[n_id];
+				//n_a.ax = (n_v.vx - n_vn.vx) / dtime;
+				//n_a.ay = (n_v.vy - n_vn.vy) / dtime;
+				//n_a.az = (n_v.vz - n_vn.vz) / dtime;
 
 				n_id = node_has_elem0[ve_id + 1];
 				assert(n_id < node_num || n_id == SIZE_MAX);
@@ -352,8 +358,9 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			e_pde_vol = (node_pde_vol[eni.n1] + node_pde_vol[eni.n2]
 					   + node_pde_vol[eni.n3] + node_pde_vol[eni.n4]) * one_fourth;
 			e_pde_vol_f = -e_pde_vol / elem_pcl_n[e_id];
-			elem_pcl_n[e_id] = (e_pde_vol + elem_pcl_n[e_id]) / (1.0 + e_pde_vol);
-			elem_density_f[e_id] /= 1.0 - e_pde_vol_f;
+			//elem_pcl_n[e_id] = (e_pde_vol + elem_pcl_n[e_id]) / (1.0 + e_pde_vol);
+			//elem_pcl_int_vol[e_id] *= (1.0 + e_pde_vol);
+			//elem_density_f[e_id] /= 1.0 - e_pde_vol_f;
 			elem_p[e_id] += Kf * e_pde_vol_f;
 		}
 

@@ -40,7 +40,8 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
-	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 2.0e7, 5.0e-9, 1.0);
+	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 2.0e7, 5.0e-9, 1.0);
+	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	const size_t pcl_num = model.get_pcl_num();
 	// linear elasticitiy
@@ -141,12 +142,14 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 
 	Step_T3D_CHM_ud_mt_subiter step("step1");
 	step.set_model(model);
-	step.set_thread_num(2);
-	//step.set_step_time(0.8);
-	step.set_step_time(1.0e-3);
-	//step.set_max_subiter_num(2);
+	step.set_thread_num(5);
+	//step.set_step_time(1.0);
+	//step.set_step_time(1.0e-5);
+	step.set_step_time(5.0e-2);
+	//step.set_max_subiter_num(100);
 	step.set_dtime(5.0e-6);
 	step.set_pdt(5.0e-6);
+	//step.set_mass_factor(10.0);
 	step.add_time_history(out1);
 	step.add_time_history(out2);
 	step.add_time_history(out_cpb);
@@ -167,19 +170,20 @@ void test_t3d_chm_mt_triaxial_compression_result(int argc, char** argv)
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_win_size(1200, 950);
 	app.set_ani_time(10.0);
-	app.set_view_dir(60.0f, 10.0f);
-	app.set_light_dir(45.0f, 10.0f);
+	app.set_view_dir(75.0f, 10.0f);
+	app.set_light_dir(70.0f, 10.0f);
 	//app.set_view_dist_scale(1.1);
-	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
+	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	// s33
-	//app.set_res_file(rf, "compression", Hdf5Field::s33);
+	app.set_res_file(rf, "compression", Hdf5Field::s33);
+	app.set_color_map_fld_range(-200.0e3, 0.0);
 	//app.set_color_map_fld_range(-500.0e3, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 30.0);
 	// p
-	app.set_res_file(rf, "compression", Hdf5Field::p);
-	app.set_color_map_fld_range(-10.0e3, 10.0e3);
+	//app.set_res_file(rf, "compression", Hdf5Field::p);
+	//app.set_color_map_fld_range(-10.0e3, 10.0e3);
 	//
 	//app.set_png_name("t3d_chm_mt_triaxial_compression");
 	app.set_gif_name("t3d_chm_mt_triaxial_compression");

@@ -16,7 +16,7 @@ std::fstream t3d_chm_ud_mt_subit_db_file;
 Step_T3D_CHM_ud_mt_subiter::Step_T3D_CHM_ud_mt_subiter(const char* _name) : 
 	Step_OMP(_name, "Step_T3D_CHM_ud_mt_subiter",
 		&substep_func_omp_T3D_CHM_ud_mt_subiter),
-	max_subiter_num(20), mass_factor(1.0), converge_e_kin_ratio(0.05) {}
+	max_subiter_num(20), mass_factor(1.0), converge_e_kin_ratio(0.001) {}
 
 Step_T3D_CHM_ud_mt_subiter::~Step_T3D_CHM_ud_mt_subiter() {}
 
@@ -404,7 +404,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 #pragma omp master
 	{
 		self.subiter_index = 0;
-		self.cur_e_kin = 0.0;
 		self.prev_e_kin = 0.0;
 		self.max_e_kin = -1.0;
 	}
@@ -1129,7 +1128,7 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			const double e_de_vol_f = -e_de_vol / elem_pcl_n[e_id];
 
 			elem_pcl_n[e_id] = (e_de_vol + elem_pcl_n[e_id]) / (1.0 + e_de_vol);
-			elem_pcl_int_vol[e_id] *= (1.0 + e_de_vol);
+			//elem_pcl_int_vol[e_id] *= (1.0 + e_de_vol);
 
 			elem_density_f[e_id] /= (1.0 - e_de_vol_f);
 			elem_p[e_id] += self.Kf * e_de_vol_f;
