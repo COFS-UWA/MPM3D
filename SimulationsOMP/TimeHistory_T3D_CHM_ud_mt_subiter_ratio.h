@@ -30,7 +30,7 @@ public:
 			close();
 		is_init = true;
 		res_file.open(filename, std::ios::binary | std::ios::out);
-		res_file << "substep index, time, f_ub, e_kin, f_ub_ratio, e_kin_ratio\n";
+		res_file << "substep index, time, e_kin, max_e_kin, subiter index\n";
 		output_func = &time_history_output_func_T3D_CHM_ud_mt_subiter_ratio_to_text_res_file;
 	}
 };

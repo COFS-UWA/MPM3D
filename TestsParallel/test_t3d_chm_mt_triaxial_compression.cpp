@@ -40,40 +40,32 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
-	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 2.0e8, 5.0e-9, 1.0);
+	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 2.0e7, 5.0e-9, 1.0);
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	const size_t pcl_num = model.get_pcl_num();
-	//// linear elasticitiy
-	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	MatModel::LinearElasticity& le = les[pcl_id];
-	//	le.set_param(10000.0, 0.3);
-	//	mms[pcl_id] = &le;
-	//}
-	// Tresca
-	//MatModel::Tresca* tcs = model.add_Tresca(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	MatModel::Tresca& tc = tcs[pcl_id];
-	//	tc.set_param(10000.0, 0.0, 150.0);
-	//	mms[pcl_id] = &tc;
-	//}
-	// sand hypoplasticity with yield surface
-	const double ini_stress[6] = { -10.0e3, -10.0e3, -10.0e3, 0.0, 0.0, 0.0 };
-	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	// linear elasticitiy
+	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-		shp.set_param(
-			ini_stress, 0.55,
-			30.0, 1354.0e6, 0.34,
-			0.18, 1.27,
-			0.49, 0.76, 0.86,
-			0.3, 3.6, 200.0,
-			200.0, 0.2);
-		mms[pcl_id] = &shp;
+		MatModel::LinearElasticity& le = les[pcl_id];
+		le.set_param(1.0e6, 0.1);
+		model.add_mat_model(pcl_id, le, sizeof(MatModel::LinearElasticity));
 	}
+	// stabilised sand hypoplasticity with yield surface
+	//const double ini_stress[6] = { -10.0e3, -10.0e3, -10.0e3, 0.0, 0.0, 0.0 };
+	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
+	//	shp.set_param(
+	//		ini_stress, 0.55,
+	//		30.0, 1354.0e6, 0.34,
+	//		0.18, 1.27,
+	//		0.49, 0.76, 0.86,
+	//		0.3, 3.6, 200.0,
+	//		200.0, 0.2);
+	//	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
+	//}
 	
 	// rigid cap
 	model.init_rigid_cylinder(0.0, 0.0, 2.1, 0.2, 1.2);
@@ -99,17 +91,17 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	std::cout << "pcl_num: " << model.get_pcl_num() << "\n"
 			  << "elem_num: " << model.get_elem_num() << "\n"
 			  << "node_num: " << model.get_node_num() << "\n";
-	QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(45.0f, -30.0f);
-	md_disp.set_light_dir(30.0f, -20.0f);
-	//md_disp.set_view_dist_scale(0.5);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
-	md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.02);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(45.0f, -30.0f);
+	//md_disp.set_light_dir(30.0f, -20.0f);
+	////md_disp.set_view_dist_scale(0.5);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
+	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.02);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_mt_triaxial_compression.h5");
@@ -137,24 +129,26 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	//step.solve();
 
 	TimeHistory_T3D_CHM_ud_mt_subiter_complete out1("compression");
+	out1.set_res_file(res_file_hdf5);
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
-	out1.set_res_file(res_file_hdf5);
 	TimeHistory_T3D_CHM_ud_mt_subiter_ratio out2("ratio");
-	out2.set_interval_num(200);
+	out2.set_res_file("t3d_chm_mt_triaxial_compression_ratio.csv");
+	out2.set_interval_num(1000);
 	out2.set_output_init_state();
 	out2.set_output_final_state();
-	out2.set_name("t3d_chm_mt_triaxial_compression_ratio.csv");
 
 	Step_T3D_CHM_ud_mt_subiter step("step1");
 	step.set_model(model);
-	step.set_thread_num(5);
-	step.set_step_time(0.8);
-	//step.set_step_time(5.0e-5);
+	step.set_thread_num(2);
+	//step.set_step_time(0.8);
+	step.set_step_time(1.0e-3);
+	//step.set_max_subiter_num(2);
 	step.set_dtime(5.0e-6);
 	step.set_pdt(5.0e-6);
 	step.add_time_history(out1);
+	step.add_time_history(out2);
 	step.add_time_history(out_cpb);
 	step.solve();
 }

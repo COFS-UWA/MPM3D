@@ -4,6 +4,9 @@
 
 #include "Step_T3D_CHM_ud_mt_subiter.h"
 
+#include <fstream>
+extern std::fstream t3d_chm_ud_mt_subit_db_file;
+
 #define one_fourth (0.25)
 #define one_third (1.0/3.0)
 #define N_min (1.0e-10)
@@ -138,8 +141,8 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			n_pam = n_am * mass_factor;
 			Acceleration& n_a = node_a[n_id];
 			n_pa.ax = (n_fx - n_am * n_a.ax) / n_pam;
-			n_pa.ay = (n_fx - n_am * n_a.ay) / n_pam;
-			n_pa.az = (n_fx - n_am * n_a.az) / n_pam;
+			n_pa.ay = (n_fy - n_am * n_a.ay) / n_pam;
+			n_pa.az = (n_fz - n_am * n_a.az) / n_pam;
 			Velocity& n_pv = node_pv[n_id];
 			n_pv.vx += n_pa.ax * pdt;
 			n_pv.vy += n_pa.ay * pdt;
@@ -194,6 +197,8 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			cal_status = 0;
 			prev_e_kin = cur_e_kin;
 		}
+		//t3d_chm_ud_mt_subit_db_file << cur_e_kin << ", " << prev_e_kin << ", "
+		//	<< max_e_kin << "\n";
 	}
 
 #pragma omp barrier
@@ -222,12 +227,12 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 				n_pdu.uz += n_pdu_tmp;
 
 				// modify velocity and acceleration
-				Velocity& n_v = node_v[p_id];
+				Velocity& n_v = node_v[n_id];
 				n_v.vx = n_du.ux / dtime;
 				n_v.vy = n_du.uy / dtime;
 				n_v.vz = n_du.uz / dtime;
-				Acceleration& n_a = node_a[p_id];
-				Velocity& n_vn = node_vn[p_id];
+				Acceleration& n_a = node_a[n_id];
+				Velocity& n_vn = node_vn[n_id];
 				n_a.ax = (n_v.vx - n_vn.vx) / dtime;
 				n_a.ay = (n_v.vy - n_vn.vy) / dtime;
 				n_a.az = (n_v.vz - n_vn.vz) / dtime;
@@ -358,6 +363,7 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 		// update stress
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
 		char* pcl_mm_copy = mat_model_copy + pcl_mat_model_copy_offset[ori_p_id];
+		//t3d_chm_ud_mt_subit_db_file << ori_p_id << ", " << pcl_mat_model_copy_offset[ori_p_id] << "\n";
 		pcl_mm.retrieve_from(pcl_mm_copy);
 		pcl_mm.integrate(pe_de->de);
 		dstress = pcl_mm.get_dstress();

@@ -153,10 +153,12 @@ void test_t3d_chm_mt_1d_consolidation_result(int argc, char **argv)
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(90.0f, 30.0f);
-	app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_chm_mt_1d_consolidation");
 	//app.set_gif_name("t3d_chm_mt_1d_consolidation");
+	// p
+	app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	app.set_color_map_fld_range(0.0, 10.0);
+	//
 	app.start();
 }

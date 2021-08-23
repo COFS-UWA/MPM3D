@@ -4,6 +4,10 @@
 
 #include "Step_T3D_CHM_ud_mt_subiter.h"
 
+#include <iostream>
+#include <fstream>
+std::fstream t3d_chm_ud_mt_subit_db_file;
+
 #define one_fourth (0.25)
 #define one_third (1.0/3.0)
 #define N_min (1.0e-10)
@@ -21,6 +25,8 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 	Model_T3D_CHM_mt &md = *(Model_T3D_CHM_mt *)model;
 
 	omp_set_num_threads(thread_num);
+
+	t3d_chm_ud_mt_subit_db_file.open("t3d_chm_ud_mt_subiter.txt", std::ios::binary | std::ios::out);
 
 	pcl_m_s = md.pcl_m_s;
 	pcl_density_s = md.pcl_density_s;
@@ -225,6 +231,7 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 	valid_elem_num = 0;
 
 	// subiteration
+	subiter_index = 0;
 	cur_e_kin = 0.0;
 	prev_e_kin = 0.0;
 	max_e_kin = -1.0;
@@ -393,6 +400,15 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	node_elem_pair0 = self.node_elem_pairs[0];
 	node_elem_pair1 = self.node_elem_pairs[1];
 
+	// init subiteration
+#pragma omp master
+	{
+		self.subiter_index = 0;
+		self.cur_e_kin = 0.0;
+		self.prev_e_kin = 0.0;
+		self.max_e_kin = -1.0;
+	}
+
 	size_t p_id, bin_id, th_id, pos_id;
 	size_t digit_disp, elem_num_tmp, * other_cbin;
 	size_t p_id0 = Block_Low(my_th_id, thread_num, self.prev_valid_pcl_num);
@@ -515,10 +531,11 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	double en4_fy_ext = 0.0;
 	double en4_fz_ext = 0.0;
 	size_t my_valid_elem_num = 0;
+	e_id = pcl_in_elem0[p_id0];
+	assert(e_id < self.elem_num || e_id == SIZE_MAX);
 	size_t* const my_valid_elem_ids = self.valid_elem_ids + e_id;
 	size_t* const my_node_has_elem = node_has_elem1 + e_id * 4;
 	size_t* const my_node_elem_pair = node_elem_pair1 + e_id * 4;
-	e_id = pcl_in_elem0[p_id0];
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
 		prev_p_id = prev_pcl_id0[p_id];
@@ -774,9 +791,10 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 #pragma omp critical
 	self.valid_elem_num += my_valid_elem_num;
 
+	Force3D rc_force;
+
 	if (md.has_rigid_cylinder())
 	{
-		Force3D rc_force;
 		rc_force.reset();
 		self.apply_rigid_cylinder(
 			p_id0, p_id1,
@@ -790,7 +808,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 
 	if (md.has_t3d_rigid_mesh())
 	{
-		Force3D rc_force;
 		rc_force.reset();
 		self.apply_t3d_rigid_mesh(
 			p_id0, p_id1,
@@ -922,14 +939,14 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 
 	// update node variables
 	size_t bc_mask;
-	double n_vm = 0.0;
-	double n_vmx = 0.0;
-	double n_vmy = 0.0;
-	double n_vmz = 0.0;
 	double n_am = 0.0;
 	double n_fx = 0.0;
 	double n_fy = 0.0;
 	double n_fz = 0.0;
+	double n_vm = 0.0;
+	double n_vmx = 0.0;
+	double n_vmy = 0.0;
+	double n_vmz = 0.0;
 	n_id = node_has_elem0[ve_id0];
 	assert(n_id < self.node_num);
 	double vbc_len;
@@ -1043,7 +1060,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	}
 
 #pragma omp barrier
-
 	// cal element strain and "enhancement"
 	double e_de_vol;
 	for (ve_id = 0; ve_id < my_valid_elem_num; ++ve_id)
@@ -1073,6 +1089,8 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		e_de.de11 -= e_de_vol;
 		e_de.de22 -= e_de_vol;
 		e_de.de33 -= e_de_vol;
+		if (abs(e_de.de11) > 10.0)
+			int efef = 0;
 	}
 
 #pragma omp barrier
@@ -1094,6 +1112,7 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	}
 
 #pragma omp barrier
+
 	StrainInc *pe_de;
 	const double* estrain, * pstrain, * dstress;
 	e_id = SIZE_MAX;
@@ -1121,6 +1140,8 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			pe_de->de22 += e_de_vol;
 			pe_de->de33 += e_de_vol;
 		}
+
+		ori_p_id = pcl_index0[p_id];
 
 		// update stress
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
@@ -1163,13 +1184,11 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		subiter_index < self.max_subiter_num) // controlled
 	{
 #pragma omp barrier
-		{
-			subiteration_res = self.subiteration(my_th_id,
-				p_id0, p_id1, ve_id0, ve_id1,
-				my_valid_elem_ids, my_valid_elem_num,
-				spva0, pcl_in_elem0,
-				node_has_elem0, node_elem_pair0);
-		}
+		subiteration_res = self.subiteration(my_th_id,
+			p_id0, p_id1, ve_id0, ve_id1,
+			my_valid_elem_ids, my_valid_elem_num,
+			spva0, pcl_in_elem0,
+			node_has_elem0, node_elem_pair0);
 		++subiter_index;
 #pragma omp master
 		self.subiter_index = subiter_index;
@@ -1202,6 +1221,7 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			e_n = elem_pcl_n[e_id];
 			e_density_f = elem_density_f[e_id];
 			e_p = elem_p[e_id];
+			pe_de = elem_de + e_id;
 		}
 
 		// update velocity
@@ -1279,6 +1299,8 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		p_ee0.e12 = p_ee1.e12 + dee.de12;
 		p_ee0.e23 = p_ee1.e23 + dee.de23;
 		p_ee0.e31 = p_ee1.e31 + dee.de31;
+		if (abs(dee.de11) > 10.0)
+			int efef = 0;
 
 		const StrainInc& dpe = pcl_dpstrain[p_id];
 		const Strain& p_pe1 = pcl_pstrain1[prev_p_id];

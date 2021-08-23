@@ -6,15 +6,23 @@
 namespace MatModel
 {
 	int linear_elasticity_integration_function(MaterialModel *_self, double dstrain[6]);
+	void linear_elasticity_store_to_function(const MaterialModel* _self, char* mat_model_mem);
+	void linear_elasticity_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem);
 
 	class LinearElasticity : public MaterialModel
 	{
 		friend int linear_elasticity_integration_function(MaterialModel *_self, double dstrain[6]);
+		friend void linear_elasticity_store_to_function(const MaterialModel* _self, char* mat_model_mem);
+		friend void linear_elasticity_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem);
+
 	public:
 		double E, niu;
 
 		LinearElasticity() :
-			MaterialModel(linear_elasticity_integration_function, "LinearElasticity")
+			MaterialModel(&linear_elasticity_integration_function,
+				"LinearElasticity",
+				&linear_elasticity_store_to_function,
+				&linear_elasticity_retrieve_from_function)
 		{
 			dstrain_p[0] = 0.0;
 			dstrain_p[1] = 0.0;

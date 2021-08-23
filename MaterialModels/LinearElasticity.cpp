@@ -99,4 +99,18 @@ namespace MatModel
 		stress[4] = s[4];
 		stress[5] = s[5];
 	}
+
+	void linear_elasticity_store_to_function(
+		const MaterialModel* _self,
+		char* mat_model_mem)
+	{
+		memcpy(mat_model_mem, _self, sizeof(LinearElasticity));
+	}
+
+	void linear_elasticity_retrieve_from_function(
+		MaterialModel* _self,
+		const char* mat_model_mem)
+	{
+		memcpy(_self, mat_model_mem, sizeof(LinearElasticity));
+	}
 };
