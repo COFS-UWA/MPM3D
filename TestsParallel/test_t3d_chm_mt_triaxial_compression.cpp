@@ -42,14 +42,13 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	model.init_search_grid(teh_mesh);
 	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 2.0e7, 5.0e-9, 1.0);
 	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0);
-	MatModel::MaterialModel** mms = model.get_mat_models();
 	const size_t pcl_num = model.get_pcl_num();
 	// linear elasticitiy
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		MatModel::LinearElasticity& le = les[pcl_id];
-		le.set_param(1.0e6, 0.1);
+		le.set_param(5.0e6, 0.1);
 		model.add_mat_model(pcl_id, le, sizeof(MatModel::LinearElasticity));
 	}
 	// stabilised sand hypoplasticity with yield surface
@@ -92,10 +91,10 @@ void test_t3d_chm_mt_triaxial_compression(int argc, char **argv)
 	std::cout << "pcl_num: " << model.get_pcl_num() << "\n"
 			  << "elem_num: " << model.get_elem_num() << "\n"
 			  << "node_num: " << model.get_node_num() << "\n";
-	//QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
+	QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(45.0f, -30.0f);
-	//md_disp.set_light_dir(30.0f, -20.0f);
+	//md_disp.set_view_dir(120.0f, -20.0f);
+	//md_disp.set_light_dir(130.0f, -30.0f);
 	////md_disp.set_view_dist_scale(0.5);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
@@ -176,7 +175,7 @@ void test_t3d_chm_mt_triaxial_compression_result(int argc, char** argv)
 	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	// s33
 	app.set_res_file(rf, "compression", Hdf5Field::s33);
-	app.set_color_map_fld_range(-200.0e3, 0.0);
+	app.set_color_map_fld_range(-50.0e3, 0.0);
 	//app.set_color_map_fld_range(-500.0e3, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);

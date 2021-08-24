@@ -400,9 +400,12 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	node_elem_pair0 = self.node_elem_pairs[0];
 	node_elem_pair1 = self.node_elem_pairs[1];
 
-	// init subiteration
 #pragma omp master
 	{
+		// init rigid body
+		self.cf_tmp.reset();
+
+		// init subiteration
 		self.subiter_index = 0;
 		self.prev_e_kin = 0.0;
 		self.max_e_kin = -1.0;
@@ -622,7 +625,7 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		one_fourth_bfx_s = one_fourth * (p_bf_s.fx + p_bf_f.fx);
 		one_fourth_bfy_s = one_fourth * (p_bf_s.fy + p_bf_f.fy);
 		one_fourth_bfz_s = one_fourth * (p_bf_s.fz + p_bf_f.fz);
-		const Force& p_t = self.pcl_t[ori_p_id];
+		const Force& p_t = pcl_t[ori_p_id];
 		en1_fx_ext += one_fourth_bfx_s + p_N0.N1 * p_t.fx;
 		en1_fy_ext += one_fourth_bfy_s + p_N0.N1 * p_t.fy;
 		en1_fz_ext += one_fourth_bfz_s + p_N0.N1 * p_t.fz;
@@ -1032,25 +1035,8 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		}
 	}
 
-	// update rigid body motion
 #pragma omp master
 	{
-		if (md.has_rigid_cylinder())
-		{
-			RigidCylinder& rcy = md.get_rigid_cylinder();
-			rcy.set_cont_force(self.cf_tmp);
-			rcy.update_motion(dt);
-			self.cf_tmp.reset();
-		}
-
-		if (md.has_t3d_rigid_mesh())
-		{
-			RigidObjectByT3DMesh& rb = md.get_t3d_rigid_mesh();
-			rb.set_cont_force(self.cf_tmp);
-			rb.update_motion(dt);
-			self.cf_tmp.reset();
-		}
-
 #ifdef _DEBUG
 		self.prev_valid_pcl_num_tmp = self.prev_valid_pcl_num;
 #endif
@@ -1112,6 +1098,7 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 
 #pragma omp barrier
 
+	const Displacement *pn1_du, *pn2_du, *pn3_du, *pn4_du;
 	StrainInc *pe_de;
 	const double* estrain, * pstrain, * dstress;
 	e_id = SIZE_MAX;
@@ -1123,6 +1110,12 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			assert(e_id < self.elem_num);
 
 			const ElemNodeIndex& eni = elem_node_id[e_id];
+			
+			pn1_du = node_du + eni.n1;
+			pn2_du = node_du + eni.n2;
+			pn3_du = node_du + eni.n3;
+			pn4_du = node_du + eni.n4;
+
 			e_de_vol = (node_de_vol[eni.n1] + node_de_vol[eni.n2]
 					  + node_de_vol[eni.n3] + node_de_vol[eni.n4]) * one_fourth;
 			const double e_de_vol_f = -e_de_vol / elem_pcl_n[e_id];
@@ -1140,6 +1133,12 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			pe_de->de33 += e_de_vol;
 		}
 
+		ShapeFunc& p_N = pcl_N0[p_id];
+		Displacement& p_u_s0 = pcl_u_s0[p_id];
+		p_u_s0.ux += p_N.N1 * pn1_du->ux + p_N.N2 * pn2_du->ux + p_N.N3 * pn3_du->ux + p_N.N4 * pn4_du->ux;
+		p_u_s0.uy += p_N.N1 * pn1_du->uy + p_N.N2 * pn2_du->uy + p_N.N3 * pn3_du->uy + p_N.N4 * pn4_du->uy;
+		p_u_s0.uz += p_N.N1 * pn1_du->uz + p_N.N2 * pn2_du->uz + p_N.N3 * pn3_du->uz + p_N.N4 * pn4_du->uz;
+		
 		ori_p_id = pcl_index0[p_id];
 
 		// update stress
@@ -1182,7 +1181,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 	while (subiteration_res == 0 &&
 		subiter_index < self.max_subiter_num) // controlled
 	{
-#pragma omp barrier
 		subiteration_res = self.subiteration(my_th_id,
 			p_id0, p_id1, ve_id0, ve_id1,
 			my_valid_elem_ids, my_valid_elem_num,
@@ -1195,7 +1193,7 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 
 #pragma omp barrier
 	const Acceleration* pn1_a, * pn2_a, * pn3_a, * pn4_a;
-	const Velocity* pn1_v, * pn2_v, * pn3_v, * pn4_v;
+	//const Velocity* pn1_v, * pn2_v, * pn3_v, * pn4_v;
 	double e_density_f, p_x, p_y, p_z;
 	size_t p_e_id, pcl_in_mesh_num = 0;
 	e_id = SIZE_MAX;
@@ -1212,10 +1210,10 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			pn2_a = node_a + eni.n2;
 			pn3_a = node_a + eni.n3;
 			pn4_a = node_a + eni.n4;
-			pn1_v = node_v + eni.n1;
-			pn2_v = node_v + eni.n2;
-			pn3_v = node_v + eni.n3;
-			pn4_v = node_v + eni.n4;
+			//pn1_v = node_v + eni.n1;
+			//pn2_v = node_v + eni.n2;
+			//pn3_v = node_v + eni.n3;
+			//pn4_v = node_v + eni.n4;
 
 			e_n = elem_pcl_n[e_id];
 			e_density_f = elem_density_f[e_id];
@@ -1236,9 +1234,9 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 
 		// update displacement
 		Displacement& p_u_s0 = pcl_u_s0[p_id];
-		p_u_s0.ux += (p_N.N1 * pn1_v->vx + p_N.N2 * pn2_v->vx + p_N.N3 * pn3_v->vx + p_N.N4 * pn4_v->vx) * dt;
-		p_u_s0.uy += (p_N.N1 * pn1_v->vy + p_N.N2 * pn2_v->vy + p_N.N3 * pn3_v->vy + p_N.N4 * pn4_v->vy) * dt;
-		p_u_s0.uz += (p_N.N1 * pn1_v->vz + p_N.N2 * pn2_v->vz + p_N.N3 * pn3_v->vz + p_N.N4 * pn4_v->vz) * dt;
+		//p_u_s0.ux += (p_N.N1 * pn1_v->vx + p_N.N2 * pn2_v->vx + p_N.N3 * pn3_v->vx + p_N.N4 * pn4_v->vx) * dt;
+		//p_u_s0.uy += (p_N.N1 * pn1_v->vy + p_N.N2 * pn2_v->vy + p_N.N3 * pn3_v->vy + p_N.N4 * pn4_v->vy) * dt;
+		//p_u_s0.uz += (p_N.N1 * pn1_v->vz + p_N.N2 * pn2_v->vz + p_N.N3 * pn3_v->vz + p_N.N4 * pn4_v->vz) * dt;
 		Displacement& p_u_f0 = pcl_u_f0[p_id];
 		p_u_f0.ux = p_u_s0.ux;
 		p_u_f0.uy = p_u_s0.uy;
@@ -1298,8 +1296,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		p_ee0.e12 = p_ee1.e12 + dee.de12;
 		p_ee0.e23 = p_ee1.e23 + dee.de23;
 		p_ee0.e31 = p_ee1.e31 + dee.de31;
-		if (abs(dee.de11) > 10.0)
-			int efef = 0;
 
 		const StrainInc& dpe = pcl_dpstrain[p_id];
 		const Strain& p_pe1 = pcl_pstrain1[prev_p_id];
@@ -1317,6 +1313,23 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 
 #pragma omp master
 	{
+		// update rigid body motion
+		if (md.has_rigid_cylinder())
+		{
+			RigidCylinder& rcy = md.get_rigid_cylinder();
+			rcy.set_cont_force(self.cf_tmp);
+			rcy.update_motion(dt);
+			//self.cf_tmp.reset();
+		}
+
+		if (md.has_t3d_rigid_mesh())
+		{
+			RigidObjectByT3DMesh& rb = md.get_t3d_rigid_mesh();
+			rb.set_cont_force(self.cf_tmp);
+			rb.update_motion(dt);
+			//self.cf_tmp.reset();
+		}
+
 		pcl_in_elem0[self.prev_valid_pcl_num] = SIZE_MAX;
 		pcl_in_elem1[self.prev_valid_pcl_num] = SIZE_MAX;
 		self.valid_elem_num = 0;

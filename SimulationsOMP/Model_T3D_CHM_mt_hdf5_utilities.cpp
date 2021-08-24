@@ -873,6 +873,7 @@ int output_model_to_hdf5_file(
 	// material model
 	output_material_model_to_hdf5_file(md, rf, md_grp_id);
 	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, md_grp_id);
 	output_t3d_rigid_mesh_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }

@@ -51,6 +51,7 @@ add_executable(
     test_t3d_me_mt_spudcan_coarse.cpp
     test_t3d_chm_mt_1d_consolidation.cpp
     test_t3d_chm_mt_1d_geostatic.cpp
+    test_t3d_chm_mt_cap_compression.cpp
     test_t3d_chm_mt_triaxial_compression.cpp
     # sand hypoplasticity
     test_t3d_me_mt_spudcan_sand_hypo.cpp

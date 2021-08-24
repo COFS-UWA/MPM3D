@@ -40,10 +40,16 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 
 #pragma omp master
 	{
+		// init rigid body
+		cf_tmp.reset();
+
+		// init subiteration
 		cur_e_kin = 0.0;
 	}
 
-	size_t e_id, p_id;
+#pragma omp barrier
+
+	size_t e_id, p_id, ori_p_id;
 	double p_vol;
 	double e_p_vol = 0.0;
 	double e_s11 = 0.0;
@@ -53,9 +59,46 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 	double e_s23 = 0.0;
 	double e_s31 = 0.0;
 	double e_p;
+	double one_fourth_bfx_s;
+	double one_fourth_bfy_s;
+	double one_fourth_bfz_s;
+	double en1_fx_ext = 0.0;
+	double en1_fy_ext = 0.0;
+	double en1_fz_ext = 0.0;
+	double en2_fx_ext = 0.0;
+	double en2_fy_ext = 0.0;
+	double en2_fz_ext = 0.0;
+	double en3_fx_ext = 0.0;
+	double en3_fy_ext = 0.0;
+	double en3_fz_ext = 0.0;
+	double en4_fx_ext = 0.0;
+	double en4_fy_ext = 0.0;
+	double en4_fz_ext = 0.0;
 	e_id = pcl_in_elem0[p_id0];
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
+		// solid external load
+		ori_p_id = pcl_index0[p_id];
+		ShapeFunc& p_N0 = pcl_N0[p_id];
+		const Force& p_bf_s = pcl_bf_s[ori_p_id];
+		const Force& p_bf_f = pcl_bf_f[ori_p_id];
+		one_fourth_bfx_s = one_fourth * (p_bf_s.fx + p_bf_f.fx);
+		one_fourth_bfy_s = one_fourth * (p_bf_s.fy + p_bf_f.fy);
+		one_fourth_bfz_s = one_fourth * (p_bf_s.fz + p_bf_f.fz);
+		const Force& p_t = pcl_t[ori_p_id];
+		en1_fx_ext += one_fourth_bfx_s + p_N0.N1 * p_t.fx;
+		en1_fy_ext += one_fourth_bfy_s + p_N0.N1 * p_t.fy;
+		en1_fz_ext += one_fourth_bfz_s + p_N0.N1 * p_t.fz;
+		en2_fx_ext += one_fourth_bfx_s + p_N0.N2 * p_t.fx;
+		en2_fy_ext += one_fourth_bfy_s + p_N0.N2 * p_t.fy;
+		en2_fz_ext += one_fourth_bfz_s + p_N0.N2 * p_t.fz;
+		en3_fx_ext += one_fourth_bfx_s + p_N0.N3 * p_t.fx;
+		en3_fy_ext += one_fourth_bfy_s + p_N0.N3 * p_t.fy;
+		en3_fz_ext += one_fourth_bfz_s + p_N0.N3 * p_t.fz;
+		en4_fx_ext += one_fourth_bfx_s + p_N0.N4 * p_t.fx;
+		en4_fy_ext += one_fourth_bfy_s + p_N0.N4 * p_t.fy;
+		en4_fz_ext += one_fourth_bfz_s + p_N0.N4 * p_t.fz;
+
 		// map pcl mass and volume
 		p_vol = pcl_vol[p_id];
 		e_p_vol += p_vol;
@@ -71,6 +114,28 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 
 		if (e_id != pcl_in_elem0[p_id + 1])
 		{
+			// external nodal force
+			// node 1
+			Force& en1_f_ext = elem_node_f_ext[e_id * 4];
+			en1_f_ext.fx = en1_fx_ext;
+			en1_f_ext.fy = en1_fy_ext;
+			en1_f_ext.fz = en1_fz_ext;
+			// node 2
+			Force& en2_f_ext = elem_node_f_ext[e_id * 4 + 1];
+			en2_f_ext.fx = en2_fx_ext;
+			en2_f_ext.fy = en2_fy_ext;
+			en2_f_ext.fz = en2_fz_ext;
+			// node 3
+			Force& en3_f_ext = elem_node_f_ext[e_id * 4 + 2];
+			en3_f_ext.fx = en3_fx_ext;
+			en3_f_ext.fy = en3_fy_ext;
+			en3_f_ext.fz = en3_fz_ext;
+			// node 4
+			Force& en4_f_ext = elem_node_f_ext[e_id * 4 + 3];
+			en4_f_ext.fx = en4_fx_ext;
+			en4_f_ext.fy = en4_fy_ext;
+			en4_f_ext.fz = en4_fz_ext;
+			
 			e_s11 /= e_p_vol;
 			e_s22 /= e_p_vol;
 			e_s33 /= e_p_vol;
@@ -112,7 +177,47 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			e_s12 = 0.0;
 			e_s23 = 0.0;
 			e_s31 = 0.0;
+			en1_fx_ext = 0.0;
+			en1_fy_ext = 0.0;
+			en1_fz_ext = 0.0;
+			en2_fx_ext = 0.0;
+			en2_fy_ext = 0.0;
+			en2_fz_ext = 0.0;
+			en3_fx_ext = 0.0;
+			en3_fy_ext = 0.0;
+			en3_fz_ext = 0.0;
+			en4_fx_ext = 0.0;
+			en4_fy_ext = 0.0;
+			en4_fz_ext = 0.0;
 		}
+	}
+
+	Force3D rc_force;
+
+	if (md.has_rigid_cylinder())
+	{
+		rc_force.reset();
+		apply_rigid_cylinder(
+			p_id0, p_id1,
+			pcl_in_elem0,
+			spva0, rc_force,
+			substep_index, thd);
+
+#pragma omp critical
+		cf_tmp.combine(rc_force);
+	}
+
+	if (md.has_t3d_rigid_mesh())
+	{
+		rc_force.reset();
+		apply_t3d_rigid_mesh(
+			p_id0, p_id1,
+			pcl_in_elem0,
+			spva0, rc_force,
+			substep_index, thd);
+
+#pragma omp critical
+		cf_tmp.combine(rc_force);
 	}
 
 #pragma omp barrier
@@ -123,7 +228,7 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 	double n_fy = 0.0;
 	double n_fz = 0.0;
 	Acceleration n_pa;
-	double vbc_len, n_pdu_tmp;
+	double vbc_len;
 	double e_kin = 0.0;
 	n_id = node_has_elem0[ve_id0];
 	assert(n_id < node_num);
@@ -177,6 +282,10 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 
 			n_id = node_has_elem0[ve_id + 1];
 			assert(n_id < node_num || n_id == SIZE_MAX);
+
+			n_fx = 0.0;
+			n_fy = 0.0;
+			n_fz = 0.0;
 		}
 	}
 
@@ -191,7 +300,7 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 		{
 			cal_status = 1;
 			//if (prev_e_kin < converge_e_kin_ratio * max_e_kin)
-			if (prev_e_kin < 1.0e-6)
+			if (prev_e_kin < 1.0e-11)
 				cal_status = 2; // converge
 			if (max_e_kin < prev_e_kin)
 				max_e_kin = prev_e_kin;
@@ -203,8 +312,8 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			cal_status = 0;
 			prev_e_kin = cur_e_kin;
 		}
-		t3d_chm_ud_mt_subit_db_file << cur_e_kin << ", " << prev_e_kin << ", "
-			<< max_e_kin << "\n";
+		//t3d_chm_ud_mt_subit_db_file << cur_e_kin << ", " << prev_e_kin << ", "
+		//	<< max_e_kin << "\n";
 	}
 
 #pragma omp barrier
@@ -220,28 +329,28 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 				Displacement& n_du = node_du[n_id];
 				Displacement& n_pdu = node_pdu[n_id];
 				// ux
-				n_pdu_tmp = n_pv.vx * pdt;
-				n_du.ux += n_pdu_tmp;
-				n_pdu.ux += n_pdu_tmp;
+				const double n_pdux = n_pv.vx * pdt;
+				n_du.ux += n_pdux;
+				n_pdu.ux += n_pdux;
 				// uy
-				n_pdu_tmp = n_pv.vy * pdt;
-				n_du.uy += n_pdu_tmp;
-				n_pdu.uy += n_pdu_tmp;
+				const double n_pduy = n_pv.vy * pdt;
+				n_du.uy += n_pduy;
+				n_pdu.uy += n_pduy;
 				// uz
-				n_pdu_tmp = n_pv.vz * pdt;
-				n_du.uz += n_pdu_tmp;
-				n_pdu.uz += n_pdu_tmp;
+				const double n_pduz = n_pv.vz * pdt;
+				n_du.uz += n_pduz;
+				n_pdu.uz += n_pduz;
 
-				//// modify velocity and acceleration
-				//Velocity& n_v = node_v[n_id];
-				//n_v.vx = n_du.ux / dtime;
-				//n_v.vy = n_du.uy / dtime;
-				//n_v.vz = n_du.uz / dtime;
-				//Acceleration& n_a = node_a[n_id];
-				//Velocity& n_vn = node_vn[n_id];
-				//n_a.ax = (n_v.vx - n_vn.vx) / dtime;
-				//n_a.ay = (n_v.vy - n_vn.vy) / dtime;
-				//n_a.az = (n_v.vz - n_vn.vz) / dtime;
+				// modify velocity and acceleration
+				Velocity& n_v = node_v[n_id];
+				n_v.vx = n_du.ux / dtime;
+				n_v.vy = n_du.uy / dtime;
+				n_v.vz = n_du.uz / dtime;
+				Acceleration& n_a = node_a[n_id];
+				Velocity& n_vn = node_vn[n_id];
+				n_a.ax = (n_v.vx - n_vn.vx) / dtime;
+				n_a.ay = (n_v.vy - n_vn.vy) / dtime;
+				n_a.az = (n_v.vz - n_vn.vz) / dtime;
 
 				n_id = node_has_elem0[ve_id + 1];
 				assert(n_id < node_num || n_id == SIZE_MAX);
@@ -336,6 +445,7 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 	}
 
 #pragma omp barrier
+	const Displacement* pn1_pdu, * pn2_pdu, * pn3_pdu, * pn4_pdu;
 	double e_pde_vol_f;
 	StrainInc* pe_de;
 	const double* dstress, *estrain, * pstrain;
@@ -348,6 +458,11 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			assert(e_id < elem_num);
 
 			const ElemNodeIndex& eni = elem_node_id[e_id];
+			pn1_pdu = node_pdu + eni.n1;
+			pn2_pdu = node_pdu + eni.n2;
+			pn3_pdu = node_pdu + eni.n3;
+			pn4_pdu = node_pdu + eni.n4;
+
 			e_de_vol = (node_de_vol[eni.n1] + node_de_vol[eni.n2]
 					  + node_de_vol[eni.n3] + node_de_vol[eni.n4]) * one_fourth * one_third;
 			pe_de = elem_de + e_id;
@@ -364,10 +479,15 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			elem_p[e_id] += Kf * e_pde_vol_f;
 		}
 
-		// update location (in which element)
-		const size_t ori_p_id = pcl_index0[p_id];
+		// update displacement (for contact)
+		ShapeFunc& p_N = pcl_N0[p_id];
+		Displacement& p_u_s0 = pcl_u_s0[p_id];
+		p_u_s0.ux += p_N.N1 * pn1_pdu->ux + p_N.N2 * pn2_pdu->ux + p_N.N3 * pn3_pdu->ux + p_N.N4 * pn4_pdu->ux;
+		p_u_s0.uy += p_N.N1 * pn1_pdu->uy + p_N.N2 * pn2_pdu->uy + p_N.N3 * pn3_pdu->uy + p_N.N4 * pn4_pdu->uy;
+		p_u_s0.uz += p_N.N1 * pn1_pdu->uz + p_N.N2 * pn2_pdu->uz + p_N.N3 * pn3_pdu->uz + p_N.N4 * pn4_pdu->uz;
 
 		// update stress
+		const size_t ori_p_id = pcl_index0[p_id];
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
 		char* pcl_mm_copy = mat_model_copy + pcl_mat_model_copy_offset[ori_p_id];
 		//t3d_chm_ud_mt_subit_db_file << ori_p_id << ", " << pcl_mat_model_copy_offset[ori_p_id] << "\n";

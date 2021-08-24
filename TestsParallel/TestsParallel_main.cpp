@@ -115,7 +115,10 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
-	test_t3d_chm_mt_triaxial_compression(argc, argv);
+	test_t3d_chm_mt_cap_compression(argc, argv);
+	//test_t3d_chm_mt_cap_compression_result(argc, argv);
+
+	//test_t3d_chm_mt_triaxial_compression(argc, argv);
 	//test_t3d_chm_mt_triaxial_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation(argc, argv);

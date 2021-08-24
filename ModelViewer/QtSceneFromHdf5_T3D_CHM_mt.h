@@ -10,6 +10,7 @@
 #include "QtMultiColorBallGLObject.h"
 #include "UniformColorMap_Abaqus.h"
 #include "QtUniformColorMapObject.h"
+#include "QtRigidCylinderObject.h"
 #include "QtRigidObjectByT3DMesh.h"
 #include "QtSceneFromHdf5.h"
 
@@ -35,6 +36,7 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rmesh, has_rmesh;
+	bool display_rcy, has_rcy;
 
 	QtTetrahedronMeshGLObject bg_mesh_obj;
 
@@ -42,6 +44,7 @@ protected:
 	GLuint color_map_texture;
 	QtMultiColorBallGLObject pcls_obj;
 
+	QtRigidCylinderObject rcy_obj;
 	QtRigidObjectByT3DMesh rmesh_obj;
 
 	bool has_color_map;

@@ -26,6 +26,7 @@ QtSceneFromHdf5_T3D_CHM_mt::QtSceneFromHdf5_T3D_CHM_mt(
 	display_pcls(true), pcls_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	need_mat_model_data(false),
+	display_rcy(true), has_rcy(false), rcy_obj(_gl),
 	display_rmesh(true), has_rmesh(false), rmesh_obj(_gl)
 {
 	amb_coef = 0.3f;
@@ -334,6 +335,9 @@ void QtSceneFromHdf5_T3D_CHM_mt::draw()
 		pcls_obj.draw(shader_balls);
 	}
 	
+	if (display_rcy && has_rcy)
+		rcy_obj.draw(shader_rigid_mesh);
+	
 	if (display_rmesh && has_rmesh)
 		rmesh_obj.draw(shader_rigid_mesh);
 
@@ -372,6 +376,26 @@ void QtSceneFromHdf5_T3D_CHM_mt::init_rigid_objects_buffer(
 {
 	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 	hid_t md_data_grp_id = rf.get_model_data_grp_id();
+	
+	// rigid cylinder
+	if (rf.has_group(md_data_grp_id, "RigidCylinder"))
+	{
+		hid_t rcy_id = rf.open_group(md_data_grp_id, "RigidCylinder");
+		double rcy_x, rcy_y, rcy_z, rcy_h, rcy_r;
+		rf.read_attribute(rcy_id, "x", rcy_x);
+		rf.read_attribute(rcy_id, "y", rcy_y);
+		rf.read_attribute(rcy_id, "z", rcy_z);
+		rf.read_attribute(rcy_id, "h", rcy_h);
+		rf.read_attribute(rcy_id, "r", rcy_r);
+		rcy_obj.init(rcy_x, rcy_y, rcy_z, rcy_h, rcy_r, navajowhite);
+		Cube rcy_bbox(rcy_x - rcy_r, rcy_x + rcy_r,
+			rcy_y - rcy_r, rcy_y + rcy_r,
+			rcy_z - rcy_h * 0.5,
+			rcy_z + rcy_h * 0.5);
+		mh_bbox.envelop(rcy_bbox);
+		rf.close_group(rcy_id);
+		has_rcy = true;
+	}
 	
 	//// rigid cone
 	//if (rf.has_group(md_data_grp_id, "RigidCone"))
@@ -639,6 +663,17 @@ void QtSceneFromHdf5_T3D_CHM_mt::update_rigid_objects_buffer(
 	//	rco_obj.update(rco_x, rco_y, rco_z);
 	//	rf.close_group(rco_id);
 	//}
+
+	if (rf.has_group(frame_grp_id, "RigidCylinder"))
+	{
+		hid_t rcy_id = rf.open_group(frame_grp_id, "RigidCylinder");
+		double rcy_x, rcy_y, rcy_z;
+		rf.read_attribute(rcy_id, "x", rcy_x);
+		rf.read_attribute(rcy_id, "y", rcy_y);
+		rf.read_attribute(rcy_id, "z", rcy_z);
+		rcy_obj.update(rcy_x, rcy_y, rcy_z);
+		rf.close_group(rcy_id);
+	}
 
 	if (rf.has_group(frame_grp_id, "RigidObjectByT3DMesh"))
 	{
