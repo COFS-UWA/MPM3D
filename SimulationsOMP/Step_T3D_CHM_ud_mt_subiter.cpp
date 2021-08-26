@@ -26,7 +26,7 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 
 	omp_set_num_threads(thread_num);
 
-	t3d_chm_ud_mt_subit_db_file.open("t3d_chm_ud_mt_subiter.txt", std::ios::binary | std::ios::out);
+	t3d_chm_ud_mt_subit_db_file.open("t3d_chm_ud_mt_subiter.csv", std::ios::binary | std::ios::out);
 
 	pcl_m_s = md.pcl_m_s;
 	pcl_density_s = md.pcl_density_s;
@@ -1074,8 +1074,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		e_de.de11 -= e_de_vol;
 		e_de.de22 -= e_de_vol;
 		e_de.de33 -= e_de_vol;
-		if (abs(e_de.de11) > 10.0)
-			int efef = 0;
 	}
 
 #pragma omp barrier
@@ -1148,13 +1146,13 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		pcl_mm.integrate(pe_de->de);
 		dstress = pcl_mm.get_dstress();
 		Stress& p_ps = pcl_prev_stress[p_id];
-		Stress& p_s = pcl_stress0[p_id];
-		p_s.s11 = p_ps.s11 + dstress[0];
-		p_s.s22 = p_ps.s22 + dstress[1];
-		p_s.s33 = p_ps.s33 + dstress[2];
-		p_s.s12 = p_ps.s12 + dstress[3];
-		p_s.s23 = p_ps.s23 + dstress[4];
-		p_s.s31 = p_ps.s31 + dstress[5];
+		Stress& p_s0 = pcl_stress0[p_id];
+		p_s0.s11 = p_ps.s11 + dstress[0];
+		p_s0.s22 = p_ps.s22 + dstress[1];
+		p_s0.s33 = p_ps.s33 + dstress[2];
+		p_s0.s12 = p_ps.s12 + dstress[3];
+		p_s0.s23 = p_ps.s23 + dstress[4];
+		p_s0.s31 = p_ps.s31 + dstress[5];
 
 		estrain = pcl_mm.get_dstrain_e();
 		StrainInc& p_dee = pcl_destrain[p_id];
@@ -1306,6 +1304,23 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		p_pe0.e12 = p_pe1.e12 + dpe.de12;
 		p_pe0.e23 = p_pe1.e23 + dpe.de23;
 		p_pe0.e31 = p_pe1.e31 + dpe.de31;
+
+		if (ori_p_id == 200 && substp_id % 100 == 0 /* cur_time > 0.30 && cur_time < 0.35 && */) // pcl_id
+		{
+			Stress& ps = pcl_stress0[p_id];
+			t3d_chm_ud_mt_subit_db_file << substp_id << ", " << cur_time << ", "
+				<< p_e0.e11 << ", " << p_e0.e22 << ", " << p_e0.e33 << ", "
+				<< p_e0.e12 << ", " << p_e0.e23 << ", " << p_e0.e31 << ", "
+				<< pe_de->de11 << ", " << pe_de->de22 << ", " << pe_de->de33 << ", "
+				<< pe_de->de12 << ", " << pe_de->de23 << ", " << pe_de->de31 << ", "
+				<< p_pe0.e11 << ", " << p_pe0.e22 << ", " << p_pe0.e33 << ", "
+				<< p_pe0.e12 << ", " << p_pe0.e23 << ", " << p_pe0.e31 << ", "
+				<< ps.s11 << ", " << ps.s22 << ", " << ps.s33 << ", "
+				<< ps.s12 << ", " << ps.s23 << ", " << ps.s31 << ", "
+				<< ",\n"
+				;
+		}
+
 	}
 
 #pragma omp critical

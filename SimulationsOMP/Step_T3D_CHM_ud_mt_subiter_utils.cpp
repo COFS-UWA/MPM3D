@@ -304,7 +304,7 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 				cal_status = 2; // converge
 			if (max_e_kin < prev_e_kin)
 				max_e_kin = prev_e_kin;
-			cur_e_kin = 0.0;
+			//cur_e_kin = 0.0;
 			prev_e_kin = 0.0;
 		}
 		else
@@ -326,22 +326,16 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 			if (n_id != node_has_elem0[ve_id + 1])
 			{
 				Velocity& n_pv = node_pv[n_id];
-				Displacement& n_du = node_du[n_id];
 				Displacement& n_pdu = node_pdu[n_id];
-				// ux
-				const double n_pdux = n_pv.vx * pdt;
-				n_du.ux += n_pdux;
-				n_pdu.ux += n_pdux;
-				// uy
-				const double n_pduy = n_pv.vy * pdt;
-				n_du.uy += n_pduy;
-				n_pdu.uy += n_pduy;
-				// uz
-				const double n_pduz = n_pv.vz * pdt;
-				n_du.uz += n_pduz;
-				n_pdu.uz += n_pduz;
+				n_pdu.ux = n_pv.vx * pdt;
+				n_pdu.uy = n_pv.vy * pdt;
+				n_pdu.uz = n_pv.vz * pdt;
 
 				// modify velocity and acceleration
+				Displacement& n_du = node_du[n_id];
+				n_du.ux += n_pdu.ux;
+				n_du.uy += n_pdu.uy;
+				n_du.uz += n_pdu.uz;
 				Velocity& n_v = node_v[n_id];
 				n_v.vx = n_du.ux / dtime;
 				n_v.vy = n_du.uy / dtime;
@@ -495,13 +489,13 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 		pcl_mm.integrate(pe_de->de);
 		dstress = pcl_mm.get_dstress();
 		const Stress& p_ps = pcl_prev_stress[p_id];
-		Stress& p_s = pcl_stress0[p_id];
-		p_s.s11 = p_ps.s11 + dstress[0];
-		p_s.s22 = p_ps.s22 + dstress[1];
-		p_s.s33 = p_ps.s33 + dstress[2];
-		p_s.s12 = p_ps.s12 + dstress[3];
-		p_s.s23 = p_ps.s23 + dstress[4];
-		p_s.s31 = p_ps.s31 + dstress[5];
+		Stress& p_s0 = pcl_stress0[p_id];
+		p_s0.s11 = p_ps.s11 + dstress[0];
+		p_s0.s22 = p_ps.s22 + dstress[1];
+		p_s0.s33 = p_ps.s33 + dstress[2];
+		p_s0.s12 = p_ps.s12 + dstress[3];
+		p_s0.s23 = p_ps.s23 + dstress[4];
+		p_s0.s31 = p_ps.s31 + dstress[5];
 
 		estrain = pcl_mm.get_dstrain_e();
 		StrainInc& p_dee = pcl_destrain[p_id];
@@ -520,6 +514,18 @@ int Step_T3D_CHM_ud_mt_subiter::subiteration(
 		p_dpe.de12 = pstrain[3];
 		p_dpe.de23 = pstrain[4];
 		p_dpe.de31 = pstrain[5];
+
+		//if (ori_p_id == 200 && substep_index % 400 == 0 /* && cur_time > 0.30 && cur_time < 0.35 && */)
+		//{
+		//	Stress& ps = pcl_stress0[p_id];
+		//	t3d_chm_ud_mt_subit_db_file << substep_index << ", "
+		//		<< pe_de->de11 << ", " << pe_de->de22 << ", " << pe_de->de33 << ", "
+		//		//<< pe_de->de12 << ", " << pe_de->de23 << ", " << pe_de->de31 << ", "
+		//		<< pe_de->de11 + pe_de->de22 + pe_de->de33 << ", "
+		//		//<< ps.s11 << ", " << ps.s22 << ", " << ps.s33 << ", "
+		//		//<< ps.s12 << ", " << ps.s23 << ", " << ps.s31
+		//		<< ",\n";
+		//}
 	}
 	
 	return 0;

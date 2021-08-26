@@ -29,7 +29,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	model.init_search_grid(teh_mesh);
 	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), 2.0, 1.0, 2.0e4, 5.0e-9, 1.0); // elastic
 	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 3.6e8, 5.0e-9, 1.0); // hypo
-	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1.0000, 0.0, 5.0e-9, 1.0);
+	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0); // hypo, drained
 	const size_t pcl_num = model.get_pcl_num();
 	// Linear elasticity
 	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
@@ -51,7 +51,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			0.3, 3.6, 200.0,
+			0.2, 3.0, 260.0,
 			200.0, 0.2);
 	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
 	}
@@ -89,9 +89,11 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//md_disp.set_light_dir(200.0f, 30.0f);
 	////md_disp.set_view_dist_scale(0.5);
 	//md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//size_t disp_p_id = 200;
+	//md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
 	//md_disp.start();
 	//return;
 
@@ -115,9 +117,10 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	Step_T3D_CHM_ud_mt_subiter step("step1");
 	step.set_model(model);
 	step.set_thread_num(5);
-	step.set_step_time(1.0);
-	//step.set_step_time(1.0e-5); // debug
-	//step.set_max_subiter_num(0); // debug
+	step.set_step_time(1.0); // 1.0
+	//step.set_mass_factor(0.1); // debug
+	//step.set_step_time(1.0e-4); // debug
+	//step.set_max_subiter_num(1000); // debug
 	step.set_dtime(5.0e-6);
 	step.set_pdt(5.0e-6);
 	step.add_time_history(out_cpb);
