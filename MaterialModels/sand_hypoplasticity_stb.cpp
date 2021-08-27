@@ -459,22 +459,6 @@ int32_t integrate_sand_hypoplasticity_stb(
 	dstress[3] = mat_dat.s12 - ori_stress[3];
 	dstress[4] = mat_dat.s23 - ori_stress[4];
 	dstress[5] = mat_dat.s31 - ori_stress[5];
-	I1 = -(mat_dat.s11 + mat_dat.s22 + mat_dat.s33) / ffmat(3.0);
-	G = ffmat(2.0) * glb_dat.Ig * I1;
-	const __Float_Type__ inv_E = ffmat(1.0) / ((ffmat(1.0) + glb_dat.niu) * G);
-	const __Float_Type__ niu_div_E = glb_dat.niu * inv_E;
-	const __Float_Type__ inv_G = ffmat(1.0) / G;
-	const __Float_Type__ dpe[6] = {
-		dstrain[0] - (inv_E * dstress[0] - niu_div_E * dstress[1] - niu_div_E * dstress[2]),
-		dstrain[1] - (-niu_div_E * dstress[0] + inv_E * dstress[1] - niu_div_E * dstress[2]),
-		dstrain[2] - (-niu_div_E * dstress[0] - niu_div_E * dstress[1] + inv_E * dstress[2]),
-		dstrain[3] - inv_G * dstress[3],
-		dstrain[4] - inv_G * dstress[4],
-		dstrain[5] - inv_G * dstress[5]
-	};
-	const __Float_Type__ dpe01 = dpe[0] - dpe[1];
-	const __Float_Type__ dpe12 = dpe[1] - dpe[2];
-	const __Float_Type__ dpe20 = dpe[2] - dpe[0];
 	const __Float_Type__ de01 = dstrain[0] - dstrain[1];
 	const __Float_Type__ de12 = dstrain[1] - dstrain[2];
 	const __Float_Type__ de20 = dstrain[2] - dstrain[0];
@@ -484,17 +468,12 @@ int32_t integrate_sand_hypoplasticity_stb(
 	const __Float_Type__ state_param = mat_dat.e - glb_dat.ec0 * (__Float_Type__)exp(-pow(-ffmat(3.0) * p / glb_dat.hs, glb_dat.n));
 	const __Float_Type__ M = glb_dat.Mtc
 		* (ffmat(1.0) - glb_dat.Mtc / (ffmat(3.0) + glb_dat.Mtc) * (__Float_Type__)cos(ffmat(1.5) * lode_angle));
-	const __Float_Type__ M_coef = (ffmat(1.0) - glb_dat.N_chi_div_Mtc * (__Float_Type__)fabs(state_param));
+	//const __Float_Type__ M_coef = (ffmat(1.0) - glb_dat.N_chi_div_Mtc * (__Float_Type__)fabs(state_param));
+	const __Float_Type__ M_coef = 1.0 - glb_dat.N * fabs(state_param);
 	mat_dat.Mi = M * M_coef;
 	const __Float_Type__ Mi_tc = glb_dat.Mtc * M_coef;
-	//const __Float_Type__ pi_max = -p * (__Float_Type__)exp(-glb_dat.chi * state_param / Mi_tc);
-	//mat_dat.pi += glb_dat.H * mat_dat.Mi * (-p) / (Mi_tc * mat_dat.pi) * (pi_max - mat_dat.pi)
-	//	* (__Float_Type__)sqrt((dpe01 * dpe01 + dpe12 * dpe12 + dpe20 * dpe20) * ffmat(0.5)
-	//		+ (dpe[3] * dpe[3] + dpe[4] * dpe[4] + dpe[5] * dpe[5]) * ffmat(3.0)) * ffmat(2.0) / ffmat(3.0);
-	mat_dat.pi += glb_dat.H * (mat_dat.Mi / Mi_tc) * mat_dat.pi * (exp(1.0 - q / ((-p) * glb_dat.Mtc) - glb_dat.chi * state_param) - 1.0)
+	mat_dat.pi += glb_dat.H * (mat_dat.Mi / Mi_tc) * mat_dat.pi * (exp(1.0 - q / ((-p)*glb_dat.Mtc) - glb_dat.chi * state_param) - 1.0) //glb_dat.H * (mat_dat.Mi / Mi_tc) * ((-p) * exp(-glb_dat.chi * state_param) - mat_dat.pi)
 		* ffmat(2.0) / ffmat(3.0) *
-		//sqrt((dpe01 * dpe01 + dpe12 * dpe12 + dpe20 * dpe20) * 0.5
-		//	+ (dpe[3] * dpe[3] + dpe[4] * dpe[4] + dpe[5] * dpe[5]) * 3.0);
 		sqrt((de01 * de01 + de12 * de12 + de20 * de20) * 0.5
 			+ (dstrain[3] * dstrain[3] + dstrain[4] * dstrain[4] + dstrain[5] * dstrain[5]) * 3.0);
 
