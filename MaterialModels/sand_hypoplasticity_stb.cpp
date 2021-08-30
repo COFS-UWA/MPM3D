@@ -50,7 +50,7 @@ void SandHypoplasticityStbGlobal_set_param(
 	dat.chi = chi;
 	dat.H = H;
 	dat.Mtc = ffmat(6.0) * sin_phi / (ffmat(3.0) - sin_phi);
-	dat.N_chi_div_Mtc = N * chi / dat.Mtc;
+	//dat.N_chi_div_Mtc = N * chi / dat.Mtc;
 
 	dat.Ig = Ig;
 	dat.niu = niu;
@@ -87,12 +87,20 @@ void SandHypoplasticityStb_set_NC_param(
 	};
 	cal_p_q_lode_angle(dat.stress, invars);
 	const __Float_Type__ state_param = dat.e - glb_dat.ec0 * (__Float_Type__)exp(-pow(-ffmat(3.0) * p / glb_dat.hs, glb_dat.n));
-	const __Float_Type__ M = glb_dat.Mtc *
-		(ffmat(1.0) - glb_dat.Mtc / (ffmat(3.0) + glb_dat.Mtc) * (__Float_Type__)cos(ffmat(1.5) * lode_angle));
-	const __Float_Type__ M_coef = ffmat(1.0) - glb_dat.N_chi_div_Mtc * (__Float_Type__)fabs(state_param);
+	const __Float_Type__ M = glb_dat.Mtc
+		* (ffmat(1.0) - glb_dat.Mtc / (ffmat(3.0) + glb_dat.Mtc) * (__Float_Type__)cos(ffmat(1.5) * lode_angle));
+	//const __Float_Type__ M_coef = ffmat(1.0) - glb_dat.N_chi_div_Mtc * (__Float_Type__)fabs(state_param);
+	const __Float_Type__ M_coef = ffmat(1.0) - glb_dat.N * (__Float_Type__)fabs(state_param);
 	dat.Mi = M * M_coef;
 	dat.pi = -p / (__Float_Type__)exp(ffmat(1.0) + q / (dat.Mi * p));
 	dat.pl = dat.pi;
+
+	dat.e11 = 0.0;
+	dat.e22 = 0.0;
+	dat.e33 = 0.0;
+	dat.e12 = 0.0;
+	dat.e23 = 0.0;
+	dat.e31 = 0.0;
 }
 
 void SandHypoplasticityStb_set_OC_param(
@@ -293,6 +301,7 @@ int32_t integrate_sand_hypoplasticity_stb(
 		__Float_Type__ invars[3];
 		struct { __Float_Type__ p, q, lode_angle; };
 	};
+
 	cal_p_q(trial_stress, invars);
 	// yield surface need get intersection in the future
 	if ((q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pl))) < ffmat(0.0))
@@ -459,9 +468,27 @@ int32_t integrate_sand_hypoplasticity_stb(
 	dstress[3] = mat_dat.s12 - ori_stress[3];
 	dstress[4] = mat_dat.s23 - ori_stress[4];
 	dstress[5] = mat_dat.s31 - ori_stress[5];
-	const __Float_Type__ de01 = dstrain[0] - dstrain[1];
-	const __Float_Type__ de12 = dstrain[1] - dstrain[2];
-	const __Float_Type__ de20 = dstrain[2] - dstrain[0];
+
+	// cal shear strain inc
+	double de01_tmp = mat_dat.e11 - mat_dat.e22;
+	double de12_tmp = mat_dat.e22 - mat_dat.e33;
+	double de20_tmp = mat_dat.e33 - mat_dat.e11;
+	const double prev_shear_strain = ffmat(2.0) / ffmat(3.0)
+		* sqrt((de01_tmp * de01_tmp + de12_tmp * de12_tmp + de20_tmp * de20_tmp) * 0.5
+			+ (mat_dat.e12 * mat_dat.e12 + mat_dat.e23 * mat_dat.e23 + mat_dat.e31 * mat_dat.e31) * 3.0);
+
+	mat_dat.e11 += dstrain[0];
+	mat_dat.e22 += dstrain[1];
+	mat_dat.e33 += dstrain[2];
+	mat_dat.e12 += dstrain[3];
+	mat_dat.e23 += dstrain[4];
+	mat_dat.e31 += dstrain[5];
+	de01_tmp = mat_dat.e11 - mat_dat.e22;
+	de12_tmp = mat_dat.e22 - mat_dat.e33;
+	de20_tmp = mat_dat.e33 - mat_dat.e11;
+	const double shear_strain = ffmat(2.0) / ffmat(3.0)
+		* sqrt((de01_tmp * de01_tmp + de12_tmp * de12_tmp + de20_tmp * de20_tmp) * 0.5
+			+ (mat_dat.e12 * mat_dat.e12 + mat_dat.e23 * mat_dat.e23 + mat_dat.e31 * mat_dat.e31) * 3.0);
 
 	// update yield surface (Mi and pi)
 	cal_p_q_lode_angle(mat_dat.stress, invars);
@@ -472,15 +499,14 @@ int32_t integrate_sand_hypoplasticity_stb(
 	const __Float_Type__ M_coef = 1.0 - glb_dat.N * fabs(state_param);
 	mat_dat.Mi = M * M_coef;
 	const __Float_Type__ Mi_tc = glb_dat.Mtc * M_coef;
-	mat_dat.pi += glb_dat.H * (mat_dat.Mi / Mi_tc) * mat_dat.pi * (exp(1.0 - q / ((-p)*glb_dat.Mtc) - glb_dat.chi * state_param) - 1.0) //glb_dat.H * (mat_dat.Mi / Mi_tc) * ((-p) * exp(-glb_dat.chi * state_param) - mat_dat.pi)
-		* ffmat(2.0) / ffmat(3.0) *
-		sqrt((de01 * de01 + de12 * de12 + de20 * de20) * 0.5
-			+ (dstrain[3] * dstrain[3] + dstrain[4] * dstrain[4] + dstrain[5] * dstrain[5]) * 3.0);
+	
+	const double pi_max = -p * exp(-glb_dat.chi * state_param * state_param * state_param);
+	mat_dat.pi += glb_dat.H * (mat_dat.Mi / Mi_tc) * (pi_max - mat_dat.pi) * (shear_strain - prev_shear_strain);
 
 	// update loading surface (pl)
 	mat_dat.pl = -p / (__Float_Type__)exp(ffmat(1.0) + q / (mat_dat.Mi * p));
-	if (mat_dat.pl < mat_dat.pi)
-		mat_dat.pl = mat_dat.pi;
+	//if (mat_dat.pl < mat_dat.pi)
+	mat_dat.pl = mat_dat.pi;
 
 	return substp_id;
 }

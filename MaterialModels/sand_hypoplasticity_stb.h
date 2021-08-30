@@ -28,7 +28,7 @@ struct SandHypoplasticityStbGlobal
 
 	// cal vars
 	__Float_Type__ a, fbfe_coef;
-	__Float_Type__ Mtc, N_chi_div_Mtc;
+	__Float_Type__ Mtc; // , N_chi_div_Mtc;
 	__Float_Type__ ten_G, ten_lambda, ten_lambda_2G;
 
 	int32_t hypoplasticity_substp(
@@ -64,6 +64,11 @@ struct SandHypoplasticityStb
 	__Float_Type__ pl;
 	// yield surface
 	__Float_Type__ Mi, pi;
+	union
+	{
+		__Float_Type__ strain[6];
+		struct { __Float_Type__ e11, e22, e33, e12, e23, e31; };
+	};
 };
 
 void SandHypoplasticityStb_set_NC_param(

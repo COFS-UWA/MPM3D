@@ -70,7 +70,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	teh_mesh.clear();
-	model.init_pcls(pcl_generator, e0 / (1.0+e0), den_grain, 1000.0, 2.0e6, 1.5e-7, 0.7);
+	model.init_pcls(pcl_generator, e0 / (1.0+e0), den_grain, 1000.0, 2.0e7, 1.5e-7, 0.7);
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
@@ -87,11 +87,11 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	constexpr double ec0 = 0.76;
 	constexpr double ei0 = 0.86;
 	//
-	constexpr double Ig = 200.0; // 200.0
+	constexpr double Ig = 200.0;
 	constexpr double niu = 0.2;
 	//
-	constexpr double N = 1.0;
-	constexpr double chi = 3.0; // 6.0
+	constexpr double N = 2.0;
+	constexpr double chi = 350.0;
 	constexpr double H = 300.0;
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)

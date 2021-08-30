@@ -51,7 +51,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			1.0, 3.0, 260.0,
+			2.0, 350.0, 300.0, // 1.0, 180.0, 200.0 // higher N, lower peak
 			200.0, 0.2);
 	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
 	}
@@ -120,7 +120,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	step.set_step_time(1.0); // 1.0
 	//step.set_mass_factor(0.1); // debug
 	//step.set_step_time(1.0e-4); // debug
-	//step.set_max_subiter_num(1000); // debug
+	step.set_max_subiter_num(0); // debug
 	step.set_dtime(5.0e-6);
 	step.set_pdt(5.0e-6);
 	step.add_time_history(out_cpb);
