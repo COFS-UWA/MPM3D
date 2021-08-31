@@ -40,7 +40,7 @@ namespace Hdf5Field
 			"fluid vy", // 30
 			"fluid vz", // 31
 			"pore pressure", // 32
-			"mises strain", // 33
+			"mises strain 2d", // 33
 			"ee11", // 34
 			"ee22", // 35
 			"ee33", // 36
@@ -61,7 +61,9 @@ namespace Hdf5Field
 			"mat_s33", // 51
 			"mat_s12", // 52
 			"mat_s23", // 53
-			"mat_s31" // 54
+			"mat_s31", // 54
+			"mises strain 3d", // 55
+			"mat_pi" // 56
 		};
 	}
 }

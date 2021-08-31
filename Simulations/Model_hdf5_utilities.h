@@ -754,6 +754,11 @@ namespace Model_hdf5_utilities
 		double substep_size;
 		double Mi, pi;
 		double pl;
+		union
+		{
+			double strain[6];
+			struct { double e11, e22, e33, e12, e23, e31; };
+		};
 		int status_code;
 
 		inline void from_mm(MatModel::SandHypoplasticityStbWrapper& mm)
@@ -785,6 +790,13 @@ namespace Model_hdf5_utilities
 			Mi = mm.get_Mi();
 			pi = mm.get_pi();
 			pl = mm.get_pl();
+			const double *mm_strain = mm.get_strain();
+			e11 = mm_strain[0];
+			e22 = mm_strain[1];
+			e33 = mm_strain[2];
+			e12 = mm_strain[3];
+			e23 = mm_strain[4];
+			e31 = mm_strain[5];
 		}
 
 		inline void to_mm(MatModel::SandHypoplasticityStbWrapper& mm)
@@ -795,7 +807,7 @@ namespace Model_hdf5_utilities
 				alpha, beta,
 				ed0, ec0, ei0,
 				N, chi, H,
-				Ig, niu);
+				Ig, niu, strain);
 			mm.set_substep_size(substep_size);
 			mm.set_yield_surface(Mi, pi, pl);
 			status_code = 0;
@@ -830,6 +842,12 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "Mi", HOFFSET(SandHypoplasticityStbStateData, Mi), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "pi", HOFFSET(SandHypoplasticityStbStateData, pi), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "pl", HOFFSET(SandHypoplasticityStbStateData, pl), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e11", HOFFSET(SandHypoplasticityStbStateData, e11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e22", HOFFSET(SandHypoplasticityStbStateData, e22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e33", HOFFSET(SandHypoplasticityStbStateData, e33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e12", HOFFSET(SandHypoplasticityStbStateData, e12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e23", HOFFSET(SandHypoplasticityStbStateData, e23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "e31", HOFFSET(SandHypoplasticityStbStateData, e31), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "status_code", HOFFSET(SandHypoplasticityStbStateData, status_code), H5T_NATIVE_INT);
 		return res;
 	}

@@ -44,6 +44,12 @@ namespace MatModel
 		mat.Mi = o_mat.Mi;
 		mat.pi = o_mat.pi;
 		mat.pl = o_mat.pl;
+		mat.strain[0] = 0.0;
+		mat.strain[1] = 0.0;
+		mat.strain[2] = 0.0;
+		mat.strain[3] = 0.0;
+		mat.strain[4] = 0.0;
+		mat.strain[5] = 0.0;
 	}
 
 	void SandHypoplasticityStbWrapper::set_param(
@@ -54,7 +60,8 @@ namespace MatModel
 		__Float_Type__ alpha, __Float_Type__ beta,
 		__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
 		__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
-		__Float_Type__ Ig, __Float_Type__ niu)
+		__Float_Type__ Ig, __Float_Type__ niu,
+		const __Float_Type__* ini_strain)
 	{
 		SandHypoplasticityStbGlobal_set_param(
 			glb, phi, hs, n,
@@ -67,6 +74,20 @@ namespace MatModel
 			mat, glb,
 			ini_stress,
 			e0, ffmat(1.0));
+		if (ini_strain)
+		{
+			mat.e11 = ini_strain[0];
+			mat.e22 = ini_strain[1];
+			mat.e33 = ini_strain[2];
+			mat.e12 = ini_strain[3];
+			mat.e23 = ini_strain[4];
+			mat.e31 = ini_strain[5];
+		}
+		else
+		{
+			mat.e11 = 0.0; mat.e22 = 0.0; mat.e33 = 0.0;
+			mat.e12 = 0.0; mat.e23 = 0.0; mat.e31 = 0.0;
+		}
 	}
 
 	void SandHypoplasticityStbWrapper::set_yield_surface(
