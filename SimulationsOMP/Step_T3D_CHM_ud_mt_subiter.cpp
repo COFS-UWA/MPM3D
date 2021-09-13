@@ -1305,21 +1305,20 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		p_pe0.e23 = p_pe1.e23 + dpe.de23;
 		p_pe0.e31 = p_pe1.e31 + dpe.de31;
 
-		//if (ori_p_id == 200 && substp_id % 100 == 0 /* cur_time > 0.30 && cur_time < 0.35 && */) // pcl_id
-		//{
-		//	Stress& ps = pcl_stress0[p_id];
-		//	t3d_chm_ud_mt_subit_db_file << substp_id << ", " << cur_time << ", "
-		//		<< p_e0.e11 << ", " << p_e0.e22 << ", " << p_e0.e33 << ", "
-		//		<< p_e0.e12 << ", " << p_e0.e23 << ", " << p_e0.e31 << ", "
-		//		<< pe_de->de11 << ", " << pe_de->de22 << ", " << pe_de->de33 << ", "
-		//		<< pe_de->de12 << ", " << pe_de->de23 << ", " << pe_de->de31 << ", "
-		//		<< p_pe0.e11 << ", " << p_pe0.e22 << ", " << p_pe0.e33 << ", "
-		//		<< p_pe0.e12 << ", " << p_pe0.e23 << ", " << p_pe0.e31 << ", "
-		//		<< ps.s11 << ", " << ps.s22 << ", " << ps.s33 << ", "
-		//		<< ps.s12 << ", " << ps.s23 << ", " << ps.s31 << ", "
-		//		<< ",\n"
-		//		;
-		//}
+		if (ori_p_id == 2000 && substp_id % 200 == 0 /* cur_time > 0.30 && cur_time < 0.35 && */) // pcl_id
+		{
+			MatModel::SandHypoplasticityStbWrapper & pcl_mm = *(MatModel::SandHypoplasticityStbWrapper *)pcl_mat_model[ori_p_id];
+			Stress& ps = pcl_stress0[p_id];
+			t3d_chm_ud_mt_subit_db_file << substp_id << ", " << cur_time << ", "
+				<< p_e0.e11 << ", " << p_e0.e22 << ", " << p_e0.e33 << ", "
+				<< p_e0.e12 << ", " << p_e0.e23 << ", " << p_e0.e31 << ", "
+				<< pe_de->de11 << ", " << pe_de->de22 << ", " << pe_de->de33 << ", "
+				<< pe_de->de12 << ", " << pe_de->de23 << ", " << pe_de->de31 << ", "
+				<< ps.s11 << ", " << ps.s22 << ", " << ps.s33 << ", "
+				<< ps.s12 << ", " << ps.s23 << ", " << ps.s31 << ", "
+				<< pcl_mm.get_pi()
+				<< ",\n";
+		}
 	}
 
 #pragma omp critical

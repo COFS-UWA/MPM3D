@@ -51,7 +51,9 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			2.0, 350.0, 300.0, // 1.0, 180.0, 200.0 // higher N, lower peak
+			//2.0, 325.0, 200.0,
+			//2.0, 400.0, 100.0, 
+			1.5, 43.0, 100, //100.0, 180.0
 			200.0, 0.2);
 	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
 	}
@@ -92,7 +94,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	//size_t disp_p_id = 200;
+	//size_t disp_p_id = 2000;
 	//md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
 	//md_disp.start();
 	//return;
@@ -158,7 +160,7 @@ void test_t3d_chm_mt_cap_compression_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 0.1);
 	// pi
 	app.set_res_file(rf, "compression", Hdf5Field::mat_pi);
-	app.set_color_map_fld_range(0.0, 1000000.0);
+	app.set_color_map_fld_range(37.0e3, 1000.0e3);
 	//
 	app.start();
 }
