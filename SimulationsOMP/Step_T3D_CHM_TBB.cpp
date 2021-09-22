@@ -2,8 +2,8 @@
 
 #include <fstream>
 
-#include "DivideTask.hpp"
-#include "MergeTask.hpp"
+#include "ParallelForTask.hpp"
+#include "ParallelReduceTask.hpp"
 #include "Step_T3D_CHM_TBB.h"
 
 #ifdef _DEBUG
@@ -52,11 +52,10 @@ int Step_T3D_CHM_TBB::init_calculation()
 	//if (md.has_rigid_rect())
 	//	cont_rigid_rect.init(md);
 
-	tbb::task::spawn_root_and_wait(
-		*new(tbb::task::allocate_root())
-			MergeTask<Step_T3D_CHM_Task::InitPcl, size_t, 8>(
-				0, init_pcl.get_task_num(), init_pcl,
-				cal_data.valid_pcl_num));
+	init_pcl_res.pcl_num = 0;
+	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, init_pcl.get_task_num(), 1), init_pcl_res);
+	ParallelUtils::parallel_reduce(init_pcl, init_pcl_res, init_pcl.get_task_num());
+	cal_data.valid_pcl_num = init_pcl_res.pcl_num;
 
 	return 0;
 }
@@ -82,6 +81,8 @@ int substep_func_T3D_CHM_TBB(void* _self)
 	cd.dt = self.dtime;
 	cd.sorted_pcl_var_id ^= 1;
 
+	const size_t thread_num = self.thread_num;
+
 	// sort pcl id
 	auto& pcl_sort_mem = cd.pcl_sort_mem;
 	tbb::task::spawn_root_and_wait(
@@ -89,25 +90,15 @@ int substep_func_T3D_CHM_TBB(void* _self)
 			SortParticleTask(pcl_sort_mem, cd.prev_valid_pcl_num));
 	pcl_sort_mem.res_keys[cd.prev_valid_pcl_num] = SIZE_MAX;
 
-	tbb::task_list tk_list;
 	// sort node
-	auto &node_sort_mem = cd.node_sort_mem;
-	tk_list.push_back(*new(tbb::task::allocate_root())
-		SortTehMeshNodeTask(
-			node_sort_mem,
-			cd.valid_pcl_num,
-			pcl_sort_mem.res_keys,
-			cd.elem_node_id,
-			cd.valid_elem_num));
+	auto& node_sort_mem = cd.node_sort_mem;
+	//
+
 	// map pcl to bg mesh
 	auto &map_pcl_to_mesh = self.map_pcl_to_mesh;
-	map_pcl_to_mesh.update(self.thread_num);
-	tk_list.push_back(*new(tbb::task::allocate_root())
-		DivideTask<Step_T3D_CHM_Task::MapPclToBgMesh, 8>(
-			0, map_pcl_to_mesh.get_task_num(), map_pcl_to_mesh));
-	tbb::task::spawn_root_and_wait(tk_list);
-	node_sort_mem.res_keys[cd.valid_elem_num * 4] = SIZE_MAX;
-	
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, map_pcl_to_mesh.get_task_num(), 1), map_pcl_to_mesh);
+	ParallelUtils::parallel_for(map_pcl_to_mesh, map_pcl_to_mesh.get_task_num());
+
 	// contact with rigid rect
 	Model_T3D_CHM_mt& md = *static_cast<Model_T3D_CHM_mt *>(self.model);
 	//if (md.has_rigid_rect())
@@ -125,39 +116,33 @@ int substep_func_T3D_CHM_TBB(void* _self)
 	//}
 
 	// update nodal a and v
-	auto &update_a_and_v = self.update_a_and_v;
-	update_a_and_v.update(self.thread_num);
-	tbb::task::spawn_root_and_wait(
-		*new(tbb::task::allocate_root())
-			DivideTask<Step_T3D_CHM_Task::UpdateAccelerationAndVelocity, 8>(
-				0, update_a_and_v.get_task_num(), update_a_and_v));
+	auto& update_a_and_v = self.update_a_and_v;
+	update_a_and_v.update(thread_num);
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, update_a_and_v.get_task_num(), 1), update_a_and_v);
+	ParallelUtils::parallel_for(update_a_and_v, update_a_and_v.get_task_num());
 
 	// cal element de and map to node
-	auto &cal_elem_de = self.cal_elem_de;
-	cal_elem_de.update(self.thread_num);
-	tbb::task::spawn_root_and_wait(
-		*new(tbb::task::allocate_root())
-			DivideTask<Step_T3D_CHM_Task::CalElemDeAndMapToNode, 8>(
-				0, cal_elem_de.get_task_num(), cal_elem_de));
+	auto& cal_elem_de = self.cal_elem_de;
+	cal_elem_de.update(thread_num);
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, cal_elem_de.get_task_num(), 1), cal_elem_de);
+	ParallelUtils::parallel_for(cal_elem_de, cal_elem_de.get_task_num());
 
 	// cal strain increment at node
 	auto &cal_node_de = self.cal_node_de;
-	cal_node_de.update(self.thread_num);
-	tbb::task::spawn_root_and_wait(
-		*new(tbb::task::allocate_root())
-			DivideTask<Step_T3D_CHM_Task::CalNodeDe, 8>(
-				0, cal_node_de.get_task_num(), cal_node_de));
+	cal_node_de.update(thread_num);
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, cal_node_de.get_task_num(), 1), cal_node_de);
+	ParallelUtils::parallel_for(cal_node_de, cal_node_de.get_task_num());
 
-	// map bg mesh back to pcl
 	cd.prev_valid_pcl_num = cd.valid_pcl_num;
+	// map bg mesh back to pcl
+	auto& map_mesh_to_pcl_res = self.map_mesh_to_pcl_res;
+	map_mesh_to_pcl_res.pcl_num = 0;
 	auto& map_mesh_to_pcl = self.map_mesh_to_pcl;
-	map_mesh_to_pcl.update(self.thread_num);
-	tbb::task::spawn_root_and_wait(
-		*new(tbb::task::allocate_root())
-			MergeTask<Step_T3D_CHM_Task::MapBgMeshToPcl, size_t, 8>(
-				0, map_mesh_to_pcl.get_task_num(),
-				map_mesh_to_pcl, cd.valid_pcl_num));
-	
+	map_mesh_to_pcl.update(thread_num);
+	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, map_mesh_to_pcl.get_task_num(), 1), map_mesh_to_pcl_res);
+	ParallelUtils::parallel_reduce(map_mesh_to_pcl, map_mesh_to_pcl_res, map_mesh_to_pcl.get_task_num());
+	cd.valid_pcl_num = map_mesh_to_pcl_res.pcl_num;
+
 	self.continue_calculation();
 	return 0;
 }

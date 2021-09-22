@@ -92,7 +92,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	//
 	constexpr double N = 1.5;
 	constexpr double chi = 43.0;
-	constexpr double H = 100.0;
+	constexpr double H = 180.0;
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{

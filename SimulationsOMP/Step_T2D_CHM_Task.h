@@ -1,8 +1,8 @@
 #ifndef __Step_T2D_CHM_Task_h__
 #define __Step_T2D_CHM_Task_h__
 
-#include "tbb/task.h"
-#include "tbb/task_scheduler_init.h"
+#define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
+#include <tbb/tbb.h>
 
 #include "ParallelUtils.h"
 #include "MSDRadixSortUtils.h"

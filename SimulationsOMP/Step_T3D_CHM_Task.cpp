@@ -1,7 +1,6 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <assert.h>
-#include "tbb/task_arena.h"
 
 #include "ParallelUtils.h"
 #include "Step_T3D_CHM_Task.h"
@@ -103,7 +102,13 @@ namespace Step_T3D_CHM_Task
 #endif
 	}
 
-	void InitPcl::operator() (size_t wk_id, size_t &pcl_in_mesh_num) const
+	void InitPclRes::operator() (tbb::blocked_range<size_t>& range)
+	{
+		for (size_t i = range.begin(); i < range.end(); ++i)
+			pcl_num += init_pcl->work(i);
+	}
+
+	size_t InitPcl::work(size_t wk_id) const
 	{
 		const auto& pcl_sort_mem = cd.pcl_sort_mem;
 		size_t* const ori_pcl_in_elem = pcl_sort_mem.ori_keys;
@@ -113,7 +118,7 @@ namespace Step_T3D_CHM_Task
 		const auto& spva0 = cd.spvas[0];
 		const size_t p_id0 = ParallelUtils::block_low(wk_id, task_num, cd.prev_valid_pcl_num);
 		const size_t p_id1 = ParallelUtils::block_low(wk_id + 1, task_num, cd.prev_valid_pcl_num);
-		size_t my_valid_pcl_num = 0;
+		size_t valid_pcl_num = 0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = spva0.pcl_index[p_id];
@@ -130,22 +135,22 @@ namespace Step_T3D_CHM_Task
 			if (e_id == SIZE_MAX)
 				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
 			if (e_id != SIZE_MAX)
-				++my_valid_pcl_num;
+				++valid_pcl_num;
 			ori_pcl_in_elem[p_id] = e_id;
 			ori_cur_to_prev_pcl[p_id] = p_id;
 		}
-		pcl_in_mesh_num = my_valid_pcl_num;
+		return valid_pcl_num;
 	}
 	
-	void MapPclToBgMesh::operator() (size_t wk_id) const
+	void MapPclToBgMesh::work(size_t wk_id) const
 	{
 		size_t e_id;
-		size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
+		size_t p_id0 = block_low(wk_id, task_num, pcl_num);
 		e_id = pcl_in_elem[p_id0];
 		while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
 		++p_id0;
 		assert(p_id0 <= valid_pcl_num);
-		size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
+		size_t p_id1 = block_low(wk_id + 1, task_num, pcl_num);
 		e_id = pcl_in_elem[p_id1];
 		while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
 		++p_id1;
@@ -725,15 +730,15 @@ namespace Step_T3D_CHM_Task
 	//	rr_cf.m = rcf.m;
 	//}
 
-	void UpdateAccelerationAndVelocity::operator() (size_t wk_id) const
+	void UpdateAccelerationAndVelocity::work(size_t wk_id) const
 	{
 		size_t n_id;
-		size_t ve_id0 = block_low(wk_id, task_num, four_valid_elem_num);
+		size_t ve_id0 = block_low(wk_id, task_num, four_elem_num);
 		n_id = node_has_elem[ve_id0];
 		while (ve_id0 != SIZE_MAX && n_id == node_has_elem[--ve_id0]);
 		++ve_id0;
 		assert(ve_id0 <= four_valid_elem_num);
-		size_t ve_id1 = block_low(wk_id + 1, task_num, four_valid_elem_num);
+		size_t ve_id1 = block_low(wk_id + 1, task_num, four_elem_num);
 		n_id = node_has_elem[ve_id1];
 		while (ve_id1 != SIZE_MAX && n_id == node_has_elem[--ve_id1]);
 		++ve_id1;
@@ -858,10 +863,10 @@ namespace Step_T3D_CHM_Task
 		}
 	}
 
-	void CalElemDeAndMapToNode::operator() (size_t wk_id) const
+	void CalElemDeAndMapToNode::work(size_t wk_id) const
 	{
-		const size_t ve_id0 = block_low(wk_id, task_num, valid_elem_num);
-		const size_t ve_id1 = block_low(wk_id + 1, task_num, valid_elem_num);
+		const size_t ve_id0 = block_low(wk_id, task_num, elem_num);
+		const size_t ve_id1 = block_low(wk_id + 1, task_num, elem_num);
 		double e_de_vol_s, e_de_vol_f;
 		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 		{
@@ -903,15 +908,15 @@ namespace Step_T3D_CHM_Task
 		}
 	}
 	
-	void CalNodeDe::operator() (size_t wk_id) const
+	void CalNodeDe::work(size_t wk_id) const
 	{
 		size_t n_id;
-		size_t ve_id0 = block_low(wk_id, task_num, four_valid_elem_num);
+		size_t ve_id0 = block_low(wk_id, task_num, four_elem_num);
 		n_id = node_has_elem[ve_id0];
 		while (ve_id0 != SIZE_MAX && n_id == node_has_elem[--ve_id0]);
 		++ve_id0;
 		assert(ve_id0 <= four_valid_elem_num);
-		size_t ve_id1 = block_low(wk_id + 1, task_num, four_valid_elem_num);
+		size_t ve_id1 = block_low(wk_id + 1, task_num, four_elem_num);
 		n_id = node_has_elem[ve_id1];
 		while (ve_id1 != SIZE_MAX && n_id == node_has_elem[--ve_id1]);
 		++ve_id1;
@@ -946,15 +951,21 @@ namespace Step_T3D_CHM_Task
 		}
 	}
 
-	void MapBgMeshToPcl::operator() (size_t wk_id, size_t& pcl_in_mesh_num) const
+	void MapBgMeshToPclRes::operator() (const tbb::blocked_range<size_t>& range)
+	{
+		for (size_t i = range.begin(); i < range.end(); ++i)
+			pcl_num += map_bg_mesh_to_pcl->work(i);
+	}
+
+	size_t MapBgMeshToPcl::work(size_t wk_id) const
 	{
 		size_t e_id;
-		size_t p_id0 = block_low(wk_id, task_num, valid_pcl_num);
+		size_t p_id0 = block_low(wk_id, task_num, pcl_num);
 		e_id = pcl_in_elem[p_id0];
 		while (p_id0 != SIZE_MAX && e_id == pcl_in_elem[--p_id0]);
 		++p_id0;
 		assert(p_id0 <= valid_pcl_num);
-		size_t p_id1 = block_low(wk_id + 1, task_num, valid_pcl_num);
+		size_t p_id1 = block_low(wk_id + 1, task_num, pcl_num);
 		e_id = pcl_in_elem[p_id1];
 		while (p_id1 != SIZE_MAX && e_id == pcl_in_elem[--p_id1]);
 		++p_id1;
@@ -968,7 +979,7 @@ namespace Step_T3D_CHM_Task
 		StrainInc* pe_de;
 		double dstrain[6];
 		Model_T3D_CHM_mt& md = *(cd.pmodel);
-		size_t my_valid_pcl_num = 0;
+		size_t valid_pcl_num = 0;
 		e_id = SIZE_MAX;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
@@ -1060,7 +1071,7 @@ namespace Step_T3D_CHM_Task
 				}
 			}
 			if (p_e_id != SIZE_MAX) // in mesh
-				++my_valid_pcl_num;
+				++valid_pcl_num;
 			new_pcl_in_elem[p_id] = p_e_id;
 			new_cur_to_prev_pcl[p_id] = p_id;
 #ifdef _DEBUG
@@ -1125,6 +1136,6 @@ namespace Step_T3D_CHM_Task
 			p_pe0.e31 = p_pe1.e31 + pstrain[5];
 		}
 
-		pcl_in_mesh_num = my_valid_pcl_num;
+		return valid_pcl_num;
 	}
 }

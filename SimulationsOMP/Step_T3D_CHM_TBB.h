@@ -1,7 +1,8 @@
 #ifndef __Step_T3D_CHM_TBB_h__
 #define __Step_T3D_CHM_TBB_h__
 
-#include "tbb/task_scheduler_init.h"
+#define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
+#include <tbb/tbb.h>
 
 #include "Model_T3D_CHM_mt.h"
 #include "Step_T3D_CHM_Task.h"
@@ -41,12 +42,14 @@ protected:
 	typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
 
 	Step_T3D_CHM_Task::CalData cal_data;
+	Step_T3D_CHM_Task::InitPclRes init_pcl_res;
 	Step_T3D_CHM_Task::InitPcl init_pcl;
 	Step_T3D_CHM_Task::MapPclToBgMesh map_pcl_to_mesh;
 	//Step_T3D_CHM_Task::ContactRigidRect cont_rigid_rect;
 	Step_T3D_CHM_Task::UpdateAccelerationAndVelocity update_a_and_v;
 	Step_T3D_CHM_Task::CalElemDeAndMapToNode cal_elem_de;
 	Step_T3D_CHM_Task::CalNodeDe cal_node_de;
+	Step_T3D_CHM_Task::MapBgMeshToPclRes map_mesh_to_pcl_res;
 	Step_T3D_CHM_Task::MapBgMeshToPcl map_mesh_to_pcl;
 	
 	tbb::task_scheduler_init sche_init;

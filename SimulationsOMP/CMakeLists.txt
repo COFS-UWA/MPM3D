@@ -53,6 +53,8 @@ add_library(
     DivideTask.hpp
     MergeTask.hpp
     ParallelUtils.h
+    ParallelForTask.hpp
+    ParallelReduceTask.hpp
     MSDRadixSortUtils.h MSDRadixSortUtils.cpp
     MSDRadixSortTask.h MSDRadixSortTask.cpp
     SortTriMeshNodeTask.h SortTriMeshNodeTask.cpp

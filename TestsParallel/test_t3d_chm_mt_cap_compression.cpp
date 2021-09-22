@@ -53,7 +53,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 			0.49, 0.76, 0.86,
 			//2.0, 325.0, 200.0,
 			//2.0, 400.0, 100.0, 
-			1.5, 43.0, 100, //100.0, 180.0
+			1.5, 43.0, 180, //100.0, 180.0
 			200.0, 0.2);
 	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
 	}
