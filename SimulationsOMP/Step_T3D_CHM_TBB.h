@@ -41,11 +41,14 @@ protected:
 	typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
 
+	Step_T3D_CHM_Task::PclRange *pcl_ranges;
+	Step_T3D_CHM_Task::NodeElemRange* node_elem_ranges;
+
 	Step_T3D_CHM_Task::CalData cal_data;
 	Step_T3D_CHM_Task::InitPclRes init_pcl_res;
 	Step_T3D_CHM_Task::InitPcl init_pcl;
 	Step_T3D_CHM_Task::MapPclToBgMesh map_pcl_to_mesh;
-	//Step_T3D_CHM_Task::ContactRigidRect cont_rigid_rect;
+	Step_T3D_CHM_Task::ContactRigidCylinder cont_rigid_cylinder;
 	Step_T3D_CHM_Task::UpdateAccelerationAndVelocity update_a_and_v;
 	Step_T3D_CHM_Task::CalElemDeAndMapToNode cal_elem_de;
 	Step_T3D_CHM_Task::CalNodeDe cal_node_de;

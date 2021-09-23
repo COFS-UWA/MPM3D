@@ -14,11 +14,13 @@ Step_T3D_CHM_TBB::Step_T3D_CHM_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T3D_CHM_TBB", &substep_func_T3D_CHM_TBB),
 	init_pcl(cal_data),
 	map_pcl_to_mesh(cal_data),
-	//cont_rigid_rect(cal_data),
+	cont_rigid_cylinder(cal_data),
 	update_a_and_v(cal_data),
 	cal_elem_de(cal_data),
 	cal_node_de(cal_data),
 	map_mesh_to_pcl(cal_data),
+	pcl_ranges(nullptr),
+	node_elem_ranges(nullptr),
 	sche_init(tbb::task_scheduler_init::deferred) {}
 
 Step_T3D_CHM_TBB::~Step_T3D_CHM_TBB() {}
@@ -40,6 +42,21 @@ int Step_T3D_CHM_TBB::init_calculation()
 	cal_data.thread_bin_blocks_mem.init(thread_num, 2);
 	cal_data.pcl_sort_mem.init(md.pcl_num, md.elem_num, cal_data.thread_bin_blocks_mem);
 	cal_data.node_sort_mem.init(md.elem_num, md.node_num, cal_data.thread_bin_blocks_mem);
+	
+	const size_t max_pcl_task_num = ParallelUtils::cal_task_num<
+		Step_T3D_CHM_Task::min_pcl_num_per_task,
+		Step_T3D_CHM_Task::task_num_per_thread>(thread_num, md.pcl_num);
+	if (pcl_ranges) delete[] pcl_ranges;
+	pcl_ranges = new Step_T3D_CHM_Task::PclRange[max_pcl_task_num];
+	cal_data.pcl_ranges = pcl_ranges;
+
+	const size_t max_ne_task_num = ParallelUtils::cal_task_num<
+		Step_T3D_CHM_Task::min_node_elem_num_per_task,
+		Step_T3D_CHM_Task::task_num_per_thread>(thread_num, md.elem_num * 4);
+	if (node_elem_ranges) delete[] node_elem_ranges;
+	node_elem_ranges = new Step_T3D_CHM_Task::NodeElemRange[max_ne_task_num];
+	cal_data.node_elem_ranges = node_elem_ranges;
+	
 	cal_data.sorted_pcl_var_id = 0;
 	cal_data.prev_valid_pcl_num = md.pcl_num;
 
@@ -49,8 +66,8 @@ int Step_T3D_CHM_TBB::init_calculation()
 	cal_elem_de.init();
 	cal_node_de.init();
 	map_mesh_to_pcl.init();
-	//if (md.has_rigid_rect())
-	//	cont_rigid_rect.init(md);
+	if (md.has_rigid_cylinder())
+		cont_rigid_cylinder.init(md);
 
 	init_pcl_res.pcl_num = 0;
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, init_pcl.get_task_num(), 1), init_pcl_res);
@@ -62,6 +79,9 @@ int Step_T3D_CHM_TBB::init_calculation()
 
 int Step_T3D_CHM_TBB::finalize_calculation()
 {
+	if (pcl_ranges) delete[] pcl_ranges;
+	if (node_elem_ranges) delete[] node_elem_ranges;
+	
 	Model_T3D_CHM_mt& md = *(Model_T3D_CHM_mt *)model;
 	md.pcl_num = cal_data.prev_valid_pcl_num;
 	sche_init.terminate();
