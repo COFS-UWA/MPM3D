@@ -48,6 +48,7 @@ protected:
 	Step_T3D_CHM_Task::InitPclRes init_pcl_res;
 	Step_T3D_CHM_Task::InitPcl init_pcl;
 	Step_T3D_CHM_Task::MapPclToBgMesh map_pcl_to_mesh;
+	Step_T3D_CHM_Task::ContactForceRes cont_force;
 	Step_T3D_CHM_Task::ContactRigidCylinder cont_rigid_cylinder;
 	Step_T3D_CHM_Task::UpdateAccelerationAndVelocity update_a_and_v;
 	Step_T3D_CHM_Task::CalElemDeAndMapToNode cal_elem_de;

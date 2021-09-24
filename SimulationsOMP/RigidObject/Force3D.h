@@ -40,6 +40,13 @@ struct Force3D
 		my += dz * _fx - dx * _fz;
 		mz += dx * _fy - dy * _fx;
 	}
+
+	inline Force3D& operator=(const Force3D& other)
+	{
+		fx = other.fx; fy = other.fy; fz = other.fz;
+		mx = other.mx; my = other.my; mz = other.mz;
+		return *this;
+	}
 };
 
 #endif

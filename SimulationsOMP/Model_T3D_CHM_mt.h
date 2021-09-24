@@ -565,6 +565,8 @@ public:
 	inline void set_sticky_contact_between_spcl_and_rect() noexcept { pcm_s = &sticky_contact_s; }
 	inline void set_smooth_contact_between_fpcl_and_rect() noexcept { pcm_f = &smooth_contact_f; }
 	inline void set_rough_contact_between_fpcl_and_rect() noexcept { pcm_f = &rough_contact_f; }
+	inline ContactModel3D *get_contact_model_s() noexcept { return pcm_s; }
+	inline ContactModel3D* get_contact_model_f() noexcept { return pcm_f; }
 
 protected:
 	friend struct Model_T3D_CHM_mt_hdf5_utilities::ParticleData;

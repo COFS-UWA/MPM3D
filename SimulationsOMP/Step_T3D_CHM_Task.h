@@ -5,6 +5,7 @@
 #include <tbb/tbb.h>
 
 #include "ParallelUtils.h"
+#include "RigidObject/RigidCylinder.h"
 #include "MSDRadixSortUtils.h"
 #include "SortParticleTask.h"
 #include "SortTehMeshNodeTask.h"
@@ -16,16 +17,11 @@ namespace Step_T3D_CHM_Task
 
 	constexpr size_t task_num_per_thread = 4;
 
-	constexpr size_t min_pcl_num_per_task = 100; // must < all min_pcl_...
-	constexpr size_t min_node_elem_num_per_task = 20; // must < all min_node_elem_num_...
-
 	constexpr size_t min_pcl_num_per_init_pcl_task = 100;
-	constexpr size_t min_pcl_num_per_map_pcl_to_mesh_task = 100;
-	constexpr size_t min_pcl_num_per_contact_rigid_cylinder_task = 100;
-	constexpr size_t min_node_elem_num_per_update_a_and_v_task = 20;
-	constexpr size_t min_elem_num_per_cal_elem_de_task = 20;
-	constexpr size_t min_node_elem_num_per_cal_node_de_task = 20;
-	constexpr size_t min_pcl_num_per_map_mesh_to_pcl_task = 100;
+	constexpr size_t min_pcl_num_per_task = 100;
+	constexpr size_t min_node_elem_num_per_task = 20;
+	constexpr size_t min_elem_num_per_task = 20;
+
 	constexpr size_t cache_line_size = 64;
 
 	struct PclRange
@@ -131,7 +127,13 @@ namespace Step_T3D_CHM_Task
 	{
 		size_t pcl_num;
 		InitPcl* init_pcl;
-		InitPclRes() : pcl_num(0), init_pcl(nullptr) {}
+		// for initializeing
+		InitPclRes(InitPcl &_ip) :
+			pcl_num(0), init_pcl(&_ip) {}
+		// parallel_for
+		InitPclRes() :
+			pcl_num(0), init_pcl(nullptr) {}
+		// tbb::parallel_for
 		InitPclRes(InitPclRes &other, tbb::split) :
 			pcl_num(0), init_pcl(other.init_pcl) {}
 		void operator() (tbb::blocked_range<size_t>& range);
@@ -228,6 +230,11 @@ namespace Step_T3D_CHM_Task
 
 	public:
 		MapPclToBgMesh(CalData &_cd) : cd(_cd) {}
+		inline size_t get_task_num() const noexcept { return task_num; }
+		void work(size_t wk_id) const;
+		inline void operator() (const tbb::blocked_range<size_t>& range) const { work(range.begin()); }
+		inline tbb::task* operator() (tbb::task& parent, size_t wk_id) const { work(wk_id); return nullptr; }
+
 		void init() noexcept
 		{
 			// pcl data
@@ -283,16 +290,24 @@ namespace Step_T3D_CHM_Task
 			pcl_num = cd.valid_pcl_num;
 			task_num = ParallelUtils::cal_task_num<min_pcl_num_per_init_pcl_task, task_num_per_thread>(thread_num, pcl_num);
 		}
-		inline size_t get_task_num() const noexcept { return task_num; }
-		
-		void work(size_t wk_id) const;
-		void operator() (const tbb::blocked_range<size_t>& range) const { work(range.begin()); }
-		tbb::task* operator() (tbb::task& parent, size_t wk_id) const { work(wk_id); return nullptr; }
 	};
 
+	class ContactRigidCylinder;
 	struct ContactForceRes
 	{
-
+		Force3D react_force;
+		ContactRigidCylinder* contact_rigid_cylinder;
+		// initializing
+		ContactForceRes(ContactRigidCylinder &_cont) :
+			contact_rigid_cylinder(&_cont) { react_force.reset(); }
+		// parallel_reduce
+		ContactForceRes() : contact_rigid_cylinder(nullptr) { react_force.reset(); }
+		// tbb::parallel_reduce
+		ContactForceRes(ContactForceRes &other, tbb::split) :
+			contact_rigid_cylinder(other.contact_rigid_cylinder) { react_force.reset(); }
+		inline void join(ContactForceRes& res)
+		{ react_force.combine(res.react_force); }
+		void operator() (const tbb::blocked_range<size_t>& range);
 	};
 
 	class ContactRigidCylinder
@@ -304,48 +319,54 @@ namespace Step_T3D_CHM_Task
 		typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
 
 		CalData &cd;
-		//RigidRect *prr;
-		double K_cont;
+
+		RigidCylinder *prcy;
+		ContactModel3D* pcm_s, * pcm_f;
+
 		const Position *pcl_pos;
 		const double *pcl_vol;
-		Force* elem_node_force;
+		Force *elem_node_force_s;
+		Force *elem_node_force_f;
 
-		const size_t* pcl_in_elem;
 		const size_t* pcl_index;
 		const ShapeFunc* pcl_N;
-		const Displacement* pcl_disp;
-		
-		size_t pcl_num, task_num;
+		const Displacement* pcl_u_s;
+
+		const size_t* pcl_in_elem;
+		size_t substp_id;
+
 		PclRange* pcl_ranges;
 
 	public:
 		ContactRigidCylinder(CalData& _cd) : cd(_cd) {}
-		void operator() (size_t wk_id, Force3D& rr_cf) const;
+		Force3D work(size_t wk_id) const;
+		inline tbb::task *operator() (tbb::task &parent, size_t wk_id, ContactForceRes& rcy_cf) const
+		{ rcy_cf.react_force = work(wk_id); return nullptr; }
 
 		inline void init(Model_T3D_CHM_mt &md) noexcept
 		{
-			//prr = &md.get_rigid_rect();
-			//K_cont = md.get_Kn_cont();
+			prcy = &md.get_rigid_cylinder();
+			pcm_s = md.get_contact_model_s();
+			pcm_f = md.get_contact_model_f();
+			//
 			pcl_pos = cd.pcl_pos;
 			pcl_vol = cd.pcl_vol;
-			elem_node_force = cd.elem_node_force;
+			elem_node_force_s = cd.elem_node_force_s;
+			elem_node_force_f = cd.elem_node_force_f;
+			substp_id = SIZE_MAX;
 			// pcl range
 			pcl_ranges = cd.pcl_ranges;
 		}
-		inline void update(size_t thread_num) noexcept
+		inline void update() noexcept
 		{
-			pcl_in_elem = cd.pcl_sort_mem.res_keys;
 			const auto& spva0 = cd.spvas[cd.sorted_pcl_var_id];
 			pcl_index = spva0.pcl_index;
 			pcl_N = spva0.pcl_N;
-			pcl_disp = spva0.pcl_disp;
+			pcl_u_s = spva0.pcl_u_s;
 			//
-			pcl_num = cd.valid_pcl_num;
-			task_num = ParallelUtils::cal_task_num<
-				min_pcl_num_per_contact_rigid_cylinder_task, task_num_per_thread>(
-					thread_num, pcl_num);
+			++substp_id;
+			pcl_in_elem = cd.pcl_sort_mem.res_keys;
 		}
-		inline size_t get_task_num() const noexcept { return task_num; }
 	};
 	
 	class UpdateAccelerationAndVelocity
@@ -376,13 +397,12 @@ namespace Step_T3D_CHM_Task
 		const size_t* node_has_elem;
 		const size_t* node_elem_pair;
 
-		size_t four_elem_num, task_num;
 		NodeElemRange *node_elem_ranges;
+		size_t task_num, four_elem_num;
 
 	public:
 		UpdateAccelerationAndVelocity(CalData& _cd) : cd(_cd) {}
-		
-		inline size_t get_task_num() const noexcept { return task_num; }
+		void work(size_t wk_id) const;
 		inline void operator() (const tbb::blocked_range<size_t>& range) const
 		{ work(range.begin()); }
 		inline tbb::task* operator() (tbb::task& parent, size_t wk_id) const
@@ -406,14 +426,14 @@ namespace Step_T3D_CHM_Task
 			node_has_vbc_f = cd.node_has_vbc_f;
 			node_has_elem = cd.node_sort_mem.res_keys;
 			node_elem_pair = cd.node_sort_mem.res_vals;
+			//
 			node_elem_ranges = cd.node_elem_ranges;
 		}
-		void update(size_t thread_num) noexcept
+		void update(size_t tsk_num)
 		{
+			task_num = tsk_num;
 			four_elem_num = cd.valid_elem_num * 4;
-			task_num = ParallelUtils::cal_task_num<min_node_elem_num_per_update_a_and_v_task, task_num_per_thread>(thread_num, four_elem_num);
 		}
-		void work(size_t wk_id) const;
 	};
 
 	class CalElemDeAndMapToNode
@@ -433,13 +453,14 @@ namespace Step_T3D_CHM_Task
 		const Velocity *node_v_s, *node_v_f;
 		StrainInc* elem_de;
 		double* elem_m_de_vol_s, *elem_m_de_vol_f;
+
 		const size_t *valid_elems;
 
 		size_t elem_num, task_num;
 
 	public:
 		CalElemDeAndMapToNode(CalData &_cd) : cd(_cd) {}
-		inline size_t get_task_num() const noexcept { return task_num; }
+		void work(size_t wk_id) const;
 		inline void operator() (const tbb::blocked_range<size_t>& range) const
 		{ work(range.begin()); }
 		inline tbb::task* operator() (tbb::task& parent, size_t wk_id) const
@@ -459,13 +480,11 @@ namespace Step_T3D_CHM_Task
 			elem_m_de_vol_f = cd.elem_m_de_vol_f;
 			valid_elems = cd.node_sort_mem.res_elems;
 		}
-		void update(size_t thread_num) noexcept
+		inline void update(size_t tsk_num)
 		{
+			task_num = tsk_num;
 			elem_num = cd.valid_elem_num;
-			task_num = ParallelUtils::cal_task_num<
-				min_elem_num_per_cal_elem_de_task, task_num_per_thread>(thread_num, elem_num);
 		}
-		void work(size_t wk_id) const;
 	};
 
 	class CalNodeDe
@@ -475,16 +494,16 @@ namespace Step_T3D_CHM_Task
 
 		const size_t* node_has_elem;
 		const size_t* node_elem_pair;
+		
 		const double* elem_m_de_vol_s, *elem_m_de_vol_f;
 		const double* node_am_s, *node_am_f;
 		double* node_de_vol_s, *node_de_vol_f;
 
-		size_t four_elem_num, task_num;
 		NodeElemRange* node_elem_ranges;
 
 	public:
 		CalNodeDe(CalData &_cd) : cd(_cd) {}
-		inline size_t get_task_num() const noexcept { return task_num; }
+		void work(size_t wk_id) const;
 		inline void operator() (const tbb::blocked_range<size_t>& range) const
 		{ work(range.begin()); }
 		inline tbb::task* operator() (tbb::task& parent, size_t wk_id) const
@@ -503,14 +522,6 @@ namespace Step_T3D_CHM_Task
 			//
 			node_elem_ranges = cd.node_elem_ranges;
 		}
-		void update(size_t thread_num) noexcept
-		{
-			four_elem_num = cd.valid_elem_num * 4;
-			task_num = ParallelUtils::cal_task_num<
-				min_node_elem_num_per_cal_node_de_task, task_num_per_thread>(
-					thread_num, four_elem_num);
-		}
-		void work(size_t wk_id) const;
 	};
 
 	class MapBgMeshToPcl;
@@ -518,7 +529,12 @@ namespace Step_T3D_CHM_Task
 	{
 		size_t pcl_num;
 		MapBgMeshToPcl* map_bg_mesh_to_pcl;
+		// initializing
+		MapBgMeshToPclRes(MapBgMeshToPcl &_map) :
+			pcl_num(0), map_bg_mesh_to_pcl(&_map) {}
+		// parallel_reduce
 		MapBgMeshToPclRes() : pcl_num(0), map_bg_mesh_to_pcl(nullptr) {}
+		// tbb::parallel_reduce
 		MapBgMeshToPclRes(MapBgMeshToPclRes& other, tbb::split)
 			: pcl_num(0), map_bg_mesh_to_pcl(other.map_bg_mesh_to_pcl) {}
 		inline void operator() (const tbb::blocked_range<size_t>& range);
@@ -576,15 +592,12 @@ namespace Step_T3D_CHM_Task
 		size_t* new_cur_to_prev_pcl;
 
 		PclRange* pcl_ranges;
-		size_t pcl_num, task_num;
 		
 	public:
 		MapBgMeshToPcl(CalData& _cd) : cd(_cd) {}
-
-		inline size_t get_task_num() const noexcept { return task_num; }
+		size_t work(size_t wk_id) const;
 		inline tbb::task *operator() (tbb::task &parent, size_t wk_id, MapBgMeshToPclRes &res) const
 		{ res.pcl_num = work(wk_id); return nullptr; }
-		size_t work(size_t wk_id) const;
 
 		void init() noexcept
 		{
@@ -601,6 +614,7 @@ namespace Step_T3D_CHM_Task
 			node_de_vol_f = cd.node_de_vol_f;
 			pcl_pos = cd.pcl_pos;
 			pcl_mat_model = cd.pcl_mat_model;
+			// range
 			pcl_ranges = cd.pcl_ranges;
 		}
 		void update(size_t thread_num) noexcept
@@ -630,12 +644,6 @@ namespace Step_T3D_CHM_Task
 			pcl_sort_mem.update_key_and_val();
 			new_pcl_in_elem = pcl_sort_mem.ori_keys;
 			new_cur_to_prev_pcl = pcl_sort_mem.ori_vals;
-
-			// update task_Num
-			pcl_num = cd.valid_pcl_num;
-			task_num = ParallelUtils::cal_task_num<
-				min_pcl_num_per_map_mesh_to_pcl_task, task_num_per_thread>(
-					thread_num, pcl_num);
 		}
 	};
 }

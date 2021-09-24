@@ -12,12 +12,15 @@ static std::fstream res_file_t3d_me_tbb;
 
 Step_T3D_CHM_TBB::Step_T3D_CHM_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T3D_CHM_TBB", &substep_func_T3D_CHM_TBB),
+	init_pcl_res(init_pcl),
 	init_pcl(cal_data),
 	map_pcl_to_mesh(cal_data),
+	cont_force(cont_rigid_cylinder),
 	cont_rigid_cylinder(cal_data),
 	update_a_and_v(cal_data),
 	cal_elem_de(cal_data),
 	cal_node_de(cal_data),
+	map_mesh_to_pcl_res(map_mesh_to_pcl),
 	map_mesh_to_pcl(cal_data),
 	pcl_ranges(nullptr),
 	node_elem_ranges(nullptr),
@@ -102,6 +105,10 @@ int substep_func_T3D_CHM_TBB(void* _self)
 	cd.sorted_pcl_var_id ^= 1;
 
 	const size_t thread_num = self.thread_num;
+	const size_t pcl_task_num = ParallelUtils::cal_task_num<
+		Step_T3D_CHM_Task::min_pcl_num_per_task,
+		Step_T3D_CHM_Task::task_num_per_thread>(
+			thread_num, cd.valid_pcl_num);
 
 	// sort pcl id
 	auto& pcl_sort_mem = cd.pcl_sort_mem;
@@ -112,55 +119,64 @@ int substep_func_T3D_CHM_TBB(void* _self)
 
 	// sort node
 	auto& node_sort_mem = cd.node_sort_mem;
-	//
+	//...
+	//cd.valid_elem_num = node_sort_mem.valid_elem_blocks;
 
 	// map pcl to bg mesh
 	auto &map_pcl_to_mesh = self.map_pcl_to_mesh;
-	//tbb::parallel_for(tbb::blocked_range<size_t>(0, map_pcl_to_mesh.get_task_num(), 1), map_pcl_to_mesh);
-	ParallelUtils::parallel_for(map_pcl_to_mesh, map_pcl_to_mesh.get_task_num());
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, pcl_task_num, 1), map_pcl_to_mesh);
+	ParallelUtils::parallel_for(map_pcl_to_mesh, pcl_task_num);
 
-	// contact with rigid rect
+	// contact
 	Model_T3D_CHM_mt& md = *static_cast<Model_T3D_CHM_mt *>(self.model);
-	//if (md.has_rigid_rect())
-	//{
-	//	auto& cont_rigid_rect = self.cont_rigid_rect;
-	//	cont_rigid_rect.update(self.thread_num);
-	//	Force2D rr_cf;
-	//	tbb::task::spawn_root_and_wait(
-	//		*new(tbb::task::allocate_root())
-	//			MergeTask<Step_T3D_CHM_Task::ContactRigidRect, Force2D, 8>(
-	//				0, cont_rigid_rect.get_task_num(), cont_rigid_rect, rr_cf));
-	//	RigidRect& rr = md.get_rigid_rect();
-	//	rr.set_cont_force(rr_cf.fx, rr_cf.fy, rr_cf.m);
-	//	rr.update_motion(self.dtime);
-	//}
+	if (md.has_rigid_cylinder())
+	{
+		auto& cont_rigid_cylinder = self.cont_rigid_cylinder;
+		auto& cont_force = self.cont_force;
+		// cal contact force
+		cont_rigid_cylinder.update();
+		cont_force.react_force.reset();
+		//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), cont_force);
+		ParallelUtils::parallel_reduce(cont_rigid_cylinder, cont_force, pcl_task_num);
+		// update motion
+		RigidCylinder& rcy = md.get_rigid_cylinder();
+		rcy.set_cont_force(cont_force.react_force);
+		rcy.update_motion(self.dtime);
+	}
 
 	// update nodal a and v
+	const size_t node_elem_task_num = ParallelUtils::cal_task_num<
+		Step_T3D_CHM_Task::min_node_elem_num_per_task,
+		Step_T3D_CHM_Task::task_num_per_thread>(
+			thread_num, cd.valid_elem_num * 4);
 	auto& update_a_and_v = self.update_a_and_v;
-	update_a_and_v.update(thread_num);
-	//tbb::parallel_for(tbb::blocked_range<size_t>(0, update_a_and_v.get_task_num(), 1), update_a_and_v);
-	ParallelUtils::parallel_for(update_a_and_v, update_a_and_v.get_task_num());
+	update_a_and_v.update(node_elem_task_num);
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, node_elem_task_num, 1), update_a_and_v);
+	ParallelUtils::parallel_for(update_a_and_v, node_elem_task_num);
 
 	// cal element de and map to node
+	const size_t elem_task_num = ParallelUtils::cal_task_num<
+		Step_T3D_CHM_Task::min_elem_num_per_task,
+		Step_T3D_CHM_Task::task_num_per_thread>(
+			thread_num, cd.valid_elem_num);
 	auto& cal_elem_de = self.cal_elem_de;
-	cal_elem_de.update(thread_num);
-	//tbb::parallel_for(tbb::blocked_range<size_t>(0, cal_elem_de.get_task_num(), 1), cal_elem_de);
-	ParallelUtils::parallel_for(cal_elem_de, cal_elem_de.get_task_num());
+	cal_elem_de.update(elem_task_num);
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, elem_task_num, 1), cal_elem_de);
+	ParallelUtils::parallel_for(cal_elem_de, elem_task_num);
 
 	// cal strain increment at node
 	auto &cal_node_de = self.cal_node_de;
-	cal_node_de.update(thread_num);
-	//tbb::parallel_for(tbb::blocked_range<size_t>(0, cal_node_de.get_task_num(), 1), cal_node_de);
-	ParallelUtils::parallel_for(cal_node_de, cal_node_de.get_task_num());
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, node_elem_task_num, 1), cal_node_de);
+	ParallelUtils::parallel_for(cal_node_de, node_elem_task_num);
 
 	cd.prev_valid_pcl_num = cd.valid_pcl_num;
 	// map bg mesh back to pcl
-	auto& map_mesh_to_pcl_res = self.map_mesh_to_pcl_res;
-	map_mesh_to_pcl_res.pcl_num = 0;
 	auto& map_mesh_to_pcl = self.map_mesh_to_pcl;
+	auto& map_mesh_to_pcl_res = self.map_mesh_to_pcl_res;
 	map_mesh_to_pcl.update(thread_num);
-	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, map_mesh_to_pcl.get_task_num(), 1), map_mesh_to_pcl_res);
-	ParallelUtils::parallel_reduce(map_mesh_to_pcl, map_mesh_to_pcl_res, map_mesh_to_pcl.get_task_num());
+	map_mesh_to_pcl_res.pcl_num = 0;
+	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), map_mesh_to_pcl_res);
+	ParallelUtils::parallel_reduce(map_mesh_to_pcl, map_mesh_to_pcl_res, pcl_task_num);
 	cd.valid_pcl_num = map_mesh_to_pcl_res.pcl_num;
 
 	self.continue_calculation();

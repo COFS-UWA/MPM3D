@@ -25,6 +25,12 @@ struct Force2D
 		m += dx * _fy - dy * _fx;
 	}
 
+	inline Force2D& operator=(const Force2D& other)
+	{
+		fx = other.fx; fy = other.fy; m = other.m;
+		return *this;
+	}
+
 	inline Force2D& operator+= (const Force2D& other) noexcept
 	{ fx += other.fx; fy += other.fy; m += other.m; return *this; }
 };
