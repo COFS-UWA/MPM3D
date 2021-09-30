@@ -1,9 +1,10 @@
-#pragma once
+#ifndef __Parallel_For_Task_hpp__
+#define __Parallel_For_Task_hpp__
 
 #define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #include <tbb/tbb.h>
 
-namespace ParallelUtils
+namespace ParaUtil
 {
 	template <class Operator>
 	class ParallelForTask : public tbb::task
@@ -71,3 +72,5 @@ namespace ParallelUtils
 				ParallelForTask<Operator>(_work, 0, task_num));
 	}
 }
+
+#endif

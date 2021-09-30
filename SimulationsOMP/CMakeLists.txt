@@ -53,14 +53,20 @@ add_library(
     DivideTask.hpp
     MergeTask.hpp
     ParallelUtils.h
-    ParallelForTask.hpp
-    ParallelReduceTask.hpp
     MSDRadixSortUtils.h MSDRadixSortUtils.cpp
     MSDRadixSortTask.h MSDRadixSortTask.cpp
     SortTriMeshNodeTask.h SortTriMeshNodeTask.cpp
     SortTehMeshNodeTask.h SortTehMeshNodeTask.cpp
     SortParticleTask.h SortParticleTask.cpp
     Step_TBB.h Step_TBB.cpp
+    #
+    ParaUtil.h ParaUtil.cpp
+    ParallelForTask.hpp ParallelReduceTask.hpp
+    DataMem.h DataMem.cpp
+    ParaUtilSerialSort.h ParaUtilSerialSort.cpp
+    ParaUtilMSDRadix16Sort.h ParaUtilMSDRadix16Sort.cpp
+    NodeElemSortInternal.hpp NodeElemSort.hpp
+    PclSort.h PclSort.cpp
     # 2D ME MPM
     Step_T2D_ME_Task.h Step_T2D_ME_Task.cpp
     Step_T2D_ME_TBB.h Step_T2D_ME_TBB.cpp
@@ -74,7 +80,7 @@ add_library(
     Step_T3D_ME_TBB.h Step_T3D_ME_TBB.cpp
     TimeHistory_T3D_ME_TBB_complete.h TimeHistory_T3D_ME_TBB_complete.cpp
     # 3D CHM MPM
-    Step_T3D_CHM_Task.h Step_T3D_CHM_Task.cpp
+    Step_T3D_CHM_TBB_Task.h Step_T3D_CHM_TBB_Task.cpp
     Step_T3D_CHM_TBB.h Step_T3D_CHM_TBB.cpp
     TimeHistory_T3D_CHM_TBB_complete.h TimeHistory_T3D_CHM_TBB_complete.cpp
     )

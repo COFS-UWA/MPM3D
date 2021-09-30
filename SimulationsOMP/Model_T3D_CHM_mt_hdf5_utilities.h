@@ -106,27 +106,26 @@ struct ParticleData
 		Step_T3D_CHM_TBB &stp,
 		size_t pcl_offset)
 	{
-		Step_T3D_CHM_Task::CalData& cd = stp.cal_data;
-		auto& spva = cd.spvas[cd.sorted_pcl_var_id];
+		auto& spva = stp.spvas[stp.cur_spva_id()];
 		id = spva.pcl_index[pcl_offset];
-		const Model_T3D_CHM_mt::Force& pcl_bf_s = cd.pcl_bf_s[id];
+		const Model_T3D_CHM_mt::Force& pcl_bf_s = stp.pcl_bf_s[id];
 		bfx_s = pcl_bf_s.fx;
 		bfy_s = pcl_bf_s.fy;
 		bfz_s = pcl_bf_s.fz;
-		const Model_T3D_CHM_mt::Force& pcl_bf_f = cd.pcl_bf_f[id];
+		const Model_T3D_CHM_mt::Force& pcl_bf_f = stp.pcl_bf_f[id];
 		bfx_f = pcl_bf_f.fx;
 		bfy_f = pcl_bf_f.fy;
 		bfz_f = pcl_bf_f.fz;
-		const Model_T3D_CHM_mt::Force& pcl_t = cd.pcl_t[id];
+		const Model_T3D_CHM_mt::Force& pcl_t = stp.pcl_t[id];
 		tx = pcl_t.fx;
 		ty = pcl_t.fy;
 		tz = pcl_t.fz;
 		n = spva.pcl_n[pcl_offset];
-		m_s = cd.pcl_m_s[id];
-		density_s = cd.pcl_density_s[id];
+		m_s = stp.pcl_m_s[id];
+		density_s = stp.pcl_density_s[id];
 		density_f = spva.pcl_density_f[pcl_offset];
 		vol = m_s / (density_s * (1.0 - n));
-		const Model_T3D_CHM_mt::Position& pcl_pos = cd.pcl_pos[id];
+		const Model_T3D_CHM_mt::Position& pcl_pos = stp.pcl_pos[id];
 		const Model_T3D_CHM_mt::Displacement& pcl_u_s = spva.pcl_u_s[pcl_offset];
 		x = pcl_pos.x + pcl_u_s.ux;
 		y = pcl_pos.y + pcl_u_s.uy;
@@ -172,7 +171,7 @@ struct ParticleData
 		pe12 = pcl_pe.e12;
 		pe23 = pcl_pe.e23;
 		pe31 = pcl_pe.e31;
-		mat_id = cd.pcl_mat_model[id]->get_id();
+		mat_id = stp.pcl_mat_model[id]->get_id();
 	}
 
 	void to_pcl(

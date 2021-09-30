@@ -1,8 +1,10 @@
-#pragma once
+#ifndef __Parallel_Reduce_Task_hpp__
+#define __Parallel_Reduce_Task_hpp__
 
+#define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #include <tbb/tbb.h>
 
-namespace ParallelUtils
+namespace ParaUtil
 {
 	template <class Result>
 	class ParallelReduceContin2Task : public tbb::task
@@ -145,3 +147,5 @@ namespace ParallelUtils
 				ParallelReduceTask<Operator, Result>(_work, _result, 0, task_num));
 	}
 }
+
+#endif
