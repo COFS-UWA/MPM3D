@@ -65,9 +65,9 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	//md_disp.set_light_dir(90.0, -15.0);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
 	//md_disp.start();
 	//return;
 
@@ -87,9 +87,9 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 
 	Step_T3D_CHM_TBB step("step1");
 	step.set_model(model);
-	step.set_step_time(10.0);
+	step.set_step_time(1.0);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(5);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -114,6 +114,6 @@ void test_t3d_chm_tbb_1d_consolidation_result(int argc, char **argv)
 	app.set_color_map_fld_range(0.0, 10.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_chm_tbb_1d_consolidation");
-	app.set_gif_name("t3d_chm_tbb_1d_consolidation");
+	//app.set_gif_name("t3d_chm_tbb_1d_consolidation");
 	app.start();
 }

@@ -87,8 +87,8 @@ namespace Step_T3D_CHM_TBB_Task
 
 	void MapPclToBgMesh::update(size_t tsk_num) noexcept
 	{
-		const auto& spva0 = stp.spvas[stp.substep_index & 1];
-		const auto& spva1 = stp.spvas[(stp.substep_index+1) & 1];
+		const auto& spva0 = stp.spvas[stp.next_spva_id()];
+		const auto& spva1 = stp.spvas[stp.prev_spva_id()];
 		pcl_index0 = spva0.pcl_index;
 		pcl_n0 = spva0.pcl_n;
 		pcl_density_f0 = spva0.pcl_density_f;
@@ -665,7 +665,7 @@ namespace Step_T3D_CHM_TBB_Task
 
 	void ContactRigidCylinder::update() noexcept
 	{
-		const auto& spva0 = stp.spvas[stp.substep_index & 1];
+		const auto& spva0 = stp.spvas[stp.next_spva_id()];
 		pcl_index = spva0.pcl_index;
 		pcl_N = spva0.pcl_N;
 		pcl_u_s = spva0.pcl_u_s;
@@ -1079,8 +1079,8 @@ namespace Step_T3D_CHM_TBB_Task
 
 	void MapBgMeshToPcl::update(size_t thread_num) noexcept
 	{
-		const auto& spva0 = stp.spvas[stp.cur_spva_id()];
-		const auto& spva1 = stp.spvas[stp.next_spva_id()];
+		const auto& spva0 = stp.spvas[stp.next_spva_id()];
+		const auto& spva1 = stp.spvas[stp.prev_spva_id()];
 		pcl_index0 = spva0.pcl_index;
 		pcl_density_f0 = spva0.pcl_density_f;
 		pcl_n0 = spva0.pcl_n;

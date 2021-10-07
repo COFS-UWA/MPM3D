@@ -65,7 +65,6 @@ namespace Step_T3D_CHM_TBB_Task
 		size_t work(size_t wk_id) const;
 		inline tbb::task* operator() (tbb::task& parent, size_t wk_id, InitPclRes &res) const
 		{ res.pcl_num = work(wk_id); return nullptr; }
-
 		inline size_t get_task_num() const noexcept { return task_num; }
 	};
 	

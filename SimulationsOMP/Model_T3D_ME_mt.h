@@ -518,6 +518,7 @@ public:
 	inline void set_rough_contact_between_pcl_and_rect() noexcept { pcm = &rough_contact; }
 	inline void set_frictional_contact_between_pcl_and_rect() noexcept { pcm = &fric_contact; }
 	inline void set_sticky_contact_between_pcl_and_rect() noexcept { pcm = &sticky_contact; }
+	inline ContactModel3D *get_contact_model() noexcept { return pcm; }
 
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

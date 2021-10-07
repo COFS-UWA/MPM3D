@@ -106,7 +106,7 @@ struct ParticleData
 		Step_T3D_CHM_TBB &stp,
 		size_t pcl_offset)
 	{
-		auto& spva = stp.spvas[stp.cur_spva_id()];
+		auto& spva = stp.spvas[stp.prev_spva_id()];
 		id = spva.pcl_index[pcl_offset];
 		const Model_T3D_CHM_mt::Force& pcl_bf_s = stp.pcl_bf_s[id];
 		bfx_s = pcl_bf_s.fx;

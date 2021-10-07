@@ -7,7 +7,6 @@
 #include "Step_T3D_CHM_TBB_Task.h"
 #include "Step_TBB.h"
 
-class Step_T3D_CHM_TBB;
 namespace Model_T3D_CHM_mt_hdf5_utilities
 {
 	struct ParticleData;
@@ -75,7 +74,7 @@ protected:
 	double* pcl_vol;
 	MatModel::MaterialModel** pcl_mat_model;
 
-	inline size_t cur_spva_id() const noexcept { return substep_index & 1; }
+	inline size_t prev_spva_id() const noexcept { return substep_index & 1; }
 	inline size_t next_spva_id() const noexcept { return (substep_index + 1) & 1; }
 	SortedPclVarArrays spvas[2];
 
@@ -122,7 +121,6 @@ protected:
 	size_t ori_pcl_num, elem_num, node_num;
 #endif
 
-	size_t thread_num;
 	tbb::task_scheduler_init sche_init;
 
 	size_t* in_pcl_in_elems, * in_prev_pcl_ids;

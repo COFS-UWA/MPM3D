@@ -176,6 +176,39 @@ int Step_T3D_CHM_TBB::finalize_calculation()
 {
 	Model_T3D_CHM_mt& md = *(Model_T3D_CHM_mt *)model;
 	md.pcl_num = prev_valid_pcl_num;
+
+	const auto& spva0 = spvas[prev_spva_id()];
+	auto& md_spva0 = md.sorted_pcl_var_arrays[0];
+	md_spva0.pcl_index = spva0.pcl_index;
+	md_spva0.pcl_n = spva0.pcl_n;
+	md_spva0.pcl_density_f = spva0.pcl_density_f;
+	md_spva0.pcl_v_s = spva0.pcl_v_s;
+	md_spva0.pcl_v_f = spva0.pcl_v_f;
+	md_spva0.pcl_u_s = spva0.pcl_u_s;
+	md_spva0.pcl_u_f = spva0.pcl_u_f;
+	md_spva0.pcl_stress = spva0.pcl_stress;
+	md_spva0.pcl_p = spva0.pcl_p;
+	md_spva0.pcl_strain = spva0.pcl_strain;
+	md_spva0.pcl_estrain = spva0.pcl_estrain;
+	md_spva0.pcl_pstrain = spva0.pcl_pstrain;
+	md_spva0.pcl_N = spva0.pcl_N;
+
+	const auto& spva1 = spvas[next_spva_id()];
+	auto& md_spva1 = md.sorted_pcl_var_arrays[1];
+	md_spva1.pcl_index = spva1.pcl_index;
+	md_spva1.pcl_n = spva1.pcl_n;
+	md_spva1.pcl_density_f = spva1.pcl_density_f;
+	md_spva1.pcl_v_s = spva1.pcl_v_s;
+	md_spva1.pcl_v_f = spva1.pcl_v_f;
+	md_spva1.pcl_u_s = spva1.pcl_u_s;
+	md_spva1.pcl_u_f = spva1.pcl_u_f;
+	md_spva1.pcl_stress = spva1.pcl_stress;
+	md_spva1.pcl_p = spva1.pcl_p;
+	md_spva1.pcl_strain = spva1.pcl_strain;
+	md_spva1.pcl_estrain = spva1.pcl_estrain;
+	md_spva1.pcl_pstrain = spva1.pcl_pstrain;
+	md_spva1.pcl_N = spva1.pcl_N;
+
 	sche_init.terminate();
 	return 0;
 }

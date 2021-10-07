@@ -87,7 +87,7 @@ void test_t3d_me_tbb_1d_compression(int argc, char **argv)
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(5);
-	//step.add_time_history(out1);
+	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }
@@ -103,12 +103,12 @@ void test_t3d_me_tbb_1d_compression_result(int argc, char **argv)
 	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
 	app.set_res_file(rf, "compression", Hdf5Field::s33);
 	app.set_ani_time(5.0);
-	app.set_win_size(900, 900);
+	app.set_win_size(1000, 1000);
 	app.set_view_dir(30.0f, 30.0f);
 	app.set_light_dir(90.0f, 30.0f);
 	app.set_color_map_fld_range(-10.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_me_tbb_1d_compression");
-	app.set_gif_name("t3d_me_tbb_1d_compression");
+	//app.set_gif_name("t3d_me_tbb_1d_compression");
 	app.start();
 }

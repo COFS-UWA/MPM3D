@@ -150,60 +150,57 @@ struct ParticleData
 		Step_T3D_ME_TBB& stp,
 		size_t pcl_offset)
 	{
-		Step_T3D_ME_Task::CalData& cd = stp.cal_data;
-
-		auto& spva = cd.spvas[cd.sorted_pcl_var_id];
+		auto& spva = stp.spvas[stp.prev_spva_id()];
 		id = spva.pcl_index[pcl_offset];
-		const Model_T3D_ME_mt::Position& pcl_pos = cd.pcl_pos[id];
+		const Model_T3D_ME_mt::Force& pcl_bf = stp.pcl_bf[id];
+		bfx = pcl_bf.fx;
+		bfy = pcl_bf.fy;
+		bfz = pcl_bf.fz;
+		const Model_T3D_ME_mt::Force& pcl_t = stp.pcl_t[id];
+		tx = pcl_t.fx;
+		ty = pcl_t.fy;
+		tz = pcl_t.fz;
+		m = stp.pcl_m[id];
+		density = spva.pcl_density[id];
+		vol = m / density;
+		const Model_T3D_ME_mt::Position& pcl_pos = stp.pcl_pos[id];
 		const Model_T3D_ME_mt::Displacement& pcl_disp = spva.pcl_disp[pcl_offset];
 		x = pcl_pos.x + pcl_disp.ux;
 		y = pcl_pos.y + pcl_disp.uy;
 		z = pcl_pos.z + pcl_disp.uz;
-		const Model_T3D_ME_mt::Force& pcl_bf = cd.pcl_bf[id];
-		bfx = pcl_bf.fx;
-		bfy = pcl_bf.fy;
-		bfz = pcl_bf.fz;
-		const Model_T3D_ME_mt::Force& pcl_t = cd.pcl_t[id];
-		tx = pcl_t.fx;
-		ty = pcl_t.fy;
-		tz = pcl_t.fz;
-		m = cd.pcl_m[id];
-		density = spva.pcl_density[pcl_offset];
-		vol = m / density;
-		const Model_T3D_ME_mt::Velocity& pcl_v = spva.pcl_v[pcl_offset];
+		Model_T3D_ME_mt::Velocity& pcl_v = spva.pcl_v[pcl_offset];
 		vx = pcl_v.vx;
 		vy = pcl_v.vy;
 		vz = pcl_v.vz;
-		const Model_T3D_ME_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
+		Model_T3D_ME_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
 		s11 = pcl_stress.s11;
 		s22 = pcl_stress.s22;
 		s33 = pcl_stress.s33;
 		s12 = pcl_stress.s12;
 		s23 = pcl_stress.s23;
 		s31 = pcl_stress.s31;
-		const Model_T3D_ME_mt::Strain& pcl_e = spva.pcl_strain[pcl_offset];
+		Model_T3D_ME_mt::Strain& pcl_e = spva.pcl_strain[pcl_offset];
 		e11 = pcl_e.e11;
 		e22 = pcl_e.e22;
 		e33 = pcl_e.e33;
 		e12 = pcl_e.e12;
 		e23 = pcl_e.e23;
 		e31 = pcl_e.e31;
-		const Model_T3D_ME_mt::Strain& pcl_ee = spva.pcl_estrain[pcl_offset];
+		Model_T3D_ME_mt::Strain& pcl_ee = spva.pcl_estrain[pcl_offset];
 		ee11 = pcl_ee.e11;
 		ee22 = pcl_ee.e22;
 		ee33 = pcl_ee.e33;
 		ee12 = pcl_ee.e12;
 		ee23 = pcl_ee.e23;
 		ee31 = pcl_ee.e31;
-		const Model_T3D_ME_mt::Strain& pcl_pe = spva.pcl_pstrain[pcl_offset];
+		Model_T3D_ME_mt::Strain& pcl_pe = spva.pcl_pstrain[pcl_offset];
 		pe11 = pcl_pe.e11;
 		pe22 = pcl_pe.e22;
 		pe33 = pcl_pe.e33;
 		pe12 = pcl_pe.e12;
 		pe23 = pcl_pe.e23;
 		pe31 = pcl_pe.e31;
-		mat_id = cd.pcl_mat_model[id]->get_id();
-		elem_id = cd.pcl_sort_mem.get_prev_res_keys()[pcl_offset];
+		mat_id = stp.pcl_mat_model[id]->get_id();
 	}
 	
 	void from_pcl(

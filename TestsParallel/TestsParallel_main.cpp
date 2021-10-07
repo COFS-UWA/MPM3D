@@ -146,13 +146,6 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_result(argc, argv);
 
-	// tbb parallelism
-	test_sort_pcl_task();
-	//test_sort_pcl_task2();
-	//test_sort_tri_mesh_node_task();
-	//test_sort_tri_mesh_node_task2();
-	//test_sort_teh_mesh_node_task();
-
 	//test_t3d_me_mt_cylinder_bcs(argc, argv);
 	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
 
@@ -160,18 +153,25 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_cylinder_bcs2(argc, argv);
 	//test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
 
+	// tbb parallelism
+	//test_sort_pcl_task();
+	//test_sort_pcl_task2();
+	//test_sort_tri_mesh_node_task();
+	//test_sort_tri_mesh_node_task2();
+	//test_sort_teh_mesh_node_task();
+
 	//test_t2d_me_tbb_1d_compression(argc, argv);
 	//test_t2d_me_tbb_1d_compression_result(argc, argv);
 
 	//test_t2d_me_tbb_cap_compression(argc, argv);
 	//test_t2d_me_tbb_cap_compression_result(argc, argv);
 
-	// need to fix
+	// not completed
 	//test_t2d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t2d_chm_tbb_1d_consolidation_result(argc, argv);
 
 	//test_t3d_me_tbb_1d_compression(argc, argv);
-	//test_t3d_me_tbb_1d_compression_result(argc, argv);
+	test_t3d_me_tbb_1d_compression_result(argc, argv);
 	
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
