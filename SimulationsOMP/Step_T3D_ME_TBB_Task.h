@@ -38,16 +38,6 @@ namespace Step_T3D_ME_TBB_Task
 	struct InitPclRes
 	{
 		size_t pcl_num;
-		InitPcl* init_pcl;
-		// for initializeing
-		InitPclRes(InitPcl& _ip) : pcl_num(0), init_pcl(&_ip) {}
-		// tbb::parallel_for
-		InitPclRes(InitPclRes& other, tbb::split) :
-			pcl_num(0), init_pcl(other.init_pcl) {}
-		void operator() (tbb::blocked_range<size_t>& range);
-		// parallel_for
-		InitPclRes() : pcl_num(0), init_pcl(nullptr) {}
-		InitPclRes(InitPclRes& other) : pcl_num(other.pcl_num) {}
 		inline void join(const InitPclRes& other)
 		{ pcl_num += other.pcl_num; }
 	};
@@ -66,30 +56,16 @@ namespace Step_T3D_ME_TBB_Task
 	public:
 		InitPcl(Step_T3D_ME_TBB &_stp) : stp(_stp) {}
 		void init(size_t thread_num) noexcept;
-		size_t work(size_t tsk_id) const;
 		inline size_t get_task_num() const { return task_num; }
+		void work(size_t tsk_id, InitPclRes &res) const;
 		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id, InitPclRes &res) const
-		{ res.pcl_num = work(tsk_id); return nullptr; }
+		{ work(tsk_id, res); return nullptr; }
 	};
 	
-	class MapPclToBgMesh;
-	struct ContactForceRes
+	struct MapPclToBgMeshRes
 	{
 		Force3D react_force;
-		MapPclToBgMesh* map_pcl_to_mesh;
-		// initializing
-		ContactForceRes(MapPclToBgMesh &_mptm) :
-			map_pcl_to_mesh(&_mptm) { react_force.reset(); }
-		// tbb::parallel_reduce
-		ContactForceRes(ContactForceRes &other, tbb::split) :
-			map_pcl_to_mesh(other.map_pcl_to_mesh) { react_force.reset(); }
-		void operator() (const tbb::blocked_range<size_t>& range);
-		// parallel_reduce
-		ContactForceRes(const ContactForceRes& other) :
-			react_force(other.react_force) {}
-		ContactForceRes() : map_pcl_to_mesh(nullptr)
-		{ react_force.reset(); }
-		inline void join(const ContactForceRes& res)
+		inline void join(const MapPclToBgMeshRes &res) noexcept
 		{ react_force.combine(res.react_force); }
 	};
 
@@ -150,9 +126,9 @@ namespace Step_T3D_ME_TBB_Task
 		MapPclToBgMesh(Step_T3D_ME_TBB& _stp) : stp(_stp) {}
 		void init() noexcept;
 		void update(size_t tsk_num) noexcept;
-		ContactForceRes work(size_t tsk_id) const;
-		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id, ContactForceRes &res) const
-		{ res = work(tsk_id); return nullptr; }
+		void work(size_t tsk_id, MapPclToBgMeshRes &res) const;
+		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id, MapPclToBgMeshRes &res) const
+		{ work(tsk_id, res); return nullptr; }
 	};
 	
 	class UpdateAccelerationAndVelocity
@@ -243,22 +219,10 @@ namespace Step_T3D_ME_TBB_Task
 		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id) const { work(tsk_id); return nullptr; }
 	};
 
-	class MapBgMeshToPcl;
-	struct NewValidPclNum
+	struct MapBgMeshToPclRes
 	{
 		size_t pcl_num;
-		MapBgMeshToPcl *map_bg_mesh_to_pcl;
-		// initializing
-		NewValidPclNum(MapBgMeshToPcl &_mtmp) :
-			map_bg_mesh_to_pcl(&_mtmp), pcl_num(0) {}
-		// tbb::parallel_reduce
-		NewValidPclNum(NewValidPclNum&other, tbb::split) :
-			map_bg_mesh_to_pcl(other.map_bg_mesh_to_pcl), pcl_num(0) {}
-		void operator() (const tbb::blocked_range<size_t>& range);
-		// parallel_reduce
-		NewValidPclNum() : map_bg_mesh_to_pcl(nullptr), pcl_num(0) {}
-		NewValidPclNum(NewValidPclNum&other) : pcl_num(other.pcl_num) {}
-		inline void join(NewValidPclNum &res)
+		inline void join(const MapBgMeshToPclRes &res)
 		{ pcl_num += res.pcl_num; }
 	};
 
@@ -312,9 +276,9 @@ namespace Step_T3D_ME_TBB_Task
 		MapBgMeshToPcl(Step_T3D_ME_TBB &_stp) : stp(_stp) {}
 		void init() noexcept;
 		void update(size_t tsk_num) noexcept;
-		NewValidPclNum work(size_t tsk_id) const;
-		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id, NewValidPclNum &res) const
-		{ res = work(tsk_id); return nullptr; }
+		void work(size_t tsk_id, MapBgMeshToPclRes &res) const;
+		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id, MapBgMeshToPclRes &res) const
+		{ work(tsk_id, res); return nullptr; }
 	};
 	
 	class ContactRigidBody
@@ -357,6 +321,55 @@ namespace Step_T3D_ME_TBB_Task
 		void apply_rigid_cube(size_t p_id0, size_t p_id1, Force3D& rc_cf) const noexcept;
 		void apply_rigid_cylinder(size_t p_id0, size_t p_id1, Force3D& rc_cf) const noexcept;
 		void apply_t3d_rigid_object(size_t p_id0, size_t p_id1, Force3D& rc_cf) const noexcept;
+	};
+
+	// tbb::parallel_reduce
+	struct InitPclTbb
+	{
+		InitPclRes res;
+		InitPcl& worker;
+		inline void reset() { res.pcl_num = 0; }
+		InitPclTbb(InitPcl& _ip) : worker(_ip) {}
+		InitPclTbb(InitPclTbb& other, tbb::split) : worker(other.worker) { reset(); }
+		inline void operator() (const tbb::blocked_range<size_t>& range)
+		{ 
+			InitPclRes tmp;
+			worker.work(range.begin(), tmp);
+			res.join(tmp);
+		}
+		inline void join(const InitPclTbb& other) noexcept { res.join(other.res); }
+	};
+
+	struct MapPclToBgMeshTbb
+	{
+		MapPclToBgMeshRes res;
+		MapPclToBgMesh &worker;
+		inline void reset() { res.react_force.reset(); }
+		MapPclToBgMeshTbb(MapPclToBgMesh &_mptm) : worker(_mptm) {}
+		MapPclToBgMeshTbb(MapPclToBgMeshTbb& other, tbb::split) : worker(other.worker) { reset(); }
+		inline void operator() (const tbb::blocked_range<size_t>& range)
+		{
+			MapPclToBgMeshRes tmp;
+			worker.work(range.begin(), tmp);
+			res.join(tmp);
+		}
+		inline void join(const MapPclToBgMeshTbb& other) noexcept { res.join(other.res); }
+	};
+
+	struct MapBgMeshToPclTbb
+	{
+		MapBgMeshToPclRes res;
+		MapBgMeshToPcl &worker;
+		inline void reset() { res.pcl_num = 0; }
+		MapBgMeshToPclTbb(MapBgMeshToPcl& _mmtp) : worker(_mmtp) {}
+		MapBgMeshToPclTbb(MapBgMeshToPclTbb& other, tbb::split) : worker(other.worker) { reset(); }
+		inline void operator() (const tbb::blocked_range<size_t>& range)
+		{
+			MapBgMeshToPclRes tmp;
+			worker.work(range.begin(), tmp);
+			res.join(tmp);
+		}
+		inline void join(const MapBgMeshToPclTbb& other) noexcept { res.join(other.res); }
 	};
 }
 

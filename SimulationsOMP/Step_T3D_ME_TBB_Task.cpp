@@ -21,7 +21,7 @@ namespace Step_T3D_ME_TBB_Task
 				thread_num, stp.prev_valid_pcl_num);
 	}
 
-	size_t InitPcl::work(size_t tsk_id) const
+	void InitPcl::work(size_t tsk_id, InitPclRes &res) const
 	{
 		Model_T3D_ME_mt& md = *stp.pmodel;
 		Position* const pcl_pos = const_cast<Position* const>(stp.pcl_pos);
@@ -49,7 +49,7 @@ namespace Step_T3D_ME_TBB_Task
 			in_pcl_in_elems[p_id] = e_id;
 			in_prev_pcl_ids[p_id] = p_id;
 		}
-		return valid_pcl_num;
+		res.pcl_num = valid_pcl_num;
 	}
 	
 	void MapPclToBgMesh::init() noexcept
@@ -92,7 +92,7 @@ namespace Step_T3D_ME_TBB_Task
 		task_num = tsk_num;
 	}
 
-	ContactForceRes MapPclToBgMesh::work(size_t tsk_id) const
+	void MapPclToBgMesh::work(size_t tsk_id, MapPclToBgMeshRes &res) const
 	{
 		size_t e_id;
 		size_t p_id0 = Block_Low(tsk_id, task_num, stp.valid_pcl_num);
@@ -360,17 +360,15 @@ namespace Step_T3D_ME_TBB_Task
 		}
 
 		// contact force calculation
-		ContactForceRes cont_force;
 		ContactRigidBody& crb = stp.cont_rigid_body;
 		if (crb.has_rigid_cone())
-			crb.apply_rigid_cone(p_id0, p_id1, cont_force.react_force);
+			crb.apply_rigid_cone(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_cube())
-			crb.apply_rigid_cube(p_id0, p_id1, cont_force.react_force);
+			crb.apply_rigid_cube(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_cylinder())
-			crb.apply_rigid_cylinder(p_id0, p_id1, cont_force.react_force);
+			crb.apply_rigid_cylinder(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_mesh())
-			crb.apply_t3d_rigid_object(p_id0, p_id1, cont_force.react_force);
-		return cont_force;
+			crb.apply_t3d_rigid_object(p_id0, p_id1, res.react_force);
 	}
 
 	void UpdateAccelerationAndVelocity::init() noexcept
@@ -625,7 +623,7 @@ namespace Step_T3D_ME_TBB_Task
 		task_num = tsk_num;
 	}
 
-	NewValidPclNum MapBgMeshToPcl::work(size_t tsk_id) const
+	void MapBgMeshToPcl::work(size_t tsk_id, MapBgMeshToPclRes &res) const
 	{
 		PclRange& pcl_range = pcl_ranges[tsk_id];
 		const size_t p_id0 = pcl_range.p_id0;
@@ -764,10 +762,7 @@ namespace Step_T3D_ME_TBB_Task
 			p_pe0.e23 = p_pe1.e23 + pstrain[4];
 			p_pe0.e31 = p_pe1.e31 + pstrain[5];
 		}
-
-		NewValidPclNum new_valid_pcl_num;
-		new_valid_pcl_num.pcl_num = valid_pcl_num;
-		return new_valid_pcl_num;
+		res.pcl_num = valid_pcl_num;
 	}
 
 // ================== contact funct ================
@@ -872,6 +867,8 @@ namespace Step_T3D_ME_TBB_Task
 		Point3D cur_cont_pos;
 		PclVar_T3D_ME_mt pv_getter;
 		const size_t substp_id = stp.substep_index;
+		Force3D rc_cf_tmp;
+		rc_cf_tmp.reset();
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = pcl_index[p_id];
@@ -918,11 +915,12 @@ namespace Step_T3D_ME_TBB_Task
 				en_f4.fz += p_N.N4 * gcont_f.fz;
 				// apply contact force to rigid body
 				const Point3D& rc_cen = prcu->get_centre();
-				rc_cf.add_force(p_x, p_y, p_z,
+				rc_cf_tmp.add_force(p_x, p_y, p_z,
 					-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
 					rc_cen.x, rc_cen.y, rc_cen.z);
 			}
 		}
+		rc_cf = rc_cf_tmp;
 	}
 
 	void ContactRigidBody::apply_rigid_cylinder(
@@ -931,14 +929,14 @@ namespace Step_T3D_ME_TBB_Task
 		Force3D& rc_cf)
 		const noexcept
 	{
-		if (prcy == nullptr) return;
-
 		double dist;
 		Vector3D lnorm, gnorm;
 		Point3D cur_cont_pos;
 		Force lcont_f, gcont_f;
 		PclVar_T3D_ME_mt pv_getter;
 		const size_t substp_id = stp.substep_index;
+		Force3D rc_cf_tmp;
+		rc_cf_tmp.reset();
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = pcl_index[p_id];
@@ -984,11 +982,12 @@ namespace Step_T3D_ME_TBB_Task
 				en_f4.fz += p_N.N4 * gcont_f.fz;
 				// apply contact force to rigid body
 				const Point3D& rc_cen = prcy->get_centre();
-				rc_cf.add_force(p_x, p_y, p_z,
+				rc_cf_tmp.add_force(p_x, p_y, p_z,
 					-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
 					rc_cen.x, rc_cen.y, rc_cen.z);
 			}
 		}
+		rc_cf = rc_cf_tmp;
 	}
 
 	void ContactRigidBody::apply_t3d_rigid_object(
@@ -997,14 +996,14 @@ namespace Step_T3D_ME_TBB_Task
 		Force3D& rc_cf)
 		const noexcept
 	{
-		if (prmesh == nullptr) return;
-
 		double dist;
 		Vector3D lnorm, gnorm;
 		Force lcont_f, gcont_f;
 		Point3D cur_cont_pos;
 		PclVar_T3D_ME_mt pv_getter;
 		const size_t substp_id = stp.substep_index;
+		Force3D rc_cf_tmp;
+		rc_cf_tmp.reset();
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = pcl_index[p_id];
@@ -1051,10 +1050,11 @@ namespace Step_T3D_ME_TBB_Task
 				en_f4.fz += p_N.N4 * gcont_f.fz;
 				// apply contact force to rigid body
 				const Point3D& rm_cen = prmesh->get_pos();
-				rc_cf.add_force(p_x, p_y, p_z,
+				rc_cf_tmp.add_force(p_x, p_y, p_z,
 					-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
 					rm_cen.x, rm_cen.y, rm_cen.z);
 			}
 		}
+		rc_cf = rc_cf_tmp;
 	}
 }
