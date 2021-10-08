@@ -40,25 +40,25 @@ protected:
 	typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
 	typedef Step_T3D_CHM_TBB_Task::PclRange PclRange;
 	typedef Step_T3D_CHM_TBB_Task::NodeElemRange NodeElemRange;
-	typedef Step_T3D_CHM_TBB_Task::InitPclRes InitPclRes;
 	typedef Step_T3D_CHM_TBB_Task::InitPcl InitPcl;
 	typedef Step_T3D_CHM_TBB_Task::MapPclToBgMesh MapPclToBgMesh;
-	typedef Step_T3D_CHM_TBB_Task::ContactForceRes ContactForceRes;
-	typedef Step_T3D_CHM_TBB_Task::ContactRigidCylinder ContactRigidCylinder;
+	typedef Step_T3D_CHM_TBB_Task::ContactRigidBody ContactRigidBody;
 	typedef Step_T3D_CHM_TBB_Task::UpdateAccelerationAndVelocity UpdateAccelerationAndVelocity;
 	typedef Step_T3D_CHM_TBB_Task::CalElemDeAndMapToNode CalElemDeAndMapToNode;
 	typedef Step_T3D_CHM_TBB_Task::CalNodeDe CalNodeDe;
-	typedef Step_T3D_CHM_TBB_Task::MapBgMeshToPclRes MapBgMeshToPclRes;
 	typedef Step_T3D_CHM_TBB_Task::MapBgMeshToPcl MapBgMeshToPcl;
-	friend class InitPclRes;
+	typedef Step_T3D_CHM_TBB_Task::InitPclRes InitPclRes;
+	typedef Step_T3D_CHM_TBB_Task::MapPclToBgMeshRes MapPclToBgMeshRes;
+	typedef Step_T3D_CHM_TBB_Task::MapBgMeshToPclRes MapBgMeshToPclRes;
+	typedef Step_T3D_CHM_TBB_Task::InitPclTbb InitPclTbb;
+	typedef Step_T3D_CHM_TBB_Task::MapPclToBgMeshTbb MapPclToBgMeshTbb;
+	typedef Step_T3D_CHM_TBB_Task::MapBgMeshToPclTbb MapBgMeshToPclTbb;
 	friend class InitPcl;
 	friend class MapPclToBgMesh;
-	friend class ContactForceRes;
-	friend class ContactRigidCylinder;
+	friend class ContactRigidBody;
 	friend class UpdateAccelerationAndVelocity;
 	friend class CalElemDeAndMapToNode;
 	friend class CalNodeDe;
-	friend class MapBgMeshToPclRes;
 	friend class MapBgMeshToPcl;
 
 	Model_T3D_CHM_mt* pmodel;
@@ -134,20 +134,31 @@ protected:
 	PclRange* pcl_ranges;
 	NodeElemRange* node_elem_ranges;
 	
-	InitPclRes init_pcl_res;
 	InitPcl init_pcl;
 	MapPclToBgMesh map_pcl_to_mesh;
-	ContactForceRes cont_force;
-	ContactRigidCylinder cont_rigid_cylinder;
+	ContactRigidBody cont_rigid_body;
 	UpdateAccelerationAndVelocity update_a_and_v;
 	CalElemDeAndMapToNode cal_elem_de;
 	CalNodeDe cal_node_de;
-	MapBgMeshToPclRes map_mesh_to_pcl_res;
 	MapBgMeshToPcl map_mesh_to_pcl;
 
+	InitPclTbb init_pcl_tbb;
+	MapPclToBgMeshTbb map_pcl_to_mesh_tbb;
+	MapBgMeshToPclTbb map_mesh_to_pcl_tbb;
+
 	// data changed during computation
+	union
+	{
+		Force3D react_force;
+		MapPclToBgMeshRes map_pcl_to_mesh_res;
+	};
+	union
+	{
+		size_t valid_pcl_num;
+		InitPclRes init_pcl_res;
+		MapBgMeshToPclRes map_mesh_to_pcl_res;
+	};
 	size_t prev_valid_pcl_num;
-	size_t valid_pcl_num;
 	size_t valid_elem_num;
 	
 	int init_calculation() override;

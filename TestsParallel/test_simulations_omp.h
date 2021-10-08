@@ -98,6 +98,7 @@ void test_t2d_chm_tbb_1d_consolidation(int argc, char** argv);
 void test_t3d_me_tbb_1d_compression(int argc, char** argv);
 void test_t3d_me_tbb_cap_compression(int argc, char** argv);
 void test_t3d_chm_tbb_1d_consolidation(int argc, char** argv);
+void test_t3d_chm_tbb_cap_compression(int argc, char** argv);
 
 void test_t3d_me_mt_spudcan_sand_hypo_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_sand_hypo(int argc, char** argv);

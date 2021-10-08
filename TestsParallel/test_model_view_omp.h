@@ -50,5 +50,6 @@ void test_t3d_me_tbb_1d_compression_result(int argc, char** argv);
 void test_t3d_me_tbb_cap_compression_result(int argc, char** argv);
 
 void test_t3d_chm_tbb_1d_consolidation_result(int argc, char** argv);
+void test_t3d_chm_tbb_cap_compression_result(int argc, char** argv);
 
 #endif

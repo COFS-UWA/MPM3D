@@ -12,12 +12,6 @@ namespace Step_T3D_CHM_TBB_Task
 	constexpr double one_third = 1.0 / 3.0;
 	constexpr double one_fourth = 0.25;
 	
-	void InitPclRes::operator() (tbb::blocked_range<size_t>& range)
-	{
-		for (size_t i = range.begin(); i < range.end(); ++i)
-			pcl_num += init_pcl->work(i);
-	}
-
 	void InitPcl::init(size_t thread_num) noexcept
 	{
 		in_pcl_in_elems = stp.in_pcl_in_elems;
@@ -27,13 +21,13 @@ namespace Step_T3D_CHM_TBB_Task
 				thread_num, stp.prev_valid_pcl_num);
 	}
 
-	size_t InitPcl::work(size_t wk_id) const
+	void InitPcl::work(size_t tsk_id, InitPclRes& res) const
 	{
 		Model_T3D_CHM_mt& md = *stp.pmodel;
 		Position* const pcl_pos = const_cast<Position* const>(stp.pcl_pos);
 		const auto& spva0 = stp.spvas[0];
-		const size_t p_id0 = Block_Low(wk_id, task_num, stp.prev_valid_pcl_num);
-		const size_t p_id1 = Block_Low(wk_id + 1, task_num, stp.prev_valid_pcl_num);
+		const size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
+		const size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
 		size_t valid_pcl_num = 0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
@@ -55,7 +49,7 @@ namespace Step_T3D_CHM_TBB_Task
 			in_pcl_in_elems[p_id] = e_id;
 			in_prev_pcl_ids[p_id] = p_id;
 		}
-		return valid_pcl_num;
+		res.pcl_num = valid_pcl_num;
 	}
 	
 	void MapPclToBgMesh::init() noexcept
@@ -112,21 +106,21 @@ namespace Step_T3D_CHM_TBB_Task
 		task_num = tsk_num;
 	}
 	
-	void MapPclToBgMesh::work(size_t wk_id) const
+	void MapPclToBgMesh::work(size_t tsk_id, MapPclToBgMeshRes& res) const
 	{
 		size_t e_id;
-		size_t p_id0 = Block_Low(wk_id, task_num, stp.valid_pcl_num);
+		size_t p_id0 = Block_Low(tsk_id, task_num, stp.valid_pcl_num);
 		e_id = pcl_in_elems[p_id0];
 		while (p_id0 != SIZE_MAX && e_id == pcl_in_elems[--p_id0]);
 		++p_id0;
 		assert(p_id0 <= stp.valid_pcl_num);
-		size_t p_id1 = Block_Low(wk_id + 1, task_num, stp.valid_pcl_num);
+		size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.valid_pcl_num);
 		e_id = pcl_in_elems[p_id1];
 		while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
 		++p_id1;
 		assert(p_id1 <= stp.valid_pcl_num);
 
-		PclRange &pcl_range = pcl_ranges[wk_id];
+		PclRange& pcl_range = pcl_ranges[tsk_id];
 		pcl_range.p_id0 = p_id0;
 		pcl_range.p_id1 = p_id1;
 
@@ -261,7 +255,7 @@ namespace Step_T3D_CHM_TBB_Task
 
 			// map pore pressure
 			e_p += pcl_p1[prev_p_id] * p_vol;
-			
+
 			// shape function
 			const ShapeFunc& p_N1 = pcl_N1[prev_p_id];
 			ShapeFunc& p_N0 = pcl_N0[p_id];
@@ -351,7 +345,7 @@ namespace Step_T3D_CHM_TBB_Task
 			en2_fz_seep += p_N0.N2 * e_fz_seep;
 			en3_fz_seep += p_N0.N3 * e_fz_seep;
 			en4_fz_seep += p_N0.N4 * e_fz_seep;
-			
+
 			// solid external load
 			const Force& p_bf_s = pcl_bf_s[ori_p_id];
 			const double one_fourth_bfx_s = one_fourth * p_bf_s.fx;
@@ -388,7 +382,7 @@ namespace Step_T3D_CHM_TBB_Task
 			en4_fx_f += one_fourth_bfx_f;
 			en4_fy_f += one_fourth_bfy_f;
 			en4_fz_f += one_fourth_bfz_f;
-			
+
 			if (e_id != pcl_in_elems[p_id + 1])
 			{
 				// v_s
@@ -440,7 +434,7 @@ namespace Step_T3D_CHM_TBB_Task
 				e_n = 1.0 - e_n / e_p_vol;
 				elem_pcl_n[e_id] = e_n;
 				elem_density_f[e_id] = e_p_m_f / e_p_vol_f;
-				
+
 				e_s11 /= e_p_vol;
 				e_s22 /= e_p_vol;
 				e_s33 /= e_p_vol;
@@ -555,7 +549,7 @@ namespace Step_T3D_CHM_TBB_Task
 				en4_fz_f -= en4_fz_seep;
 				en4_fz_f -= e_dN.dN4_dz * e_n * -e_p * e_p_vol;
 				en4_f_f.fz = en4_fz_f;
-				
+
 				e_id = pcl_in_elems[p_id + 1];
 #ifdef _DEBUG
 				assert(e_id < stp.elem_num || e_id == SIZE_MAX);
@@ -643,130 +637,22 @@ namespace Step_T3D_CHM_TBB_Task
 				en4_fz_f = 0.0;
 			}
 		}
-	}
 
-	void ContactForceRes::operator() (const tbb::blocked_range<size_t>& range)
-	{ react_force = contact_rigid_cylinder->work(range.begin()); }
-	
-	void ContactRigidCylinder::init(Model_T3D_CHM_mt& md) noexcept
-	{
-		prcy = &md.get_rigid_cylinder();
-		pcm_s = md.get_contact_model_s();
-		pcm_f = md.get_contact_model_f();
-		//
-		pcl_pos = stp.pcl_pos;
-		pcl_vol = stp.pcl_vol;
-		elem_node_force_s = stp.elem_node_force_s;
-		elem_node_force_f = stp.elem_node_force_f;
-		// pcl range
-		pcl_in_elems = stp.pcl_in_elems;
-		pcl_ranges = stp.pcl_ranges;
-	}
-
-	void ContactRigidCylinder::update() noexcept
-	{
-		const auto& spva0 = stp.spvas[stp.next_spva_id()];
-		pcl_index = spva0.pcl_index;
-		pcl_N = spva0.pcl_N;
-		pcl_u_s = spva0.pcl_u_s;
-	}
-
-	Force3D ContactRigidCylinder::work(size_t wk_id) const
-	{
-		PclRange &pcl_range = pcl_ranges[wk_id];
-		const size_t p_id0 = pcl_range.p_id0;
-		const size_t p_id1 = pcl_range.p_id1;
+		// contact force calculation
 		Force3D rcy_cf;
-		double dist;
-		Vector3D lnorm, gnorm;
-		Point3D cur_cont_pos;
-		Force lcont_fs, gcont_fs;
-		Force lcont_ff, gcont_ff;
-		rcy_cf.reset();
-		const size_t substp_id = stp.substep_index;
-		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		ContactRigidBody& crb = stp.cont_rigid_body;
+		if (crb.has_rigid_cylinder())
 		{
-			const size_t ori_p_id = pcl_index[p_id];
-			const Position& p_p = pcl_pos[ori_p_id];
-			const Displacement& p_u = pcl_u_s[p_id];
-			const double p_x = p_p.x + p_u.ux;
-			const double p_y = p_p.y + p_u.uy;
-			const double p_z = p_p.z + p_u.uz;
-			const double p_r = 0.5 * pow(pcl_vol[p_id], one_third);
-			const ShapeFunc& p_N = pcl_N[p_id];
-			const size_t e_id = pcl_in_elems[p_id];
-			ParticleVariablesGetter pv_place_holder;
-			if (prcy->detect_collision_with_point(
-				p_x, p_y, p_z, p_r, dist, lnorm, cur_cont_pos))
-			{
-				prcy->get_global_vector(lnorm, gnorm);
-				// solid pcl
-				pcm_s->cal_contact_force(
-					substp_id,
-					ori_p_id,
-					dist,
-					lnorm,
-					cur_cont_pos,
-					p_r + p_r,
-					pv_place_holder,
-					lcont_fs.vec);
-				prcy->get_global_vector(lcont_fs.vec, gcont_fs.vec);
-				Force& en_f_s1 = elem_node_force_s[e_id * 4];
-				en_f_s1.fx += p_N.N1 * gcont_fs.fx;
-				en_f_s1.fy += p_N.N1 * gcont_fs.fy;
-				en_f_s1.fz += p_N.N1 * gcont_fs.fz;
-				Force& en_f_s2 = elem_node_force_s[e_id * 4 + 1];
-				en_f_s2.fx += p_N.N2 * gcont_fs.fx;
-				en_f_s2.fy += p_N.N2 * gcont_fs.fy;
-				en_f_s2.fz += p_N.N2 * gcont_fs.fz;
-				Force& en_f_s3 = elem_node_force_s[e_id * 4 + 2];
-				en_f_s3.fx += p_N.N3 * gcont_fs.fx;
-				en_f_s3.fy += p_N.N3 * gcont_fs.fy;
-				en_f_s3.fz += p_N.N3 * gcont_fs.fz;
-				Force& en_f_s4 = elem_node_force_s[e_id * 4 + 3];
-				en_f_s4.fx += p_N.N4 * gcont_fs.fx;
-				en_f_s4.fy += p_N.N4 * gcont_fs.fy;
-				en_f_s4.fz += p_N.N4 * gcont_fs.fz;
-				// fluid pcl
-				pcm_f->cal_contact_force(
-					substp_id,
-					ori_p_id,
-					dist,
-					lnorm,
-					cur_cont_pos,
-					p_r + p_r,
-					pv_place_holder,
-					lcont_ff.vec);
-				prcy->get_global_vector(lcont_ff.vec, gcont_ff.vec);
-				Force& en_f_f1 = elem_node_force_f[e_id * 4];
-				en_f_f1.fx += p_N.N1 * gcont_ff.fx;
-				en_f_f1.fy += p_N.N1 * gcont_ff.fy;
-				en_f_f1.fz += p_N.N1 * gcont_ff.fz;
-				Force& en_f_f2 = elem_node_force_f[e_id * 4 + 1];
-				en_f_f2.fx += p_N.N2 * gcont_ff.fx;
-				en_f_f2.fy += p_N.N2 * gcont_ff.fy;
-				en_f_f2.fz += p_N.N2 * gcont_ff.fz;
-				Force& en_f_f3 = elem_node_force_f[e_id * 4 + 2];
-				en_f_f3.fx += p_N.N3 * gcont_ff.fx;
-				en_f_f3.fy += p_N.N3 * gcont_ff.fy;
-				en_f_f3.fz += p_N.N3 * gcont_ff.fz;
-				Force& en_f_f4 = elem_node_force_f[e_id * 4 + 3];
-				en_f_f4.fx += p_N.N4 * gcont_ff.fx;
-				en_f_f4.fy += p_N.N4 * gcont_ff.fy;
-				en_f_f4.fz += p_N.N4 * gcont_ff.fz;
-				// apply contact force to rigid body
-				const Point3D& rc_cen = prcy->get_centre();
-				rcy_cf.add_force(p_x, p_y, p_z,
-					-(gcont_fs.fx + gcont_ff.fx),
-					-(gcont_fs.fy + gcont_ff.fy),
-					-(gcont_fs.fz + gcont_ff.fz),
-					rc_cen.x, rc_cen.y, rc_cen.z);
-				int efef = 0;
-			}
+			crb.apply_rigid_cylinder(p_id0, p_id1, rcy_cf);
+			res.react_force = rcy_cf;
 		}
-		return rcy_cf;
+		if (crb.has_rigid_mesh())
+		{
+			crb.apply_t3d_rigid_object(p_id0, p_id1, rcy_cf);
+			res.react_force = rcy_cf;
+		}
 	}
-
+	
 	void UpdateAccelerationAndVelocity::init() noexcept
 	{
 		elem_pcl_m_s = stp.elem_pcl_m_s;
@@ -795,22 +681,22 @@ namespace Step_T3D_CHM_TBB_Task
 		task_num = tsk_num;
 	}
 
-	void UpdateAccelerationAndVelocity::work(size_t wk_id) const
+	void UpdateAccelerationAndVelocity::work(size_t tsk_id) const
 	{
 		size_t n_id;
-		size_t ve_id0 = Block_Low(wk_id, task_num, four_elem_num);
+		size_t ve_id0 = Block_Low(tsk_id, task_num, four_elem_num);
 		n_id = node_ids[ve_id0];
 		while (ve_id0 != SIZE_MAX && n_id == node_ids[--ve_id0]);
 		++ve_id0;
 		assert(ve_id0 <= four_elem_num);
-		size_t ve_id1 = Block_Low(wk_id + 1, task_num, four_elem_num);
+		size_t ve_id1 = Block_Low(tsk_id + 1, task_num, four_elem_num);
 		n_id = node_ids[ve_id1];
 		while (ve_id1 != SIZE_MAX && n_id == node_ids[--ve_id1]);
 		++ve_id1;
 		assert(ve_id1 <= four_elem_num);
 
 		// store the division
-		NodeElemRange& ne_range = node_elem_ranges[wk_id];
+		NodeElemRange& ne_range = node_elem_ranges[tsk_id];
 		ne_range.ve_id0 = ve_id0;
 		ne_range.ve_id1 = ve_id1;
 
@@ -954,10 +840,10 @@ namespace Step_T3D_CHM_TBB_Task
 		task_num = tsk_num;
 	}
 
-	void CalElemDeAndMapToNode::work(size_t wk_id) const
+	void CalElemDeAndMapToNode::work(size_t tsk_id) const
 	{
-		const size_t ve_id0 = Block_Low(wk_id, task_num, elem_num);
-		const size_t ve_id1 = Block_Low(wk_id + 1, task_num, elem_num);
+		const size_t ve_id0 = Block_Low(tsk_id, task_num, elem_num);
+		const size_t ve_id1 = Block_Low(tsk_id + 1, task_num, elem_num);
 		double e_de_vol_s, e_de_vol_f;
 		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 		{
@@ -1013,9 +899,9 @@ namespace Step_T3D_CHM_TBB_Task
 		node_elem_ranges = stp.node_elem_ranges;
 	}
 
-	void CalNodeDe::work(size_t wk_id) const
+	void CalNodeDe::work(size_t tsk_id) const
 	{
-		NodeElemRange &ne_range = node_elem_ranges[wk_id];
+		NodeElemRange &ne_range = node_elem_ranges[tsk_id];
 		const size_t ve_id0 = ne_range.ve_id0;
 		const size_t ve_id1 = ne_range.ve_id1;
 
@@ -1046,12 +932,6 @@ namespace Step_T3D_CHM_TBB_Task
 				n_am_de_vol_f = 0.0;
 			}
 		}
-	}
-
-	void MapBgMeshToPclRes::operator() (const tbb::blocked_range<size_t>& range)
-	{
-		for (size_t i = range.begin(); i < range.end(); ++i)
-			pcl_num += map_bg_mesh_to_pcl->work(i);
 	}
 
 	void MapBgMeshToPcl::init() noexcept
@@ -1099,9 +979,9 @@ namespace Step_T3D_CHM_TBB_Task
 		pcl_pstrain1 = spva1.pcl_pstrain;
 	}
 	
-	size_t MapBgMeshToPcl::work(size_t wk_id) const
+	void MapBgMeshToPcl::work(size_t tsk_id, MapBgMeshToPclRes &res) const
 	{
-		PclRange& pcl_range = pcl_ranges[wk_id];
+		PclRange& pcl_range = pcl_ranges[tsk_id];
 		const size_t p_id0 = pcl_range.p_id0;
 		const size_t p_id1 = pcl_range.p_id1;
 
@@ -1269,7 +1149,220 @@ namespace Step_T3D_CHM_TBB_Task
 			p_pe0.e23 = p_pe1.e23 + pstrain[4];
 			p_pe0.e31 = p_pe1.e31 + pstrain[5];
 		}
+		res.pcl_num = valid_pcl_num;
+	}
 
-		return valid_pcl_num;
+	void ContactRigidBody::init() noexcept
+	{
+		Model_T3D_CHM_mt& md = *stp.pmodel;
+		prcy = md.has_rigid_cylinder() ? &md.get_rigid_cylinder() : nullptr;
+		prmesh = md.has_t3d_rigid_mesh() ? &md.get_t3d_rigid_mesh() : nullptr;
+		pcm_s = md.get_contact_model_s();
+		pcm_f = md.get_contact_model_f();
+		//
+		pcl_pos = stp.pcl_pos;
+		pcl_vol = stp.pcl_vol;
+		elem_node_force_s = stp.elem_node_force_s;
+		elem_node_force_f = stp.elem_node_force_f;
+		// pcl range
+		pcl_ranges = stp.pcl_ranges;
+		pcl_in_elems = stp.pcl_in_elems;
+	}
+
+	void ContactRigidBody::update() noexcept
+	{
+		const auto& spva0 = stp.spvas[stp.next_spva_id()];
+		pcl_index = spva0.pcl_index;
+		pcl_N = spva0.pcl_N;
+		pcl_u_s = spva0.pcl_u_s;
+		pcl_u_f = spva0.pcl_u_f;
+	}
+
+	void ContactRigidBody::apply_rigid_cylinder(
+		size_t p_id0,
+		size_t p_id1,
+		Force3D& rc_cf)
+		const noexcept
+	{
+		double dist;
+		Vector3D lnorm, gnorm;
+		Point3D cur_cont_pos;
+		Force lcont_fs, gcont_fs;
+		Force lcont_ff, gcont_ff;
+		rc_cf.reset();
+		const size_t substp_id = stp.substep_index;
+		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		{
+			const size_t ori_p_id = pcl_index[p_id];
+			const Position& p_p = pcl_pos[ori_p_id];
+			const Displacement& p_u = pcl_u_s[p_id];
+			const double p_x = p_p.x + p_u.ux;
+			const double p_y = p_p.y + p_u.uy;
+			const double p_z = p_p.z + p_u.uz;
+			const double p_r = 0.5 * pow(pcl_vol[p_id], one_third);
+			const ShapeFunc& p_N = pcl_N[p_id];
+			const size_t e_id = pcl_in_elems[p_id];
+			ParticleVariablesGetter pv_place_holder;
+			if (prcy->detect_collision_with_point(
+				p_x, p_y, p_z, p_r, dist, lnorm, cur_cont_pos))
+			{
+				prcy->get_global_vector(lnorm, gnorm);
+				// solid pcl
+				pcm_s->cal_contact_force(
+					substp_id,
+					ori_p_id,
+					dist,
+					lnorm,
+					cur_cont_pos,
+					p_r + p_r,
+					pv_place_holder,
+					lcont_fs.vec);
+				prcy->get_global_vector(lcont_fs.vec, gcont_fs.vec);
+				Force& en_f_s1 = elem_node_force_s[e_id * 4];
+				en_f_s1.fx += p_N.N1 * gcont_fs.fx;
+				en_f_s1.fy += p_N.N1 * gcont_fs.fy;
+				en_f_s1.fz += p_N.N1 * gcont_fs.fz;
+				Force& en_f_s2 = elem_node_force_s[e_id * 4 + 1];
+				en_f_s2.fx += p_N.N2 * gcont_fs.fx;
+				en_f_s2.fy += p_N.N2 * gcont_fs.fy;
+				en_f_s2.fz += p_N.N2 * gcont_fs.fz;
+				Force& en_f_s3 = elem_node_force_s[e_id * 4 + 2];
+				en_f_s3.fx += p_N.N3 * gcont_fs.fx;
+				en_f_s3.fy += p_N.N3 * gcont_fs.fy;
+				en_f_s3.fz += p_N.N3 * gcont_fs.fz;
+				Force& en_f_s4 = elem_node_force_s[e_id * 4 + 3];
+				en_f_s4.fx += p_N.N4 * gcont_fs.fx;
+				en_f_s4.fy += p_N.N4 * gcont_fs.fy;
+				en_f_s4.fz += p_N.N4 * gcont_fs.fz;
+				// fluid pcl
+				pcm_f->cal_contact_force(
+					substp_id,
+					ori_p_id,
+					dist,
+					lnorm,
+					cur_cont_pos,
+					p_r + p_r,
+					pv_place_holder,
+					lcont_ff.vec);
+				prcy->get_global_vector(lcont_ff.vec, gcont_ff.vec);
+				Force& en_f_f1 = elem_node_force_f[e_id * 4];
+				en_f_f1.fx += p_N.N1 * gcont_ff.fx;
+				en_f_f1.fy += p_N.N1 * gcont_ff.fy;
+				en_f_f1.fz += p_N.N1 * gcont_ff.fz;
+				Force& en_f_f2 = elem_node_force_f[e_id * 4 + 1];
+				en_f_f2.fx += p_N.N2 * gcont_ff.fx;
+				en_f_f2.fy += p_N.N2 * gcont_ff.fy;
+				en_f_f2.fz += p_N.N2 * gcont_ff.fz;
+				Force& en_f_f3 = elem_node_force_f[e_id * 4 + 2];
+				en_f_f3.fx += p_N.N3 * gcont_ff.fx;
+				en_f_f3.fy += p_N.N3 * gcont_ff.fy;
+				en_f_f3.fz += p_N.N3 * gcont_ff.fz;
+				Force& en_f_f4 = elem_node_force_f[e_id * 4 + 3];
+				en_f_f4.fx += p_N.N4 * gcont_ff.fx;
+				en_f_f4.fy += p_N.N4 * gcont_ff.fy;
+				en_f_f4.fz += p_N.N4 * gcont_ff.fz;
+				// apply contact force to rigid body
+				const Point3D& rc_cen = prcy->get_centre();
+				rc_cf.add_force(p_x, p_y, p_z,
+					-(gcont_fs.fx + gcont_ff.fx),
+					-(gcont_fs.fy + gcont_ff.fy),
+					-(gcont_fs.fz + gcont_ff.fz),
+					rc_cen.x, rc_cen.y, rc_cen.z);
+			}
+		}
+	}
+
+	void ContactRigidBody::apply_t3d_rigid_object(
+		size_t p_id0,
+		size_t p_id1,
+		Force3D& rc_cf)
+		const noexcept
+	{
+		double dist;
+		Vector3D lnorm, gnorm;
+		Point3D cur_cont_pos;
+		Force lcont_fs, gcont_fs;
+		Force lcont_ff, gcont_ff;
+		rc_cf.reset();
+		const size_t substp_id = stp.substep_index;
+		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		{
+			const size_t ori_p_id = pcl_index[p_id];
+			const Position& p_p = pcl_pos[ori_p_id];
+			const Displacement& p_u = pcl_u_s[p_id];
+			const double p_x = p_p.x + p_u.ux;
+			const double p_y = p_p.y + p_u.uy;
+			const double p_z = p_p.z + p_u.uz;
+			const double p_r = 0.5 * pow(pcl_vol[p_id], one_third);
+			const ShapeFunc& p_N = pcl_N[p_id];
+			const size_t e_id = pcl_in_elems[p_id];
+			ParticleVariablesGetter pv_place_holder;
+			if (prmesh->detect_collision_with_point(
+				p_x, p_y, p_z, p_r, dist, lnorm, cur_cont_pos))
+			{
+				prmesh->get_global_vector(lnorm, gnorm);
+				// solid pcl
+				pcm_s->cal_contact_force(
+					substp_id,
+					ori_p_id,
+					dist,
+					lnorm,
+					cur_cont_pos,
+					p_r + p_r,
+					pv_place_holder,
+					lcont_fs.vec);
+				prmesh->get_global_vector(lcont_fs.vec, gcont_fs.vec);
+				Force& en_f_s1 = elem_node_force_s[e_id * 4];
+				en_f_s1.fx += p_N.N1 * gcont_fs.fx;
+				en_f_s1.fy += p_N.N1 * gcont_fs.fy;
+				en_f_s1.fz += p_N.N1 * gcont_fs.fz;
+				Force& en_f_s2 = elem_node_force_s[e_id * 4 + 1];
+				en_f_s2.fx += p_N.N2 * gcont_fs.fx;
+				en_f_s2.fy += p_N.N2 * gcont_fs.fy;
+				en_f_s2.fz += p_N.N2 * gcont_fs.fz;
+				Force& en_f_s3 = elem_node_force_s[e_id * 4 + 2];
+				en_f_s3.fx += p_N.N3 * gcont_fs.fx;
+				en_f_s3.fy += p_N.N3 * gcont_fs.fy;
+				en_f_s3.fz += p_N.N3 * gcont_fs.fz;
+				Force& en_f_s4 = elem_node_force_s[e_id * 4 + 3];
+				en_f_s4.fx += p_N.N4 * gcont_fs.fx;
+				en_f_s4.fy += p_N.N4 * gcont_fs.fy;
+				en_f_s4.fz += p_N.N4 * gcont_fs.fz;
+				// fluid pcl
+				pcm_f->cal_contact_force(
+					substp_id,
+					ori_p_id,
+					dist,
+					lnorm,
+					cur_cont_pos,
+					p_r + p_r,
+					pv_place_holder,
+					lcont_ff.vec);
+				prmesh->get_global_vector(lcont_ff.vec, gcont_ff.vec);
+				Force& en_f_f1 = elem_node_force_f[e_id * 4];
+				en_f_f1.fx += p_N.N1 * gcont_ff.fx;
+				en_f_f1.fy += p_N.N1 * gcont_ff.fy;
+				en_f_f1.fz += p_N.N1 * gcont_ff.fz;
+				Force& en_f_f2 = elem_node_force_f[e_id * 4 + 1];
+				en_f_f2.fx += p_N.N2 * gcont_ff.fx;
+				en_f_f2.fy += p_N.N2 * gcont_ff.fy;
+				en_f_f2.fz += p_N.N2 * gcont_ff.fz;
+				Force& en_f_f3 = elem_node_force_f[e_id * 4 + 2];
+				en_f_f3.fx += p_N.N3 * gcont_ff.fx;
+				en_f_f3.fy += p_N.N3 * gcont_ff.fy;
+				en_f_f3.fz += p_N.N3 * gcont_ff.fz;
+				Force& en_f_f4 = elem_node_force_f[e_id * 4 + 3];
+				en_f_f4.fx += p_N.N4 * gcont_ff.fx;
+				en_f_f4.fy += p_N.N4 * gcont_ff.fy;
+				en_f_f4.fz += p_N.N4 * gcont_ff.fz;
+				// apply contact force to rigid body
+				const Point3D& rc_cen = prmesh->get_pos();
+				rc_cf.add_force(p_x, p_y, p_z,
+					-(gcont_fs.fx + gcont_ff.fx),
+					-(gcont_fs.fy + gcont_ff.fy),
+					-(gcont_fs.fz + gcont_ff.fz),
+					rc_cen.x, rc_cen.y, rc_cen.z);
+			}
+		}
 	}
 }
