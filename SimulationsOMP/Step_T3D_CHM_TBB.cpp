@@ -222,8 +222,8 @@ int substep_func_T3D_CHM_TBB(void* _self)
 	}
 	
 	// sort pcl id
-	self.pcl_sort.sort(self.valid_pcl_num);
-	
+	self.pcl_sort.sort(self.prev_valid_pcl_num);
+
 	// sort node
 	self.ne_sort.sort(self.valid_pcl_num);
 	self.valid_elem_num = self.ne_sort.elem_num();
@@ -234,6 +234,7 @@ int substep_func_T3D_CHM_TBB(void* _self)
 		Step_T3D_CHM_TBB_Task::task_num_per_thread>(
 			self.thread_num, self.valid_pcl_num);
 	self.map_pcl_to_mesh.update(pcl_task_num);
+	self.cont_rigid_body.update();
 	ParaUtil::parallel_reduce(self.map_pcl_to_mesh, self.map_pcl_to_mesh_res, pcl_task_num);
 	//self.map_pcl_to_mesh_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_pcl_to_mesh_tbb);
@@ -277,6 +278,9 @@ int substep_func_T3D_CHM_TBB(void* _self)
 	//tbb::parallel_for(tbb::blocked_range<size_t>(0, node_elem_task_num, 1), self.cal_node_de);
 
 	// map bg mesh back to pcl
+#ifdef _DEBUG
+	self.prev_valid_pcl_num_tmp = self.prev_valid_pcl_num;
+#endif
 	self.prev_valid_pcl_num = self.valid_pcl_num;
 	self.map_mesh_to_pcl.update(pcl_task_num);
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, pcl_task_num);

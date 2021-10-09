@@ -21,11 +21,10 @@ void test_t3d_chm_tbb_cap_compression(int argc, char **argv)
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 
-	constexpr double e0 = 0.55;
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
-	model.init_pcls(pcl_generator, e0 / (1.0 + e0), 2.0, 1.0, 2.0e4, 5.0e-9, 1.0); // elastic
+	model.init_pcls(pcl_generator, 0.3, 2.0, 1.0, 6.0e3, 5.0e-4, 1.0); // elastic
 	const size_t pcl_num = model.get_pcl_num();
 	// Linear elasticity
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
@@ -58,23 +57,23 @@ void test_t3d_chm_tbb_cap_compression(int argc, char **argv)
 	model.init_fixed_vz_s_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 	model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
-	QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
-	//QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
-	//QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(200.0f, 30.0f);
-	md_disp.set_light_dir(200.0f, 30.0f);
-	//md_disp.set_view_dist_scale(0.5);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	size_t disp_p_id = 2000;
-	md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
+	////QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
+	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(200.0f, 30.0f);
+	//md_disp.set_light_dir(200.0f, 30.0f);
+	////md_disp.set_view_dist_scale(0.5);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//size_t disp_p_id = 2000;
+	//md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_tbb_cap_compression.h5");
@@ -91,9 +90,9 @@ void test_t3d_chm_tbb_cap_compression(int argc, char **argv)
 
 	Step_T3D_CHM_TBB step("step1");
 	step.set_model(model);
-	//step.set_thread_num(5);
-	step.set_step_time(1.0); // 1.0
-	//step.set_step_time(1.0e-4); // debug
+	step.set_thread_num(5);
+	step.set_step_time(1.0);
+	//step.set_step_time(5.0e-5); // debug
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out_cpb);
 	step.add_time_history(out1);
@@ -119,11 +118,10 @@ void test_t3d_chm_tbb_cap_compression_result(int argc, char** argv)
 	//app.set_gif_name("t3d_chm_tbb_cap_compression");
 	// s33
 	//app.set_res_file(rf, "compression", Hdf5Field::s33);
-	////app.set_color_map_fld_range(-50.0, 0.0); // elastic
-	//app.set_color_map_fld_range(-500.0e3, 0.0); // hypo
+	//app.set_color_map_fld_range(-50.0, 0.0); // elastic
 	// 	p
-	//app.set_res_file(rf, "compression", Hdf5Field::p);
-	//app.set_color_map_fld_range(-50.0e3, 50.0e3); // hypo
+	app.set_res_file(rf, "compression", Hdf5Field::p);
+	app.set_color_map_fld_range(-50.0, 50.0); // hypo
 	//
 	app.start();
 }

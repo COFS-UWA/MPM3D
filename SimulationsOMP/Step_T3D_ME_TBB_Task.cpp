@@ -731,7 +731,7 @@ namespace Step_T3D_ME_TBB_Task
 
 			const size_t prev_p_id = prev_pcl_ids[p_id];
 #ifdef _DEBUG
-			assert(prev_p_id < stp.prev_valid_pcl_num);
+			assert(prev_p_id < stp.prev_valid_pcl_num_tmp);
 #endif
 			const Strain& p_e1 = pcl_strain1[prev_p_id];
 			Strain& p_e0 = pcl_strain0[p_id];

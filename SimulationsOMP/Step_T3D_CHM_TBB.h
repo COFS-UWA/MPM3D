@@ -119,6 +119,7 @@ protected:
 
 #ifdef _DEBUG
 	size_t ori_pcl_num, elem_num, node_num;
+	size_t prev_valid_pcl_num_tmp;
 #endif
 
 	tbb::task_scheduler_init sche_init;

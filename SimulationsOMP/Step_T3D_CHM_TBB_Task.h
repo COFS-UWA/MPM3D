@@ -325,7 +325,6 @@ namespace Step_T3D_CHM_TBB_Task
 		const Displacement* pcl_u_s, *pcl_u_f;
 		const ShapeFunc* pcl_N;
 
-		const PclRange* pcl_ranges;
 		const size_t* pcl_in_elems;
 
 	public:

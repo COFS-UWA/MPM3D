@@ -1118,8 +1118,9 @@ namespace Step_T3D_CHM_TBB_Task
 			p_s.s31 += dstress[5];
 
 			const size_t prev_p_id = prev_pcl_ids[p_id];
-			assert(prev_p_id < stp.prev_valid_pcl_num);
-
+#ifdef _DEBUG
+			assert(prev_p_id < stp.prev_valid_pcl_num_tmp);
+#endif
 			const Strain& p_e1 = pcl_strain1[prev_p_id];
 			Strain& p_e0 = pcl_strain0[p_id];
 			p_e0.e11 = p_e1.e11 + pe_de->de11;
@@ -1165,7 +1166,6 @@ namespace Step_T3D_CHM_TBB_Task
 		elem_node_force_s = stp.elem_node_force_s;
 		elem_node_force_f = stp.elem_node_force_f;
 		// pcl range
-		pcl_ranges = stp.pcl_ranges;
 		pcl_in_elems = stp.pcl_in_elems;
 	}
 
@@ -1173,9 +1173,9 @@ namespace Step_T3D_CHM_TBB_Task
 	{
 		const auto& spva0 = stp.spvas[stp.next_spva_id()];
 		pcl_index = spva0.pcl_index;
-		pcl_N = spva0.pcl_N;
 		pcl_u_s = spva0.pcl_u_s;
 		pcl_u_f = spva0.pcl_u_f;
+		pcl_N = spva0.pcl_N;
 	}
 
 	void ContactRigidBody::apply_rigid_cylinder(
