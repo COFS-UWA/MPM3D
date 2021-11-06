@@ -53,10 +53,10 @@ int main(int argc, char *argv[])
 	//test_rigid_mesh_contact2(argc, argv);
 	//test_contact_model_3d(argc, argv);
 	
-	//test_t3d_me_mt_cap_compression(argc, argv);
+	test_t3d_me_mt_cap_compression(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart2(argc, argv);
-	test_t3d_me_mt_cap_compression_result(argc, argv);
+	//test_t3d_me_mt_cap_compression_result(argc, argv);
 	//test_t3d_me_mt_cap_compression_result_div(argc, argv);
 
 	//test_t3d_me_mt_block_sliding(argc, argv);

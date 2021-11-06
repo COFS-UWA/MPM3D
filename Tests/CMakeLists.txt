@@ -105,12 +105,6 @@ target_include_directories(
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
     ${HDF5_INCLUDE_DIR}
-    ${TBB_INCLUDE_DIR}
-    )
-
-target_link_directories(
-    Tests PUBLIC
-    ${TBB_LIBRARIES_DIR}
     )
 
 target_link_libraries(
@@ -126,7 +120,6 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::OpenGL
     ${HDF5_LIBRARIES}
-    TBB
     )
 
 if (WIN32)

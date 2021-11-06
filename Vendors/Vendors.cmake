@@ -16,9 +16,6 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL)
 set(HDF5_USE_STATIC_LIBRARIES ON)
 find_package(HDF5 REQUIRED)
 
-# Eigen
-set(EIGEN_INCLUDE_DIR "${VENDORS_DIR}/Eigen/include/")
-
 # OpenGL
 # find_library(OPENGL_LIB
     # NAMES opengl32.lib
@@ -43,6 +40,6 @@ find_library(FREETYPE_RELEASE_LIBRARIES
 unset(FREETYPE_RELEASE_LIBRARIES_DIR CACHE)
 
 # Tbb
-set(TBB_INCLUDE_DIR "${TBB_DIR}../include/")
-set(TBB_LIBRARIES_DIR "${TBB_DIR}../lib/intel64/vc14/")
-find_package(TBB REQUIRED)
+# set(TBB_INCLUDE_DIR "${TBB_DIR}../include/")
+# set(TBB_LIBRARIES_DIR "${TBB_DIR}../lib/intel64/vc14/")
+# find_package(TBB REQUIRED)

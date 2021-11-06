@@ -1,20 +1,22 @@
 cmake_minimum_required(VERSION 3.15.0)
 
 # vcpkg
-set(VCPKG_ROOT "D:/Softwares/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+set(VCPKG_ROOT "C:/Softwares/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(CMAKE_TOOLCHAIN_FILE ${VCPKG_ROOT} CACHE STRING "")
 
 project(SimpleMPM3)
 
 # Pathes of external dependencies (user defined part)
 # Qt5
-set(Qt5_DIR "D:/Softwares/Qt/5.15.0/msvc2019_64/lib/cmake/Qt5")
+set(Qt5_DIR "C:/Softwares/Qt/5.15.0/msvc2019_64/lib/cmake/Qt5")
 # hdf5
-set(HDF5_DIR "D:/Vendors/HDF5-1.12.0-win64/cmake/hdf5/")
+set(HDF5_DIR "C:/Vendors/HDF5-1.12.0-win64/cmake/hdf5/")
 # free type
-set(FREETYPE_DIR "D:/Vendors/freetype/")
+set(FREETYPE_DIR "C:/Vendors/freetype/")
+# Eigen
+set(EIGEN_INCLUDE_DIR "C:/Vendors/Eigen/include/")
 # tbb
-set(TBB_DIR "D:/Vendors/tbb/cmake/")
+find_package(TBB CONFIG REQUIRED)
 # add external dependencies
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/Vendors/") # cmake file path
 include(Vendors REQUIRED) # call Vendors.cmake

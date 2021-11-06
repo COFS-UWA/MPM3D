@@ -99,10 +99,6 @@ target_link_libraries(
     Simulations
     SimulationsOMP
     ModelViewer
-    # External dependencies
-    Qt5::Widgets
-    Qt5::OpenGL
-    ${HDF5_LIBRARIES}
     )
 
 if (WIN32)

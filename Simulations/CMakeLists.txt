@@ -82,13 +82,7 @@ target_include_directories(
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
     ${HDF5_INCLUDE_DIR}
-    #${TBB_INCLUDE_DIR}
     )
-
-# target_link_directories(
-    # Simulations PUBLIC
-    # ${TBB_LIBRARIES_DIR}
-    # )
 
 target_link_libraries(
     Simulations PUBLIC
@@ -97,8 +91,8 @@ target_link_libraries(
     MaterialModels
     Geometry
     # External dependencies
+	#TBB::tbb
     ${HDF5_LIBRARIES}
-    #TBB
     )
 
 if (MSVC)
