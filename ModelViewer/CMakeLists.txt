@@ -232,6 +232,11 @@ if (MSVC)
     target_compile_options(ModelViewer PRIVATE -YcModelViewer_pcp.h)
     # exclude moc files from precompilation
     set_source_files_properties(${CMAKE_BINARY_DIR}\\ModelViewer\\ModelViewer_autogen\\mocs_compilation.cpp PROPERTIES COMPILE_FLAGS /Y-)
+    # newer version of Qt
+	set_source_files_properties(${CMAKE_BINARY_DIR}\\ModelViewer\\ModelViewer_autogen\\mocs_compilation_Debug.cpp PROPERTIES COMPILE_FLAGS /Y-)
+    set_source_files_properties(${CMAKE_BINARY_DIR}\\ModelViewer\\ModelViewer_autogen\\mocs_compilation_MinSizeRel.cpp PROPERTIES COMPILE_FLAGS /Y-)
+    set_source_files_properties(${CMAKE_BINARY_DIR}\\ModelViewer\\ModelViewer_autogen\\mocs_compilation_Release.cpp PROPERTIES COMPILE_FLAGS /Y-)
+    set_source_files_properties(${CMAKE_BINARY_DIR}\\ModelViewer\\ModelViewer_autogen\\mocs_compilation_RelWithDebInfo.cpp PROPERTIES COMPILE_FLAGS /Y-)
 endif()
 
 set(CMAKE_AUTOMOC OFF)

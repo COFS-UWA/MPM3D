@@ -47,7 +47,7 @@ void test_t2d_me_mt_1d_compression(int argc, char** argv)
 	IndexArray tbc_pt_array(50);
 	find_2d_pcls(model, tbc_pt_array, Rect(0.0, 0.2, 0.987, 1.0));
 	MemoryUtils::ItemArray<double> tys_mem(tbc_pt_array.get_num());
-	double ty_mag = 0.02 * -10.0;
+	double ty_mag = 0.02 * -1.0;
 	for (size_t t_id = 0; t_id < tbc_pt_array.get_num(); ++t_id)
 		tys_mem.add(ty_mag);
 	model.init_tys(tbc_pt_array.get_num(), tbc_pt_array.get_mem(), tys_mem.get_mem());
@@ -108,7 +108,7 @@ void test_t2d_me_mt_1d_compression_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_res_file(rf, "loading", Hdf5Field::s22);
 	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(-20.0, 0.0);
+	app.set_color_map_fld_range(-2.0, 0.0);
 	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_me_mt_1d_compression");
 	//app.set_gif_name("t2d_me_mt_1d_compression");

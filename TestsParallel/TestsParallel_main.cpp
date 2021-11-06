@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cap_compression(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart2(argc, argv);
-	//test_t3d_me_mt_cap_compression_result(argc, argv);
+	test_t3d_me_mt_cap_compression_result(argc, argv);
 	//test_t3d_me_mt_cap_compression_result_div(argc, argv);
 
 	//test_t3d_me_mt_block_sliding(argc, argv);
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_tbb_1d_compression_result(argc, argv);
 	
 	//test_t3d_me_tbb_cap_compression(argc, argv);
-	test_t3d_me_tbb_cap_compression_result(argc, argv);
+	//test_t3d_me_tbb_cap_compression_result(argc, argv);
 
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);

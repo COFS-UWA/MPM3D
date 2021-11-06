@@ -19,11 +19,11 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 
 	ParticleGenerator2D<Model_T2D_ME_s> pcl_generator;
 	pcl_generator.generate_pcls_at_2nd_gauss(model);
-	model.init_pcls(pcl_generator, 1.0);
+	model.init_pcls(pcl_generator, 10.0);
 	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 0.2, 0.0, 1.0), 0.02, 0.02);
 	//model.init_pcls(pcl_generator, 10.0);
 
-	size_t pcl_num = model.get_pcl_num();
+	const size_t pcl_num = model.get_pcl_num();
 	Model_T2D_ME_s::Particle* pcls = model.get_pcls();
 	MatModel::LinearElasticity* mms = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
@@ -78,14 +78,14 @@ void test_t2d_me_s_1d_compression(int argc, char **argv)
 		//tbc.t = 0.02 * -1.0;
 	}
 
-	QtApp_Prep_T2D_ME_s md_disp(argc, argv);
-	md_disp.set_win_size(900, 900);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T2D_ME_s md_disp(argc, argv);
+	//md_disp.set_win_size(900, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_pcl_id(tbc_pt_array.get_mem(), tbc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_s_1d_compression.h5");
@@ -119,8 +119,10 @@ void test_t2d_me_s_1d_compression_static_result(int argc, char** argv)
 
 	QtApp_Posp_T2D_ME_s app(argc, argv);
 	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(0.0, 1.0);
-	app.set_res_file(rf, "compression", 0, Hdf5Field::y);
+	// s22
+	app.set_res_file(rf, "compression", 50, Hdf5Field::s22);
+	app.set_color_map_fld_range(-0.2, 0.0);
+	//
 	app.set_png_name("t2d_me_s_1d_compression");
 	app.start();
 }
@@ -132,10 +134,14 @@ void test_t2d_me_s_1d_compression_ani_result(int argc, char** argv)
 
 	QtApp_Posp_T2D_ME_s app(argc, argv, QtApp_Posp_T2D_ME_s::Animation);
 	app.set_ani_time(5.0);
-	app.set_res_file(rf, "compression", Hdf5Field::mises_strain_2d);
 	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(0.0, 1.0e-3);
+	// shear stress
+	//app.set_res_file(rf, "compression", Hdf5Field::mises_strain_2d);
+	//app.set_color_map_fld_range(0.0, 1.0e-3);
+	// s22
+	app.set_res_file(rf, "compression", Hdf5Field::s22);
+	app.set_color_map_fld_range(-0.2, 0.0);
 	//app.set_png_name("t2d_me_s_1d_compression");
-	app.set_gif_name("t2d_me_s_1d_compression");
+	//app.set_gif_name("t2d_me_s_1d_compression");
 	app.start();
 }

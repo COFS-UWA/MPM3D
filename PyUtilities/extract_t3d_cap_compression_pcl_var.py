@@ -1,52 +1,77 @@
+import math
 import h5py as py
 import matplotlib.pyplot as plt
 
+mm_name = "SandHypoplasticity"
+hdf5_name = "../Build/TestsParallel/t3d_me_mt_cap_compression.h5"
+pcl_id = 100
+
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_triaxial_compression.h5", "r")
+hdf5_file = py.File(hdf5_name, "r")
 
 th_grp = hdf5_file['TimeHistory']['compression']
 th_num = th_grp.attrs['output_num']
 
-pcl_ids = [1985, 2307, 2369]
-
-rb_z = []
-rb_fz = []
-is_init = False
 ini_z = 0.0
-pcl_e11 = []
-pcl_e33 = []
-pcl_s11 = []
-pcl_s33 = []
-pcl_pi = []
-for p_id in range(len(pcl_ids)):
-    pcl_e11.append([])
-    pcl_e33.append([])
-    pcl_s11.append([])
-    pcl_s33.append([])
-    pcl_pi.append([])
-
+is_init = False
+rb_z = []
+pcl_de11 = []
+pcl_de22 = []
+pcl_de33 = []
+pcl_de12 = []
+pcl_de23 = []
+pcl_de31 = []
+pcl_de_vol = []
+pcl_de_dev = []
+prev_pcl_e11 = 0.0
+prev_pcl_e22 = 0.0
+prev_pcl_e33 = 0.0
+prev_pcl_e12 = 0.0
+prev_pcl_e23 = 0.0
+prev_pcl_e31 = 0.0
 for th_id in range(th_num):
     rb_grp = th_grp['frame_%d' % th_id]['RigidCylinder']
     cen_z = rb_grp.attrs['z']
-    rf_z = rb_grp.attrs['fz']
     if not is_init:
-        ini_z = cen_z
         is_init = True
+        ini_z = cen_z
     rb_z.append(ini_z - cen_z)
-    rb_fz.append(rf_z)
-    pcl_grp = th_grp['frame_%d' % th_id]['ParticleData']
-    pcl_fld = pcl_grp['field']
-    mat_grp = th_grp['frame_%d' % th_id]['MaterialModel']
-    mat_fld = mat_grp['SandHypoplasticityStb']
-    for p_id in range(len(pcl_ids)):
-        pcl_var = pcl_fld[pcl_ids[p_id]]
-        pcl_e11[p_id].append(pcl_var['e11'])
-        pcl_e33[p_id].append(-pcl_var['e33'])
-        pcl_s11[p_id].append(pcl_var['s11'])
-        pcl_s33[p_id].append(pcl_var['s33'])
-        mat_id = pcl_var['mat_id']
-        mat_var = mat_fld[mat_id]
-        pcl_pi[p_id].append(mat_var['pi'])
+    pcl_fld = th_grp['frame_%d' % th_id]['ParticleData']['field']
+    pcl_fld_id = pcl_fld['id']
+    pcl_fld_e11 = pcl_fld['e11']
+    pcl_fld_e22 = pcl_fld['e22']
+    pcl_fld_e33 = pcl_fld['e33']
+    pcl_fld_e12 = pcl_fld['e12']
+    pcl_fld_e23 = pcl_fld['e23']
+    pcl_fld_e31 = pcl_fld['e31']
+    pcl_num = len(pcl_fld_id)
+    # mat_grp = th_grp['frame_%d' % th_id]['MaterialModel']
+    # mat_fld = mat_grp[mm_name]
+    for p_id in range(pcl_num):
+        if pcl_id == pcl_fld_id[p_id]:
+            p_de11 = pcl_fld_e11[p_id] - prev_pcl_e11
+            p_de22 = pcl_fld_e22[p_id] - prev_pcl_e22
+            p_de33 = pcl_fld_e33[p_id] - prev_pcl_e33
+            p_de12 = pcl_fld_e12[p_id] - prev_pcl_e12
+            p_de23 = pcl_fld_e23[p_id] - prev_pcl_e23
+            p_de31 = pcl_fld_e31[p_id] - prev_pcl_e31
+            prev_pcl_e11 = pcl_fld_e11[p_id]
+            prev_pcl_e22 = pcl_fld_e22[p_id]
+            prev_pcl_e33 = pcl_fld_e33[p_id]
+            prev_pcl_e12 = pcl_fld_e12[p_id]
+            prev_pcl_e23 = pcl_fld_e23[p_id]
+            prev_pcl_e31 = pcl_fld_e31[p_id]
+            pcl_de11.append(p_de11)
+            pcl_de22.append(p_de22)
+            pcl_de33.append(p_de33)
+            pcl_de12.append(p_de12)
+            pcl_de23.append(p_de23)
+            pcl_de31.append(p_de31)
+            pcl_de_vol.append(p_de11 + p_de22 + p_de33)
+            pcl_de_dev.append(math.sqrt(0.5 * (p_de11*p_de11 + p_de22*p_de22 + p_de33*p_de33) \
+                + 3.0 * (p_de12 * p_de12 + p_de23 * p_de23 + p_de31 * p_de31)))
+            # mat_id = pcl_var['mat_id']
+            # mat_var = mat_fld[mat_id]
 
 hdf5_file.close()
 
@@ -58,26 +83,9 @@ hdf5_file.close()
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
 
-lines = []
-line_lb = []
-
-# Analytical solution
-#line1, = plot1.plot(rb_z, rb_z)
-#lines.append(line1)
-#line_lb.append('Acc')
-
-for p_id in range(len(pcl_ids)):
-    line2, = plot1.plot(rb_z, pcl_e11[p_id])
-    #line2, = plot1.plot(rb_z, pcl_e33[p_id])
-    #line2, = plot1.plot(rb_z, pcl_s11[p_id])
-    #line2, = plot1.plot(rb_z, pcl_s33[p_id])
-    line2, = plot1.plot(rb_z, pcl_pi[p_id])
-    lines.append(line2)
-    line_lb.append('%d' % pcl_ids[p_id])
+line2, = plot1.plot(rb_z, pcl_de_vol)
+#line2, = plot1.plot(rb_z, pcl_de_dev)
 
 rb_z_range = [min(rb_z), max(rb_z)]
 plt.xlim(rb_z_range)
-#plt.ylim(rb_z_range)
-
-plt.legend(handles=lines, labels=line_lb)
 plt.show()

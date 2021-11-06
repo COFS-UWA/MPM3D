@@ -21,7 +21,7 @@ for t_id in range(output_num):
     out_time.append(frame_time)
     # particle
     pcl_dset = frame_grp['ParticleData']['field']
-    pcl_fld = pcl_dset[499]
+    pcl_fld = pcl_dset[123]
     var = pcl_fld['y']
     if not is_init:
         init_y = var
@@ -33,7 +33,7 @@ hdf5_file.close()
 
 # analytical solution
 H = 1.0
-p0 = 1.0
+p0 = 0.1
 bf = 0.0
 E = 1000.0
 density = 10.0
@@ -61,3 +61,32 @@ line2, = plot1.plot(t_ana, u_ana)
 
 plt.legend(handles=[line1, line2], labels=['MPM', 'Analytical Solution'])
 plt.show()
+
+# output to csv file
+csv_file = open('t2d_1d_compression_disp.csv', 'w')
+
+csv_file.write("MPM,\n")
+# time
+csv_file.write("time, ")
+for ot in out_time:
+    csv_file.write("%f, " % ot)
+csv_file.write("\n")
+# pcl vars
+csv_file.write("disp, ")
+for pv in pcl_var:
+    csv_file.write("%f, " % pv)
+csv_file.write("\n")
+
+csv_file.write("Analytical solution,\n")
+# time
+csv_file.write("time, ")
+for ot in t_ana:
+    csv_file.write("%f, " % ot)
+csv_file.write("\n")
+# pcl vars
+csv_file.write("disp, ")
+for pv in u_ana:
+    csv_file.write("%f, " % pv)
+csv_file.write("\n")
+
+csv_file.close()

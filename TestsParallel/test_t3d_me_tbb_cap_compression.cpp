@@ -126,6 +126,6 @@ void test_t3d_me_tbb_cap_compression_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 30.0);
 	//
 	//app.set_png_name("t3d_me_tbb_cap_compression");
-	//app.set_gif_name("t3d_me_tbb_cap_compression");
+	app.set_gif_name("t3d_me_tbb_cap_compression");
 	app.start();
 }
