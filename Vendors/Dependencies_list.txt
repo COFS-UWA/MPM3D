@@ -1,5 +1,0 @@
-hdf5
-Qt5 (include OpenGL)
-Eigen
-FreeType
-Intel Threading Buliding Block (TBB)

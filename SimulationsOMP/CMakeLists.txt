@@ -101,19 +101,22 @@ target_include_directories(
     ${SIMULATIONS_OMP_INCLUDE_DIR}
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
-    ${HDF5_INCLUDE_DIR}
     )
 
 target_link_libraries(
     SimulationsOMP PUBLIC
     # Internal dependencies
     Simulations
+	MemoryUtils
+    MaterialModels
+    Geometry
     # External dependencies
 	TBB::tbb
+	hdf5::hdf5-shared hdf5::hdf5_hl-shared
     )
 
 find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
+if (OpenMP_CXX_FOUND)
     target_link_libraries(SimulationsOMP PUBLIC OpenMP::OpenMP_CXX)
 endif()
 

@@ -194,8 +194,6 @@ target_include_directories(
     ${MODELVIEWER_INCLUDE_DIR}
     # External
     ${EIGEN_INCLUDE_DIR}
-    ${HDF5_INCLUDE_DIR}
-    ${FREETYPE_INCLUDE_DIR}
     )
 
 target_link_libraries(
@@ -203,17 +201,17 @@ target_link_libraries(
     # Internal dependencies
     FileUtils
     # External dependencies
-    Qt5::Widgets
-    Qt5::OpenGL
 	TBB::tbb
-    ${HDF5_LIBRARIES}
+    Qt5::Widgets Qt5::OpenGL
+	hdf5::hdf5-shared hdf5::hdf5_hl-shared
+	freetype
     )
 
-target_link_libraries(
-    ModelViewer PUBLIC
-    debug ${FREETYPE_DEBUG_LIBRARIES}
-    optimized ${FREETYPE_RELEASE_LIBRARIES}
-    )
+# target_link_libraries(
+    # ModelViewer PUBLIC
+    # debug ${FREETYPE_DEBUG_LIBRARIES}
+    # optimized ${FREETYPE_RELEASE_LIBRARIES}
+    # )
 
 if (MSVC)
     # get rid of console window

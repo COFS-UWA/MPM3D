@@ -104,22 +104,13 @@ target_include_directories(
     ${MODELVIEWER_INCLUDE_DIR}
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
-    ${HDF5_INCLUDE_DIR}
     )
 
 target_link_libraries(
     Tests PUBLIC
     # Internal dependencies
-    CommonUtils
-    MemoryUtils
-    MaterialModels
-    Geometry
     Simulations
     ModelViewer
-    # External dependencies
-    Qt5::Widgets
-    Qt5::OpenGL
-    ${HDF5_LIBRARIES}
     )
 
 if (WIN32)

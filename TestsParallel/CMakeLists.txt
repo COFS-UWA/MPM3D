@@ -86,17 +86,11 @@ target_include_directories(
     ${MODELVIEWER_INCLUDE_DIR}
     # External dependencies
     ${EIGEN_INCLUDE_DIR}
-    ${HDF5_INCLUDE_DIR}
     )
 
 target_link_libraries(
     TestsParallel PUBLIC
     # Internal dependencies
-    CommonUtils
-    MemoryUtils
-    MaterialModels
-    Geometry
-    Simulations
     SimulationsOMP
     ModelViewer
     )
