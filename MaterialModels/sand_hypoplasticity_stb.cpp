@@ -237,6 +237,7 @@ int32_t SandHypoplasticityStbGlobal::hypoplasticity_substp(
 	dstress[4] = L1_tmp * dstrain[4] + L2_tmp * s_cap[4] + N_tmp * (s_cap[4] + s_cap[4]);
 	dstress[5] = L1_tmp * dstrain[5] + L2_tmp * s_cap[5] + N_tmp * (s_cap[5] + s_cap[5]);
 
+	// scale void ratio
 	de = (ffmat(1.0) + e) * (dstrain[0] + dstrain[1] + dstrain[2]) * 2.0;
 	return 1;
 }
@@ -487,48 +488,48 @@ int32_t integrate_sand_hypoplasticity_stb(
 	// complete RKF23 integration successfully
 	mat_dat.substp_size = substp_size;
 
-	// adjust stress back to yield surface
-	cal_p_q(mat_dat.stress, invars);
-	__Float_Type__ f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
-	
-	if (false) // (f_yield > ffmat(0.0))
-	{
-		const __Float_Type__ dstress[6] = {
-			mat_dat.stress[0] - ori_stress[0],
-			mat_dat.stress[1] - ori_stress[1],
-			mat_dat.stress[2] - ori_stress[2],
-			mat_dat.stress[3] - ori_stress[3],
-			mat_dat.stress[4] - ori_stress[4],
-			mat_dat.stress[5] - ori_stress[5]
-		};
-		const __Float_Type__ dp_dlambda = (dstress[0] + dstress[1] + dstress[2]) / ffmat(3.0);
-		__Float_Type__ lambda = ffmat(1.0);
-		size_t iter_id = 0;
-		constexpr size_t max_iter_num = 10;
-		const double f_yield_tol = error_tol * (__Float_Type__)fabs(p);
-		do
-		{
-			// cal f_yield derivative
-			const __Float_Type__ dq_dlambda = ffmat(0.5) / q * (
-				(ori_stress[0] - ori_stress[1] + lambda * (dstress[0] - dstress[1])) * (dstress[0] - dstress[1])
-				+ (ori_stress[1] - ori_stress[2] + lambda * (dstress[1] - dstress[2])) * (dstress[1] - dstress[2])
-				+ (ori_stress[2] - ori_stress[0] + lambda * (dstress[2] - dstress[0])) * (dstress[2] - dstress[0])
-				+ ffmat(6.0) * (ori_stress[3] + lambda * dstress[3]) * dstress[3]
-				+ ffmat(6.0) * (ori_stress[4] + lambda * dstress[4]) * dstress[4]
-				+ ffmat(6.0) * (ori_stress[5] + lambda * dstress[5]) * dstress[5]);
-			const __Float_Type__ df_yield_dlamdba = dq_dlambda - mat_dat.Mi * (__Float_Type__)log(-p / mat_dat.pi) * dp_dlambda;
-			lambda -= f_yield / df_yield_dlamdba;
-			// recal f_yield
-			mat_dat.stress[0] = ori_stress[0] + lambda * dstress[0];
-			mat_dat.stress[1] = ori_stress[1] + lambda * dstress[1];
-			mat_dat.stress[2] = ori_stress[2] + lambda * dstress[2];
-			mat_dat.stress[3] = ori_stress[3] + lambda * dstress[3];
-			mat_dat.stress[4] = ori_stress[4] + lambda * dstress[4];
-			mat_dat.stress[5] = ori_stress[5] + lambda * dstress[5];
-			cal_p_q(mat_dat.stress, invars);
-			f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
-		} while ((__Float_Type__)fabs(f_yield) < f_yield_tol && (iter_id++) < max_iter_num);
-	}
+	//// adjust stress back to yield surface
+	//cal_p_q(mat_dat.stress, invars);
+	//__Float_Type__ f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
+	//
+	//if (false) // (f_yield > ffmat(0.0))
+	//{
+	//	const __Float_Type__ dstress[6] = {
+	//		mat_dat.stress[0] - ori_stress[0],
+	//		mat_dat.stress[1] - ori_stress[1],
+	//		mat_dat.stress[2] - ori_stress[2],
+	//		mat_dat.stress[3] - ori_stress[3],
+	//		mat_dat.stress[4] - ori_stress[4],
+	//		mat_dat.stress[5] - ori_stress[5]
+	//	};
+	//	const __Float_Type__ dp_dlambda = (dstress[0] + dstress[1] + dstress[2]) / ffmat(3.0);
+	//	__Float_Type__ lambda = ffmat(1.0);
+	//	size_t iter_id = 0;
+	//	constexpr size_t max_iter_num = 10;
+	//	const double f_yield_tol = error_tol * (__Float_Type__)fabs(p);
+	//	do
+	//	{
+	//		// cal f_yield derivative
+	//		const __Float_Type__ dq_dlambda = ffmat(0.5) / q * (
+	//			(ori_stress[0] - ori_stress[1] + lambda * (dstress[0] - dstress[1])) * (dstress[0] - dstress[1])
+	//			+ (ori_stress[1] - ori_stress[2] + lambda * (dstress[1] - dstress[2])) * (dstress[1] - dstress[2])
+	//			+ (ori_stress[2] - ori_stress[0] + lambda * (dstress[2] - dstress[0])) * (dstress[2] - dstress[0])
+	//			+ ffmat(6.0) * (ori_stress[3] + lambda * dstress[3]) * dstress[3]
+	//			+ ffmat(6.0) * (ori_stress[4] + lambda * dstress[4]) * dstress[4]
+	//			+ ffmat(6.0) * (ori_stress[5] + lambda * dstress[5]) * dstress[5]);
+	//		const __Float_Type__ df_yield_dlamdba = dq_dlambda - mat_dat.Mi * (__Float_Type__)log(-p / mat_dat.pi) * dp_dlambda;
+	//		lambda -= f_yield / df_yield_dlamdba;
+	//		// recal f_yield
+	//		mat_dat.stress[0] = ori_stress[0] + lambda * dstress[0];
+	//		mat_dat.stress[1] = ori_stress[1] + lambda * dstress[1];
+	//		mat_dat.stress[2] = ori_stress[2] + lambda * dstress[2];
+	//		mat_dat.stress[3] = ori_stress[3] + lambda * dstress[3];
+	//		mat_dat.stress[4] = ori_stress[4] + lambda * dstress[4];
+	//		mat_dat.stress[5] = ori_stress[5] + lambda * dstress[5];
+	//		cal_p_q(mat_dat.stress, invars);
+	//		f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
+	//	} while ((__Float_Type__)fabs(f_yield) < f_yield_tol && (iter_id++) < max_iter_num);
+	//}
 
 	return substp_id;
 }

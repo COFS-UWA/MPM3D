@@ -27,7 +27,8 @@ QtSceneFromHdf5_T3D_CHM_mt::QtSceneFromHdf5_T3D_CHM_mt(
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	need_mat_model_data(false),
 	display_rcy(true), has_rcy(false), rcy_obj(_gl),
-	display_rmesh(true), has_rmesh(false), rmesh_obj(_gl)
+	display_rmesh(true), has_rmesh(false), rmesh_obj(_gl),
+	need_update_rb_pos(true)
 {
 	amb_coef = 0.3f;
 	diff_coef = 1.0f;
@@ -100,8 +101,7 @@ void QtSceneFromHdf5_T3D_CHM_mt::update_light_pos()
 int QtSceneFromHdf5_T3D_CHM_mt::set_res_file(
 	ResultFile_hdf5& rf,
 	const char* th_name,
-	Hdf5Field::FieldType fld_type
-	)
+	Hdf5Field::FieldType fld_type)
 {
 	char exception_msg[256];
 	close_file();
@@ -219,8 +219,7 @@ int QtSceneFromHdf5_T3D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 		node_num,
 		elems_data,
 		elem_num,
-		gray
-		);
+		gray);
 	delete[] nodes_data;
 	delete[] elems_data;
 	rf.close_group(bg_mesh_id);
@@ -229,9 +228,7 @@ int QtSceneFromHdf5_T3D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 
 	// init particle data
 	need_mat_model_data = pfld->need_mat_model_data();
-	res = data_loader.load_frame_data(
-		frame_id,
-		need_mat_model_data);
+	res = data_loader.load_frame_data(frame_id, need_mat_model_data);
 	if (res)
 		return res;
 
@@ -261,14 +258,23 @@ int QtSceneFromHdf5_T3D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 			pcl_z_data,
 			pcl_vol_data,
 			pcl_fld_data,
-			0.5
-		);
+			0.5);
 	}
 
 	init_rigid_objects_buffer(mh_bbox, rf);
 	if (!init_color_map_texture())
 		return -2;
 	init_shaders(mh_bbox, wd, ht);
+
+	if (need_update_rb_pos)
+	{
+		char frame_name[50];
+		snprintf(frame_name, 50, "frame_%zu", frame_id);
+		hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+		update_rigid_objects_buffer(frame_grp_id, rf);
+		rf.close_group(frame_grp_id);
+	}
+
 	return 0;
 }
 
@@ -303,8 +309,7 @@ void QtSceneFromHdf5_T3D_CHM_mt::update_scene(size_t frame_id)
 			pcl_z_data,
 			pcl_vol_data,
 			pcl_fld_data,
-			0.5
-			);
+			0.5);
 	}
 
 	char frame_name[50];
@@ -371,8 +376,7 @@ void QtSceneFromHdf5_T3D_CHM_mt::resize(int wd, int ht)
 
 void QtSceneFromHdf5_T3D_CHM_mt::init_rigid_objects_buffer(
 	Cube &mh_bbox,
-	ResultFile_hdf5& rf
-	)
+	ResultFile_hdf5& rf)
 {
 	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 	hid_t md_data_grp_id = rf.get_model_data_grp_id();
@@ -436,24 +440,21 @@ void QtSceneFromHdf5_T3D_CHM_mt::init_rigid_objects_buffer(
 			rf.read_attribute(rmesh_id, "x_ang", rm_ang.x);
 			rf.read_attribute(rmesh_id, "y_ang", rm_ang.y);
 			rf.read_attribute(rmesh_id, "z_ang", rm_ang.z);
-			PointToTriangleDistance* pt_tri_dist
-				= new PointToTriangleDistance[face_num];
+			PointToTriangleDistance* pt_tri_dist = new PointToTriangleDistance[face_num];
 			hid_t pt_tri_dt = RigidObject_hdf5_utilities::get_pt_to_tri_dist_dt_id();
 			rf.read_dataset(
 				rmesh_id,
 				"pt_tri_dist",
 				face_num,
 				pt_tri_dist,
-				pt_tri_dt
-				);
+				pt_tri_dt);
 			H5Tclose(pt_tri_dt);
 			rmesh_obj.init_faces(
 				pt_tri_dist,
 				face_num,
 				rm_pos,
 				rm_ang,
-				navajowhite
-				);
+				navajowhite);
 			delete[] pt_tri_dist;
 			double grid_xl, grid_yl, grid_zl;
 			double grid_hx, grid_hy, grid_hz;
@@ -516,65 +517,52 @@ bool QtSceneFromHdf5_T3D_CHM_mt::init_color_map_texture()
 }
 
 void QtSceneFromHdf5_T3D_CHM_mt::init_shaders(
-	Cube& mh_bbox,
-	int wd,
-	int ht
-	)
+	Cube& mh_bbox, int wd, int ht)
 {
 	// init shaders
 	// shader_plain3D
 	shader_plain3D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_plain3D.vert"
-	);
+		"../../Asset/shader_plain3D.vert");
 	shader_plain3D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_plain3D.frag"
-	);
+		"../../Asset/shader_plain3D.frag");
 	shader_plain3D.link();
 
 	// shader_balls
 	shader_balls.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_balls.vert"
-	);
+		"../../Asset/shader_balls.vert");
 	shader_balls.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_balls.frag"
-	);
+		"../../Asset/shader_balls.frag");
 	shader_balls.link();
 
 	// shader_plain2D
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_plain2D.vert"
-	);
+		"../../Asset/shader_plain2D.vert");
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_plain2D.frag"
-	);
+		"../../Asset/shader_plain2D.frag");
 	shader_plain2D.link();
 
 	// shader_char
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_char.vert"
-	);
+		"../../Asset/shader_char.vert");
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_char.frag"
-	);
+		"../../Asset/shader_char.frag");
 	shader_char.link();
 
 	// shader_rigid_mesh
 	shader_rigid_mesh.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_rigid_mesh.vert"
-	);
+		"../../Asset/shader_rigid_mesh.vert");
 	shader_rigid_mesh.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_rigid_mesh.frag"
-	);
+		"../../Asset/shader_rigid_mesh.frag");
 	shader_rigid_mesh.link();
 
 	md_centre.setX(float(mh_bbox.xl + mh_bbox.xu) * 0.5f);
@@ -650,8 +638,7 @@ void QtSceneFromHdf5_T3D_CHM_mt::init_shaders(
 
 void QtSceneFromHdf5_T3D_CHM_mt::update_rigid_objects_buffer(
 	hid_t frame_grp_id,
-	ResultFile_hdf5& rf
-	)
+	ResultFile_hdf5& rf)
 {
 	//if (rf.has_group(frame_grp_id, "RigidCone"))
 	//{

@@ -30,7 +30,8 @@ QtSceneFromHdf5_T3D_ME_mt::QtSceneFromHdf5_T3D_ME_mt(
 	display_rco(true), has_rco(false), rco_obj(_gl),
 	display_rcu(true), has_rcu(false), rcu_obj(_gl),
 	display_rmesh(true), has_rmesh(false), rmesh_obj(_gl),
-	pcl_is_mono_color(false)
+	pcl_is_mono_color(false),
+	need_update_rb_pos(true)
 {
 	amb_coef = 0.3f;
 	diff_coef = 1.0f;
@@ -267,16 +268,19 @@ int QtSceneFromHdf5_T3D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 
 	// read rigid object
 	init_rigid_objects_buffer(mh_bbox, rf);
-	// use new pos
-	char frame_name[50];
-	snprintf(frame_name, 50, "frame_%zu", frame_id);
-	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	update_rigid_objects_buffer(frame_grp_id, rf);
-	rf.close_group(frame_grp_id);
-
 	if (!init_color_map_texture())
 		return -2;
 	init_shaders(mh_bbox, wd, ht);
+
+	if (need_update_rb_pos)
+	{
+		char frame_name[50];
+		snprintf(frame_name, 50, "frame_%zu", frame_id);
+		hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+		update_rigid_objects_buffer(frame_grp_id, rf);
+		rf.close_group(frame_grp_id);
+	}
+	
 	return 0;
 }
 
@@ -311,8 +315,7 @@ void QtSceneFromHdf5_T3D_ME_mt::update_scene(size_t frame_id)
 			pcl_z_data,
 			pcl_vol_data,
 			pcl_fld_data,
-			0.5
-			);
+			0.5);
 	}
 
 	char frame_name[50];

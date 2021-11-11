@@ -32,6 +32,7 @@ protected:
 	std::string field_name;
 	hid_t th_id;
 	
+	bool need_update_rb_pos;
 	bool need_mat_model_data;
 	bool display_bg_mesh;
 	bool display_pcls;
@@ -151,6 +152,8 @@ public:
 	inline void set_diff_coef(float coef) { diff_coef = coef; }
 	inline void set_spec_coef(float coef) { spec_coef = coef; }
 	inline void set_spec_shininess(float shininess) { spec_shininess = shininess; }
+
+	inline void set_update_rb_pos(bool op) { need_update_rb_pos = op; }
 
 	// ============================= model data ============================
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }

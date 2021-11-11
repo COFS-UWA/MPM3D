@@ -27,7 +27,7 @@ for th_id in range(th_num):
 
 hdf5_file.close()
 
-data_file = open("../Build/TestsParallel/" + file_name + ".csv", "w")
+data_file = open("../Build/TestsParallel/" + file_name + "_rf.csv", "w")
 for i in range(len(rb_z)):
     data_file.write("%f, %f\n" % (rb_z[i], rb_fz[i]))
 data_file.close()

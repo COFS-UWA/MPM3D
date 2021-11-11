@@ -75,7 +75,7 @@ protected:
 	QOpenGLShaderProgram shader_plain3D;
 	QOpenGLShaderProgram shader_balls;
 	QOpenGLShaderProgram shader_rigid_mesh;
-	
+
 public:
 	typedef Model_T3D_CHM_mt::Position Position;
 	typedef Model_T3D_CHM_mt::ElemNodeIndex ElemNodeIndex;
