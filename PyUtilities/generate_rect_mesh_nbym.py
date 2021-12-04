@@ -27,20 +27,20 @@ def generate_rect_mesh_nbym(row_num, col_num, hx, hy):
     
 if __name__ == "__main__":
     # 1
-    # row_num = 6
-    # col_num = 5
-    # hx = 1.0
-    # hy = 1.0
+    row_num = 1
+    col_num = 4
+    hx = 1.0
+    hy = 1.0
     # 2
     # row_num = 12
     # col_num = 10
     # hx = 0.5
     # hy = 0.5
     # 3
-    row_num = 24
-    col_num = 20
-    hx = 0.25
-    hy = 0.25
+    # row_num = 24
+    # col_num = 20
+    # hx = 0.25
+    # hy = 0.25
     nodes, elems = generate_rect_mesh_nbym(row_num, col_num, hx, hy)
     h5_file = h5py.File("../Asset/rect_mesh_%dby%d.h5" % (row_num, col_num), "w")
     mesh_grp = h5_file.create_group("Mesh")

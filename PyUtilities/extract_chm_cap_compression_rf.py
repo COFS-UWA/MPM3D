@@ -37,20 +37,9 @@ print(rb_fz)
 
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
-line1, = plot1.plot(rb_fz, rb_z)
+line1, = plot1.plot(rb_z, rb_fz)
 
-plt.xlim(0.0)
-plt.ylim(rb_z[0], rb_z[-1])
+plt.xlim(rb_z[0], rb_z[-1])
+plt.ylim(0.0)
 
-# smooth
-smooth_ana_bc = 0.5 * 0.5 * math.pi * 5.71 * 5.0
-# rough
-rough_ana_bc = 0.5 * 0.5 * math.pi * 6.05 * 5.0
-
-y_range = [rb_z[0], rb_z[-1]]
-#line2, = plot1.plot([smooth_ana_bc, smooth_ana_bc], y_range, 'r--')
-#line3, = plot1.plot([rough_ana_bc, rough_ana_bc], y_range, 'k--')
-
-#plt.legend(handles=[line1, line2, line3], \
-#    labels=['MPM', 'Smooth Analytical', 'Rough Analytical'])
 plt.show()

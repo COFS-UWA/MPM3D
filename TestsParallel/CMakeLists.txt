@@ -32,6 +32,7 @@ add_executable(
     test_t2d_me_mt_strip_footing_smaller.cpp
     test_t2d_me_mt_strip_footing.cpp
     test_t2d_chm_mt_1d_consolidation.cpp
+	test_t2d_chm_mt_block_sliding.cpp
     test_t2d_chm_mt_test_rigid_circle.cpp
     test_t2d_chm_mt_pipe_conference.cpp
     test_t2d_chm_mt_pipe_conference_restart.cpp

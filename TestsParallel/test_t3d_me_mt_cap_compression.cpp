@@ -63,11 +63,12 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	{
 		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
 		shp.set_param(
-			ini_stress, 0.55,
+			ini_stress, 0.55, //0.75,// 0.55,
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			1.5, 43.0, 100, //180,
+			//1.5, 43.0, 100, // drained
+			1.5, 43.0, 180, //100, //180,
 			200.0, 0.2);
 		mms[pcl_id] = &shp;
 	}
@@ -244,8 +245,11 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
 	app.set_update_rb_pos();
 	// s33
-	app.set_res_file(rf, "compression", 99, Hdf5Field::s33);
-	app.set_color_map_fld_range(-100.0e3, 0.0);
+	//app.set_res_file(rf, "compression", 19, Hdf5Field::s33);
+	//app.set_color_map_fld_range(-250.0e3, 0.0);
+	// e
+	app.set_res_file(rf, "compression", 119, Hdf5Field::mat_e);
+	app.set_color_map_fld_range(0.67, 0.75);
 	app.start();
 	
 	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
@@ -262,8 +266,8 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 	////app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);
 	////app.set_color_map_fld_range(0.0, 30.0);
 	////
-	//app.set_png_name("t3d_me_mt_cap_compression");
-	////app.set_gif_name("t3d_me_mt_cap_compression");
+	////app.set_png_name("t3d_me_mt_cap_compression");
+	//app.set_gif_name("t3d_me_mt_cap_compression");
 	//app.start();
 }
 

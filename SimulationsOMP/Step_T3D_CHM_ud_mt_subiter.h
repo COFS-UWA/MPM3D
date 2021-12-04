@@ -84,7 +84,7 @@ protected:
 	NodeVBCVec* node_vbc_vec; // node_num
 	
 	size_t elem_num, node_num;
-	double Kf;
+	double Kf, u_cav, m_cav;
 
 #ifdef _DEBUG
 	size_t prev_valid_pcl_num_tmp;

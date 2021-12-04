@@ -22,7 +22,8 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 
-	constexpr double e0 = 0.55;
+	constexpr double e0 = 0.55; // dense
+	//constexpr double e0 = 0.75; // loose
 	constexpr double den_grain = 2670.0;
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
@@ -47,21 +48,24 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	{
 		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
 		shp.set_param(
-			ini_stress, 0.55,
+			ini_stress, e0,
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			//2.0, 325.0, 200.0,
-			//2.0, 400.0, 100.0, 
-			1.5, 43.0, 180,
+			1.5, 43.0, 180.0, //100.0, 180.0,
 			200.0, 0.2);
 	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
 	}
 
+	// cavitation
+	model.set_u_cav(-50.0e3);
+	model.set_m_cav(100.0);
+
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);
 	//const double Kct = 20.0 / (0.025 * 0.025); // elastic 
-	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
+	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo undrained 
+	//const double Kct = 2.0e4 / (0.025 * 0.025); // hypo drained
 	model.set_contact_param(Kct, Kct, 0.1, 0.2, Kct / 10.0, Kct / 10.0);
 
 	IndexArray vx_bc_pt_array(100);
@@ -146,11 +150,11 @@ void test_t3d_chm_mt_cap_compression_result(int argc, char** argv)
 	//app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
 	////app.set_update_rb_pos(false);
 	//// s33
-	//app.set_res_file(rf, "compression", 99, Hdf5Field::s33); // 19
-	//app.set_color_map_fld_range(-800.0e3, 0.0); // hypo
+	//app.set_res_file(rf, "compression", 10, Hdf5Field::s33); // 19
+	//app.set_color_map_fld_range(-1000.0e3, 0.0); // hypo
 	//// p
-	////app.set_res_file(rf, "compression", Hdf5Field::p);
-	////app.set_color_map_fld_range(-50.0e3, 50.0e3); // hypo
+	////app.set_res_file(rf, "compression", 60, Hdf5Field::p);
+	////app.set_color_map_fld_range(-200.0e3, 200.0e3); // hypo
 	//app.start();
 
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
@@ -163,12 +167,12 @@ void test_t3d_chm_mt_cap_compression_result(int argc, char** argv)
 	//app.set_png_name("t3d_chm_mt_cap_compression");
 	//app.set_gif_name("t3d_chm_mt_cap_compression");
 	// s33
-	app.set_res_file(rf, "compression", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-50.0, 0.0); // elastic
-	app.set_color_map_fld_range(-800.0e3, 0.0); // hypo
+	//app.set_res_file(rf, "compression", Hdf5Field::s33);
+	////app.set_color_map_fld_range(-50.0, 0.0); // elastic
+	//app.set_color_map_fld_range(-800.0e3, 0.0); // hypo
 	// 	p
-	//app.set_res_file(rf, "compression", Hdf5Field::p);
-	//app.set_color_map_fld_range(-50.0e3, 50.0e3); // hypo
+	app.set_res_file(rf, "compression", Hdf5Field::p);
+	app.set_color_map_fld_range(-70.0e3, 50.0e3); // hypo
 	// shear strain
 	//app.set_res_file(rf, "compression", Hdf5Field::mises_strain_3d);
 	//app.set_color_map_fld_range(0.0, 0.1);

@@ -8,6 +8,7 @@
 #include "ParticleGenerator2D.hpp"
 #include "TriangleMesh.h"
 #include "RigidObject/RigidCircle.h"
+#include "RigidBody/RigidRect.h"
 #include "RigidObject/SmoothContact2D.h"
 #include "RigidObject/RoughContact2D.h"
 #include "RigidObject/FrictionalContact2D.h"
@@ -40,6 +41,8 @@ namespace Model_T2D_CHM_mt_hdf5_utilities
 	int load_material_model_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_rigid_circle_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_rigid_circle_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_rigid_rect_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_rigid_rect_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_chm_mt_model_from_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 	int load_background_mesh_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 }
@@ -398,6 +401,8 @@ protected: // rigid object contact
 
 	bool rigid_circle_is_valid;
 	RigidObject::RigidCircle rigid_circle;
+	bool rigid_rect_is_valid;
+	RigidRect rigid_rect;
 
 	double Ksn_cont, Kst_cont, fric_ratio_s, shear_strength_s;
 	double Kfn_cont, Kft_cont;
@@ -411,14 +416,14 @@ protected: // rigid object contact
 public:
 	inline bool has_rigid_circle() const noexcept { return rigid_circle_is_valid; }
 	inline RigidObject::RigidCircle &get_rigid_circle() { return rigid_circle; }
+	inline bool has_rigid_rect() const noexcept { return rigid_rect_is_valid; }
+	inline RigidRect& get_rigid_rect() { return rigid_rect; }
 	inline double get_Ksn_cont() const noexcept { return Ksn_cont; }
 	inline double get_Kst_cont() const noexcept { return Kst_cont; }
 	inline double get_Kfn_cont() const noexcept { return Kfn_cont; }
 	inline double get_Kft_cont() const noexcept { return Kft_cont; }
 	inline double get_fric_ratio_s() const noexcept { return fric_ratio_s; }
 	inline double get_shear_strength_s() const noexcept { return shear_strength_s; }
-	//inline Force2D& get_rc_scf() noexcept { return rc_scf; }
-	//inline Force2D& get_rc_fcf() noexcept { return rc_fcf; }
 	inline void init_rigid_circle(double x, double y, double r, double density)
 	{
 		rigid_circle_is_valid = true;
@@ -427,6 +432,13 @@ public:
 	inline void set_rigid_circle_velocity(
 		double vx, double vy, double v_ang)
 	{ rigid_circle.set_vbc(vx, vy, v_ang); }
+	inline void init_rigid_rect(double x, double y, double hx, double hy, double density)
+	{
+		rigid_rect_is_valid = true;
+		rigid_rect.init(x, y, hx, hy, density);
+	}
+	inline void set_rigid_rect_velocity(double vx, double vy, double v_ang)
+	{ rigid_rect.set_v_bc(vx, vy, v_ang); }
 	inline void set_contact_param(
 		double _Ksn_cont,
 		double _Kst_cont,
@@ -437,10 +449,10 @@ public:
 	{
 		Ksn_cont = _Ksn_cont;
 		Kst_cont = _Kst_cont;
-		Kfn_cont = _Kfn_cont;
-		Kft_cont = _Kft_cont;
 		fric_ratio_s = _fric_ratio_s;
 		shear_strength_s = _shear_strength_s;
+		Kfn_cont = _Kfn_cont;
+		Kft_cont = _Kft_cont;
 		smooth_contact_s.set_Kn_cont(_Ksn_cont);
 		smooth_contact_f.set_Kn_cont(_Kfn_cont);
 		rough_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
@@ -450,12 +462,18 @@ public:
 		sticky_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
 		sticky_contact_s.set_shear_strength(shear_strength_s);
 	}
-	inline void set_smooth_contact_between_spcl_and_circle() noexcept { pcm_s = &smooth_contact_s; }
-	inline void set_rough_contact_between_spcl_and_circle() noexcept { pcm_s = &rough_contact_s; }
-	inline void set_frictional_contact_between_spcl_and_circle() noexcept { pcm_s = &fric_contact_s; }
-	inline void set_sticky_contact_between_spcl_and_circle() noexcept { pcm_s = &sticky_contact_s; }
-	inline void set_smooth_contact_between_fpcl_and_circle() noexcept { pcm_f = &smooth_contact_f; }
-	inline void set_rough_contact_between_fpcl_and_circle() noexcept { pcm_f = &rough_contact_f; }
+	inline void set_smooth_contact_between_spcl_and_rb() noexcept { pcm_s = &smooth_contact_s; }
+	inline void set_rough_contact_between_spcl_and_rb() noexcept { pcm_s = &rough_contact_s; }
+	inline void set_frictional_contact_between_spcl_and_rb() noexcept { pcm_s = &fric_contact_s; }
+	inline void set_sticky_contact_between_spcl_and_rb() noexcept { pcm_s = &sticky_contact_s; }
+	inline void set_smooth_contact_between_fpcl_and_rb() noexcept { pcm_f = &smooth_contact_f; }
+	inline void set_rough_contact_between_fpcl_and_rb() noexcept { pcm_f = &rough_contact_f; }
+#define set_smooth_contact_between_spcl_and_circle set_smooth_contact_between_spcl_and_rb
+#define set_rough_contact_between_spcl_and_circle set_rough_contact_between_spcl_and_rb
+#define set_frictional_contact_between_spcl_and_circle set_frictional_contact_between_spcl_and_rb
+#define set_sticky_contact_between_spcl_and_circle set_sticky_contact_between_spcl_and_rb
+#define set_smooth_contact_between_fpcl_and_circle set_smooth_contact_between_fpcl_and_rb
+#define set_rough_contact_between_fpcl_and_circle set_rough_contact_between_fpcl_and_rb
 
 	friend struct Model_T2D_CHM_mt_hdf5_utilities::ParticleData;
 	friend int Model_T2D_CHM_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -471,6 +489,8 @@ public:
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_material_model_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_CHM_mt_hdf5_utilities::output_rigid_circle_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_rigid_circle_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_CHM_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_CHM_mt_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_chm_mt_model_from_hdf5_file(Model_T2D_CHM_mt& md, Step_T2D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 	friend int Model_T2D_CHM_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 };

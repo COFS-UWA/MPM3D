@@ -30,10 +30,8 @@ Model_T3D_CHM_mt::Model_T3D_CHM_mt() :
 	rigid_t3d_mesh_is_valid(false),
 	contact_mem(nullptr),
 	pcm_s(&smooth_contact_s),
-	pcm_f(&smooth_contact_f)
-{
-
-}
+	pcm_f(&smooth_contact_f),
+	u_cav(0.0), m_cav(0.0) {}
 
 Model_T3D_CHM_mt::~Model_T3D_CHM_mt()
 {

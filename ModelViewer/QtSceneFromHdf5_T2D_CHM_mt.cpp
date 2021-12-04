@@ -12,6 +12,7 @@ QtSceneFromHdf5_T2D_CHM_mt::QtSceneFromHdf5_T2D_CHM_mt(
 	display_bg_mesh(true), bg_mesh_obj(_gl),
 	display_pcls(true), pcls_obj(_gl),
 	display_rc(true), has_rc_obj(false), rc_obj(_gl),
+	display_rr(true), has_rr_obj(false), rr_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f), need_mat_model_data(false),
@@ -90,6 +91,9 @@ void QtSceneFromHdf5_T2D_CHM_mt::draw()
 	if (has_rc_obj && display_rc)
 		rc_obj.draw(shader_plain2D);
 
+	if (has_rr_obj && display_rr)
+		rr_obj.draw(shader_plain2D);
+
 	shader_circles.bind();
 
 	if (display_pcls)
@@ -119,8 +123,7 @@ void QtSceneFromHdf5_T2D_CHM_mt::resize(int wd, int ht)
 int QtSceneFromHdf5_T2D_CHM_mt::set_res_file(
 	ResultFile_hdf5& rf,
 	const char *th_name,
-	Hdf5Field::FieldType fld_type
-	)
+	Hdf5Field::FieldType fld_type)
 {
 	char exception_msg[256];
 	close_file();
@@ -310,6 +313,25 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 		bbox.envelop(Rect(rr_x - rr_r, rr_x + rr_r,
 						  rr_y - rr_r, rr_y + rr_r));
 	}
+	if (rf.has_group(frame_grp_id, "RigidRect"))
+	{
+		has_rr_obj = true;
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidRect");
+		QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
+		double rr_x, rr_y, rr_ang, rr_hx, rr_hy;
+		rf.read_attribute(rb_grp_id, "x", rr_x);
+		rf.read_attribute(rb_grp_id, "y", rr_y);
+		rf.read_attribute(rb_grp_id, "angle", rr_ang);
+		rf.read_attribute(rb_grp_id, "hx", rr_hx);
+		rf.read_attribute(rb_grp_id, "hy", rr_hy);
+		rr_obj.init(rr_x, rr_y, rr_ang, rr_hx, rr_hy, light_slate_blue, 3.0f);
+		rf.close_group(rb_grp_id);
+		bbox.envelop(Rect(
+			rr_x - rr_hx * 0.5,
+			rr_x + rr_hx * 0.5,
+			rr_y - rr_hy * 0.5,
+			rr_y + rr_hy * 0.5));
+	}
 	rf.close_group(frame_grp_id);
 
 	// color map display
@@ -421,7 +443,7 @@ void QtSceneFromHdf5_T2D_CHM_mt::update_scene(size_t frame_id)
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	// rigid rect
+	// rigid circle
 	if (rf.has_group(frame_grp_id, "RigidCircle"))
 	{
 		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
@@ -432,5 +454,17 @@ void QtSceneFromHdf5_T2D_CHM_mt::update_scene(size_t frame_id)
 		rc_obj.update(rr_x, rr_y, rr_r);
 		rf.close_group(rb_grp_id);
 	}
+	// rigid rect
+	if (rf.has_group(frame_grp_id, "RigidRect"))
+	{
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidRect");
+		double rr_x, rr_y, rr_ang;
+		rf.read_attribute(rb_grp_id, "x", rr_x);
+		rf.read_attribute(rb_grp_id, "y", rr_y);
+		rf.read_attribute(rb_grp_id, "angle", rr_ang);
+		rr_obj.update(rr_x, rr_y, rr_ang);
+		rf.close_group(rb_grp_id);
+	}
+	//
 	rf.close_group(frame_grp_id);
 }

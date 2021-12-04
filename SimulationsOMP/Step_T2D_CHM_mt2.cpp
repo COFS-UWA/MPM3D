@@ -606,6 +606,27 @@ int substep_func_omp_T2D_CHM_mt2(
 		self.cf_tmp.combine(rc_force);
 	}
 
+	if (md.has_rigid_rect())
+	{
+		md.rc_scf.reset();
+		md.rc_fcf.reset();
+		self.apply_rigid_rect(
+			p_id0, p_id1,
+			pcl_in_elem0,
+			spva0,
+			md.rc_scf,
+			md.rc_fcf,
+			substp_id, thd);
+
+		Force2D rc_force;
+		rc_force.reset();
+		rc_force.combine(md.rc_scf);
+		rc_force.combine(md.rc_fcf);
+
+#pragma omp critical
+		self.cf_tmp.combine(rc_force);
+	}
+
 #pragma omp barrier
 
 	// sort node-elem pair according to node id
@@ -821,6 +842,17 @@ int substep_func_omp_T2D_CHM_mt2(
 			RigidObject::RigidCircle& rc = *(self.prc);
 			rc.set_cont_force(self.cf_tmp);
 			rc.update_motion(dt);
+			self.cf_tmp.reset();
+		}
+
+		if (md.has_rigid_rect())
+		{
+			RigidRect& rr = *(self.prr);
+			rr.set_cont_force(
+				self.cf_tmp.fx,
+				self.cf_tmp.fy,
+				self.cf_tmp.m);
+			rr.update_motion(dt);
 			self.cf_tmp.reset();
 		}
 

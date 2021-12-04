@@ -97,7 +97,8 @@ protected:
 	Position* prev_contact_pos_f; // ori_pcl_num
 	Force* prev_contact_tan_force_f; // ori_pcl_num
 	// rigid circle
-	RigidObject::RigidCircle* prc;
+	RigidObject::RigidCircle *prc;
+	RigidRect *prr;
 	double Ksn_cont, Kfn_cont;
 	ContactModel2D* pcm_s, * pcm_f;
 
@@ -134,19 +135,27 @@ protected:
 	CacheAlignedMem thread_mem;
 	CacheAlignedMem cal_mem;
 
-	int apply_rigid_circle(
-		size_t p_id0, size_t p_id1,
-		const size_t *pcl_in_elem,
-		const SortedPclVarArrays& cur_spva,
-		Force2D& rc_cf,
-		size_t substp_id,
-		ThreadData& thd) noexcept;
+	//int apply_rigid_circle(
+	//	size_t p_id0, size_t p_id1,
+	//	const size_t *pcl_in_elem,
+	//	const SortedPclVarArrays& cur_spva,
+	//	Force2D& rc_cf,
+	//	size_t substp_id,
+	//	ThreadData& thd) noexcept;
 	int apply_rigid_circle(
 		size_t p_id0, size_t p_id1,
 		size_t* pcl_in_elem,
 		SortedPclVarArrays& cur_spva,
 		Force2D& rc_scf,
 		Force2D &rc_fcf,
+		size_t substp_id,
+		ThreadData& thd) noexcept;
+	int apply_rigid_rect(
+		size_t p_id0, size_t p_id1,
+		size_t* pcl_in_elem,
+		SortedPclVarArrays& cur_spva,
+		Force2D& rc_scf,
+		Force2D& rc_fcf,
 		size_t substp_id,
 		ThreadData& thd) noexcept;
 

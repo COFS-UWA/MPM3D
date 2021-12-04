@@ -21,6 +21,7 @@ Model_T2D_CHM_mt::Model_T2D_CHM_mt() :
 	grid_elem_list(nullptr),
 	grid_elem_list_id_array(nullptr),
 	rigid_circle_is_valid(false),
+	rigid_rect_is_valid(false),
 	contact_mem(nullptr),
 	pcm_s(&smooth_contact_s),
 	pcm_f(&smooth_contact_f) {}

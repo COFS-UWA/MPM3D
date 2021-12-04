@@ -139,8 +139,7 @@ struct ParticleData
 		Model_T2D_CHM_mt &md,
 		size_t pcl_offset,
 		size_t pcl_sorted_var_id,
-		MatModel::MaterialModel &mm
-		)
+		MatModel::MaterialModel &mm)
 	{
 		Model_T2D_CHM_mt::SortedPclVarArrays &psva
 			= md.sorted_pcl_var_arrays[pcl_sorted_var_id];
@@ -310,6 +309,9 @@ int load_material_model_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf
 
 int output_rigid_circle_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_rigid_circle_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+
+int output_rigid_rect_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_rigid_rect_from_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 // output the whole model to ModelData
 int output_model_to_hdf5_file(Model_T2D_CHM_mt& md, ResultFile_hdf5& rf);

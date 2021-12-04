@@ -52,8 +52,7 @@ namespace RigidObject_hdf5_utilities
 	int load_rigid_circle_from_hdf5_file(
 		RigidObject::RigidCircle& rc,
 		ResultFile_hdf5& rf,
-		hid_t rc_grp_id
-		)
+		hid_t rc_grp_id)
 	{
 		if (rc_grp_id < 0)
 			return -1;

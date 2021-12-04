@@ -24,6 +24,9 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 {
 	Model_T3D_CHM_mt &md = *(Model_T3D_CHM_mt *)model;
 
+	u_cav = md.u_cav;
+	m_cav = md.m_cav;
+
 	omp_set_num_threads(thread_num);
 
 	t3d_chm_ud_mt_subit_db_file.open("t3d_chm_ud_mt_subiter.csv", std::ios::binary | std::ios::out);
@@ -1122,7 +1125,16 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			//elem_pcl_int_vol[e_id] *= (1.0 + e_de_vol);
 
 			elem_density_f[e_id] /= (1.0 - e_de_vol_f);
-			elem_p[e_id] += self.Kf * e_de_vol_f;
+			if (self.m_cav != 0.0 && elem_p[e_id] < 0.0 /*self.u_cav * 0.4*/)
+			{
+				// cavitation
+				const double Kf_cav = self.Kf / (1.0 + pow(fabs(elem_p[e_id] / self.u_cav), self.m_cav));
+				elem_p[e_id] += Kf_cav * e_de_vol_f;
+			}
+			else
+			{
+				elem_p[e_id] += self.Kf * e_de_vol_f;
+			}
 
 			pe_de = elem_de + e_id;
 			e_de_vol *= one_third;
@@ -1304,21 +1316,6 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 		p_pe0.e12 = p_pe1.e12 + dpe.de12;
 		p_pe0.e23 = p_pe1.e23 + dpe.de23;
 		p_pe0.e31 = p_pe1.e31 + dpe.de31;
-
-		if (ori_p_id == 2000 && substp_id % 200 == 0 /* cur_time > 0.30 && cur_time < 0.35 && */) // pcl_id
-		{
-			MatModel::SandHypoplasticityStbWrapper & pcl_mm = *(MatModel::SandHypoplasticityStbWrapper *)pcl_mat_model[ori_p_id];
-			Stress& ps = pcl_stress0[p_id];
-			t3d_chm_ud_mt_subit_db_file << substp_id << ", " << cur_time << ", "
-				<< p_e0.e11 << ", " << p_e0.e22 << ", " << p_e0.e33 << ", "
-				<< p_e0.e12 << ", " << p_e0.e23 << ", " << p_e0.e31 << ", "
-				<< pe_de->de11 << ", " << pe_de->de22 << ", " << pe_de->de33 << ", "
-				<< pe_de->de12 << ", " << pe_de->de23 << ", " << pe_de->de31 << ", "
-				<< ps.s11 << ", " << ps.s22 << ", " << ps.s33 << ", "
-				<< ps.s12 << ", " << ps.s23 << ", " << ps.s31 << ", "
-				<< pcl_mm.get_pi()
-				<< ",\n";
-		}
 	}
 
 #pragma omp critical

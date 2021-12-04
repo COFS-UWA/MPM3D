@@ -5,6 +5,7 @@
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
 #include "RigidObject/RigidObject_hdf5_utilities.h"
+#include "RigidBody/RigidBody_hdf5_utilities.h"
 #include "Model_T2D_CHM_mt_hdf5_utilities.h"
 
 namespace Model_T2D_CHM_mt_hdf5_utilities
@@ -616,6 +617,75 @@ int load_rigid_circle_from_hdf5_file(
 	return 0;
 }
 
+int output_rigid_rect_to_hdf5_file(
+	Model_T2D_CHM_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_rigid_rect())
+		return 0;
+	hid_t rc_grp_id = rf.create_group(grp_id, "RigidRect");
+	rf.write_attribute(rc_grp_id, "Ksn_cont", md.get_Ksn_cont());
+	rf.write_attribute(rc_grp_id, "Kst_cont", md.get_Kst_cont());
+	rf.write_attribute(rc_grp_id, "fric_ratio", md.get_fric_ratio_s());
+	rf.write_attribute(rc_grp_id, "shear_strength", md.get_shear_strength_s());
+	rf.write_attribute(rc_grp_id, "Kfn_cont", md.get_Kfn_cont());
+	rf.write_attribute(rc_grp_id, "Kft_cont", md.get_Kft_cont());
+	// contact force
+	rf.write_attribute(rc_grp_id, "fsx_cont", md.rc_scf.fx);
+	rf.write_attribute(rc_grp_id, "fsy_cont", md.rc_scf.fy);
+	rf.write_attribute(rc_grp_id, "ms_cont", md.rc_scf.m);
+	rf.write_attribute(rc_grp_id, "ffx_cont", md.rc_fcf.fx);
+	rf.write_attribute(rc_grp_id, "ffy_cont", md.rc_fcf.fy);
+	rf.write_attribute(rc_grp_id, "mf_cont", md.rc_fcf.m);
+	//
+	using RigidBody_hdf5_utilities::output_rigid_rect_to_hdf5_file;
+	output_rigid_rect_to_hdf5_file(md.get_rigid_rect(), rf, rc_grp_id);
+	
+	rf.close_group(rc_grp_id);
+	return 0;
+}
+
+int load_rigid_rect_from_hdf5_file(
+	Model_T2D_CHM_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(grp_id, "RigidRect"))
+		return 0;
+	hid_t rr_grp_id = rf.open_group(grp_id, "RigidRect");
+
+	double Ksn_cont, Kst_cont, fric_ratio_s, shear_strength_s;
+	double Kfn_cont, Kft_cont;
+	rf.read_attribute(rr_grp_id, "Ksn_cont", Ksn_cont);
+	rf.read_attribute(rr_grp_id, "Kst_cont", Kst_cont);
+	rf.read_attribute(rr_grp_id, "fric_ratio", fric_ratio_s);
+	rf.read_attribute(rr_grp_id, "shear_strength", shear_strength_s);
+	rf.read_attribute(rr_grp_id, "Kfn_cont", Kfn_cont);
+	rf.read_attribute(rr_grp_id, "Kft_cont", Kft_cont);
+	md.smooth_contact_s.set_Kn_cont(Ksn_cont);
+	md.rough_contact_s.set_K_cont(Ksn_cont, Kst_cont);
+	md.fric_contact_s.set_K_cont(Ksn_cont, Kst_cont);
+	md.fric_contact_s.set_friction_ratio(fric_ratio_s);
+	md.sticky_contact_s.set_K_cont(Ksn_cont, Kst_cont);
+	md.sticky_contact_s.set_shear_strength(shear_strength_s);
+	md.smooth_contact_f.set_Kn_cont(Kfn_cont);
+	md.rough_contact_f.set_K_cont(Kfn_cont, Kft_cont);
+
+	md.rigid_rect_is_valid = true;
+	using RigidBody_hdf5_utilities::load_rigid_rect_from_hdf5_file;
+	load_rigid_rect_from_hdf5_file(md.get_rigid_rect(), rf, rr_grp_id);
+
+	rf.close_group(rr_grp_id);
+	return 0;
+}
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T2D_CHM_mt &md,
@@ -637,6 +707,7 @@ int output_model_to_hdf5_file(
 	output_material_model_to_hdf5_file(md, rf, md_grp_id);
 	// rigid object
 	output_rigid_circle_to_hdf5_file(md, rf, md_grp_id);
+	output_rigid_rect_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }
 
@@ -653,6 +724,7 @@ int time_history_complete_output_to_hdf5_file(
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
 	output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
+	output_rigid_rect_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -668,6 +740,7 @@ int time_history_complete_output_to_hdf5_file(
 	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
 	// rigid object
 	output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
+	output_rigid_rect_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -711,6 +784,7 @@ int load_chm_mt_model_from_hdf5_file(
 
 	// rigid object
 	load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
+	load_rigid_rect_from_hdf5_file(md, rf, th_frame_id);
 
 	step.is_first_step = false;
 	rf.read_attribute(th_frame_id, "total_time", step.start_time);

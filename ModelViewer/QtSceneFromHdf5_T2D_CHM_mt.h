@@ -12,11 +12,11 @@
 #include "UniformColorMap_Mono.h"
 #include "QtMultiColorCircleGLObject.h"
 #include "QtRigidCircleObject.h"
+#include "QtRigidRectObject.h"
 #include "QtUniformColorMapObject.h"
 #include "QtSceneFromHdf5.h"
 
-class QtSceneFromHdf5_T2D_CHM_mt :
-	public QtSceneFromHdf5
+class QtSceneFromHdf5_T2D_CHM_mt : public QtSceneFromHdf5
 {
 protected:
 	struct PointData { GLfloat x, y, va; };
@@ -41,7 +41,9 @@ protected:
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rc;
+	bool display_rr;
 	bool has_rc_obj;
+	bool has_rr_obj;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 
@@ -52,6 +54,7 @@ protected:
 	QtMultiColorCircleGLObject pcls_obj;
 	
 	QtRigidCircleObject rc_obj;
+	QtRigidRectObject rr_obj;
 	
 	bool has_color_map;
 	float cm_xpos, cm_ypos, cm_ht;
@@ -113,8 +116,7 @@ public:
 	int set_res_file(
 		ResultFile_hdf5& rf,
 		const char* th_name,
-		Hdf5Field::FieldType fld_type
-		);
+		Hdf5Field::FieldType fld_type);
 
 public:
 	// create the scene, including bg mesh and pcls

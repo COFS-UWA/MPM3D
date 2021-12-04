@@ -11,6 +11,7 @@ QtSceneFromModel_T2D_CHM_mt::QtSceneFromModel_T2D_CHM_mt(
 	display_pcls(true), pcls_obj(_gl),
 	display_pts(true), pts_obj(_gl),
 	display_rigid_circle(true), rc_obj(_gl),
+	display_rigid_rect(true), rr_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f),
 	pcl_color(1.0f, 0.8941f, 0.7098f) {}
@@ -76,6 +77,12 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 			model->get_rigid_circle().get_bbox(rc_bbox);
 			bbox.envelop(rc_bbox);
 		}
+		if (model->has_rigid_rect())
+		{
+			Rect rr_bbox;
+			model->get_rigid_rect().get_bbox(rr_bbox);
+			bbox.envelop(rr_bbox);
+		}
 		GLfloat xlen = GLfloat(bbox.xu - bbox.xl);
 		GLfloat ylen = GLfloat(bbox.yu - bbox.yl);
 		GLfloat padding = (xlen > ylen ? xlen : ylen) * padding_ratio;
@@ -131,7 +138,7 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 		pcl_color, 0.5f);
 	::operator delete ((void *)pcl_pos1);
 
-	// init rigid circle
+	// init rigid bodies
 	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 	if (model->has_rigid_circle())
 	{
@@ -140,6 +147,15 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 			rc.get_x(),
 			rc.get_y(),
 			rc.get_radius(),
+			light_slate_blue,
+			3.0f);
+	}
+	if (model->has_rigid_rect())
+	{
+		auto& rr = model->get_rigid_rect();
+		rr_obj.init(
+			rr.get_x(), rr.get_y(), rr.get_ang(), 
+			rr.get_hx(), rr.get_hy(),
 			light_slate_blue,
 			3.0f);
 	}
@@ -166,6 +182,9 @@ void QtSceneFromModel_T2D_CHM_mt::draw()
 
 	if (model->has_rigid_circle() && display_rigid_circle)
 		rc_obj.draw(shader_plain2D);
+
+	if (model->has_rigid_rect() && display_rigid_rect)
+		rr_obj.draw(shader_plain2D);
 
 	shader_circles.bind();
 
