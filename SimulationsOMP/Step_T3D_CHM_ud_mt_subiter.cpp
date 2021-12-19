@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+
 std::fstream t3d_chm_ud_mt_subit_db_file;
 
 #define one_fourth (0.25)
@@ -20,12 +21,11 @@ Step_T3D_CHM_ud_mt_subiter::Step_T3D_CHM_ud_mt_subiter(const char* _name) :
 
 Step_T3D_CHM_ud_mt_subiter::~Step_T3D_CHM_ud_mt_subiter() {}
 
+static constexpr double u_div_u_cav_pow_cut_off = 1.0e10;
+
 int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 {
 	Model_T3D_CHM_mt &md = *(Model_T3D_CHM_mt *)model;
-
-	u_cav = md.u_cav;
-	m_cav = md.m_cav;
 
 	omp_set_num_threads(thread_num);
 
@@ -121,6 +121,11 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 	node_vbc_vec = md.node_vbc_vec_s;
 
 	Kf = md.Kf;
+	m_cav = md.m_cav;
+	u_cav = md.u_cav;
+	u_cav0 = md.u_cav0;
+	Kf_min_ratio = md.Kf_min_ratio;
+	u_div_u_cav_cut_off = pow(u_div_u_cav_pow_cut_off, 1.0 / m_cav);
 
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
@@ -1125,16 +1130,22 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			//elem_pcl_int_vol[e_id] *= (1.0 + e_de_vol);
 
 			elem_density_f[e_id] /= (1.0 - e_de_vol_f);
-			if (self.m_cav != 0.0 && elem_p[e_id] < 0.0 /*self.u_cav * 0.4*/)
+			double Kf_ratio = 1.0;
+			// cavitation
+			if (self.m_cav != 0.0 && elem_p[e_id] < self.u_cav0)
 			{
-				// cavitation
-				const double Kf_cav = self.Kf / (1.0 + pow(fabs(elem_p[e_id] / self.u_cav), self.m_cav));
-				elem_p[e_id] += Kf_cav * e_de_vol_f;
+				const double tmp1 = fabs((elem_p[e_id] - self.u_cav0) / (self.u_cav - self.u_cav0));
+				if (tmp1 < self.u_div_u_cav_cut_off)
+					Kf_ratio = self.Kf_min_ratio + (1.0 - self.Kf_min_ratio) / (1.0 + pow(tmp1, self.m_cav));
+				else
+					Kf_ratio = self.Kf_min_ratio + (1.0 - self.Kf_min_ratio) / (1.0 + u_div_u_cav_pow_cut_off);
 			}
-			else
-			{
-				elem_p[e_id] += self.Kf * e_de_vol_f;
-			}
+			elem_p[e_id] += Kf_ratio * self.Kf * e_de_vol_f;
+			
+			if (self.substep_index % 1000 == 999 && e_id == 149)
+				t3d_chm_ud_mt_subit_db_file << self.substep_index << ", "
+				<< self.current_time << ", " << elem_p[e_id] << ", "
+				<< Kf_ratio << ", " << Kf_ratio * self.Kf << ",\n";
 
 			pe_de = elem_de + e_id;
 			e_de_vol *= one_third;

@@ -13,7 +13,7 @@ class Step_T3D_ME_TBB;
 
 namespace Step_T3D_ME_TBB_Task
 {
-	constexpr size_t task_num_per_thread = 4;
+	constexpr size_t task_num_per_thread = 20;
 
 	constexpr size_t min_pcl_num_per_init_pcl_task = 100;
 	constexpr size_t min_pcl_num_per_task = 100;

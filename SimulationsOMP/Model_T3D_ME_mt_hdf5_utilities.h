@@ -494,6 +494,7 @@ int time_history_complete_output_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_m
 // load model data from hdf5 to model data
 int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, const char* hdf5_name);
 int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt &md, Step_T3D_ME_mt& step, const char *hdf5_name, const char *th_name,	size_t frame_id);
+int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 
 };
 

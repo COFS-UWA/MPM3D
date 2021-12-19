@@ -50,7 +50,7 @@ void test_t2d_chm_mt_block_sliding(int argc, char** argv)
 	model.set_sticky_contact_between_spcl_and_rb();
 	//model.set_rough_contact_between_spcl_and_rb();
 	//
-	//model.set_rough_contact_between_fpcl_and_rb();
+	model.set_rough_contact_between_fpcl_and_rb();
 
 	const size_t node_num = model.get_node_num();
 	IndexArray all_n_array(node_num);
@@ -61,13 +61,13 @@ void test_t2d_chm_mt_block_sliding(int argc, char** argv)
 	model.init_fixed_vx_f_bc(node_num, all_n_array.get_mem());
 	model.init_fixed_vy_f_bc(node_num, all_n_array.get_mem());
 
-	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
-	//md_disp.set_win_size(900, 900);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
+	md_disp.set_win_size(900, 900);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_chm_mt_block_sliding.h5");

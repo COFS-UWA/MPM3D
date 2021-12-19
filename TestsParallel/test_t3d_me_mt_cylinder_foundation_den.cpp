@@ -7,7 +7,8 @@
 #include "ModelData_T3D_ME_mt.h"
 #include "TimeHistory_T3D_ME_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
-#include "QtApp_Prep_T3D_ME_mt_Div.h"
+#include "QtApp_Prep_T3D_ME_mt.h"
+//#include "QtApp_Prep_T3D_ME_mt_Div.h"
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
@@ -64,14 +65,28 @@ void test_t3d_me_mt_cylinder_foundation_create_model_den(int argc, char** argv)
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -3.5);
 	model.init_fixed_vz_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
+	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	//QtApp_Prep_T3D_ME_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	//auto &div_set = md_disp.get_div_set();
+	//div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	//div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	md_disp.set_model(model);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(45.0f, 20.0f);
+	md_disp.set_light_dir(45.0f, 20.0f);
+	md_disp.set_display_bg_mesh(false);
+	//md_disp.set_pts_from_vx_bc(0.01);
+	//md_disp.set_pts_from_vy_bc(0.01);
+	//md_disp.set_pts_from_vz_bc(0.01);
+	md_disp.start();
+	return;
+
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_cylinder_foundation_model_den.h5");
 
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 }
-
-#include "QtApp_Prep_T3D_ME_mt.h"
 
 void test_t3d_me_mt_cylinder_foundation_den(int argc, char** argv)
 {

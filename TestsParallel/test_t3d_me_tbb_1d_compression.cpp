@@ -83,7 +83,8 @@ void test_t3d_me_tbb_1d_compression(int argc, char **argv)
 
 	Step_T3D_ME_TBB step("step1");
 	step.set_model(model);
-	step.set_step_time(2.0); // 10.0
+	//step.set_step_time(2.0); // 10.0
+	step.set_step_time(0.1); // timing
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(5);

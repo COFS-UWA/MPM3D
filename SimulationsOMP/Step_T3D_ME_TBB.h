@@ -7,6 +7,8 @@
 #include "Step_T3D_ME_TBB_Task.h"
 #include "Step_TBB.h"
 
+class Step_T3D_ME_TBB;
+
 namespace Model_T3D_ME_mt_hdf5_utilities
 {
 	struct ParticleData;
@@ -16,6 +18,7 @@ namespace Model_T3D_ME_mt_hdf5_utilities
 	int time_history_complete_output_to_hdf5_file(
 		Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp,
 		ResultFile_hdf5& rf, hid_t frame_grp_id);
+	int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 }
 
 int cal_substep_func_T3D_ME_TBB(void *_self);
@@ -150,6 +153,14 @@ protected:
 	friend int cal_substep_func_T3D_ME_TBB(void* _self);
 	int finalize_calculation() override;
 
+	size_t pcl_sort_time;
+	size_t ne_sort_time;
+	size_t map_pcl_to_mesh_time;
+	size_t update_a_and_v_time;
+	size_t cal_elem_de_time;
+	size_t cal_node_de_time;
+	size_t map_mesh_to_pcl_time;
+
 public:
 	Step_T3D_ME_TBB(const char* _name);
 	~Step_T3D_ME_TBB();
@@ -159,6 +170,7 @@ public:
 		Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::time_history_complete_output_to_hdf5_file(
 		Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+	friend int Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 };
 
 #endif

@@ -238,7 +238,7 @@ protected:
 	NodeVBCVec* node_vbc_vec_f; // node_num
 
 	double Kf, k, miu;
-	double u_cav, m_cav; // param for cavitation
+	double m_cav, u_cav, u_cav0, Kf_min_ratio; // param for cavitation
 
 // ======== Non calculation data ========
 	size_t ori_pcl_num;
@@ -299,8 +299,10 @@ public:
 	inline void set_Kf(double _Kf) noexcept { Kf = _Kf; }
 	inline void set_k(double _k) noexcept { k = _k; }
 	inline void set_miu(double _miu) noexcept { miu = _miu; }
-	inline void set_u_cav(double _u_cav) noexcept { u_cav = _u_cav; }
-	inline void set_m_cav(double _m_cav) noexcept { m_cav = _m_cav; }
+	inline void set_cavitation(double _m_cav, double _u_cav, double _u_cav0 = 0.0) noexcept
+	{ m_cav = _m_cav; u_cav = _u_cav; u_cav0 = _u_cav0; }
+	inline void set_cavi_Kf_min_ratio(double _Kf_min_ratio)
+	{ Kf_min_ratio = _Kf_min_ratio; }
 
 	void clear_mesh();
 	void alloc_mesh(size_t n_num, size_t e_num);

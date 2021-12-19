@@ -84,7 +84,8 @@ protected:
 	NodeVBCVec* node_vbc_vec; // node_num
 	
 	size_t elem_num, node_num;
-	double Kf, u_cav, m_cav;
+	double Kf, m_cav, u_cav, u_cav0, Kf_min_ratio;
+	double u_div_u_cav_cut_off;
 
 #ifdef _DEBUG
 	size_t prev_valid_pcl_num_tmp;
@@ -175,7 +176,6 @@ public:
 	void set_mass_factor(double m_fac) noexcept { mass_factor = m_fac; }
 	void set_converge_e_kin_ratio(double con_ratio) noexcept { converge_e_kin_ratio = con_ratio; }
 	void set_pdt(double _pdt) noexcept { pdt = _pdt; }
-	
 
 	inline size_t get_pcl_num() const noexcept { return prev_valid_pcl_num; }
 	inline size_t get_sorted_pcl_var_id() const noexcept { return thread_datas[0].sorted_pcl_var_id; }

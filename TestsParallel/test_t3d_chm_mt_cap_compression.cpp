@@ -58,8 +58,9 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	}
 
 	// cavitation
-	model.set_u_cav(-50.0e3);
-	model.set_m_cav(100.0);
+	model.set_cavitation(3.0, -7.0e3, 5.0e3);
+	//model.set_cavitation(5.0, -30.0e3, 10.0e3);
+	//model.set_cavi_Kf_min_ratio(1.0); // no cavitation
 
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);

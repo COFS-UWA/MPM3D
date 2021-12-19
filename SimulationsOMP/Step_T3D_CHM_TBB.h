@@ -166,6 +166,14 @@ protected:
 	friend int substep_func_T3D_CHM_TBB(void* _self);
 	int finalize_calculation() override;
 
+	size_t pcl_sort_time;
+	size_t ne_sort_time;
+	size_t map_pcl_to_mesh_time;
+	size_t update_a_and_v_time;
+	size_t cal_elem_de_time;
+	size_t cal_node_de_time;
+	size_t map_mesh_to_pcl_time;
+
 public:
 	Step_T3D_CHM_TBB(const char* _name);
 	~Step_T3D_CHM_TBB();
