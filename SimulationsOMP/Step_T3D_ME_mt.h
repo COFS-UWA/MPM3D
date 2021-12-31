@@ -89,16 +89,13 @@ protected:
 			double max_pcl_vol;
 			PclVar_T3D_ME_mt pcl_var_getter;
 #ifdef _DEBUG
-			// time profiling
-			std::chrono::nanoseconds total;
-			std::chrono::nanoseconds d0;
-			std::chrono::nanoseconds d1, d10[8], d11[8], d12[8], d13[8];
-			std::chrono::nanoseconds d20;
-			std::chrono::nanoseconds d3, d30[8], d31[8], d32[8], d33[8];
-			std::chrono::nanoseconds d4, d40, d49;
-			std::chrono::nanoseconds d5, d59;
-			std::chrono::nanoseconds d6, d69;
-			std::chrono::nanoseconds d7;
+			size_t sort_pcl_time, sort_pcl_barrier_time;
+			size_t pcl_to_mesh_time;
+			size_t sort_node_time, sort_node_barrier_time;
+			size_t node_a_v_time, node_a_v_barrier_time;
+			size_t elem_de_time, elem_de_barrier_time;
+			size_t node_de_time, node_de_barrier_time;
+			size_t mesh_to_pcl_time, mesh_to_pcl_barrier_time;
 #endif
 		};
 		char padding[Cache_Alignment * 20];

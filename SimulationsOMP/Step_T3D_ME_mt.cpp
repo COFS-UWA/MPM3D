@@ -13,11 +13,9 @@
 #ifdef _DEBUG
 static std::fstream res_file_t3d_me_mt;
 #define TIME_POINT(txx) auto (txx) = std::chrono::high_resolution_clock::now()
-#define TIME_DURATION_RESET(d) (d) = std::chrono::nanoseconds(); 
-#define TIME_DURATION(t0, t1, d) (d) = (t0) - (t1)
+#define TIME_DURATION(t0, t1, d) (d) = ((t0) - (t1)).count()
 #else
 #define TIME_POINT(txx) ((void)0)
-#define TIME_DURATION_RESET(d) ((void)0)
 #define TIME_DURATION(t0, t1, d) ((void)0)
 #endif
 
@@ -34,7 +32,7 @@ Step_T3D_ME_mt::~Step_T3D_ME_mt() {}
 int Step_T3D_ME_mt::init_calculation()
 {
 #ifdef _DEBUG
-	res_file_t3d_me_mt.open("t3d_stp_mt.txt", std::ios::out | std::ios::binary);
+	res_file_t3d_me_mt.open("step_t3d_me_mt.csv", std::ios::out | std::ios::binary);
 #endif
 
 	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt *)model;
@@ -221,6 +219,55 @@ int Step_T3D_ME_mt::init_calculation()
 	pcl_in_elems[0][prev_valid_pcl_num] = SIZE_MAX;
 	pcl_in_elems[1][prev_valid_pcl_num] = SIZE_MAX;
 	valid_elem_num = 0;
+
+#ifdef _DEBUG
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "sort_pcl " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "sort_pcl_bar " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "pcl_to_mesh_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "sort_node_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "sort_node_barrier_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "node_a_v_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "node_a_v_barrier_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "elem_de_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "elem_de_barrier_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "node_de_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "node_de_barrier_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "mesh_to_pcl_time " << th_id << ", ";
+	for (size_t th_id = 0; th_id < thread_num; ++th_id)
+		res_file_t3d_me_mt << "mesh_to_pcl_barrier_time " << th_id << ", ";
+	res_file_t3d_me_mt << "\n";
+
+	for (size_t t_id = 0; t_id < thread_num; ++t_id)
+	{
+		ThreadData& thd = thread_datas[t_id];
+		thd.sort_pcl_time = 0;
+		thd.sort_pcl_barrier_time = 0;
+		thd.pcl_to_mesh_time = 0;
+		thd.sort_node_time = 0;
+		thd.sort_node_barrier_time = 0;
+		thd.node_a_v_time = 0;
+		thd.node_a_v_barrier_time = 0;
+		thd.elem_de_time = 0;
+		thd.elem_de_barrier_time = 0;
+		thd.node_de_time = 0;
+		thd.node_de_barrier_time = 0;
+		thd.mesh_to_pcl_time = 0;
+		thd.mesh_to_pcl_barrier_time = 0;
+	}
+#endif
+
 	return 0;
 }
 
@@ -258,9 +305,7 @@ int substep_func_omp_T3D_ME_mt(
 	typedef Model_T3D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
 	typedef Step_T3D_ME_mt::ThreadData ThreadData;
 
-	TIME_POINT(t00);
-
-	Step_T3D_ME_mt& self = *(Step_T3D_ME_mt*)(_self);
+	Step_T3D_ME_mt& self = *(Step_T3D_ME_mt *)(_self);
 
 	if (self.valid_pcl_num == 0)
 	{
@@ -361,7 +406,9 @@ int substep_func_omp_T3D_ME_mt(
 	node_elem_pair0 = self.node_elem_pairs[0];
 	node_elem_pair1 = self.node_elem_pairs[1];
 
-	TIME_POINT(t09);
+	std::chrono::steady_clock::time_point barrier_t0, barrier_t1;
+	size_t sort_pcl_barrier_time = 0;
+	TIME_POINT(sort_pcl_t0);
 
 	// sort particle variables
 	size_t p_id, bin_id, th_id, pos_id;
@@ -380,8 +427,6 @@ int substep_func_omp_T3D_ME_mt(
 	for (digit_disp = 0, elem_num_tmp = self.elem_num;
 		elem_num_tmp; digit_disp += 8, elem_num_tmp >>= 8)
 	{
-		TIME_POINT(t11);
-
 		memset(my_cbin, 0, 0x100 * sizeof(size_t));
 
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
@@ -398,11 +443,10 @@ int substep_func_omp_T3D_ME_mt(
 			my_sbin[bin_id] = my_cbin[bin_id];
 		}
 
-		TIME_POINT(t12);
-		TIME_DURATION(t12, t11, thd.d10[digit_disp / 8]);
+		barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
-		TIME_POINT(t13);
-		TIME_DURATION(t13, t12, thd.d11[digit_disp / 8]);
+		barrier_t1 = std::chrono::high_resolution_clock::now();
+		sort_pcl_barrier_time += (barrier_t1 - barrier_t0).count();
 
 		for (th_id = 0; th_id < my_th_id; ++th_id)
 		{
@@ -431,14 +475,14 @@ int substep_func_omp_T3D_ME_mt(
 		swap(prev_pcl_id_ui0, prev_pcl_id_ui1);
 		thd.sorted_pcl_in_elem_id ^= 1;
 
-		TIME_POINT(t14);
-		TIME_DURATION(t14, t13, thd.d12[digit_disp / 8]);
+		barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
-		TIME_POINT(t15);
-		TIME_DURATION(t15, t14, thd.d13[digit_disp / 8]);
+		barrier_t1 = std::chrono::high_resolution_clock::now();
+		sort_pcl_barrier_time += (barrier_t1 - barrier_t0).count();
 	}
 
-	TIME_POINT(t20);
+	TIME_POINT(sort_pcl_t1);
+#define pcl_to_mesh_t0 sort_pcl_t1
 
 	// update p_id0, p_id1
 	size_t e_id;
@@ -727,9 +771,6 @@ int substep_func_omp_T3D_ME_mt(
 #pragma omp critical
 	self.valid_elem_num += my_valid_elem_num;
 
-	TIME_POINT(t21);
-	TIME_DURATION(t21, t20, thd.d20);
-
 	if (md.has_rigid_cylinder())
 	{
 		Force3D cf;
@@ -769,14 +810,15 @@ int substep_func_omp_T3D_ME_mt(
 			pcl_in_elem0,
 			spva0, cf,
 			substp_id,
-			thd
-		);
+			thd);
 
 #pragma omp critical
 		self.cf_tmp.combine(cf);
 	}
 
-	TIME_POINT(t29);
+	TIME_POINT(pcl_to_mesh_t1);
+#define sort_node_t0 pcl_to_mesh_t1
+	size_t sort_node_barrier_time = 0;
 
 	// sort node-elem pair according to node id
 	size_t ve_id;
@@ -797,11 +839,10 @@ int substep_func_omp_T3D_ME_mt(
 		my_sbin[bin_id] = my_cbin[bin_id];
 	}
 
-	TIME_POINT(t31);
-	TIME_DURATION(t31, t29, thd.d30[0]);
+	barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
-	TIME_POINT(t32);
-	TIME_DURATION(t32, t31, thd.d31[0]);
+	barrier_t1 = std::chrono::high_resolution_clock::now();
+	sort_node_barrier_time += (barrier_t1 - barrier_t0).count();
 
 	for (th_id = 0; th_id < my_th_id; ++th_id)
 	{
@@ -833,11 +874,10 @@ int substep_func_omp_T3D_ME_mt(
 		node_elem_pair0[pos_id] = my_node_elem_pair[ne_id];
 	}
 
-	TIME_POINT(t33);
-	TIME_DURATION(t33, t32, thd.d32[0]);
+	barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
-	TIME_POINT(t34);
-	TIME_DURATION(t34, t33, thd.d33[0]);
+	barrier_t1 = std::chrono::high_resolution_clock::now();
+	sort_node_barrier_time += (barrier_t1 - barrier_t0).count();
 
 #pragma omp master
 	{
@@ -850,8 +890,6 @@ int substep_func_omp_T3D_ME_mt(
 	size_t node_num_tmp = self.node_num >> 8;
 	for (digit_disp = 8; node_num_tmp; digit_disp += 8, node_num_tmp >>= 8)
 	{
-		TIME_POINT(t35);
-
 		memset(my_cbin, 0, sizeof(size_t) * 0x100);
 
 		for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
@@ -867,11 +905,10 @@ int substep_func_omp_T3D_ME_mt(
 			my_sbin[bin_id] = my_cbin[bin_id];
 		}
 
-		TIME_POINT(t36);
-		TIME_DURATION(t36, t35, thd.d30[digit_disp / 8]);
+		barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
-		TIME_POINT(t37);
-		TIME_DURATION(t37, t36, thd.d31[digit_disp / 8]);
+		barrier_t1 = std::chrono::high_resolution_clock::now();
+		sort_node_barrier_time += (barrier_t1 - barrier_t0).count();
 
 		for (th_id = 0; th_id < my_th_id; ++th_id)
 		{
@@ -899,14 +936,14 @@ int substep_func_omp_T3D_ME_mt(
 		swap(node_has_elem_ui0, node_has_elem_ui1);
 		swap(node_elem_pair_ui0, node_elem_pair_ui1);
 
-		TIME_POINT(t38);
-		TIME_DURATION(t38, t37, thd.d32[digit_disp / 8]);
+		barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
-		TIME_POINT(t39);
-		TIME_DURATION(t38, t38, thd.d33[digit_disp / 8]);
+		barrier_t1 = std::chrono::high_resolution_clock::now();
+		sort_node_barrier_time += (barrier_t1 - barrier_t0).count();
 	}
 
-	TIME_POINT(t40);
+	TIME_POINT(sort_node_t1);
+#define node_a_v_t0 sort_node_t1
 
 	// modify ne_id0, ne_id1
 	size_t n_id;
@@ -994,9 +1031,6 @@ int substep_func_omp_T3D_ME_mt(
 		}
 	}
 
-	TIME_POINT(t41);
-	TIME_DURATION(t41, t40, thd.d40);
-
 	// update rigid object
 #pragma omp master
 	{
@@ -1030,10 +1064,11 @@ int substep_func_omp_T3D_ME_mt(
 		self.valid_pcl_num = 0;
 	}
 
-	TIME_POINT(t49);
+	TIME_POINT(node_a_v_t1);
+	
 #pragma omp barrier
-	TIME_POINT(t50);
-	TIME_DURATION(t50, t49, thd.d49);
+
+	TIME_POINT(elem_de_t0);
 
 	// cal element strain and "enhancement"
 	double e_de_vol;
@@ -1066,10 +1101,11 @@ int substep_func_omp_T3D_ME_mt(
 		e_de.de33 -= e_de_vol;
 	}
 
-	TIME_POINT(t59);
+	TIME_POINT(elem_de_t1);
+
 #pragma omp barrier
-	TIME_POINT(t60);
-	TIME_DURATION(t60, t59, thd.d59);
+
+	TIME_POINT(node_de_t0);
 
 	double n_am_de_vol = 0.0;
 	n_id = node_has_elem0[ve_id0];
@@ -1088,10 +1124,11 @@ int substep_func_omp_T3D_ME_mt(
 		}
 	}
 
-	TIME_POINT(t69);
+	TIME_POINT(node_de_t1);
+
 #pragma omp barrier
-	TIME_POINT(t70);
-	TIME_DURATION(t70, t69, thd.d69);
+
+	TIME_POINT(mesh_to_pcl_t0);
 
 	Acceleration* pn_a1, * pn_a2, * pn_a3, * pn_a4;
 	Velocity* pn_v1, * pn_v2, * pn_v3, * pn_v4;
@@ -1237,66 +1274,119 @@ int substep_func_omp_T3D_ME_mt(
 		self.continue_calculation();
 	}
 
-	TIME_POINT(t79);
-	TIME_DURATION(t09, t00, thd.d0);
-	TIME_DURATION(t20, t09, thd.d1);
-	TIME_DURATION(t40, t29, thd.d3);
-	TIME_DURATION(t49, t40, thd.d4);
-	TIME_DURATION(t59, t50, thd.d5);
-	TIME_DURATION(t69, t60, thd.d6);
-	TIME_DURATION(t79, t70, thd.d7);
-	TIME_DURATION(t79, t00, thd.total);
+	TIME_POINT(mesh_to_pcl_t1);
 
 #pragma omp barrier
 
-	//#ifdef _DEBUG
-	//#pragma omp master
-	//	{
-	//		res_file_t3d_me_mt << "th_id, init, sort_pcl, map_pcl, "
-	//			"sort_node, up_node, elem_de, node_de, up_pcl, total\n";
-	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-	//		{
-	//			ThreadData& thd = self.thread_datas[t_id];
-	//			res_file_t3d_me_mt << t_id << ", "
-	//				<< thd.d0.count() << ", " << thd.d1.count() << ", "
-	//				<< thd.d20.count() << ", " << thd.d3.count() << ", "
-	//				<< thd.d40.count() << ", " << thd.d5.count() << ", "
-	//				<< thd.d6.count() << ", " << thd.d7.count() << ", "
-	//				<< thd.total.count() << "\n";
-	//		}
-	//		res_file_t3d_me_mt << "sort_pcl\n"
-	//							"d10[0], d10[1], d11[0], d11[1], "
-	//							"d12[0], d12[1], d13[0], d13[1]\n";
-	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-	//		{
-	//			ThreadData& thd = self.thread_datas[t_id];
-	//			res_file_t3d_me_mt
-	//				<< thd.d10[0].count() << ", " << thd.d10[1].count() << ", "
-	//				<< thd.d11[0].count() << ", " << thd.d11[1].count() << ", "
-	//				<< thd.d12[0].count() << ", " << thd.d12[1].count() << ", "
-	//				<< thd.d13[0].count() << ", " << thd.d13[1].count() << "\n";
-	//		}
-	//		res_file_t3d_me_mt << "sort_node\n"
-	//							"d30[0], d30[1], d31[0], d31[1], "
-	//							"d32[0], d32[1], d33[0], d33[1]\n";
-	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-	//		{
-	//			ThreadData& thd = self.thread_datas[t_id];
-	//			res_file_t3d_me_mt
-	//				<< thd.d30[0].count() << ", " << thd.d30[1].count() << ", "
-	//				<< thd.d31[0].count() << ", " << thd.d31[1].count() << ", "
-	//				<< thd.d32[0].count() << ", " << thd.d32[0].count() << ", "
-	//				<< thd.d33[0].count() << ", " << thd.d33[0].count() << "\n";
-	//		}
-	//		res_file_t3d_me_mt << "barrier\nd49, d59, d69\n";
-	//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-	//		{
-	//			ThreadData& thd = self.thread_datas[t_id];
-	//			res_file_t3d_me_mt << thd.d49.count() << ", "
-	//				<< thd.d59.count() << ", " << thd.d69.count() << "\n";
-	//		}
-	//	}
-	//#endif
+	TIME_POINT(iter_t1);
+
+#ifdef _DEBUG
+	thd.sort_pcl_barrier_time += sort_pcl_barrier_time;
+	thd.sort_pcl_time += (sort_pcl_t1 - sort_pcl_t0).count() - sort_pcl_barrier_time;
+	thd.pcl_to_mesh_time += (pcl_to_mesh_t1 - pcl_to_mesh_t0).count();
+	thd.sort_node_barrier_time += sort_node_barrier_time;
+	thd.sort_node_time += (sort_node_t1 - sort_node_t0).count() - sort_node_barrier_time;
+	thd.node_a_v_time += (node_a_v_t1 - node_a_v_t0).count();
+	thd.node_a_v_barrier_time += (elem_de_t0 - node_a_v_t1).count();
+	thd.elem_de_time += (elem_de_t1 - elem_de_t0).count();
+	thd.elem_de_barrier_time += (node_de_t0 - elem_de_t1).count();
+	thd.node_de_time += (node_de_t1 - node_de_t0).count();
+	thd.node_de_barrier_time += (mesh_to_pcl_t0 - node_de_t1).count();
+	thd.mesh_to_pcl_time += (mesh_to_pcl_t1 - mesh_to_pcl_t0).count();
+	thd.mesh_to_pcl_barrier_time += (iter_t1 - mesh_to_pcl_t1).count();
+
+#pragma omp master
+{
+	if (self.substep_index % 10 == 9)
+	{
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.sort_pcl_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.sort_pcl_barrier_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.pcl_to_mesh_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.sort_node_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.sort_node_barrier_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.node_a_v_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.node_a_v_barrier_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.elem_de_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.elem_de_barrier_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.node_de_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.node_de_barrier_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.mesh_to_pcl_time << ", ";
+		}
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			res_file_t3d_me_mt << thd.mesh_to_pcl_barrier_time << ", ";
+		}
+		res_file_t3d_me_mt << "\n";
+
+		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		{
+			ThreadData& thd = self.thread_datas[t_id];
+			thd.sort_pcl_time = 0;
+			thd.sort_pcl_barrier_time = 0;
+			thd.pcl_to_mesh_time = 0;
+			thd.sort_node_time = 0;
+			thd.sort_node_barrier_time = 0;
+			thd.node_a_v_time = 0;
+			thd.node_a_v_barrier_time = 0;
+			thd.elem_de_time = 0;
+			thd.elem_de_barrier_time = 0;
+			thd.node_de_time = 0;
+			thd.node_de_barrier_time = 0;
+			thd.mesh_to_pcl_time = 0;
+			thd.mesh_to_pcl_barrier_time = 0;
+		}
+	}
+}
+
+#endif
 
 	return 0;
 }

@@ -169,7 +169,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
 	md_disp.set_view_dir(-70.0f, 30.0f);
-	md_disp.set_light_dir(-60.0f, 15.0f);
+	md_disp.set_light_dir(-60.0f, 10.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.8);
 	//md_disp.set_pts_from_vx_bc_s(0.025);

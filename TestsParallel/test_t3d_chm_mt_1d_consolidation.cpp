@@ -23,7 +23,7 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
-	model.init_pcls(pcl_generator, 0.3, 20.0, 10.0, 10000.0, 1.0e-4, 1.0);
+	model.init_pcls(pcl_generator, 0.4, 20.0, 10.0, 40000.0, 1.0e-4, 1.0);
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
@@ -37,7 +37,7 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 	IndexArray tbc_pcl_array(100);
 	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
 	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	double tz_mag = 0.025 * 0.025 * -10.0;
+	double tz_mag = 0.025 * 0.025 * -1.0;
 	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
 		tzs_mem.add(tz_mag);
 	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
@@ -61,13 +61,14 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 
 	//QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	//md_disp.set_win_size(900, 900);
-	//md_disp.set_view_dir(30.0, -30.0);
-	//md_disp.set_light_dir(90.0, -15.0);
+	//md_disp.set_view_dir(30.0, 30.0);
+	//md_disp.set_light_dir(30.0, 15.0);
 	//md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_view_dist_scale(1.1);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
 	//md_disp.start();
 	//return;
 
@@ -86,10 +87,10 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 
 	Step_T3D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(10.0);
+	step.set_step_time(15.0);
 	//step.set_step_time(1.0e-4);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(5);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

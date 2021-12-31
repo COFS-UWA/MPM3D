@@ -207,9 +207,9 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	self.valid_elem_num = self.ne_sort.elem_num();
 
 	// map pcl to bg mesh
-	const size_t pcl_task_num = ParaUtil::cal_task_num<
+	size_t pcl_task_num = ParaUtil::cal_task_num<
 		Step_T3D_ME_TBB_Task::min_pcl_num_per_task,
-		Step_T3D_ME_TBB_Task::task_num_per_thread>(
+		Step_T3D_ME_TBB_Task::map_pcl_to_mesh_task_num_per_thread>(
 			self.thread_num, self.valid_pcl_num);
 	self.map_pcl_to_mesh.update(pcl_task_num);
 	self.cont_rigid_body.update();
@@ -278,6 +278,10 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	self.prev_valid_pcl_num_tmp = self.prev_valid_pcl_num;
 #endif // _DEBUG
 	self.prev_valid_pcl_num = self.valid_pcl_num;
+	pcl_task_num = ParaUtil::cal_task_num<
+		Step_T3D_ME_TBB_Task::min_pcl_num_per_task,
+		Step_T3D_ME_TBB_Task::map_mesh_to_pcl_task_num_per_thread>(
+			self.thread_num, self.valid_pcl_num);
 	self.map_mesh_to_pcl.update(pcl_task_num);
 	t0 = std::chrono::high_resolution_clock::now();
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, pcl_task_num);
@@ -287,7 +291,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time += (t1 - t0).count();
 	
-	if (self.substep_index % 100 == 99)
+	if (self.substep_index % 10 == 9)
 	{
 #ifdef _DEBUG
 		res_file_t3d_me_tbb << self.pcl_sort_time << ", "

@@ -36,6 +36,10 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_1d_compression(argc, argv);
 	//test_t3d_me_mt_1d_compression_result(argc, argv);
 
+	test_t3d_chm_mt_1d_consolidation(argc, argv);
+	//test_t3d_chm_mt_1d_consolidation_restart(argc, argv);
+	//test_t3d_chm_mt_1d_consolidation_result(argc, argv);
+
 	//test_t3d_me_mt_1d_geostatic(argc, argv);
 	//test_t3d_me_mt_1d_geostatic_result(argc, argv);
 
@@ -124,10 +128,6 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_triaxial_compression(argc, argv);
 	//test_t3d_chm_mt_triaxial_compression_result(argc, argv);
 
-	//test_t3d_chm_mt_1d_consolidation(argc, argv);
-	//test_t3d_chm_mt_1d_consolidation_restart(argc, argv);
-	//test_t3d_chm_mt_1d_consolidation_result(argc, argv);
-
 	//test_t3d_me_mt_spudcan_sand_hypo_model(argc, argv);
 	//test_t3d_me_mt_spudcan_sand_hypo(argc, argv);
 	//test_t3d_me_mt_spudcan_sand_hypo_result(argc, argv);
@@ -142,7 +142,11 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation2(argc, argv);
 	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
-	test_t3d_me_tbb_piezofoundation(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_hypo(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_result(argc, argv);
+
+	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_tbb_piezofoundation_result(argc, argv);
 
 	//test_t3d_chm_mt_spudcan_model(argc, argv);

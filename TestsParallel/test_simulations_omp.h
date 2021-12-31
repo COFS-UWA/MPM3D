@@ -116,7 +116,10 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation2(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation_geo_result(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation_result(int argc, char** argv);
-void test_t3d_me_tbb_piezofoundation(int argc, char** argv);
+
+void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv);
+void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv);
+void test_t3d_me_tbb_piezofoundation_hypo(int argc, char** argv);
 
 void test_t3d_chm_mt_spudcan_model(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv);
