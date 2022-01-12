@@ -69,6 +69,7 @@ struct SandHypoplasticityStb
 		__Float_Type__ strain[6];
 		struct { __Float_Type__ e11, e22, e33, e12, e23, e31; };
 	};
+	__Float_Type__ prev_ps[3];
 };
 
 void SandHypoplasticityStb_set_NC_param(

@@ -31,7 +31,7 @@ for t_id in range(output_num):
     pcl_ids = pcl_dset['id']
     pcl_zs = pcl_dset['z']
     for p_id in range(len(pcl_dset)):
-        if pcl_ids[p_id] == 2559:
+        if pcl_ids[p_id] == 799:
             var = pcl_zs[p_id]
             if not is_init:
                 init_z = var

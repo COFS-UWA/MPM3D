@@ -27,7 +27,8 @@ for t_id in range(output_num):
     pcl_zs = pcl_dset['z']
     pcl_s33s = pcl_dset['s33']
     for i in range(len(pcl_dset)):
-        if (pcl_ids[i] == 1):
+        #if (pcl_ids[i] == 1):
+        if (pcl_ids[i] == 401):
             var = pcl_s33s[i]
             if not is_init:
                 init_z = var
@@ -44,7 +45,7 @@ for o_id in range(output_num):
 
 # analytical solution
 H = 1.0
-p0 = 10.0
+p0 = 0.1
 bf = 0.0
 E = 1000.0
 density = 10.0

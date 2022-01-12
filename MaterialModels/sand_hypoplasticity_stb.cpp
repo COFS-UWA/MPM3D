@@ -110,6 +110,10 @@ void SandHypoplasticityStb_set_NC_param(
 	dat.e12 = 0.0;
 	dat.e23 = 0.0;
 	dat.e31 = 0.0;
+
+	dat.prev_ps[0] = 0.0;
+	dat.prev_ps[1] = 0.0;
+	dat.prev_ps[2] = 0.0;
 }
 
 void SandHypoplasticityStb_set_OC_param(
@@ -345,8 +349,16 @@ int32_t integrate_sand_hypoplasticity_stb(
 	const __Float_Type__ state_param = mat_dat.e - glb_dat.ec0 * (__Float_Type__)exp(-pow(-ffmat(3.0) * p / glb_dat.hs, glb_dat.n));
 	mat_dat.Mi = glb_dat.Mtc * lode_factor * (1.0 - glb_dat.N * fabs(state_param));
 	
+	// volumetric hardening
+	double vol_strain = -(dstrain[0] + dstrain[1] + dstrain[2]);
+	if (vol_strain < 0.0)
+		vol_strain = 0.0;
+	const double vol_strain_coef = q != 0.0 ? 1.0 - q / sqrt((-p - mat_dat.pi / ffmat(2.71828)) * (-p - mat_dat.pi / ffmat(2.71828)) + q * q) : 1.0;
+	const double eq_shear_strain = vol_strain_coef * vol_strain / mat_dat.Mi;
+	//const double eq_shear_strain = 0.0;
+	
 	const double pi_max = -p * exp(-glb_dat.chi * sign(state_param) * pow(fabs(state_param), 2.0));
-	mat_dat.pi += glb_dat.H * lode_factor * (pi_max - mat_dat.pi) * (shear_strain - prev_shear_strain);
+	mat_dat.pi += glb_dat.H * lode_factor * (pi_max - mat_dat.pi) * (shear_strain - prev_shear_strain + eq_shear_strain);
 
 	// store original stress
 	const __Float_Type__ ori_stress[6] = { mat_dat.s11, mat_dat.s22, mat_dat.s33, mat_dat.s12, mat_dat.s23, mat_dat.s31 };
@@ -374,8 +386,7 @@ int32_t integrate_sand_hypoplasticity_stb(
 		ddstrain[4] = act_substp_size * dstrain[4];
 		ddstrain[5] = act_substp_size * dstrain[5];
 
-		glb_dat.hypoplasticity_substp(mat_dat.stress,
-			mat_dat.e, ddstrain, dstress1, de1);
+		glb_dat.hypoplasticity_substp(mat_dat.stress, mat_dat.e, ddstrain, dstress1, de1);
 
 		stress1[0] = mat_dat.stress[0] + dstress1[0] * ffmat(0.5);
 		stress1[1] = mat_dat.stress[1] + dstress1[1] * ffmat(0.5);
@@ -392,8 +403,7 @@ int32_t integrate_sand_hypoplasticity_stb(
 		}
 		e1 = mat_dat.e + de1 * ffmat(0.5);
 
-		glb_dat.hypoplasticity_substp(
-			stress1, e1, ddstrain, dstress2, de2);
+		glb_dat.hypoplasticity_substp(stress1, e1, ddstrain, dstress2, de2);
 
 		stress2[0] = mat_dat.stress[0] - dstress1[0] + dstress2[0] + dstress2[0];
 		stress2[1] = mat_dat.stress[1] - dstress1[1] + dstress2[1] + dstress2[1];
@@ -410,8 +420,7 @@ int32_t integrate_sand_hypoplasticity_stb(
 		}
 		e2 = mat_dat.e - de1 + de2 + de2;
 
-		glb_dat.hypoplasticity_substp(
-			stress2, e2, ddstrain, dstress3, de3);
+		glb_dat.hypoplasticity_substp(stress2, e2, ddstrain, dstress3, de3);
 
 		dstress3[0] = ffmat(1.0) / ffmat(6.0) * dstress1[0]
 			+ ffmat(2.0) / ffmat(3.0) * dstress2[0]
@@ -488,48 +497,91 @@ int32_t integrate_sand_hypoplasticity_stb(
 	// complete RKF23 integration successfully
 	mat_dat.substp_size = substp_size;
 
-	//// adjust stress back to yield surface
-	//cal_p_q(mat_dat.stress, invars);
-	//__Float_Type__ f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
-	//
-	//if (false) // (f_yield > ffmat(0.0))
-	//{
-	//	const __Float_Type__ dstress[6] = {
-	//		mat_dat.stress[0] - ori_stress[0],
-	//		mat_dat.stress[1] - ori_stress[1],
-	//		mat_dat.stress[2] - ori_stress[2],
-	//		mat_dat.stress[3] - ori_stress[3],
-	//		mat_dat.stress[4] - ori_stress[4],
-	//		mat_dat.stress[5] - ori_stress[5]
-	//	};
-	//	const __Float_Type__ dp_dlambda = (dstress[0] + dstress[1] + dstress[2]) / ffmat(3.0);
-	//	__Float_Type__ lambda = ffmat(1.0);
-	//	size_t iter_id = 0;
-	//	constexpr size_t max_iter_num = 10;
-	//	const double f_yield_tol = error_tol * (__Float_Type__)fabs(p);
-	//	do
-	//	{
-	//		// cal f_yield derivative
-	//		const __Float_Type__ dq_dlambda = ffmat(0.5) / q * (
-	//			(ori_stress[0] - ori_stress[1] + lambda * (dstress[0] - dstress[1])) * (dstress[0] - dstress[1])
-	//			+ (ori_stress[1] - ori_stress[2] + lambda * (dstress[1] - dstress[2])) * (dstress[1] - dstress[2])
-	//			+ (ori_stress[2] - ori_stress[0] + lambda * (dstress[2] - dstress[0])) * (dstress[2] - dstress[0])
-	//			+ ffmat(6.0) * (ori_stress[3] + lambda * dstress[3]) * dstress[3]
-	//			+ ffmat(6.0) * (ori_stress[4] + lambda * dstress[4]) * dstress[4]
-	//			+ ffmat(6.0) * (ori_stress[5] + lambda * dstress[5]) * dstress[5]);
-	//		const __Float_Type__ df_yield_dlamdba = dq_dlambda - mat_dat.Mi * (__Float_Type__)log(-p / mat_dat.pi) * dp_dlambda;
-	//		lambda -= f_yield / df_yield_dlamdba;
-	//		// recal f_yield
-	//		mat_dat.stress[0] = ori_stress[0] + lambda * dstress[0];
-	//		mat_dat.stress[1] = ori_stress[1] + lambda * dstress[1];
-	//		mat_dat.stress[2] = ori_stress[2] + lambda * dstress[2];
-	//		mat_dat.stress[3] = ori_stress[3] + lambda * dstress[3];
-	//		mat_dat.stress[4] = ori_stress[4] + lambda * dstress[4];
-	//		mat_dat.stress[5] = ori_stress[5] + lambda * dstress[5];
-	//		cal_p_q(mat_dat.stress, invars);
-	//		f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
-	//	} while ((__Float_Type__)fabs(f_yield) < f_yield_tol && (iter_id++) < max_iter_num);
-	//}
+	// adjust stress back to yield surface
+	__Float_Type__ f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
+	if (f_yield > ffmat(0.0))
+	{
+		const __Float_Type__ dstress[6] = {
+			mat_dat.stress[0] - ori_stress[0], mat_dat.stress[1] - ori_stress[1],
+			mat_dat.stress[2] - ori_stress[2], mat_dat.stress[3] - ori_stress[3],
+			mat_dat.stress[4] - ori_stress[4], mat_dat.stress[5] - ori_stress[5]
+		};
+
+		double stress_tmp[6], mid_lambda;
+		constexpr double min_lambda_const = 0.0;
+		constexpr double max_lambda_const = 2.0;
+		double min_lambda, max_lambda;
+		double min_f_yield, max_f_yield;
+		constexpr size_t max_iter_num = 10;
+		size_t iter_id = 0;
+		// min
+		min_lambda = min_lambda_const;
+		max_lambda = 1.0;
+		max_f_yield = f_yield;
+		stress_tmp[0] = ori_stress[0] + min_lambda * dstress[0];
+		stress_tmp[1] = ori_stress[1] + min_lambda * dstress[1];
+		stress_tmp[2] = ori_stress[2] + min_lambda * dstress[2];
+		stress_tmp[3] = ori_stress[3] + min_lambda * dstress[3];
+		stress_tmp[4] = ori_stress[4] + min_lambda * dstress[4];
+		stress_tmp[5] = ori_stress[5] + min_lambda * dstress[5];
+		cal_p_q(stress_tmp, invars);
+		min_f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
+		if (min_f_yield > 0.0)
+		{
+			//max
+			min_lambda = 1.0;
+			min_f_yield = f_yield;
+			max_lambda = max_lambda_const;
+			stress_tmp[0] = ori_stress[0] + max_lambda * dstress[0];
+			stress_tmp[1] = ori_stress[1] + max_lambda * dstress[1];
+			stress_tmp[2] = ori_stress[2] + max_lambda * dstress[2];
+			stress_tmp[3] = ori_stress[3] + max_lambda * dstress[3];
+			stress_tmp[4] = ori_stress[4] + max_lambda * dstress[4];
+			stress_tmp[5] = ori_stress[5] + max_lambda * dstress[5];
+			cal_p_q(stress_tmp, invars);
+			max_f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
+			if (max_f_yield > 0.0)
+			{
+				mid_lambda = min_f_yield < max_f_yield ? min_lambda_const : max_lambda_const;
+				min_lambda = mid_lambda;
+				max_lambda = mid_lambda;
+				iter_id = max_iter_num; // no binary solve
+			}
+		}
+
+		// binary solve
+		for (; iter_id < max_iter_num; ++iter_id)
+		{
+			mid_lambda = (min_lambda + max_lambda) * 0.5;
+			stress_tmp[0] = ori_stress[0] + mid_lambda * dstress[0];
+			stress_tmp[1] = ori_stress[1] + mid_lambda * dstress[1];
+			stress_tmp[2] = ori_stress[2] + mid_lambda * dstress[2];
+			stress_tmp[3] = ori_stress[3] + mid_lambda * dstress[3];
+			stress_tmp[4] = ori_stress[4] + mid_lambda * dstress[4];
+			stress_tmp[5] = ori_stress[5] + mid_lambda * dstress[5];
+			cal_p_q(stress_tmp, invars);
+			const double mid_f_yield = q + mat_dat.Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
+			if (min_f_yield * mid_f_yield < 0.0)
+			{
+				max_lambda = mid_lambda;
+				max_f_yield = mid_f_yield;
+			}
+			else // min_f_yield* mid_f_yield > 0.0
+			{
+				min_lambda = mid_lambda;
+				min_f_yield = mid_f_yield;
+			}
+		}
+
+		// complete
+		mid_lambda = (min_lambda + max_lambda) * 0.5;
+		mat_dat.stress[0] = ori_stress[0] + mid_lambda * dstress[0];
+		mat_dat.stress[1] = ori_stress[1] + mid_lambda * dstress[1];
+		mat_dat.stress[2] = ori_stress[2] + mid_lambda * dstress[2];
+		mat_dat.stress[3] = ori_stress[3] + mid_lambda * dstress[3];
+		mat_dat.stress[4] = ori_stress[4] + mid_lambda * dstress[4];
+		mat_dat.stress[5] = ori_stress[5] + mid_lambda * dstress[5];
+	}
 
 	return substp_id;
 }

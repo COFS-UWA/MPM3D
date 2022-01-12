@@ -22,7 +22,8 @@ void test_t3d_me_mt_1d_compression(int argc, char **argv)
 	model.init_search_grid(teh_mesh);
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
-	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
+	//pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
+	pcl_generator.generate_pcls_second_order_gauss(teh_mesh);
 	model.init_pcls(pcl_generator, 10.0);
 	size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel **mms = model.get_mat_models();
@@ -35,9 +36,13 @@ void test_t3d_me_mt_1d_compression(int argc, char **argv)
 	}
 
 	IndexArray tbc_pcl_array(100);
-	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	//find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	//MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
+	//double tz_mag = 0.025 * 0.025 * -0.1;
+	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.025, 1.0));
 	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	double tz_mag = 0.025 * 0.025 * -0.1;
+	//std::cout << tbc_pcl_array.get_num() << "\n";
+	double tz_mag = 0.2 * 0.2 / tbc_pcl_array.get_num() * -0.1;
 	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
 		tzs_mem.add(tz_mag);
 	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
@@ -61,6 +66,7 @@ void test_t3d_me_mt_1d_compression(int argc, char **argv)
 	//md_disp.set_view_dir(30.0f, 30.0f);
 	//md_disp.set_light_dir(90.0f, 30.0f);
 	//md_disp.set_model(model);
+	//md_disp.set_view_dist_scale(1.1);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);

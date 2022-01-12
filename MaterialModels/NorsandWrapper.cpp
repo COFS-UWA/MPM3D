@@ -5,6 +5,12 @@
 
 namespace MatModel
 {
+	NorsandWrapper::NorsandWrapper() :
+		MaterialModel(&nor_sand_wrapper_integration_function,
+			"NorsandWrapper",
+			&nor_sand_wrapper_store_to_function,
+			&nor_sand_wrapper_retrieve_from_function) {}
+
 	NorsandWrapper::NorsandWrapper(
 		const NorsandWrapper& other)
 	{
@@ -68,5 +74,15 @@ namespace MatModel
 		self.dep23 = dstrain[4];
 		self.dep31 = dstrain[5];
 		return status_code;
+	}
+
+	void nor_sand_wrapper_store_to_function(const MaterialModel* _self, char* mat_model_mem)
+	{
+		memcpy(mat_model_mem, _self, sizeof(NorsandWrapper));
+	}
+
+	void nor_sand_wrapper_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem)
+	{
+		memcpy(_self, mat_model_mem, sizeof(NorsandWrapper));
 	}
 }

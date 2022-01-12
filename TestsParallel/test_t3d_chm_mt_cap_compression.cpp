@@ -52,17 +52,33 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			1.5, 43.0, 180.0, //100.0, 180.0,
+			//1.5, 43.0, 180.0, //100.0, 180.0,
+			1.5, 43.0, 250.0,
 			200.0, 0.2);
 	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
 	}
+	// Norsand
+	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::NorsandWrapper& n = ns[pcl_id];
+	//	n.set_param(
+	//		ini_stress, e0,
+	//		30.0,
+	//		0.86 /*0.7847*/, 0.015,
+	//		0.3, 3.6, 250.0,
+	//		200.0, 0.2);
+	//	model.add_mat_model(pcl_id, n, sizeof(MatModel::NorsandWrapper));
+	//}
 
 	// cavitation
 	model.set_cavitation(3.0, -7.0e3, 5.0e3);
 	//model.set_cavitation(5.0, -30.0e3, 10.0e3);
-	//model.set_cavi_Kf_min_ratio(1.0); // no cavitation
+	model.set_cavi_Kf_min_ratio(1.0); // no cavitation
 
-	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
+	//model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
+	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);
 	//const double Kct = 20.0 / (0.025 * 0.025); // elastic 
 	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo undrained 
@@ -92,8 +108,8 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(200.0f, 30.0f);
-	//md_disp.set_light_dir(200.0f, 30.0f);
+	//md_disp.set_view_dir(30.0f, -20.0f);
+	//md_disp.set_light_dir(35.0f, -15.0f);
 	////md_disp.set_view_dist_scale(0.5);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
@@ -173,7 +189,7 @@ void test_t3d_chm_mt_cap_compression_result(int argc, char** argv)
 	//app.set_color_map_fld_range(-800.0e3, 0.0); // hypo
 	// 	p
 	app.set_res_file(rf, "compression", Hdf5Field::p);
-	app.set_color_map_fld_range(-70.0e3, 50.0e3); // hypo
+	app.set_color_map_fld_range(-200.0e3, 50.0e3); // hypo
 	// shear strain
 	//app.set_res_file(rf, "compression", Hdf5Field::mises_strain_3d);
 	//app.set_color_map_fld_range(0.0, 0.1);

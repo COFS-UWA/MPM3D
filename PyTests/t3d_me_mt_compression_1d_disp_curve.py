@@ -26,7 +26,7 @@ for t_id in range(output_num):
     pcl_ids = pcl_dset['id']
     pcl_zs = pcl_dset['z']
     for i in range(len(pcl_dset)):
-        if (pcl_ids[i] == 2559):
+        if (pcl_ids[i] == 799):
             var = pcl_zs[i]
             if not is_init:
                 init_z = var
@@ -37,17 +37,20 @@ for t_id in range(output_num):
 
 hdf5_file.close()
 
-csv_file.write("mpm,\n")
-for o_id in range(output_num):
+csv_file.write("3D MPM,\n")
+for o_id in range(len(out_time)):
     csv_file.write("%f, %f\n" % (out_time[o_id], pcl_var[o_id]))
+
+print(out_time)
+print(pcl_var)
 
 # analytical solution
 H = 1.0
-p0 = 10.0
+p0 = 0.1
 bf = 0.0
 E = 1000.0
 density = 10.0
-t_len = 2.0 # time length
+t_len = 1.0 # time length
 data_num = 200
 # cal data
 bav = BarAxialVibration(H, p0, bf, E, density)
@@ -59,7 +62,7 @@ for i in range(data_num):
     t_ana[i] = t_inv * i
     u_ana[i] = bav.displacement(H, t_ana[i])
 
-csv_file.write("analytical,\n")
+csv_file.write("Analytical,\n")
 for o_id in range(data_num):
     csv_file.write("%f, %f\n" % (t_ana[o_id], u_ana[o_id]))
 

@@ -16,7 +16,7 @@ pcl_var = []
 hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_1d_consolidation.h5", "r")
 th_grp = hdf5_file['TimeHistory']['consolidation']
 
-csv_file = open("../Build/TestsParallel/t3d_me_mt_1d_compression_p.csv", "w")
+csv_file = open("../Build/TestsParallel/t3d_chm_mt_1d_consolidation_p.csv", "w")
 
 output_num = th_grp.attrs['output_num']
 pcl_z = 0.0

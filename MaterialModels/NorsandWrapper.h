@@ -7,17 +7,21 @@
 namespace MatModel
 {
 	int nor_sand_wrapper_integration_function(MaterialModel* _self, double dstrain[6]);
+	void nor_sand_wrapper_store_to_function(const MaterialModel* _self, char* mat_model_mem);
+	void nor_sand_wrapper_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem);
 
 	class NorsandWrapper : public MaterialModel
 	{
 		friend int nor_sand_wrapper_integration_function(MaterialModel* _self, double dstrain[6]);
+		friend void nor_sand_wrapper_store_to_function(const MaterialModel* _self, char* mat_model_mem);
+		friend void nor_sand_wrapper_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem);
 
 	protected:
 		NorsandGlobal glb;
 		Norsand mat;
 
 	public:
-		NorsandWrapper() {}
+		NorsandWrapper();
 		NorsandWrapper(const NorsandWrapper& other);
 		~NorsandWrapper() {}
 		

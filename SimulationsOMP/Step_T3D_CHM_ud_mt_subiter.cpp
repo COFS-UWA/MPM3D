@@ -1142,10 +1142,10 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 			}
 			elem_p[e_id] += Kf_ratio * self.Kf * e_de_vol_f;
 			
-			if (self.substep_index % 1000 == 999 && e_id == 149)
-				t3d_chm_ud_mt_subit_db_file << self.substep_index << ", "
-				<< self.current_time << ", " << elem_p[e_id] << ", "
-				<< Kf_ratio << ", " << Kf_ratio * self.Kf << ",\n";
+			//if (self.substep_index % 1000 == 999 && e_id == 149)
+			//	t3d_chm_ud_mt_subit_db_file << self.substep_index << ", "
+			//	<< self.current_time << ", " << elem_p[e_id] << ", "
+			//	<< Kf_ratio << ", " << Kf_ratio * self.Kf << ",\n";
 
 			pe_de = elem_de + e_id;
 			e_de_vol *= one_third;

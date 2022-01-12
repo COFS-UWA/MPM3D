@@ -4,6 +4,7 @@
 #include "stdint.h"
 #include "MaterialModelPrecision.h"
 
+// critical state line is e = gamma - lambda * ln(-p)
 struct NorsandGlobal
 {
 	// friction angle
@@ -19,11 +20,11 @@ struct NorsandGlobal
 
 	// cal var
 	__Float_Type__ Mtc;
-	__Float_Type__ N_chi_div_Mtc;
+	__Float_Type__ Mtc_div_3_plus_Mtc;
 };
 
 void NorsandGlobal_set_param(
-	NorsandGlobal &dat,
+	NorsandGlobal& dat,
 	__Float_Type__ phi,
 	__Float_Type__ gamma,
 	__Float_Type__ lambda,
@@ -45,21 +46,21 @@ struct Norsand
 };
 
 void Norsand_set_NC_param(
-	Norsand &dat,
-	const NorsandGlobal &glb_dat,
+	Norsand& dat,
+	const NorsandGlobal& glb_dat,
 	const __Float_Type__ stress[6],
 	__Float_Type__ e);
 
 void Norsand_set_OC_param(
-	Norsand &dat,
-	const NorsandGlobal &glb_dat,
+	Norsand& dat,
+	const NorsandGlobal& glb_dat,
 	const __Float_Type__ stress[6],
 	__Float_Type__ e,
 	__Float_Type__ OCR);
 
 int32_t integrate_norsand(
-	const NorsandGlobal &glb_dat,
-	Norsand &mat_dat,
+	const NorsandGlobal& glb_dat,
+	Norsand& mat_dat,
 	const __Float_Type__ dstrain[6],
 	__Float_Type__ destrain[6],
 	__Float_Type__ dpstrain[6]);

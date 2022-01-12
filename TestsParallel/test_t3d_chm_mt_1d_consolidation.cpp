@@ -22,7 +22,8 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 	model.init_search_grid(teh_mesh);
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
-	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
+	//pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
+	pcl_generator.generate_pcls_second_order_gauss(teh_mesh);
 	model.init_pcls(pcl_generator, 0.4, 20.0, 10.0, 40000.0, 1.0e-4, 1.0);
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
@@ -35,9 +36,13 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 	}
 
 	IndexArray tbc_pcl_array(100);
-	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	//find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	//MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
+	//double tz_mag = 0.025 * 0.025 * -1.0;
+	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.025, 1.0));
 	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	double tz_mag = 0.025 * 0.025 * -1.0;
+	//std::cout << tbc_pcl_array.get_num() << "\n";
+	double tz_mag = 0.2 * 0.2 / tbc_pcl_array.get_num() * -1.0;
 	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
 		tzs_mem.add(tz_mag);
 	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
@@ -147,19 +152,33 @@ void test_t3d_chm_mt_1d_consolidation_result(int argc, char **argv)
 	rf.open("t3d_chm_mt_1d_consolidation.h5");
 	//rf.open("t3d_chm_mt_1d_consolidation2.h5");
 
-	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_ME_s::SingleFrame);
-	//app.set_res_file(rf, "consolidation", 2, Hdf5Field::p);
-	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
-	app.set_ani_time(5.0);
+	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::SingleFrame);
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
+	app.set_view_dist_scale(1.1);
 	app.set_light_dir(90.0f, 30.0f);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_chm_mt_1d_consolidation");
 	//app.set_gif_name("t3d_chm_mt_1d_consolidation");
 	// p
-	app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 10.0);
+	app.set_res_file(rf, "consolidation", 5, Hdf5Field::p);
+	//app.set_res_file(rf, "consolidation", 17, Hdf5Field::p);
+	//app.set_res_file(rf, "consolidation", 33, Hdf5Field::p);
+	app.set_color_map_fld_range(0.0, 1.0);
 	//
 	app.start();
+
+	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
+	//app.set_ani_time(5.0);
+	//app.set_win_size(900, 900);
+	//app.set_view_dir(30.0f, 30.0f);
+	//app.set_light_dir(90.0f, 30.0f);
+	//app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
+	////app.set_png_name("t3d_chm_mt_1d_consolidation");
+	////app.set_gif_name("t3d_chm_mt_1d_consolidation");
+	//// p
+	//app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	//app.set_color_map_fld_range(0.0, 10.0);
+	////
+	//app.start();
 }
