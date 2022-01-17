@@ -21,7 +21,7 @@ Step_T3D_CHM_ud_mt_subiter::Step_T3D_CHM_ud_mt_subiter(const char* _name) :
 
 Step_T3D_CHM_ud_mt_subiter::~Step_T3D_CHM_ud_mt_subiter() {}
 
-static constexpr double u_div_u_cav_pow_cut_off = 1.0e10;
+static constexpr double max_Kf_ratio_divider = 1.0e10;
 
 int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 {
@@ -30,6 +30,7 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 	omp_set_num_threads(thread_num);
 
 	t3d_chm_ud_mt_subit_db_file.open("t3d_chm_ud_mt_subiter.csv", std::ios::binary | std::ios::out);
+	t3d_chm_ud_mt_subit_db_file << "iter_id, p, Kf_ratio,\n";
 
 	pcl_m_s = md.pcl_m_s;
 	pcl_density_s = md.pcl_density_s;
@@ -121,11 +122,11 @@ int Step_T3D_CHM_ud_mt_subiter::init_calculation()
 	node_vbc_vec = md.node_vbc_vec_s;
 
 	Kf = md.Kf;
-	m_cav = md.m_cav;
 	u_cav = md.u_cav;
-	u_cav0 = md.u_cav0;
-	Kf_min_ratio = md.Kf_min_ratio;
-	u_div_u_cav_cut_off = pow(u_div_u_cav_pow_cut_off, 1.0 / m_cav);
+	m_cav = md.m_cav;
+	f_cav_end = md.f_cav_end;
+	u_cav_off = pow(1.0 / f_cav_end - 1.0, 1.0 / m_cav) - 1.0;
+	u_div_u_cav_lim = pow(max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
 
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
@@ -1131,21 +1132,15 @@ int substep_func_omp_T3D_CHM_ud_mt_subiter(
 
 			elem_density_f[e_id] /= (1.0 - e_de_vol_f);
 			double Kf_ratio = 1.0;
-			// cavitation
-			if (self.m_cav != 0.0 && elem_p[e_id] < self.u_cav0)
+			if (self.m_cav != 0.0 && elem_p[e_id] < 0.0) // cavitation
 			{
-				const double tmp1 = fabs((elem_p[e_id] - self.u_cav0) / (self.u_cav - self.u_cav0));
-				if (tmp1 < self.u_div_u_cav_cut_off)
-					Kf_ratio = self.Kf_min_ratio + (1.0 - self.Kf_min_ratio) / (1.0 + pow(tmp1, self.m_cav));
-				else
-					Kf_ratio = self.Kf_min_ratio + (1.0 - self.Kf_min_ratio) / (1.0 + u_div_u_cav_pow_cut_off);
+				const double tmp = elem_p[e_id] / self.u_cav + self.u_cav_off;
+				Kf_ratio = tmp < self.u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, self.m_cav))) : (1.0 / max_Kf_ratio_divider);
 			}
 			elem_p[e_id] += Kf_ratio * self.Kf * e_de_vol_f;
-			
-			//if (self.substep_index % 1000 == 999 && e_id == 149)
-			//	t3d_chm_ud_mt_subit_db_file << self.substep_index << ", "
-			//	<< self.current_time << ", " << elem_p[e_id] << ", "
-			//	<< Kf_ratio << ", " << Kf_ratio * self.Kf << ",\n";
+
+			if (self.substep_index % 1000 == 999 && e_id == 10)
+				t3d_chm_ud_mt_subit_db_file << self.substep_index << ", " << elem_p[e_id] << ", " << Kf_ratio << ",\n";
 
 			pe_de = elem_de + e_id;
 			e_de_vol *= one_third;

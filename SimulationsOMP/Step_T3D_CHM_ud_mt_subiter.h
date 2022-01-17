@@ -84,8 +84,8 @@ protected:
 	NodeVBCVec* node_vbc_vec; // node_num
 	
 	size_t elem_num, node_num;
-	double Kf, m_cav, u_cav, u_cav0, Kf_min_ratio;
-	double u_div_u_cav_cut_off;
+	double Kf, u_cav, m_cav, f_cav_end;
+	double u_cav_off, u_div_u_cav_lim;
 
 #ifdef _DEBUG
 	size_t prev_valid_pcl_num_tmp;

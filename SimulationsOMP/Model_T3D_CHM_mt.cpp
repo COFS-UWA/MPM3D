@@ -31,8 +31,7 @@ Model_T3D_CHM_mt::Model_T3D_CHM_mt() :
 	contact_mem(nullptr),
 	pcm_s(&smooth_contact_s),
 	pcm_f(&smooth_contact_f),
-	m_cav(0.0), u_cav(0.0), u_cav0(0.0),
-	Kf_min_ratio(0.0) {}
+	m_cav(0.0), u_cav(0.0), f_cav_end(0.05) {}
 
 Model_T3D_CHM_mt::~Model_T3D_CHM_mt()
 {
