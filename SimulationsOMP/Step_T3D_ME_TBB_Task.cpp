@@ -1,5 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
+#include <iostream>
+
 #include <assert.h>
 
 #include "ParaUtil.h"
@@ -17,7 +19,7 @@ namespace Step_T3D_ME_TBB_Task
 		in_pcl_in_elems = stp.in_pcl_in_elems;
 		in_prev_pcl_ids = stp.in_prev_pcl_ids;
 		task_num = ParaUtil::cal_task_num<
-			min_pcl_num_per_init_pcl_task, task_num_per_thread>(
+			min_pcl_num_per_task, init_pcl_task_num_per_thread>(
 				thread_num, stp.prev_valid_pcl_num);
 	}
 
@@ -69,7 +71,6 @@ namespace Step_T3D_ME_TBB_Task
 		// pcl range
 		pcl_in_elems = stp.pcl_in_elems;
 		prev_pcl_ids = stp.prev_pcl_ids;
-		pcl_ranges = stp.pcl_ranges;
 	}
 
 	void MapPclToBgMesh::update(size_t tsk_num) noexcept
@@ -106,10 +107,6 @@ namespace Step_T3D_ME_TBB_Task
 		++p_id1;
 		assert(p_id1 <= stp.valid_pcl_num);
 
-		PclRange& pcl_range = pcl_ranges[tsk_id];
-		pcl_range.p_id0 = p_id0;
-		pcl_range.p_id1 = p_id1;
-		
 		double e_p_m = 0.0;
 		double e_p_vol = 0.0;
 		double e_s11 = 0.0;
@@ -373,7 +370,6 @@ namespace Step_T3D_ME_TBB_Task
 
 	void UpdateAccelerationAndVelocity::init() noexcept
 	{
-		//
 		elem_pcl_m = stp.elem_pcl_m;
 		elem_node_force = stp.elem_node_force;
 		elem_node_vm = stp.elem_node_vm;
@@ -381,10 +377,9 @@ namespace Step_T3D_ME_TBB_Task
 		node_am = stp.node_am;
 		node_v = stp.node_v;
 		node_has_vbc = stp.node_has_vbc;
-		//
-		ne_ranges = stp.node_elem_ranges;
-		node_ids = stp.ne_sort.node_ids();
-		node_elem_offs = stp.ne_sort.node_elem_offs();
+		// node ranges
+		node_ids = stp.node_ids;
+		node_elem_offs = stp.node_elem_offs;
 	}
 
 	void UpdateAccelerationAndVelocity::update(size_t tsk_num) noexcept
@@ -406,10 +401,6 @@ namespace Step_T3D_ME_TBB_Task
 		while (ve_id1 != SIZE_MAX && n_id == node_ids[--ve_id1]);
 		++ve_id1;
 		assert(ve_id1 <= four_elem_num);
-		
-		NodeElemRange &ne_range = ne_ranges[tsk_id];
-		ne_range.ve_id0 = ve_id0;
-		ne_range.ve_id1 = ve_id1;
 
 		size_t bc_mask, ne_id;
 		double n_am = 0.0;
@@ -490,7 +481,7 @@ namespace Step_T3D_ME_TBB_Task
 		elem_de = stp.elem_de;
 		elem_m_de_vol = stp.elem_m_de_vol;
 		//
-		elem_ids = stp.ne_sort.elem_ids();
+		elem_ids = stp.elem_ids;
 	}
 
 	void CalElemDeAndMapToNode::update(size_t tsk_num) noexcept
@@ -509,7 +500,6 @@ namespace Step_T3D_ME_TBB_Task
 #ifdef _DEBUG
 			assert(e_id < stp.elem_num);
 #endif
-
 			const ElemNodeIndex& eni = elem_node_id[e_id];
 			const Velocity& n_v1 = node_v[eni.n1];
 			const Velocity& n_v2 = node_v[eni.n2];
@@ -537,14 +527,12 @@ namespace Step_T3D_ME_TBB_Task
 	
 	void CalNodeDe::init() noexcept
 	{
-		//
 		elem_m_de_vol = stp.elem_m_de_vol;
 		node_am = stp.node_am;
 		node_de_vol = stp.node_de_vol;
-		//
-		ne_ranges = stp.node_elem_ranges;
-		node_ids = stp.ne_sort.node_ids();
-		node_elem_offs = stp.ne_sort.node_elem_offs();
+		// node ranges
+		node_ids = stp.node_ids;
+		node_elem_offs = stp.node_elem_offs;
 	}
 
 	void CalNodeDe::update(size_t tsk_num) noexcept
@@ -555,12 +543,20 @@ namespace Step_T3D_ME_TBB_Task
 
 	void CalNodeDe::work(size_t tsk_id) const
 	{
-		NodeElemRange& ne_range = ne_ranges[tsk_id];
-		const size_t ve_id0 = ne_range.ve_id0;
-		const size_t ve_id1 = ne_range.ve_id1;
+		size_t n_id;
+		size_t ve_id0 = Block_Low(tsk_id, task_num, four_elem_num);
+		n_id = node_ids[ve_id0];
+		while (ve_id0 != SIZE_MAX && n_id == node_ids[--ve_id0]);
+		++ve_id0;
+		assert(ve_id0 <= four_elem_num);
+		size_t ve_id1 = Block_Low(tsk_id + 1, task_num, four_elem_num);
+		n_id = node_ids[ve_id1];
+		while (ve_id1 != SIZE_MAX && n_id == node_ids[--ve_id1]);
+		++ve_id1;
+		assert(ve_id1 <= four_elem_num);
 
 		double n_am_de_vol = 0.0;
-		size_t n_id = node_ids[ve_id0];
+		n_id = node_ids[ve_id0];
 #ifdef _DEBUG
 		assert(n_id < stp.node_num || n_id == SIZE_MAX);
 #endif
@@ -594,7 +590,6 @@ namespace Step_T3D_ME_TBB_Task
 		elem_de = stp.elem_de;
 		node_de_vol = stp.node_de_vol;
 		//
-		pcl_ranges = stp.pcl_ranges;
 		auto& pcl_sort = stp.pcl_sort;
 		pcl_in_elems = pcl_sort.out_pcl_in_elems();
 		prev_pcl_ids = pcl_sort.out_prev_pcl_ids();
@@ -619,15 +614,23 @@ namespace Step_T3D_ME_TBB_Task
 		pcl_estrain1 = spva1.pcl_estrain;
 		pcl_pstrain1 = spva1.pcl_pstrain;
 		
-		pcl_num = stp.valid_pcl_num;
+		pcl_num = stp.prev_valid_pcl_num;
 		task_num = tsk_num;
 	}
 
 	void MapBgMeshToPcl::work(size_t tsk_id, MapBgMeshToPclRes &res) const
 	{
-		PclRange& pcl_range = pcl_ranges[tsk_id];
-		const size_t p_id0 = pcl_range.p_id0;
-		const size_t p_id1 = pcl_range.p_id1;
+		size_t e_id;
+		size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id0];
+		while (p_id0 != SIZE_MAX && e_id == pcl_in_elems[--p_id0]);
+		++p_id0;
+		assert(p_id0 <= stp.prev_valid_pcl_num);
+		size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id1];
+		while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
+		++p_id1;
+		assert(p_id1 <= stp.prev_valid_pcl_num);
 
 		const Acceleration *pn_a1, *pn_a2, *pn_a3, *pn_a4;
 		const Velocity *pn_v1, *pn_v2, *pn_v3, *pn_v4;
@@ -635,7 +638,7 @@ namespace Step_T3D_ME_TBB_Task
 		double dstrain[6];
 		Model_T3D_ME_mt& md = *stp.pmodel;
 		size_t valid_pcl_num = 0;
-		size_t e_id = SIZE_MAX;
+		e_id = SIZE_MAX;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			if (e_id != pcl_in_elems[p_id])
@@ -700,10 +703,10 @@ namespace Step_T3D_ME_TBB_Task
 						p_e_id = md.find_pcl_in_which_elem_tol(p_x, p_y, p_z, p_N);
 				}
 			}
-			if (p_e_id != SIZE_MAX)
-				++valid_pcl_num;
 			in_pcl_in_elems[p_id] = p_e_id;
 			in_prev_pcl_ids[p_id] = p_id;
+			if (p_e_id != SIZE_MAX)
+				++valid_pcl_num;
 #ifdef _DEBUG
 			assert(p_e_id < stp.elem_num || p_e_id == SIZE_MAX);
 #endif

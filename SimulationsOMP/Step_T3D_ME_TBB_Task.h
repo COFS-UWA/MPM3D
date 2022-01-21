@@ -13,30 +13,19 @@ class Step_T3D_ME_TBB;
 
 namespace Step_T3D_ME_TBB_Task
 {
-	constexpr size_t task_num_per_thread = 100;
-	constexpr size_t map_pcl_to_mesh_task_num_per_thread = 300;
-	constexpr size_t map_mesh_to_pcl_task_num_per_thread = 200;
+	constexpr size_t init_pcl_task_num_per_thread = 100;
+	constexpr size_t map_pcl_to_mesh_task_num_per_thread = 100;
+	constexpr size_t update_node_av_task_num_per_thread = 20;
+	constexpr size_t cal_elem_de_task_num_per_thread = 20;
+	constexpr size_t cal_node_de_task_num_per_thread = 20;
+	constexpr size_t map_mesh_to_pcl_task_num_per_thread = 100;
 
-	constexpr size_t min_pcl_num_per_init_pcl_task = 100;
 	constexpr size_t min_pcl_num_per_task = 100;
 	constexpr size_t min_node_elem_num_per_task = 20;
 	constexpr size_t min_elem_num_per_task = 20;
 
 	constexpr size_t cache_line_size = 64;
-
-	struct PclRange
-	{
-		size_t p_id0, p_id1;
-		char padding[cache_line_size];
-	};
-
-	struct NodeElemRange
-	{
-		size_t ve_id0, ve_id1;
-		char padding[cache_line_size];
-	};
 	
-	class InitPcl;
 	struct InitPclRes
 	{
 		size_t pcl_num;
@@ -87,10 +76,7 @@ namespace Step_T3D_ME_TBB_Task
 
 		Step_T3D_ME_TBB& stp;
 
-		double K_cont;
-
 		// pcl data
-		const Position* pcl_pos;
 		const double* pcl_m;
 		const Force* pcl_bf;
 		const Force* pcl_t;
@@ -105,7 +91,6 @@ namespace Step_T3D_ME_TBB_Task
 		// pcl range
 		const size_t* pcl_in_elems;
 		const size_t* prev_pcl_ids;
-		PclRange* pcl_ranges;
 
 		// pcl_vars0
 		size_t *pcl_index0;
@@ -151,8 +136,7 @@ namespace Step_T3D_ME_TBB_Task
 		double *node_am;
 		Velocity *node_v;
 		NodeHasVBC *node_has_vbc;
-
-		NodeElemRange *ne_ranges;
+		// node ranges
 		const size_t* node_ids;
 		const size_t* node_elem_offs;
 		
@@ -183,7 +167,7 @@ namespace Step_T3D_ME_TBB_Task
 		const Velocity* node_v;
 		StrainInc* elem_de;
 		double* elem_m_de_vol;
-
+		// elem ranges
 		const size_t *elem_ids;
 
 		size_t elem_num, task_num;
@@ -205,11 +189,10 @@ namespace Step_T3D_ME_TBB_Task
 		const double* elem_m_de_vol;
 		const double* node_am;
 		double* node_de_vol;
-
+		// node ranges
 		const size_t* node_ids;
 		const size_t* node_elem_offs;
 		
-		NodeElemRange* ne_ranges;
 		size_t four_elem_num, task_num;
 
 	public:
@@ -253,7 +236,7 @@ namespace Step_T3D_ME_TBB_Task
 		double *elem_density;
 		StrainInc *elem_de;
 		const double *node_de_vol;
-
+		// pcl vars
 		const size_t *pcl_index0;
 		double* pcl_density0;
 		Velocity* pcl_v0;
@@ -267,8 +250,7 @@ namespace Step_T3D_ME_TBB_Task
 		const Strain* pcl_strain1;
 		const Strain* pcl_estrain1;
 		const Strain* pcl_pstrain1;
-
-		PclRange *pcl_ranges;
+		// pcl ranges
 		const size_t* pcl_in_elems, *prev_pcl_ids;
 		size_t* in_pcl_in_elems, *in_prev_pcl_ids;
 

@@ -641,6 +641,8 @@ int substep_func_omp_T3D_CHM_ud_mt(
 			e_s31 /= e_p_vol;
 			e_p /= e_p_vol;
 			elem_p[e_id] = e_p;
+			if (e_p_vol > elem_vol[e_id])
+				e_p_vol = elem_vol[e_id];
 
 			const DShapeFuncABC& e_dN = elem_N_abc[e_id];
 			// node 1

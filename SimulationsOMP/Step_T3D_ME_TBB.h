@@ -12,12 +12,8 @@ class Step_T3D_ME_TBB;
 namespace Model_T3D_ME_mt_hdf5_utilities
 {
 	struct ParticleData;
-	int output_pcl_data_to_hdf5_file(
-		Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp,
-		ResultFile_hdf5& rf, hid_t grp_id);
-	int time_history_complete_output_to_hdf5_file(
-		Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp,
-		ResultFile_hdf5& rf, hid_t frame_grp_id);
+	int output_pcl_data_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
+	int time_history_complete_output_to_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 	int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, const char* hdf5_name);
 	int load_me_mt_model_from_hdf5_file(Model_T3D_ME_mt& md, Step_T3D_ME_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 }
@@ -42,8 +38,7 @@ protected:
 	typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_ME_mt::ElemNodeVM ElemNodeVM;
 	typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
-	typedef Step_T3D_ME_TBB_Task::PclRange PclRange;
-	typedef Step_T3D_ME_TBB_Task::NodeElemRange NodeElemRange;
+	// ParaUtil
 	typedef Step_T3D_ME_TBB_Task::InitPcl InitPcl;
 	typedef Step_T3D_ME_TBB_Task::MapPclToBgMesh MapPclToBgMesh;
 	typedef Step_T3D_ME_TBB_Task::ContactRigidBody ContactRigidBody;
@@ -51,7 +46,7 @@ protected:
 	typedef Step_T3D_ME_TBB_Task::CalElemDeAndMapToNode CalElemDeAndMapToNode;
 	typedef Step_T3D_ME_TBB_Task::CalNodeDe CalNodeDe;
 	typedef Step_T3D_ME_TBB_Task::MapBgMeshToPcl MapBgMeshToPcl;
-	// res
+	// reduce res
 	typedef Step_T3D_ME_TBB_Task::InitPclRes InitPclRes;
 	typedef Step_T3D_ME_TBB_Task::MapPclToBgMeshRes MapPclToBgMeshRes;
 	typedef Step_T3D_ME_TBB_Task::MapBgMeshToPclRes MapBgMeshToPclRes;
@@ -68,6 +63,8 @@ protected:
 	friend class CalNodeDe;
 	friend class MapBgMeshToPcl;
 
+	tbb::task_scheduler_init sche_init;
+	
 	Model_T3D_ME_mt* pmodel;
 
 	// pcl data
@@ -78,8 +75,8 @@ protected:
 	double* pcl_vol;
 	MatModel::MaterialModel** pcl_mat_model;
 
-	inline size_t prev_spva_id() const noexcept { return substep_index & 1; }
 	inline size_t next_spva_id() const noexcept { return (substep_index + 1) & 1; }
+	inline size_t prev_spva_id() const noexcept { return substep_index & 1; }
 	Model_T3D_ME_mt::SortedPclVarArrays spvas[2];
 
 	// elem data
@@ -104,24 +101,15 @@ protected:
 	double* node_am;
 	double* node_de_vol;
 
-#ifdef _DEBUG
-	size_t ori_pcl_num, elem_num, node_num;
-	size_t prev_valid_pcl_num_tmp;
-#endif
-
-	tbb::task_scheduler_init sche_init;
-
-	size_t* in_pcl_in_elems, * in_prev_pcl_ids;
-	const size_t* pcl_in_elems, * prev_pcl_ids;
-	const size_t* elem_ids, * node_ids, * node_elem_offs;
-
 	ParaUtil::PclSort pcl_sort;
 	ParaUtil::NodeElemSort<4> ne_sort;
 
-	Util::DataMem range_mem;
-	PclRange* pcl_ranges;
-	NodeElemRange* node_elem_ranges;
-	
+	// for sorting pcls
+	size_t* in_pcl_in_elems, * in_prev_pcl_ids;
+	const size_t* pcl_in_elems, * prev_pcl_ids;
+	// for sorting nodes and elements
+	const size_t *elem_ids, *node_ids, *node_elem_offs;
+
 	InitPcl init_pcl;
 	MapPclToBgMesh map_pcl_to_mesh;
 	ContactRigidBody cont_rigid_body;
@@ -150,10 +138,12 @@ protected:
 	size_t prev_valid_pcl_num;
 	size_t valid_elem_num;
 	
-	int init_calculation() override;
-	friend int cal_substep_func_T3D_ME_TBB(void* _self);
-	int finalize_calculation() override;
-
+#ifdef _DEBUG
+	size_t ori_pcl_num, elem_num, node_num;
+	size_t prev_valid_pcl_num_tmp;
+#endif
+	
+	// time profiling
 	size_t pcl_sort_time;
 	size_t ne_sort_time;
 	size_t map_pcl_to_mesh_time;
@@ -161,6 +151,10 @@ protected:
 	size_t cal_elem_de_time;
 	size_t cal_node_de_time;
 	size_t map_mesh_to_pcl_time;
+	
+	int init_calculation() override;
+	friend int cal_substep_func_T3D_ME_TBB(void* _self);
+	int finalize_calculation() override;
 
 public:
 	Step_T3D_ME_TBB(const char* _name);

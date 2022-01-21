@@ -1,14 +1,14 @@
-#ifndef __Step_T3D_CHM_TBB_Task_h__
-#define __Step_T3D_CHM_TBB_Task_h__
+#ifndef __Step_T3D_CHM_ud_TBB_Task_h__
+#define __Step_T3D_CHM_ud_TBB_Task_h__
 
 #define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #include <tbb/tbb.h>
 
 #include "RigidObject/RigidCylinder.h"
 
-class Step_T3D_CHM_TBB;
+class Step_T3D_CHM_ud_TBB;
 
-namespace Step_T3D_CHM_TBB_Task
+namespace Step_T3D_CHM_ud_TBB_Task
 {
 	constexpr size_t init_pcl_task_num_per_thread = 100;
 	constexpr size_t map_pcl_to_mesh_task_num_per_thread = 100;
@@ -37,12 +37,12 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::Displacement Displacement;
 		typedef Model_T3D_CHM_mt::Position Position;
 		
-		Step_T3D_CHM_TBB& stp;
+		Step_T3D_CHM_ud_TBB& stp;
 		size_t *in_pcl_in_elems, *in_prev_pcl_ids;
 		size_t task_num;
 
 	public:
-		InitPcl(Step_T3D_CHM_TBB &_stp) : stp(_stp) {}
+		InitPcl(Step_T3D_CHM_ud_TBB &_stp) : stp(_stp) {}
 		void init(size_t thread_num) noexcept;
 		void work(size_t tsk_id, InitPclRes &res) const;
 		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id, InitPclRes &res) const
@@ -70,7 +70,7 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::DShapeFuncD DShapeFuncD;
 		typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
 
-		Step_T3D_CHM_TBB &stp;
+		Step_T3D_CHM_ud_TBB &stp;
 
 		// pcl data
 		const double* pcl_m_s;
@@ -83,14 +83,11 @@ namespace Step_T3D_CHM_TBB_Task
 		const DShapeFuncABC *elem_N_abc;
 		const double *elem_vol;
 		double* elem_pcl_m_s;
-		double* elem_pcl_m_f;
 		double* elem_pcl_n;
 		double* elem_density_f;
 		double* elem_p;
 		ElemNodeVM* elem_node_vm_s;
-		ElemNodeVM* elem_node_vm_f;
 		Force* elem_node_force_s;
-		Force* elem_node_force_f;
 		// pcl range
 		const size_t* pcl_in_elems;
 		const size_t* prev_pcl_ids;
@@ -100,9 +97,7 @@ namespace Step_T3D_CHM_TBB_Task
 		double* pcl_n0;
 		double *pcl_density_f0;
 		Velocity* pcl_v_s0;
-		Velocity *pcl_v_f0;
 		Displacement* pcl_u_s0;
-		Displacement* pcl_u_f0;
 		Stress *pcl_stress0;
 		ShapeFunc *pcl_N0;
 		// pcl_vars1
@@ -110,9 +105,7 @@ namespace Step_T3D_CHM_TBB_Task
 		const double* pcl_n1;
 		const double *pcl_density_f1;
 		const Velocity* pcl_v_s1;
-		const Velocity* pcl_v_f1;
 		const Displacement *pcl_u_s1;
-		const Displacement* pcl_u_f1;
 		const Stress *pcl_stress1;
 		double* pcl_p1;
 		const ShapeFunc *pcl_N1;
@@ -120,7 +113,7 @@ namespace Step_T3D_CHM_TBB_Task
 		size_t task_num;
 
 	public:
-		MapPclToBgMesh(Step_T3D_CHM_TBB &_stp) : stp(_stp) {}
+		MapPclToBgMesh(Step_T3D_CHM_ud_TBB &_stp) : stp(_stp) {}
 		void init() noexcept;
 		void update(size_t tsk_num) noexcept;
 		void work(size_t tsk_id, MapPclToBgMeshRes &res) const;
@@ -137,22 +130,15 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::Velocity Velocity;
 		typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
 
-		Step_T3D_CHM_TBB& stp;
+		Step_T3D_CHM_ud_TBB& stp;
 
 		const double* elem_pcl_m_s;
-		const double* elem_pcl_m_f;
 		const Force* elem_node_force_s;
-		const Force* elem_node_force_f;
 		const ElemNodeVM *elem_node_vm_s;
-		const ElemNodeVM* elem_node_vm_f;
 		double *node_am_s;
-		double* node_am_f;
 		Acceleration* node_a_s;
-		Acceleration* node_a_f;
 		Velocity *node_v_s;
-		Velocity* node_v_f;
 		NodeHasVBC *node_has_vbc_s;
-		NodeHasVBC* node_has_vbc_f;
 
 		const size_t* node_ids;
 		const size_t* node_elem_offs;
@@ -160,7 +146,7 @@ namespace Step_T3D_CHM_TBB_Task
 		size_t four_elem_num, task_num;
 
 	public:
-		UpdateAccelerationAndVelocity(Step_T3D_CHM_TBB& _stp) : stp(_stp) {}
+		UpdateAccelerationAndVelocity(Step_T3D_CHM_ud_TBB& _stp) : stp(_stp) {}
 		void init() noexcept;
 		void update(size_t tsk_num);
 		void work(size_t tsk_id) const;
@@ -178,13 +164,13 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::DShapeFuncABC DShapeFuncABC;
 		typedef Model_T3D_CHM_mt::StrainInc StrainInc;
 
-		Step_T3D_CHM_TBB& stp;
+		Step_T3D_CHM_ud_TBB& stp;
 
 		const ElemNodeIndex* elem_node_id;
 		const DShapeFuncABC *elem_N_abc;
-		const double* elem_pcl_m_s, *elem_pcl_m_f;
+		const double* elem_pcl_m_s;
 		const double* elem_pcl_n;
-		const Velocity *node_v_s, *node_v_f;
+		const Velocity *node_v_s;
 		StrainInc* elem_de;
 		double* elem_m_de_vol_s, *elem_m_de_vol_f;
 
@@ -193,7 +179,7 @@ namespace Step_T3D_CHM_TBB_Task
 		size_t elem_num, task_num;
 
 	public:
-		CalElemDeAndMapToNode(Step_T3D_CHM_TBB &_stp) : stp(_stp) {}
+		CalElemDeAndMapToNode(Step_T3D_CHM_ud_TBB &_stp) : stp(_stp) {}
 		void init() noexcept;
 		void update(size_t tsk_num);
 		void work(size_t tsk_id) const;
@@ -206,10 +192,10 @@ namespace Step_T3D_CHM_TBB_Task
 	class CalNodeDe
 	{
 	protected:
-		Step_T3D_CHM_TBB& stp;
+		Step_T3D_CHM_ud_TBB& stp;
 		
 		const double* elem_m_de_vol_s, *elem_m_de_vol_f;
-		const double* node_am_s, *node_am_f;
+		const double* node_am_s;
 		double* node_de_vol_s, *node_de_vol_f;
 		// node ranges
 		const size_t* node_ids, * node_elem_offs;
@@ -217,7 +203,7 @@ namespace Step_T3D_CHM_TBB_Task
 		size_t four_elem_num, task_num;
 
 	public:
-		CalNodeDe(Step_T3D_CHM_TBB &_stp) : stp(_stp) {}
+		CalNodeDe(Step_T3D_CHM_ud_TBB &_stp) : stp(_stp) {}
 		void init() noexcept;
 		void update(size_t tsk_num) noexcept;
 		void work(size_t tsk_id) const;
@@ -247,14 +233,14 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::StrainInc StrainInc;
 		typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
 		
-		Step_T3D_CHM_TBB& stp;
+		Step_T3D_CHM_ud_TBB& stp;
 
 		const Position* pcl_pos;
 		MatModel::MaterialModel** pcl_mat_model;
 		
 		const ElemNodeIndex *elem_node_id;
-		const Acceleration *node_a_s, *node_a_f;
-		const Velocity *node_v_s, *node_v_f;
+		const Acceleration* node_a_s;// , * node_a_f;
+		const Velocity* node_v_s;// , * node_v_f;
 		double* elem_density_f;
 		double* elem_pcl_n;
 		double* elem_p;
@@ -267,9 +253,9 @@ namespace Step_T3D_CHM_TBB_Task
 		double* pcl_p0;
 		ShapeFunc* pcl_N0;
 		Velocity* pcl_v_s0;
-		Velocity* pcl_v_f0;
+		//Velocity* pcl_v_f0;
 		Displacement* pcl_u_s0;
-		Displacement* pcl_u_f0;
+		//Displacement* pcl_u_f0;
 		Stress* pcl_stress0;
 		Strain* pcl_strain0;
 		Strain* pcl_estrain0;
@@ -286,7 +272,7 @@ namespace Step_T3D_CHM_TBB_Task
 		size_t pcl_num, task_num;
 
 	public:
-		MapBgMeshToPcl(Step_T3D_CHM_TBB &_stp) : stp(_stp) {}
+		MapBgMeshToPcl(Step_T3D_CHM_ud_TBB &_stp) : stp(_stp) {}
 		void init() noexcept;
 		void update(size_t thread_num) noexcept;
 		void work(size_t tsk_id, MapBgMeshToPclRes &res) const;
@@ -303,7 +289,7 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::ShapeFunc ShapeFunc;
 		typedef Model_T3D_CHM_mt::SortedPclVarArrays SortedPclVarArrays;
 
-		Step_T3D_CHM_TBB& stp;
+		Step_T3D_CHM_ud_TBB& stp;
 
 		RigidCylinder* prcy;
 		RigidObjectByT3DMesh* prmesh;
@@ -321,7 +307,7 @@ namespace Step_T3D_CHM_TBB_Task
 		const size_t* pcl_in_elems;
 
 	public:
-		ContactRigidBody(Step_T3D_CHM_TBB& _stp) : stp(_stp) {}
+		ContactRigidBody(Step_T3D_CHM_ud_TBB& _stp) : stp(_stp) {}
 		void init() noexcept;
 		void update() noexcept;
 		inline bool has_rigid_cylinder() const noexcept { return prcy != nullptr; }

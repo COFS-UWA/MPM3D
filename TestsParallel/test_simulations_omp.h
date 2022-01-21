@@ -130,4 +130,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char** argv);
 void test_t3d_chm_mt_cap_compression_result(int argc, char** argv);
 void test_t3d_chm_mt_triaxial_compression(int argc, char** argv);
 
+void test_t3d_chm_tbb_piezofoundation_sim_mat_model(int argc, char** argv);
+void test_t3d_chm_tbb_piezofoundation_sim_mat(int argc, char** argv);
+
 #endif

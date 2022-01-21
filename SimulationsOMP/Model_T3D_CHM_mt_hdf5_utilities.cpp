@@ -612,6 +612,47 @@ int output_pcl_data_to_hdf5_file(
 	return res;
 }
 
+int output_pcl_data_to_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	Step_T3D_CHM_ud_TBB& stp,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	hid_t pcl_data_grp_id = rf.create_group(grp_id, "ParticleData");
+
+	const size_t ori_pcl_num = md.get_ori_pcl_num();
+	rf.write_attribute(pcl_data_grp_id, "ori_pcl_num", ori_pcl_num);
+
+	const size_t pcl_num = stp.prev_valid_pcl_num;
+	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
+
+	int res = 0;
+	if (pcl_num)
+	{
+		ParticleData* pcl_data = new ParticleData[pcl_num];
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+		{
+			ParticleData& pd = pcl_data[p_id];
+			pd.from_pcl(stp, p_id);
+		}
+		hid_t pcl_dt_id = get_pcl_dt_id();
+		res = rf.write_dataset(
+			pcl_data_grp_id,
+			"field",
+			pcl_num,
+			pcl_data,
+			pcl_dt_id);
+		H5Tclose(pcl_dt_id);
+		delete[] pcl_data;
+	}
+
+	rf.close_group(pcl_data_grp_id);
+	return res;
+}
+
 int load_pcl_data_from_hdf5_file(
 	Model_T3D_CHM_mt& md,
 	ResultFile_hdf5& rf,
@@ -929,6 +970,22 @@ int time_history_complete_output_to_hdf5_file(
 int time_history_complete_output_to_hdf5_file(
 	Model_T3D_CHM_mt& md,
 	Step_T3D_CHM_TBB& stp,
+	ResultFile_hdf5& rf,
+	hid_t frame_grp_id)
+{
+	// particle data
+	output_pcl_data_to_hdf5_file(md, stp, rf, frame_grp_id);
+	// material model
+	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
+	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, frame_grp_id);
+	output_t3d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
+	return 0;
+}
+
+int time_history_complete_output_to_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	Step_T3D_CHM_ud_TBB& stp,
 	ResultFile_hdf5& rf,
 	hid_t frame_grp_id)
 {

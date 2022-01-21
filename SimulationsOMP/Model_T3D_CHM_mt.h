@@ -30,7 +30,8 @@ int substep_func_omp_T3D_CHM_mt_Geo(void* _self,
 	size_t my_th_id, double dt, double cur_time, size_t substp_id);
 class Step_T3D_CHM_TBB;
 int substep_func_T3D_CHM_TBB(void* _self);
-namespace Step_T3D_CHM_Task { class CalData; }
+class Step_T3D_CHM_ud_TBB;
+int substep_func_T3D_CHM_ud_TBB(void* _self);
 
 class ResultFile_hdf5;
 namespace Model_T3D_CHM_mt_hdf5_utilities
@@ -77,7 +78,9 @@ struct Model_T3D_CHM_mt : public Model,
 
 	friend class Step_T3D_CHM_TBB;
 	friend int substep_func_T3D_CHM_TBB(void* _self);
-	friend class Step_T3D_CHM_Task::CalData;
+
+	friend class Step_T3D_CHM_ud_TBB;
+	friend int substep_func_T3D_CHM_ud_TBB(void* _self);
 
 public:
 	struct ShapeFunc { double N1, N2, N3, N4; };

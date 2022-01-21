@@ -38,7 +38,7 @@ namespace ParaUtil
 		{
 			size_t elem_num;
 			size_t radix_num;
-			union { size_t* count_bin, * sum_bin; };
+			size_t* count_bin;
 			void join(const ScanElemRes& other)
 			{
 				elem_num += other.elem_num;
@@ -156,7 +156,10 @@ namespace ParaUtil
 		template <size_t node_num_per_elem>
 		inline void ScanElem<node_num_per_elem>::update(
 			size_t p_num, size_t tsk_num)
-		{ pcl_num = p_num; task_num = tsk_num; }
+		{
+			pcl_num = p_num;
+			task_num = tsk_num;
+		}
 
 		template <size_t node_num_per_elem>
 		inline void MergeToSortNE<node_num_per_elem>::init()
@@ -177,7 +180,9 @@ namespace ParaUtil
 
 		template <size_t node_num_per_elem>
 		inline void MergeToSortNE<node_num_per_elem>::update(size_t tsk_num)
-		{ task_num = tsk_num; }
+		{
+			task_num = tsk_num;
+		}
 	}
 }
 

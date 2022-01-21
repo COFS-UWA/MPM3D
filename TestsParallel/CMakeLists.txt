@@ -70,6 +70,7 @@ add_executable(
     test_t3d_me_tbb_cap_compression.cpp
     test_t3d_chm_tbb_1d_consolidation.cpp
     test_t3d_chm_tbb_cap_compression.cpp
+	test_t3d_chm_tbb_piezofoundation.cpp
     # piezofoundation
     test_t3d_me_mt_piezofoundation.cpp
 	test_t3d_me_tbb_piezofoundation.cpp

@@ -83,6 +83,10 @@ add_library(
     Step_T3D_CHM_TBB_Task.h Step_T3D_CHM_TBB_Task.cpp
     Step_T3D_CHM_TBB.h Step_T3D_CHM_TBB.cpp
     TimeHistory_T3D_CHM_TBB_complete.h TimeHistory_T3D_CHM_TBB_complete.cpp
+	# 3D CHM ud MPM
+	Step_T3D_CHM_ud_TBB_Task.h Step_T3D_CHM_ud_TBB_Task.cpp
+	Step_T3D_CHM_ud_TBB.h Step_T3D_CHM_ud_TBB.cpp
+	TimeHistory_T3D_CHM_ud_TBB_complete.h TimeHistory_T3D_CHM_ud_TBB_complete.cpp
     )
 
 add_subdirectory(RigidObject/)

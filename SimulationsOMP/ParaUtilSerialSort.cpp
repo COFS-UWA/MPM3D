@@ -42,6 +42,8 @@ namespace ParaUtil
             }
         }
 
+        // sum_bin is for temporal usage
+        // in outcome, sum_bin = end_bin
         void in_place_lsd_sort(
             size_t keys[],
             size_t values[],

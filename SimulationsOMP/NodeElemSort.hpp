@@ -1,8 +1,6 @@
 #ifndef __Node_Elem_Sort_hpp__
 #define __Node_Elem_Sort_hpp__
 
-#include <iostream>
-
 #include "ParaUtil.h"
 #include "ParallelReduceTask.hpp"
 #include "ParallelForTask.hpp"
@@ -72,7 +70,7 @@ namespace Internal
 		e_id = pcl_in_elems[p_id1];
 		while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
 		++p_id1;			
-		
+
 		e_id = pcl_in_elems[p_id0];
 		size_t &e_off = *node_elem_sort.task_off_sum_bin(task_id);
 		e_off = e_id;
@@ -219,7 +217,7 @@ namespace Internal
 
 		const size_t max_node_elem_num = max_elem_num * node_num_per_elem;
 		in_elem_ids = node_elem_pair_mem.alloc<size_t>(
-			  max_elem_num * (2 + node_num_per_elem * 6) + 2);
+			  max_elem_num * 2 + max_node_elem_num * 6 + 2);
 		out_elem_ids = in_elem_ids + max_elem_num;
 		in_pairs.node_ids = out_elem_ids + max_elem_num;
 		in_pairs.node_elem_offs = in_pairs.node_ids + max_node_elem_num;
@@ -228,7 +226,7 @@ namespace Internal
 		tmp_pairs.node_ids = out_pairs.node_elem_offs + max_node_elem_num;
 		tmp_pairs.node_elem_offs = tmp_pairs.node_ids + max_node_elem_num;
 		out_pairs.node_ids[-1] = SIZE_MAX;
-		out_pairs.node_ids[max_elem_num * node_num_per_elem] = SIZE_MAX;
+		out_pairs.node_ids[max_node_elem_num] = SIZE_MAX;
 
 		sum_bins = sum_bin_mem.alloc<size_t>(max_task_num * (radix_num + 2));
 		comb_bins = comb_bin_mem.alloc<size_t>(max_task_num * radix_num);
@@ -280,8 +278,8 @@ namespace Internal
 		comb_bins[0] = 0;
 
 		merge_to_sort.update(task_num);
-		out_pairs.node_ids[ne_num] = SIZE_MAX;
 		ParaUtil::parallel_for<Internal::MergeToSortNE<node_num_per_elem>>(merge_to_sort, radix_num);
+		out_pairs.node_ids[ne_num] = SIZE_MAX;
 	}
 }
 

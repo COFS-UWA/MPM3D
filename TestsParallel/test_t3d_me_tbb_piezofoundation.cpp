@@ -72,7 +72,8 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		MatModel::LinearElasticity& le = les[pcl_id];
-		le.set_param(1.0e6, 0.1);
+		le.set_param(1.0e6, 0.2);
+		//model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
 		mms[pcl_id] = &le;
 	}
 	// Tresca
@@ -80,7 +81,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
 	//	MatModel::Tresca &trc = trcs[pcl_id];
-	//	trc.set_param(1000.0, 0.2, 5.0);
+	//	trc.set_param(1.0e6, 0.2, 5.0e3);
 	//	mms[pcl_id] = &trc;
 	//}
 	
@@ -128,6 +129,8 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 		model, "t3d_me_tbb_piezofoundation_sim_mat_model.h5");
 	std::cout << "Completed loading model.\n";
 
+	model.set_rigid_cylinder_velocity(0.0, 0.0, 0.0);
+
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
@@ -154,25 +157,24 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(100);
 
-	//Step_T3D_ME_TBB step("step2");
-	//step.set_model(model);
-	//step.set_thread_num(4);
-	//step.set_step_time(5.0e-4);
-	//step.set_dtime(2.0e-6);
-	////step.add_time_history(out1);
-	//step.add_time_history(out_cpb);
-	//std::cout << "Start solving...\n";
-	//step.solve();
-
-	Step_T3D_ME_mt step("step2");
+	std::cout << "Start solving...\n";
+	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
-	step.set_thread_num(3);
-	step.set_step_time(5.0e-4);
+	step.set_thread_num(4);
+	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
-	std::cout << "Start solving...\n";
 	step.solve();
+
+	//Step_T3D_ME_mt step("step2");
+	//step.set_model(model);
+	//step.set_thread_num(3);
+	//step.set_step_time(2.0e-3);
+	//step.set_dtime(2.0e-6);
+	////step.add_time_history(out1);
+	//step.add_time_history(out_cpb);
+	//step.solve();
 }
 
 void test_t3d_me_tbb_piezofoundation_hypo(int argc, char** argv)
@@ -217,10 +219,8 @@ void test_t3d_me_tbb_piezofoundation_hypo(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	std::cout << "Start solving...\n";
-	step.set_thread_num(22);
-	step.set_step_time(0.9); // 0.3 when v=-1.5 0.6=0.45D
-	//step.set_thread_num(4);
-	//step.set_step_time(6.0e-6);
+	step.set_thread_num(4); // 22
+	step.set_step_time(2.0e-3); // 0.9
 	step.set_dtime(2.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

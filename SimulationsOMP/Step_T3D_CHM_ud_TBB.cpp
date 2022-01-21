@@ -5,16 +5,16 @@
 
 #include "ParallelForTask.hpp"
 #include "ParallelReduceTask.hpp"
-#include "Step_T3D_CHM_TBB.h"
+#include "Step_T3D_CHM_ud_TBB.h"
 
 #ifdef _DEBUG
-static std::fstream res_file_t3d_chm_tbb;
+static std::fstream res_file_t3d_chm_ud_tbb;
 #endif
 
 #define TIMING
 
-Step_T3D_CHM_TBB::Step_T3D_CHM_TBB(const char* _name) :
-	Step_TBB(_name, "Step_T3D_CHM_TBB", &substep_func_T3D_CHM_TBB),
+Step_T3D_CHM_ud_TBB::Step_T3D_CHM_ud_TBB(const char* _name) :
+	Step_TBB(_name, "Step_T3D_CHM_ud_TBB", &substep_func_T3D_CHM_ud_TBB),
 	sche_init(tbb::task_scheduler_init::deferred),
 	init_pcl(*this),
 	map_pcl_to_mesh(*this),
@@ -27,13 +27,13 @@ Step_T3D_CHM_TBB::Step_T3D_CHM_TBB(const char* _name) :
 	map_pcl_to_mesh_tbb(map_pcl_to_mesh),
 	map_mesh_to_pcl_tbb(map_mesh_to_pcl) {}
 
-Step_T3D_CHM_TBB::~Step_T3D_CHM_TBB() {}
+Step_T3D_CHM_ud_TBB::~Step_T3D_CHM_ud_TBB() {}
 
-int Step_T3D_CHM_TBB::init_calculation()
+int Step_T3D_CHM_ud_TBB::init_calculation()
 {
 #ifdef _DEBUG
-	res_file_t3d_chm_tbb.open("step_t3d_chm_tbb.csv", std::ios::out | std::ios::binary);
-	res_file_t3d_chm_tbb << "pcl_sort, ne_sort, map_pcl_to_mesh, "
+	res_file_t3d_chm_ud_tbb.open("Step_T3D_CHM_ud_TBB.csv", std::ios::out | std::ios::binary);
+	res_file_t3d_chm_ud_tbb << "pcl_sort, ne_sort, map_pcl_to_mesh, "
 		"update_a_and_v, cal_elem_de, cal_node_de, map_mesh_to_pcl\n";
 #endif
 
@@ -168,7 +168,7 @@ int Step_T3D_CHM_TBB::init_calculation()
 	return 0;
 }
 
-int Step_T3D_CHM_TBB::finalize_calculation()
+int Step_T3D_CHM_ud_TBB::finalize_calculation()
 {
 	Model_T3D_CHM_mt& md = *(Model_T3D_CHM_mt *)model;
 	md.pcl_num = prev_valid_pcl_num;
@@ -209,9 +209,9 @@ int Step_T3D_CHM_TBB::finalize_calculation()
 	return 0;
 }
 
-int substep_func_T3D_CHM_TBB(void* _self)
+int substep_func_T3D_CHM_ud_TBB(void* _self)
 {
-	Step_T3D_CHM_TBB& self = *(Step_T3D_CHM_TBB*)(_self);
+	Step_T3D_CHM_ud_TBB& self = *(Step_T3D_CHM_ud_TBB*)(_self);
 	if (self.valid_pcl_num == 0)
 	{
 		self.exit_calculation();
@@ -236,8 +236,8 @@ int substep_func_T3D_CHM_TBB(void* _self)
 
 	// map pcl to bg mesh
 	size_t task_num = ParaUtil::cal_task_num<
-		Step_T3D_CHM_TBB_Task::min_pcl_num_per_task,
-		Step_T3D_CHM_TBB_Task::map_pcl_to_mesh_task_num_per_thread>(
+		Step_T3D_CHM_ud_TBB_Task::min_pcl_num_per_task,
+		Step_T3D_CHM_ud_TBB_Task::map_pcl_to_mesh_task_num_per_thread>(
 			self.thread_num, self.valid_pcl_num);
 	self.map_pcl_to_mesh.update(task_num);
 	self.cont_rigid_body.update();
@@ -266,8 +266,8 @@ int substep_func_T3D_CHM_TBB(void* _self)
 
 	// update nodal a and v
 	task_num = ParaUtil::cal_task_num<
-		Step_T3D_CHM_TBB_Task::min_node_elem_num_per_task,
-		Step_T3D_CHM_TBB_Task::update_node_av_task_num_per_thread>(
+		Step_T3D_CHM_ud_TBB_Task::min_node_elem_num_per_task,
+		Step_T3D_CHM_ud_TBB_Task::update_node_av_task_num_per_thread>(
 			self.thread_num, self.valid_elem_num * 4);
 	self.update_a_and_v.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
@@ -278,8 +278,8 @@ int substep_func_T3D_CHM_TBB(void* _self)
 
 	// cal element de and map to node
 	task_num = ParaUtil::cal_task_num<
-		Step_T3D_CHM_TBB_Task::min_elem_num_per_task,
-		Step_T3D_CHM_TBB_Task::cal_elem_de_task_num_per_thread>(
+		Step_T3D_CHM_ud_TBB_Task::min_elem_num_per_task,
+		Step_T3D_CHM_ud_TBB_Task::cal_elem_de_task_num_per_thread>(
 			self.thread_num, self.valid_elem_num);
 	self.cal_elem_de.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
@@ -290,8 +290,8 @@ int substep_func_T3D_CHM_TBB(void* _self)
 
 	// cal strain increment at node
 	task_num = ParaUtil::cal_task_num<
-		Step_T3D_CHM_TBB_Task::min_elem_num_per_task,
-		Step_T3D_CHM_TBB_Task::cal_node_de_task_num_per_thread>(
+		Step_T3D_CHM_ud_TBB_Task::min_elem_num_per_task,
+		Step_T3D_CHM_ud_TBB_Task::cal_node_de_task_num_per_thread>(
 			self.thread_num, self.valid_elem_num);
 	t0 = std::chrono::high_resolution_clock::now();
 	self.cal_node_de.update(task_num);
@@ -306,8 +306,8 @@ int substep_func_T3D_CHM_TBB(void* _self)
 #endif
 	self.prev_valid_pcl_num = self.valid_pcl_num;
 	task_num = ParaUtil::cal_task_num<
-		Step_T3D_CHM_TBB_Task::min_pcl_num_per_task,
-		Step_T3D_CHM_TBB_Task::map_mesh_to_pcl_task_num_per_thread>(
+		Step_T3D_CHM_ud_TBB_Task::min_pcl_num_per_task,
+		Step_T3D_CHM_ud_TBB_Task::map_mesh_to_pcl_task_num_per_thread>(
 			self.thread_num, self.prev_valid_pcl_num);
 	self.map_mesh_to_pcl.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
@@ -321,7 +321,7 @@ int substep_func_T3D_CHM_TBB(void* _self)
 	if (self.substep_index % 100 == 99)
 	{
 #ifdef TIMING
-		res_file_t3d_chm_tbb << self.pcl_sort_time << ", "
+		res_file_t3d_chm_ud_tbb << self.pcl_sort_time << ", "
 			<< self.ne_sort_time << ", "
 			<< self.map_pcl_to_mesh_time << ", "
 			<< self.update_a_and_v_time << ", "

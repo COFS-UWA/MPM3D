@@ -2,7 +2,7 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_cap_compression.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t3d_chm_tbb_cap_compression.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['compression']
 th_num = th_grp.attrs['output_num']
