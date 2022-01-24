@@ -88,15 +88,15 @@ protected:
 			size_t sorted_pcl_in_elem_id;
 			double max_pcl_vol;
 			PclVar_T3D_ME_mt pcl_var_getter;
-#ifdef _DEBUG
+			// for profiling
 			size_t sort_pcl_time, sort_pcl_barrier_time;
-			size_t pcl_to_mesh_time;
+			size_t pcl_to_mesh_time, pcl_to_mesh_barrier_time;
 			size_t sort_node_time, sort_node_barrier_time;
 			size_t node_a_v_time, node_a_v_barrier_time;
 			size_t elem_de_time, elem_de_barrier_time;
 			size_t node_de_time, node_de_barrier_time;
 			size_t mesh_to_pcl_time, mesh_to_pcl_barrier_time;
-#endif
+			size_t iteration_time;
 		};
 		char padding[Cache_Alignment * 20];
 		ThreadData() : pcl_var_getter() {}

@@ -7,11 +7,9 @@
 #include "ParallelReduceTask.hpp"
 #include "Step_T3D_CHM_TBB.h"
 
-#ifdef _DEBUG
-static std::fstream res_file_t3d_chm_tbb;
-#endif
-
 #define TIMING
+
+static std::fstream res_file_t3d_chm_tbb;
 
 Step_T3D_CHM_TBB::Step_T3D_CHM_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T3D_CHM_TBB", &substep_func_T3D_CHM_TBB),
@@ -290,11 +288,11 @@ int substep_func_T3D_CHM_TBB(void* _self)
 
 	// cal strain increment at node
 	task_num = ParaUtil::cal_task_num<
-		Step_T3D_CHM_TBB_Task::min_elem_num_per_task,
+		Step_T3D_CHM_TBB_Task::min_node_elem_num_per_task,
 		Step_T3D_CHM_TBB_Task::cal_node_de_task_num_per_thread>(
-			self.thread_num, self.valid_elem_num);
-	t0 = std::chrono::high_resolution_clock::now();
+			self.thread_num, self.valid_elem_num * 4);
 	self.cal_node_de.update(task_num);
+	t0 = std::chrono::high_resolution_clock::now();
 	ParaUtil::parallel_for(self.cal_node_de, task_num);
 	//tbb::parallel_for(tbb::blocked_range<size_t>(0, node_elem_task_num, 1), self.cal_node_de);
 	t1 = std::chrono::high_resolution_clock::now();
@@ -318,7 +316,7 @@ int substep_func_T3D_CHM_TBB(void* _self)
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time += (t1 - t0).count();
 
-	if (self.substep_index % 100 == 99)
+	if (self.substep_index % 10 == 9)
 	{
 #ifdef TIMING
 		res_file_t3d_chm_tbb << self.pcl_sort_time << ", "

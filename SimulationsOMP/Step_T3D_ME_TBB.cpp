@@ -7,12 +7,10 @@
 #include "ParallelReduceTask.hpp"
 #include "Step_T3D_ME_TBB.h"
 
-#ifdef _DEBUG
-static std::fstream res_file_t3d_me_tbb;
-#endif
-
 // wether to record the time
 #define TIMING
+
+static std::fstream res_file_t3d_me_tbb;
 
 Step_T3D_ME_TBB::Step_T3D_ME_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T3D_ME_TBB", &cal_substep_func_T3D_ME_TBB),
@@ -275,7 +273,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	task_num = ParaUtil::cal_task_num<
 		Step_T3D_ME_TBB_Task::min_pcl_num_per_task,
 		Step_T3D_ME_TBB_Task::map_mesh_to_pcl_task_num_per_thread>(
-			self.thread_num, self.valid_pcl_num);
+			self.thread_num, self.prev_valid_pcl_num);
 	self.map_mesh_to_pcl.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, task_num);

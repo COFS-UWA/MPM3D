@@ -175,7 +175,7 @@ void test_t3d_chm_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	Step_T3D_CHM_TBB step("step2");
 	step.set_model(model);
 	//step.set_thread_num(4);
-	step.set_step_time(6.0e-6);
+	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
