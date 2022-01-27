@@ -72,10 +72,10 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::LinearElasticity& le = les[pcl_id];
+		MatModel::LinearElasticity& le = *les;
 		le.set_param(1.0e6, 0.2);
-		//model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
-		mms[pcl_id] = &le;
+		mms[pcl_id] = les;
+		les = model.following_LinearElasticity(les);
 	}
 	// Tresca
 	//MatModel::Tresca *trcs = model.add_Tresca(pcl_num);

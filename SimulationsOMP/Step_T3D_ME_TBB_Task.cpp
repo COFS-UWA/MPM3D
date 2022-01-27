@@ -634,8 +634,8 @@ namespace Step_T3D_ME_TBB_Task
 
 		const Acceleration *pn_a1, *pn_a2, *pn_a3, *pn_a4;
 		const Velocity *pn_v1, *pn_v2, *pn_v3, *pn_v4;
-		StrainInc* pe_de;
-		double dstrain[6];
+		StrainInc* pe_de, dstrain;
+		double e_density;
 		Model_T3D_ME_mt& md = *stp.pmodel;
 		size_t valid_pcl_num = 0;
 		e_id = SIZE_MAX;
@@ -660,13 +660,16 @@ namespace Step_T3D_ME_TBB_Task
 				double e_de_vol = (node_de_vol[eni.n1]
 					+ node_de_vol[eni.n2] + node_de_vol[eni.n3]
 					+ node_de_vol[eni.n4]) * one_fourth;
-				elem_density[e_id] /= 1.0 + e_de_vol;
+				e_density = elem_density[e_id] / (1.0 + e_de_vol);
 				
 				pe_de = elem_de + e_id;
 				e_de_vol *= one_third;
-				pe_de->de11 += e_de_vol;
-				pe_de->de22 += e_de_vol;
-				pe_de->de33 += e_de_vol;
+				dstrain.de11 = pe_de->de11 + e_de_vol;
+				dstrain.de22 = pe_de->de22 + e_de_vol;
+				dstrain.de33 = pe_de->de33 + e_de_vol;
+				dstrain.de12 = pe_de->de12;
+				dstrain.de23 = pe_de->de23;
+				dstrain.de31 = pe_de->de31;
 			}
 
 			// update velocity
@@ -712,17 +715,11 @@ namespace Step_T3D_ME_TBB_Task
 #endif
 
 			// update density
-			pcl_density0[p_id] = elem_density[e_id];
+			pcl_density0[p_id] = e_density;
 
 			// update stress
 			MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
-			dstrain[0] = pe_de->de11;
-			dstrain[1] = pe_de->de22;
-			dstrain[2] = pe_de->de33;
-			dstrain[3] = pe_de->de12;
-			dstrain[4] = pe_de->de23;
-			dstrain[5] = pe_de->de31;
-			pcl_mm.integrate(dstrain);
+			pcl_mm.integrate(dstrain.de);
 			const double* dstress = pcl_mm.get_dstress();
 			Stress& p_s = pcl_stress0[p_id];
 			p_s.s11 += dstress[0];
@@ -738,12 +735,12 @@ namespace Step_T3D_ME_TBB_Task
 #endif
 			const Strain& p_e1 = pcl_strain1[prev_p_id];
 			Strain& p_e0 = pcl_strain0[p_id];
-			p_e0.e11 = p_e1.e11 + pe_de->de11;
-			p_e0.e22 = p_e1.e22 + pe_de->de22;
-			p_e0.e33 = p_e1.e33 + pe_de->de33;
-			p_e0.e12 = p_e1.e12 + pe_de->de12;
-			p_e0.e23 = p_e1.e23 + pe_de->de23;
-			p_e0.e31 = p_e1.e31 + pe_de->de31;
+			p_e0.e11 = p_e1.e11 + dstrain.de11;
+			p_e0.e22 = p_e1.e22 + dstrain.de22;
+			p_e0.e33 = p_e1.e33 + dstrain.de33;
+			p_e0.e12 = p_e1.e12 + dstrain.de12;
+			p_e0.e23 = p_e1.e23 + dstrain.de23;
+			p_e0.e31 = p_e1.e31 + dstrain.de31;
 
 			const double* estrain = pcl_mm.get_dstrain_e();
 			const Strain& p_ee1 = pcl_estrain1[prev_p_id];
@@ -765,6 +762,7 @@ namespace Step_T3D_ME_TBB_Task
 			p_pe0.e23 = p_pe1.e23 + pstrain[4];
 			p_pe0.e31 = p_pe1.e31 + pstrain[5];
 		}
+
 		res.pcl_num = valid_pcl_num;
 	}
 

@@ -1162,6 +1162,7 @@ namespace Step_T3D_CHM_TBB_Task
 			p_pe0.e23 = p_pe1.e23 + pstrain[4];
 			p_pe0.e31 = p_pe1.e31 + pstrain[5];
 		}
+
 		res.pcl_num = valid_pcl_num;
 	}
 
