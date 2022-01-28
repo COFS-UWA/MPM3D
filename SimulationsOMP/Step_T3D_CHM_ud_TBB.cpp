@@ -7,11 +7,9 @@
 #include "ParallelReduceTask.hpp"
 #include "Step_T3D_CHM_ud_TBB.h"
 
-#ifdef _DEBUG
-static std::fstream res_file_t3d_chm_ud_tbb;
-#endif
-
 #define TIMING
+
+static std::fstream res_file_t3d_chm_ud_tbb;
 
 Step_T3D_CHM_ud_TBB::Step_T3D_CHM_ud_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T3D_CHM_ud_TBB", &substep_func_T3D_CHM_ud_TBB),

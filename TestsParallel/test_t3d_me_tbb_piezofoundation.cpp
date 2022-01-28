@@ -11,6 +11,8 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
+#include "ivt_utils.h"
+
 void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 {
 	TetrahedronMesh teh_mesh;
@@ -124,6 +126,8 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 
 void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 {
+	
+
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, "t3d_me_tbb_piezofoundation_sim_mat_model.h5");
@@ -160,7 +164,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
-	step.set_thread_num(4);
+	step.set_thread_num(8);
 	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);

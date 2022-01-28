@@ -7,12 +7,10 @@
 #include "ParallelReduceTask.hpp"
 #include "Step_T3D_ME_TBB.h"
 
-#ifdef _DEBUG
-static std::fstream res_file_t3d_me_tbb;
-#endif
-
 // wether to record the time
 #define TIMING
+
+static std::fstream res_file_t3d_me_tbb;
 
 Step_T3D_ME_TBB::Step_T3D_ME_TBB(const char* _name) :
 	Step_TBB(_name, "Step_T3D_ME_TBB", &cal_substep_func_T3D_ME_TBB),
@@ -33,11 +31,9 @@ Step_T3D_ME_TBB::~Step_T3D_ME_TBB() {}
 
 int Step_T3D_ME_TBB::init_calculation()
 {
-#ifdef _DEBUG
 	res_file_t3d_me_tbb.open("step_t3d_me_tbb.csv", std::ios::out | std::ios::binary);
-	res_file_t3d_me_tbb << "pcl_sort, ne_sort, map_pcl_to_mesh, "
+	res_file_t3d_me_tbb << "substep_id, pcl_sort, ne_sort, map_pcl_to_mesh, "
 		"update_a_and_v, cal_elem_de, cal_node_de, map_mesh_to_pcl\n";
-#endif
 
 	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt*)model;
 	if (md.pcl_num == 0)
@@ -288,7 +284,8 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	if (self.substep_index % 10 == 9)
 	{
 #ifdef TIMING
-		res_file_t3d_me_tbb << self.pcl_sort_time << ", "
+		res_file_t3d_me_tbb << self.substep_index << ", "
+			<< self.pcl_sort_time << ", "
 			<< self.ne_sort_time << ", "
 			<< self.map_pcl_to_mesh_time << ", "
 			<< self.update_a_and_v_time << ", "

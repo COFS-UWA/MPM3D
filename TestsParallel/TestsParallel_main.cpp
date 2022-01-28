@@ -186,11 +186,11 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 	
 	//test_t3d_chm_tbb_cap_compression(argc, argv);
-	test_t3d_chm_tbb_cap_compression_result(argc, argv);
+	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
 
 	// Time profiling
 	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
-	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
+	test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_tbb_piezofoundation_result(argc, argv);
 	
 	//test_t3d_chm_tbb_piezofoundation_sim_mat_model(argc, argv);

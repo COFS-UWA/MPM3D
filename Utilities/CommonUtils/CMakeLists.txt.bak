@@ -17,11 +17,6 @@ add_library(
 
 set(COMMONUTILS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)
 
-target_include_directories(
-    CommonUtils PUBLIC
-    ${COMMONUTILS_INCLUDE_DIR}
-    )
-
 if (EXISTS $ENV{IVT_ROOT})
 	message(STATUS "$ENV{IVT_ROOT}/lib64/libittnotify.lib")
 	target_compile_definitions(CommonUtils PRIVATE __IVT_FOUND__)
@@ -29,6 +24,11 @@ if (EXISTS $ENV{IVT_ROOT})
 	target_link_directories(CommonUtils PUBLIC "$ENV{IVT_ROOT}/lib64/")
 	target_link_libraries(CommonUtils PUBLIC "$ENV{IVT_ROOT}/lib64/libittnotify.lib")
 endif()
+
+target_include_directories(
+    CommonUtils PUBLIC
+    ${COMMONUTILS_INCLUDE_DIR}
+    )
 
 if (MSVC)
     target_compile_definitions(CommonUtils PRIVATE _CRT_SECURE_NO_WARNINGS)
