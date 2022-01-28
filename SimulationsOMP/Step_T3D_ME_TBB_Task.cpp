@@ -1058,4 +1058,251 @@ namespace Step_T3D_ME_TBB_Task
 		}
 		rc_cf = rc_cf_tmp;
 	}
+	
+	// split map bg mesh to pcl
+	void MapBgMeshToPcl0::init() noexcept
+	{
+		pcl_pos = stp.pcl_pos;
+		//
+		elem_node_id = stp.elem_node_id;
+		node_a = stp.node_a;
+		node_v = stp.node_v;
+		elem_density = stp.elem_density;
+		node_de_vol = stp.node_de_vol;
+		//
+		auto& pcl_sort = stp.pcl_sort;
+		pcl_in_elems = pcl_sort.out_pcl_in_elems();
+		prev_pcl_ids = pcl_sort.out_prev_pcl_ids();
+		in_pcl_in_elems = pcl_sort.in_pcl_in_elems();
+		in_prev_pcl_ids = pcl_sort.in_prev_pcl_ids();
+	}
+
+	void MapBgMeshToPcl0::update(size_t tsk_num) noexcept
+	{
+		const auto& spva0 = stp.spvas[stp.next_spva_id()];
+		const auto& spva1 = stp.spvas[stp.prev_spva_id()];
+		pcl_index0 = spva0.pcl_index;
+		pcl_density0 = spva0.pcl_density;
+		pcl_v0 = spva0.pcl_v;
+		pcl_disp0 = spva0.pcl_disp;
+		pcl_N0 = spva0.pcl_N;
+
+		pcl_num = stp.prev_valid_pcl_num;
+		task_num = tsk_num;
+	}
+
+	void MapBgMeshToPcl0::work(size_t tsk_id, MapBgMeshToPclRes& res) const
+	{
+		size_t e_id;
+		size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id0];
+		while (p_id0 != SIZE_MAX && e_id == pcl_in_elems[--p_id0]);
+		++p_id0;
+		assert(p_id0 <= stp.prev_valid_pcl_num);
+		size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id1];
+		while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
+		++p_id1;
+		assert(p_id1 <= stp.prev_valid_pcl_num);
+
+		const Acceleration* pn_a1, * pn_a2, * pn_a3, * pn_a4;
+		const Velocity* pn_v1, * pn_v2, * pn_v3, * pn_v4;
+		double e_density;
+		Model_T3D_ME_mt& md = *stp.pmodel;
+		size_t valid_pcl_num = 0;
+		e_id = SIZE_MAX;
+		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		{
+			if (e_id != pcl_in_elems[p_id])
+			{
+				e_id = pcl_in_elems[p_id];
+#ifdef _DEBUG
+				assert(e_id < stp.elem_num);
+#endif
+				const ElemNodeIndex& eni = elem_node_id[e_id];
+				pn_a1 = node_a + eni.n1;
+				pn_a2 = node_a + eni.n2;
+				pn_a3 = node_a + eni.n3;
+				pn_a4 = node_a + eni.n4;
+				pn_v1 = node_v + eni.n1;
+				pn_v2 = node_v + eni.n2;
+				pn_v3 = node_v + eni.n3;
+				pn_v4 = node_v + eni.n4;
+
+				double e_de_vol = (node_de_vol[eni.n1]
+					+ node_de_vol[eni.n2] + node_de_vol[eni.n3]
+					+ node_de_vol[eni.n4]) * one_fourth;
+				e_density = elem_density[e_id] / (1.0 + e_de_vol);
+			}
+
+			// update velocity
+			ShapeFunc& p_N = pcl_N0[p_id];
+			Velocity& p_v0 = pcl_v0[p_id];
+			p_v0.vx += (p_N.N1 * pn_a1->ax + p_N.N2 * pn_a2->ax + p_N.N3 * pn_a3->ax + p_N.N4 * pn_a4->ax) * stp.dtime;
+			p_v0.vy += (p_N.N1 * pn_a1->ay + p_N.N2 * pn_a2->ay + p_N.N3 * pn_a3->ay + p_N.N4 * pn_a4->ay) * stp.dtime;
+			p_v0.vz += (p_N.N1 * pn_a1->az + p_N.N2 * pn_a2->az + p_N.N3 * pn_a3->az + p_N.N4 * pn_a4->az) * stp.dtime;
+
+			// update displacement
+			Displacement& p_d0 = pcl_disp0[p_id];
+			p_d0.ux += (p_N.N1 * pn_v1->vx + p_N.N2 * pn_v2->vx + p_N.N3 * pn_v3->vx + p_N.N4 * pn_v4->vx) * stp.dtime;
+			p_d0.uy += (p_N.N1 * pn_v1->vy + p_N.N2 * pn_v2->vy + p_N.N3 * pn_v3->vy + p_N.N4 * pn_v4->vy) * stp.dtime;
+			p_d0.uz += (p_N.N1 * pn_v1->vz + p_N.N2 * pn_v2->vz + p_N.N3 * pn_v3->vz + p_N.N4 * pn_v4->vz) * stp.dtime;
+
+			// update location (in which element)
+			const size_t ori_p_id = pcl_index0[p_id];
+#ifdef _DEBUG
+			assert(ori_p_id < stp.ori_pcl_num);
+#endif
+			const Position& p_p = pcl_pos[ori_p_id];
+			const double p_x = p_p.x + p_d0.ux;
+			const double p_y = p_p.y + p_d0.uy;
+			const double p_z = p_p.z + p_d0.uz;
+			size_t p_e_id = e_id;
+			if (!md.is_in_element(p_x, p_y, p_z, e_id, p_N))
+			{
+				p_e_id = md.find_pcl_in_which_elem(p_x, p_y, p_z, p_N);
+				if (p_e_id == SIZE_MAX)
+				{
+					if (md.is_in_element_tol(p_x, p_y, p_z, e_id, p_N))
+						p_e_id = e_id;
+					else
+						p_e_id = md.find_pcl_in_which_elem_tol(p_x, p_y, p_z, p_N);
+				}
+			}
+			in_pcl_in_elems[p_id] = p_e_id;
+			in_prev_pcl_ids[p_id] = p_id;
+			if (p_e_id != SIZE_MAX)
+				++valid_pcl_num;
+#ifdef _DEBUG
+			assert(p_e_id < stp.elem_num || p_e_id == SIZE_MAX);
+#endif
+
+			// update density
+			pcl_density0[p_id] = e_density;
+		}
+
+		res.pcl_num = valid_pcl_num;
+	}
+
+	void MapBgMeshToPcl1::init() noexcept
+	{
+		pcl_mat_model = stp.pcl_mat_model;
+		//
+		elem_node_id = stp.elem_node_id;
+		elem_de = stp.elem_de;
+		node_de_vol = stp.node_de_vol;
+		//
+		auto& pcl_sort = stp.pcl_sort;
+		pcl_in_elems = pcl_sort.out_pcl_in_elems();
+		prev_pcl_ids = pcl_sort.out_prev_pcl_ids();
+	}
+
+	void MapBgMeshToPcl1::update(size_t tsk_num) noexcept
+	{
+		const auto& spva0 = stp.spvas[stp.next_spva_id()];
+		const auto& spva1 = stp.spvas[stp.prev_spva_id()];
+		pcl_index0 = spva0.pcl_index;
+		pcl_stress0 = spva0.pcl_stress;
+		pcl_strain0 = spva0.pcl_strain;
+		pcl_estrain0 = spva0.pcl_estrain;
+		pcl_pstrain0 = spva0.pcl_pstrain;
+		pcl_strain1 = spva1.pcl_strain;
+		pcl_estrain1 = spva1.pcl_estrain;
+		pcl_pstrain1 = spva1.pcl_pstrain;
+
+		pcl_num = stp.prev_valid_pcl_num;
+		task_num = tsk_num;
+	}
+
+	void MapBgMeshToPcl1::work(size_t tsk_id) const
+	{
+		size_t e_id;
+		size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id0];
+		while (p_id0 != SIZE_MAX && e_id == pcl_in_elems[--p_id0]);
+		++p_id0;
+		assert(p_id0 <= stp.prev_valid_pcl_num);
+		size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id1];
+		while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
+		++p_id1;
+		assert(p_id1 <= stp.prev_valid_pcl_num);
+
+		StrainInc dstrain;
+		double e_density;
+		Model_T3D_ME_mt& md = *stp.pmodel;
+		size_t valid_pcl_num = 0;
+		e_id = SIZE_MAX;
+		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
+		{
+			if (e_id != pcl_in_elems[p_id])
+			{
+				e_id = pcl_in_elems[p_id];
+#ifdef _DEBUG
+				assert(e_id < stp.elem_num);
+#endif
+				const ElemNodeIndex& eni = elem_node_id[e_id];
+
+				const double e_de_vol = (node_de_vol[eni.n1]
+					+ node_de_vol[eni.n2] + node_de_vol[eni.n3]
+					+ node_de_vol[eni.n4]) * one_fourth * one_third;
+
+				const StrainInc& e_de = elem_de[e_id];
+				dstrain.de11 = e_de.de11 + e_de_vol;
+				dstrain.de22 = e_de.de22 + e_de_vol;
+				dstrain.de33 = e_de.de33 + e_de_vol;
+				dstrain.de12 = e_de.de12;
+				dstrain.de23 = e_de.de23;
+				dstrain.de31 = e_de.de31;
+			}
+
+			// update location (in which element)
+			const size_t ori_p_id = pcl_index0[p_id];
+
+			// update stress
+			MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
+			pcl_mm.integrate(dstrain.de);
+			const double* dstress = pcl_mm.get_dstress();
+			Stress& p_s = pcl_stress0[p_id];
+			p_s.s11 += dstress[0];
+			p_s.s22 += dstress[1];
+			p_s.s33 += dstress[2];
+			p_s.s12 += dstress[3];
+			p_s.s23 += dstress[4];
+			p_s.s31 += dstress[5];
+
+			const size_t prev_p_id = prev_pcl_ids[p_id];
+#ifdef _DEBUG
+			assert(prev_p_id < stp.prev_valid_pcl_num_tmp);
+#endif
+			const Strain& p_e1 = pcl_strain1[prev_p_id];
+			Strain& p_e0 = pcl_strain0[p_id];
+			p_e0.e11 = p_e1.e11 + dstrain.de11;
+			p_e0.e22 = p_e1.e22 + dstrain.de22;
+			p_e0.e33 = p_e1.e33 + dstrain.de33;
+			p_e0.e12 = p_e1.e12 + dstrain.de12;
+			p_e0.e23 = p_e1.e23 + dstrain.de23;
+			p_e0.e31 = p_e1.e31 + dstrain.de31;
+
+			const double* estrain = pcl_mm.get_dstrain_e();
+			const Strain& p_ee1 = pcl_estrain1[prev_p_id];
+			Strain& p_ee0 = pcl_estrain0[p_id];
+			p_ee0.e11 = p_ee1.e11 + estrain[0];
+			p_ee0.e22 = p_ee1.e22 + estrain[1];
+			p_ee0.e33 = p_ee1.e33 + estrain[2];
+			p_ee0.e12 = p_ee1.e12 + estrain[3];
+			p_ee0.e23 = p_ee1.e23 + estrain[4];
+			p_ee0.e31 = p_ee1.e31 + estrain[5];
+
+			const double* pstrain = pcl_mm.get_dstrain_p();
+			const Strain& p_pe1 = pcl_pstrain1[prev_p_id];
+			Strain& p_pe0 = pcl_pstrain0[p_id];
+			p_pe0.e11 = p_pe1.e11 + pstrain[0];
+			p_pe0.e22 = p_pe1.e22 + pstrain[1];
+			p_pe0.e33 = p_pe1.e33 + pstrain[2];
+			p_pe0.e12 = p_pe1.e12 + pstrain[3];
+			p_pe0.e23 = p_pe1.e23 + pstrain[4];
+			p_pe0.e31 = p_pe1.e31 + pstrain[5];
+		}
+	}
 }

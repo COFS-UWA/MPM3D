@@ -355,6 +355,92 @@ namespace Step_T3D_ME_TBB_Task
 		}
 		inline void join(const MapBgMeshToPclTbb& other) noexcept { res.join(other.res); }
 	};
+
+	class MapBgMeshToPcl0
+	{
+	protected:
+		typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T3D_ME_mt::Acceleration Acceleration;
+		typedef Model_T3D_ME_mt::Velocity Velocity;
+		typedef Model_T3D_ME_mt::Displacement Displacement;
+		typedef Model_T3D_ME_mt::Position Position;
+		typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
+
+		Step_T3D_ME_TBB& stp;
+
+		// pcls
+		const Position* pcl_pos;
+		// bg mesh
+		const ElemNodeIndex* elem_node_id;
+		const Acceleration* node_a;
+		const Velocity* node_v;
+		double* elem_density;
+		const double* node_de_vol;
+		// pcl vars
+		const size_t* pcl_index0;
+		double* pcl_density0;
+		Velocity* pcl_v0;
+		Displacement* pcl_disp0;
+		ShapeFunc* pcl_N0;
+
+		// pcl ranges
+		const size_t* pcl_in_elems, * prev_pcl_ids;
+		size_t* in_pcl_in_elems, * in_prev_pcl_ids;
+
+		size_t pcl_num, task_num;
+
+	public:
+		MapBgMeshToPcl0(Step_T3D_ME_TBB& _stp) : stp(_stp) {}
+		void init() noexcept;
+		void update(size_t tsk_num) noexcept;
+		void work(size_t tsk_id, MapBgMeshToPclRes& res) const;
+		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id, MapBgMeshToPclRes &res) const
+		{ work(tsk_id, res); return nullptr; }
+	};
+
+	class MapBgMeshToPcl1
+	{
+	protected:
+		typedef Model_T3D_ME_mt::ElemNodeIndex ElemNodeIndex;
+		typedef Model_T3D_ME_mt::Acceleration Acceleration;
+		typedef Model_T3D_ME_mt::Velocity Velocity;
+		typedef Model_T3D_ME_mt::Displacement Displacement;
+		typedef Model_T3D_ME_mt::Position Position;
+		typedef Model_T3D_ME_mt::Stress Stress;
+		typedef Model_T3D_ME_mt::Strain Strain;
+		typedef Model_T3D_ME_mt::StrainInc StrainInc;
+		typedef Model_T3D_ME_mt::ShapeFunc ShapeFunc;
+
+		Step_T3D_ME_TBB& stp;
+
+		// pcls
+		MatModel::MaterialModel** pcl_mat_model;
+		// bg mesh
+		const ElemNodeIndex* elem_node_id;
+		StrainInc* elem_de;
+		const double* node_de_vol;
+		// pcl vars
+		const size_t* pcl_index0;
+		Stress* pcl_stress0;
+		Strain* pcl_strain0;
+		Strain* pcl_estrain0;
+		Strain* pcl_pstrain0;
+		//
+		const Strain* pcl_strain1;
+		const Strain* pcl_estrain1;
+		const Strain* pcl_pstrain1;
+		// pcl ranges
+		const size_t* pcl_in_elems, * prev_pcl_ids;
+
+		size_t pcl_num, task_num;
+
+	public:
+		MapBgMeshToPcl1(Step_T3D_ME_TBB& _stp) : stp(_stp) {}
+		void init() noexcept;
+		void update(size_t tsk_num) noexcept;
+		void work(size_t tsk_id) const;
+		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id) const { work(tsk_id); return nullptr; }
+	};
 }
 
 #endif

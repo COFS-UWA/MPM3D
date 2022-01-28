@@ -46,6 +46,8 @@ protected:
 	typedef Step_T3D_ME_TBB_Task::CalElemDeAndMapToNode CalElemDeAndMapToNode;
 	typedef Step_T3D_ME_TBB_Task::CalNodeDe CalNodeDe;
 	typedef Step_T3D_ME_TBB_Task::MapBgMeshToPcl MapBgMeshToPcl;
+	typedef Step_T3D_ME_TBB_Task::MapBgMeshToPcl0 MapBgMeshToPcl0;
+	typedef Step_T3D_ME_TBB_Task::MapBgMeshToPcl1 MapBgMeshToPcl1;
 	// reduce res
 	typedef Step_T3D_ME_TBB_Task::InitPclRes InitPclRes;
 	typedef Step_T3D_ME_TBB_Task::MapPclToBgMeshRes MapPclToBgMeshRes;
@@ -62,6 +64,8 @@ protected:
 	friend class CalElemDeAndMapToNode;
 	friend class CalNodeDe;
 	friend class MapBgMeshToPcl;
+	friend class MapBgMeshToPcl0;
+	friend class MapBgMeshToPcl1;
 
 	tbb::task_scheduler_init sche_init;
 	
@@ -117,6 +121,8 @@ protected:
 	CalElemDeAndMapToNode cal_elem_de;
 	CalNodeDe cal_node_de;
 	MapBgMeshToPcl map_mesh_to_pcl;
+	MapBgMeshToPcl0 map_mesh_to_pcl0;
+	MapBgMeshToPcl1 map_mesh_to_pcl1;
 
 	// tbb parallel_reduce
 	InitPclTbb init_pcl_tbb;
@@ -151,7 +157,9 @@ protected:
 	size_t cal_elem_de_time;
 	size_t cal_node_de_time;
 	size_t map_mesh_to_pcl_time;
-	
+	size_t map_mesh_to_pcl_time0;
+	size_t map_mesh_to_pcl_time1;
+
 	int init_calculation() override;
 	friend int cal_substep_func_T3D_ME_TBB(void* _self);
 	int finalize_calculation() override;
