@@ -201,7 +201,9 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	self.map_pcl_to_mesh.update(task_num);
 	self.cont_rigid_body.update();
 	t0 = std::chrono::high_resolution_clock::now();
+	IVT_RESUME;
 	ParaUtil::parallel_reduce(self.map_pcl_to_mesh, self.map_pcl_to_mesh_res, task_num);
+	IVT_PAUSE;
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_pcl_to_mesh_time += (t1 - t0).count();
 	//self.map_pcl_to_mesh_tbb.reset();
@@ -276,12 +278,12 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 			self.thread_num, self.prev_valid_pcl_num);
 	self.map_mesh_to_pcl.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
-	IVT_RESUME;
+	//IVT_RESUME;
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, task_num);
 	//self.map_mesh_to_pcl_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_mesh_to_pcl_tbb);
 	//self.valid_pcl_num = self.map_mesh_to_pcl_tbb.res.pcl_num;
-	IVT_PAUSE;
+	//IVT_PAUSE;
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time += (t1 - t0).count();
 	
