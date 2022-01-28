@@ -234,6 +234,8 @@ void test_t3d_me_mt_piezofoundation_sim_mat_restart(int argc, char** argv)
 // =================== tbb version and restart ===================
 void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 {
+	IVT_PAUSE;
+
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, "t3d_me_tbb_piezofoundation_sim_mat_model.h5");

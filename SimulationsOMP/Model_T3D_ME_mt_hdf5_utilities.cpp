@@ -628,8 +628,7 @@ int output_material_model_to_hdf5_file(
 int load_material_model_from_hdf5_file(
 	Model_T3D_ME_mt &md,
 	ResultFile_hdf5 &rf,
-	hid_t grp_id
-	)
+	hid_t grp_id)
 {
 	if (grp_id < 0)
 		return -1;
