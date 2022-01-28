@@ -24,6 +24,8 @@ Step_T3D_ME_TBB::Step_T3D_ME_TBB(const char* _name) :
 	cal_elem_de(*this),
 	cal_node_de(*this),
 	map_mesh_to_pcl(*this),
+	map_mesh_to_pcl0(*this),
+	map_mesh_to_pcl1(*this),
 	// tbb::parallel_reduce
 	init_pcl_tbb(init_pcl),
 	map_pcl_to_mesh_tbb(map_pcl_to_mesh),
@@ -118,6 +120,8 @@ int Step_T3D_ME_TBB::init_calculation()
 	cal_node_de.init();
 	map_mesh_to_pcl.init();
 	map_pcl_to_mesh_res.react_force.reset();
+	map_mesh_to_pcl0.init();
+	map_mesh_to_pcl1.init();
 
 	ParaUtil::parallel_reduce(init_pcl, init_pcl_res, init_pcl.get_task_num());
 	//init_pcl_tbb.reset();
@@ -131,6 +135,8 @@ int Step_T3D_ME_TBB::init_calculation()
 	cal_elem_de_time = 0;
 	cal_node_de_time = 0;
 	map_mesh_to_pcl_time = 0;
+	map_mesh_to_pcl_time0 = 0;
+	map_mesh_to_pcl_time1 = 0;
 	
 	return 0;
 }
@@ -276,17 +282,38 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 		Step_T3D_ME_TBB_Task::min_pcl_num_per_task,
 		Step_T3D_ME_TBB_Task::map_mesh_to_pcl_task_num_per_thread>(
 			self.thread_num, self.prev_valid_pcl_num);
-	self.map_mesh_to_pcl.update(task_num);
+	
+	//self.map_mesh_to_pcl.update(task_num);
+	//t0 = std::chrono::high_resolution_clock::now();
+	//ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, task_num);
+	////self.map_mesh_to_pcl_tbb.reset();
+	////tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_mesh_to_pcl_tbb);
+	////self.valid_pcl_num = self.map_mesh_to_pcl_tbb.res.pcl_num;
+	//t1 = std::chrono::high_resolution_clock::now();
+	//self.map_mesh_to_pcl_time += (t1 - t0).count();
+	
+	self.map_mesh_to_pcl0.update(task_num);
+	t0 = std::chrono::high_resolution_clock::now();
+	IVT_RESUME;
+	ParaUtil::parallel_reduce(self.map_mesh_to_pcl0, self.map_mesh_to_pcl_res, task_num);
+	//self.map_mesh_to_pcl_tbb.reset();
+	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_mesh_to_pcl_tbb);
+	//self.valid_pcl_num = self.map_mesh_to_pcl_tbb.res.pcl_num;
+	IVT_PAUSE;
+	t1 = std::chrono::high_resolution_clock::now();
+	self.map_mesh_to_pcl_time0 += (t1 - t0).count();
+
+	self.map_mesh_to_pcl1.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
 	//IVT_RESUME;
-	ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, task_num);
+	ParaUtil::parallel_for(self.map_mesh_to_pcl1, task_num);
 	//self.map_mesh_to_pcl_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_mesh_to_pcl_tbb);
 	//self.valid_pcl_num = self.map_mesh_to_pcl_tbb.res.pcl_num;
 	//IVT_PAUSE;
 	t1 = std::chrono::high_resolution_clock::now();
-	self.map_mesh_to_pcl_time += (t1 - t0).count();
-	
+	self.map_mesh_to_pcl_time1 += (t1 - t0).count();
+
 	if (self.substep_index % 10 == 9)
 	{
 #ifdef TIMING
@@ -297,7 +324,9 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 			<< self.update_a_and_v_time << ", "
 			<< self.cal_elem_de_time << ", "
 			<< self.cal_node_de_time << ", "
-			<< self.map_mesh_to_pcl_time << "\n";
+			<< self.map_mesh_to_pcl_time << ", "
+			<< self.map_mesh_to_pcl_time0 << ", "
+			<< self.map_mesh_to_pcl_time1 << "\n";
 #endif
 		self.pcl_sort_time = 0;
 		self.ne_sort_time = 0;
@@ -306,6 +335,8 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 		self.cal_elem_de_time = 0;
 		self.cal_node_de_time = 0;
 		self.map_mesh_to_pcl_time = 0;
+		self.map_mesh_to_pcl_time0 = 0;
+		self.map_mesh_to_pcl_time1 = 0;
 	}
 
 	self.continue_calculation();
