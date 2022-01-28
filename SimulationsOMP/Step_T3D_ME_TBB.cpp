@@ -271,7 +271,7 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	task_num = ParaUtil::cal_task_num<
 		Step_T3D_ME_TBB_Task::min_pcl_num_per_task,
 		Step_T3D_ME_TBB_Task::map_mesh_to_pcl_task_num_per_thread>(
-			self.thread_num, self.valid_pcl_num);
+			self.thread_num, self.prev_valid_pcl_num);
 	self.map_mesh_to_pcl.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, task_num);

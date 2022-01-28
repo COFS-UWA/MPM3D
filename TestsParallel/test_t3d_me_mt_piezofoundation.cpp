@@ -3,10 +3,12 @@
 #include "ParticleGenerator3D.hpp"
 #include "Model_T3D_ME_mt.h"
 #include "ModelData_T3D_ME_mt.h"
-#include "Step_T3D_ME_mt.h"
-#include "TimeHistory_T3D_ME_mt_complete.h"
 #include "Step_T3D_ME_mt_Geo.h"
 #include "TimeHistory_T3D_ME_mt_Geo_complete.h"
+#include "Step_T3D_ME_mt.h"
+#include "TimeHistory_T3D_ME_mt_complete.h"
+#include "Step_T3D_ME_TBB.h"
+#include "TimeHistory_T3D_ME_TBB_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_ME_mt.h"
 #include "test_parallel_utils.h"
@@ -320,6 +322,57 @@ void test_t3d_me_mt_piezofoundation2(int argc, char** argv)
 	step.set_step_time(0.5); // 0.3 when v=-1.5 0.6=0.45D
 	//step.set_thread_num(4);
 	//step.set_step_time(6.0e-6);
+	step.set_dtime(2.0e-6);
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
+}
+
+// continue the simulation of piezofoundation
+void test_t3d_me_tbb_piezofoundation_hypo(int argc, char** argv)
+{
+	Model_T3D_ME_mt model;
+	Step_T3D_ME_TBB step("step2");
+	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
+		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 21); // 21
+	std::cout << "Load model completed.\n";
+
+	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	md_disp.set_model(model);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(-90.0f, -20.0f);
+	md_disp.set_light_dir(-60.0f, 15.0f);
+	md_disp.set_display_bg_mesh(false);
+	//md_disp.set_view_dist_scale(0.6);
+	md_disp.set_pts_from_vx_bc(0.05);
+	//md_disp.set_pts_from_vy_bc(0.05);
+	//md_disp.set_pts_from_vz_bc(0.05);
+	md_disp.start();
+	return;
+
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.5);
+	constexpr double sml_pcl_size = 0.03125;
+	model.set_contact_param(20000.0 / (sml_pcl_size * sml_pcl_size),
+		20000.0 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_me_tbb_piezofoundation.h5");
+
+	ModelData_T3D_ME_mt md;
+	md.output_model(model, res_file_hdf5);
+	std::cout << "Output model completed.\n";
+
+	TimeHistory_T3D_ME_TBB_complete out1("penetration");
+	out1.set_interval_num(100);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_res_file(res_file_hdf5);
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
+
+	std::cout << "Start solving...\n";
+	step.set_thread_num(4); // 22
+	step.set_step_time(2.0e-3); // 0.9
 	step.set_dtime(2.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
