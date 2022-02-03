@@ -37,7 +37,8 @@ int Step_T3D_ME_TBB::init_calculation()
 {
 	res_file_t3d_me_tbb.open("step_t3d_me_tbb.csv", std::ios::out | std::ios::binary);
 	res_file_t3d_me_tbb << "substep_id, pcl_sort, ne_sort, map_pcl_to_mesh, "
-		"update_a_and_v, cal_elem_de, cal_node_de, map_mesh_to_pcl\n";
+		"update_a_and_v, cal_elem_de, cal_node_de, map_mesh_to_pcl, "
+		"map_mesh_to_pcl0, map_mesh_to_pcl1\n";
 
 	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt*)model;
 	if (md.pcl_num == 0)
@@ -207,9 +208,9 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	self.map_pcl_to_mesh.update(task_num);
 	self.cont_rigid_body.update();
 	t0 = std::chrono::high_resolution_clock::now();
-	IVT_RESUME;
+	//IVT_RESUME;
 	ParaUtil::parallel_reduce(self.map_pcl_to_mesh, self.map_pcl_to_mesh_res, task_num);
-	IVT_PAUSE;
+	//IVT_PAUSE;
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_pcl_to_mesh_time += (t1 - t0).count();
 	//self.map_pcl_to_mesh_tbb.reset();
@@ -294,25 +295,26 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	
 	self.map_mesh_to_pcl0.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
-	IVT_RESUME;
+	//IVT_RESUME;
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl0, self.map_mesh_to_pcl_res, task_num);
+	//IVT_PAUSE;
 	//self.map_mesh_to_pcl_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_mesh_to_pcl_tbb);
 	//self.valid_pcl_num = self.map_mesh_to_pcl_tbb.res.pcl_num;
-	IVT_PAUSE;
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time0 += (t1 - t0).count();
 
 	self.map_mesh_to_pcl1.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
-	//IVT_RESUME;
+	IVT_RESUME;
 	ParaUtil::parallel_for(self.map_mesh_to_pcl1, task_num);
+	IVT_PAUSE;
 	//self.map_mesh_to_pcl_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_mesh_to_pcl_tbb);
 	//self.valid_pcl_num = self.map_mesh_to_pcl_tbb.res.pcl_num;
-	//IVT_PAUSE;
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time1 += (t1 - t0).count();
+	self.map_mesh_to_pcl_time = self.map_mesh_to_pcl_time0 + self.map_mesh_to_pcl_time1;
 
 	if (self.substep_index % 10 == 9)
 	{

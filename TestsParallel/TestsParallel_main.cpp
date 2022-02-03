@@ -179,8 +179,8 @@ int main(int argc, char *argv[])
 	//test_t3d_me_tbb_1d_compression(argc, argv);
 	//test_t3d_me_tbb_1d_compression_result(argc, argv);
 	
-	//test_t3d_me_tbb_cap_compression(argc, argv);
-	//test_t3d_me_tbb_cap_compression_result(argc, argv);
+	test_t3d_me_tbb_cap_compression(argc, argv);
+	test_t3d_me_tbb_cap_compression_result(argc, argv);
 
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 	// Time profiling
 	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
 	// tbb version
-	test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
 	// mt verstion
 	//test_t3d_me_mt_piezofoundation_sim_mat(argc, argv);
