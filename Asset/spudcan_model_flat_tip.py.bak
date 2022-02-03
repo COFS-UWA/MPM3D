@@ -9,7 +9,7 @@ h2 = 0.47
 h3 = 1.2
 r_tip = 0.157
 r1 = 1.5
-r2 = 0.236
+r2 = 0.235
 
 # create spudcan model
 md = mdb.models['Model-1']
