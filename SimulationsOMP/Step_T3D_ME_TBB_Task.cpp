@@ -1259,23 +1259,23 @@ namespace Step_T3D_ME_TBB_Task
 			const size_t ori_p_id = pcl_index0[p_id];
 
 			// update stress
-			constexpr double E = 1.0e6;
-			constexpr double niu = 0.2;
-			constexpr double coef1 = (1.0 - niu) / ((1.0 + niu) * (1.0 - 2.0 * niu)) * E;
-			constexpr double coef2 = niu / ((1.0 + niu) * (1.0 - 2.0 * niu)) * E;
-			constexpr double coef3 = E / (1.0 + niu);
-			const double dstress[6] = {
-				coef1 * dstrain.de11 + coef2 * dstrain.de22 + coef2 * dstrain.de33,
-				coef2 * dstrain.de11 + coef1 * dstrain.de22 + coef2 * dstrain.de33,
-				coef2 * dstrain.de11 + coef2 * dstrain.de22 + coef1 * dstrain.de33,
-				coef3 * dstrain.de12,
-				coef3 * dstrain.de23,
-				coef3 * dstrain.de31
-			};
+			//constexpr double E = 1.0e6;
+			//constexpr double niu = 0.2;
+			//constexpr double coef1 = (1.0 - niu) / ((1.0 + niu) * (1.0 - 2.0 * niu)) * E;
+			//constexpr double coef2 = niu / ((1.0 + niu) * (1.0 - 2.0 * niu)) * E;
+			//constexpr double coef3 = E / (1.0 + niu);
+			//const double dstress[6] = {
+			//	coef1 * dstrain.de11 + coef2 * dstrain.de22 + coef2 * dstrain.de33,
+			//	coef2 * dstrain.de11 + coef1 * dstrain.de22 + coef2 * dstrain.de33,
+			//	coef2 * dstrain.de11 + coef2 * dstrain.de22 + coef1 * dstrain.de33,
+			//	coef3 * dstrain.de12,
+			//	coef3 * dstrain.de23,
+			//	coef3 * dstrain.de31
+			//};
 
-			//MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
-			//pcl_mm.integrate(dstrain.de);
-			//const double* dstress = pcl_mm.get_dstress();
+			MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
+			pcl_mm.integrate(dstrain.de);
+			const double* dstress = pcl_mm.get_dstress();
 
 			Stress& p_s = pcl_stress0[p_id];
 			p_s.s11 += dstress[0];
@@ -1285,43 +1285,43 @@ namespace Step_T3D_ME_TBB_Task
 			p_s.s23 += dstress[4];
 			p_s.s31 += dstress[5];
 
-//			const size_t prev_p_id = prev_pcl_ids[p_id];
-//#ifdef _DEBUG
-//			assert(prev_p_id < stp.prev_valid_pcl_num_tmp);
-//#endif
-//			const Strain& p_e1 = pcl_strain1[prev_p_id];
-//			Strain& p_e0 = pcl_strain0[p_id];
-//			p_e0.e11 = p_e1.e11 + dstrain.de11;
-//			p_e0.e22 = p_e1.e22 + dstrain.de22;
-//			p_e0.e33 = p_e1.e33 + dstrain.de33;
-//			p_e0.e12 = p_e1.e12 + dstrain.de12;
-//			p_e0.e23 = p_e1.e23 + dstrain.de23;
-//			p_e0.e31 = p_e1.e31 + dstrain.de31;
-//
-//			const double estrain[6] = {
-//				dstrain.de11, dstrain.de22, dstrain.de33,
-//				dstrain.de12, dstrain.de23, dstrain.de31
-//			};
-//			//const double* estrain = pcl_mm.get_dstrain_e();
-//			const Strain& p_ee1 = pcl_estrain1[prev_p_id];
-//			Strain& p_ee0 = pcl_estrain0[p_id];
-//			p_ee0.e11 = p_ee1.e11 + estrain[0];
-//			p_ee0.e22 = p_ee1.e22 + estrain[1];
-//			p_ee0.e33 = p_ee1.e33 + estrain[2];
-//			p_ee0.e12 = p_ee1.e12 + estrain[3];
-//			p_ee0.e23 = p_ee1.e23 + estrain[4];
-//			p_ee0.e31 = p_ee1.e31 + estrain[5];
-//
-//			const double pstrain[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-//			//const double* pstrain = pcl_mm.get_dstrain_p();
-//			const Strain& p_pe1 = pcl_pstrain1[prev_p_id];
-//			Strain& p_pe0 = pcl_pstrain0[p_id];
-//			p_pe0.e11 = p_pe1.e11 + pstrain[0];
-//			p_pe0.e22 = p_pe1.e22 + pstrain[1];
-//			p_pe0.e33 = p_pe1.e33 + pstrain[2];
-//			p_pe0.e12 = p_pe1.e12 + pstrain[3];
-//			p_pe0.e23 = p_pe1.e23 + pstrain[4];
-//			p_pe0.e31 = p_pe1.e31 + pstrain[5];
+			const size_t prev_p_id = prev_pcl_ids[p_id];
+#ifdef _DEBUG
+			assert(prev_p_id < stp.prev_valid_pcl_num_tmp);
+#endif
+			const Strain& p_e1 = pcl_strain1[prev_p_id];
+			Strain& p_e0 = pcl_strain0[p_id];
+			p_e0.e11 = p_e1.e11 + dstrain.de11;
+			p_e0.e22 = p_e1.e22 + dstrain.de22;
+			p_e0.e33 = p_e1.e33 + dstrain.de33;
+			p_e0.e12 = p_e1.e12 + dstrain.de12;
+			p_e0.e23 = p_e1.e23 + dstrain.de23;
+			p_e0.e31 = p_e1.e31 + dstrain.de31;
+
+			const double estrain[6] = {
+				dstrain.de11, dstrain.de22, dstrain.de33,
+				dstrain.de12, dstrain.de23, dstrain.de31
+			};
+			//const double* estrain = pcl_mm.get_dstrain_e();
+			const Strain& p_ee1 = pcl_estrain1[prev_p_id];
+			Strain& p_ee0 = pcl_estrain0[p_id];
+			p_ee0.e11 = p_ee1.e11 + estrain[0];
+			p_ee0.e22 = p_ee1.e22 + estrain[1];
+			p_ee0.e33 = p_ee1.e33 + estrain[2];
+			p_ee0.e12 = p_ee1.e12 + estrain[3];
+			p_ee0.e23 = p_ee1.e23 + estrain[4];
+			p_ee0.e31 = p_ee1.e31 + estrain[5];
+
+			const double pstrain[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+			//const double* pstrain = pcl_mm.get_dstrain_p();
+			const Strain& p_pe1 = pcl_pstrain1[prev_p_id];
+			Strain& p_pe0 = pcl_pstrain0[p_id];
+			p_pe0.e11 = p_pe1.e11 + pstrain[0];
+			p_pe0.e22 = p_pe1.e22 + pstrain[1];
+			p_pe0.e33 = p_pe1.e33 + pstrain[2];
+			p_pe0.e12 = p_pe1.e12 + pstrain[3];
+			p_pe0.e23 = p_pe1.e23 + pstrain[4];
+			p_pe0.e31 = p_pe1.e31 + pstrain[5];
 		}
 	}
 }

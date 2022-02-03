@@ -29,9 +29,9 @@ void test_t3d_me_tbb_1d_compression(int argc, char **argv)
 	MatModel::LinearElasticity *les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::LinearElasticity &le = les[pcl_id];
-		le.set_param(1000.0, 0.0);
-		mms[pcl_id] = &le;
+		les->set_param(1000.0, 0.0);
+		mms[pcl_id] = les;
+		les = model.following_LinearElasticity(les);
 	}
 
 	IndexArray tbc_pcl_array(100);

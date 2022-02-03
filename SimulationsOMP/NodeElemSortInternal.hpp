@@ -13,8 +13,8 @@ namespace ParaUtil
 	namespace Internal
 	{
 		constexpr size_t ne_sort_min_pcl_num_per_task = 10;
-		constexpr size_t ne_sort_task_num_per_thread = 4;
-		constexpr size_t ne_sort_radix_num_per_thread = 2;
+		constexpr size_t ne_sort_task_num_per_thread = 20;
+		constexpr size_t ne_sort_radix_num_per_thread = 16;
 
 		struct NodeElemPairs
 		{
