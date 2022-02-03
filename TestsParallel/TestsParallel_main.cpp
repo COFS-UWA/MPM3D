@@ -6,9 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-	//test_von_mises(argc, argv);
-
-	//test_Step_OMP(argc, argv);
+    //test_Step_OMP(argc, argv);
 
 	//test_t2d_me_mt_test1(argc, argv);
 	
@@ -57,7 +55,6 @@ int main(int argc, char *argv[])
 	//test_rigid_mesh_contact2(argc, argv);
 	//test_contact_model_3d(argc, argv);
 	
-	// time profiling
 	//test_t3d_me_mt_cap_compression(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart2(argc, argv);
@@ -138,10 +135,9 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_sand_hypo_result(argc, argv);
 
 	//test_t3d_me_mt_piezofoundation_model(argc, argv);
-	//test_t3d_me_mt_piezofoundation_geo(argc, argv);
+	test_t3d_me_mt_piezofoundation_geo(argc, argv);
 	//test_t3d_me_mt_piezofoundation(argc, argv);
 	//test_t3d_me_mt_piezofoundation2(argc, argv);
-	//test_t3d_me_tbb_piezofoundation_hypo(argc, argv);
 	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
 

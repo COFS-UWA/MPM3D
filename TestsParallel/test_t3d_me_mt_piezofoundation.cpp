@@ -100,6 +100,8 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
+		mms[pcl_id] = shps;
+		
 		double pcl_z = model.get_pcl_pos()[pcl_id].z;
 		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
 		pcl_s.s33 = pcl_z * 9.81 * den_float;
@@ -110,15 +112,14 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 		ini_stress[2] = pcl_z * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
-		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-		mms[pcl_id] = &shp;
+		MatModel::SandHypoplasticityStbWrapper& shp = *shps;
 		if (pcl_z > void_depth_limit)
 			shp.set_param(
 				ini_stress, 0.76,
 				30.0, 1354.0e6, 0.34,
 				0.18, 1.27,
 				0.49, 0.76, 0.86,
-				0.3, 3.6, 120.0,
+				1.5, 43.0, 100.0,
 				200.0, 0.2);
 		else // normal
 			shp.set_param(
@@ -126,8 +127,9 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 				30.0, 1354.0e6, 0.34,
 				0.18, 1.27,
 				0.49, 0.76, 0.86,
-				0.3, 3.6, 120.0,
+				1.5, 43.0, 100.0,
 				200.0, 0.2);
+		shps = model.following_SandHypoplasticityStbWrapper(shps);
 	}
 
 	// gravity force, float unit weight
@@ -180,7 +182,7 @@ void test_t3d_me_mt_piezofoundation_model(int argc, char** argv)
 	md_disp.set_light_dir(-60.0f, 15.0f);
 	md_disp.set_display_bg_mesh(false);
 	//md_disp.set_pts_from_vx_bc(0.05);
-	//md_disp.set_pts_from_vy_bc(0.05);
+	md_disp.set_pts_from_vy_bc(0.05);
 	//md_disp.set_pts_from_vz_bc(0.05);
 	md_disp.start();
 }
@@ -232,11 +234,13 @@ void test_t3d_me_mt_piezofoundation_geo(int argc, char** argv)
 void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 {
 	Model_T3D_ME_mt model;
-	Step_T3D_ME_mt step("step2");
+	//Step_T3D_ME_mt step("step2");
+	Step_T3D_ME_TBB step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 21); // 21
+	
 	std::cout << "Load model completed.\n";
-
+	
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
@@ -262,17 +266,25 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 	std::cout << "Output model completed.\n";
 
-	TimeHistory_T3D_ME_mt_complete out1("penetration");
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
+	
+	// omp
+	//TimeHistory_T3D_ME_mt_complete out1("penetration");
+	//out1.set_interval_num(100);
+	//out1.set_output_init_state();
+	//out1.set_output_final_state();
+	//out1.set_res_file(res_file_hdf5);
+	// tbb
+	TimeHistory_T3D_ME_TBB_complete out1("penetration");
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
-	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(2000);
 
 	std::cout << "Start solving...\n";
 	step.set_thread_num(22);
-	step.set_step_time(0.9); // 0.3 when v=-1.5 0.6=0.45D
+	step.set_step_time(0.9); // 0.3 when v=-1.5
 	//step.set_thread_num(4);
 	//step.set_step_time(6.0e-6);
 	step.set_dtime(2.0e-6);
@@ -284,7 +296,8 @@ void test_t3d_me_mt_piezofoundation(int argc, char** argv)
 void test_t3d_me_mt_piezofoundation2(int argc, char** argv)
 {
 	Model_T3D_ME_mt model;
-	Step_T3D_ME_mt step("step3");
+	//Step_T3D_ME_mt step("step3");
+	Step_T3D_ME_TBB step("step3");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, step, "t3d_me_mt_piezofoundation.h5", "penetration", 101); // 21
 	std::cout << "Load model completed.\n";
@@ -309,70 +322,21 @@ void test_t3d_me_mt_piezofoundation2(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 	std::cout << "Output model completed.\n";
 
-	TimeHistory_T3D_ME_mt_complete out1("penetration");
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
+
+	//TimeHistory_T3D_ME_mt_complete out1("penetration");
+	TimeHistory_T3D_ME_TBB_complete out1("penetration");
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
-	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(2000);
 
 	std::cout << "Start solving...\n";
 	step.set_thread_num(22);
 	step.set_step_time(0.5); // 0.3 when v=-1.5 0.6=0.45D
 	//step.set_thread_num(4);
 	//step.set_step_time(6.0e-6);
-	step.set_dtime(2.0e-6);
-	step.add_time_history(out1);
-	step.add_time_history(out_cpb);
-	step.solve();
-}
-
-// continue the simulation of piezofoundation
-void test_t3d_me_tbb_piezofoundation_hypo(int argc, char** argv)
-{
-	Model_T3D_ME_mt model;
-	Step_T3D_ME_TBB step("step2");
-	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_mt_piezofoundation_geo.h5", "geostatic", 21); // 21
-	std::cout << "Load model completed.\n";
-
-	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
-	md_disp.set_model(model);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-90.0f, -20.0f);
-	md_disp.set_light_dir(-60.0f, 15.0f);
-	md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(0.6);
-	md_disp.set_pts_from_vx_bc(0.05);
-	//md_disp.set_pts_from_vy_bc(0.05);
-	//md_disp.set_pts_from_vz_bc(0.05);
-	md_disp.start();
-	return;
-
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.5);
-	constexpr double sml_pcl_size = 0.03125;
-	model.set_contact_param(20000.0 / (sml_pcl_size * sml_pcl_size),
-		20000.0 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);
-
-	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t3d_me_tbb_piezofoundation.h5");
-
-	ModelData_T3D_ME_mt md;
-	md.output_model(model, res_file_hdf5);
-	std::cout << "Output model completed.\n";
-
-	TimeHistory_T3D_ME_TBB_complete out1("penetration");
-	out1.set_interval_num(100);
-	out1.set_output_init_state();
-	out1.set_output_final_state();
-	out1.set_res_file(res_file_hdf5);
-	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(2000);
-
-	std::cout << "Start solving...\n";
-	step.set_thread_num(4); // 22
-	step.set_step_time(2.0e-3); // 0.9
 	step.set_dtime(2.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
