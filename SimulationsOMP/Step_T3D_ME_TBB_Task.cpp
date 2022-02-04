@@ -1298,11 +1298,11 @@ namespace Step_T3D_ME_TBB_Task
 			p_e0.e23 = p_e1.e23 + dstrain.de23;
 			p_e0.e31 = p_e1.e31 + dstrain.de31;
 
-			const double estrain[6] = {
-				dstrain.de11, dstrain.de22, dstrain.de33,
-				dstrain.de12, dstrain.de23, dstrain.de31
-			};
-			//const double* estrain = pcl_mm.get_dstrain_e();
+			//const double estrain[6] = {
+			//	dstrain.de11, dstrain.de22, dstrain.de33,
+			//	dstrain.de12, dstrain.de23, dstrain.de31
+			//};
+			const double* estrain = pcl_mm.get_dstrain_e();
 			const Strain& p_ee1 = pcl_estrain1[prev_p_id];
 			Strain& p_ee0 = pcl_estrain0[p_id];
 			p_ee0.e11 = p_ee1.e11 + estrain[0];
@@ -1312,8 +1312,8 @@ namespace Step_T3D_ME_TBB_Task
 			p_ee0.e23 = p_ee1.e23 + estrain[4];
 			p_ee0.e31 = p_ee1.e31 + estrain[5];
 
-			const double pstrain[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-			//const double* pstrain = pcl_mm.get_dstrain_p();
+			//const double pstrain[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+			const double* pstrain = pcl_mm.get_dstrain_p();
 			const Strain& p_pe1 = pcl_pstrain1[prev_p_id];
 			Strain& p_pe0 = pcl_pstrain0[p_id];
 			p_pe0.e11 = p_pe1.e11 + pstrain[0];

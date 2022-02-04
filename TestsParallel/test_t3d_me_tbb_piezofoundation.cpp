@@ -270,7 +270,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
-	step.set_thread_num(4);
+	step.set_thread_num(12);
 	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);
