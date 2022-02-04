@@ -29,11 +29,9 @@ Step_T3D_CHM_TBB::~Step_T3D_CHM_TBB() {}
 
 int Step_T3D_CHM_TBB::init_calculation()
 {
-#ifdef _DEBUG
 	res_file_t3d_chm_tbb.open("step_t3d_chm_tbb.csv", std::ios::out | std::ios::binary);
 	res_file_t3d_chm_tbb << "pcl_sort, ne_sort, map_pcl_to_mesh, "
 		"update_a_and_v, cal_elem_de, cal_node_de, map_mesh_to_pcl\n";
-#endif
 
 	sche_init.initialize(thread_num);
 

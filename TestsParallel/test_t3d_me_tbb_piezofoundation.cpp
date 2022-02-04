@@ -129,8 +129,6 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 // =================== mt version and restart ====================
 void test_t3d_me_mt_piezofoundation_sim_mat(int argc, char** argv)
 {
-	
-
 	Model_T3D_ME_mt model;
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, "t3d_me_tbb_piezofoundation_sim_mat_model.h5");
@@ -153,14 +151,14 @@ void test_t3d_me_mt_piezofoundation_sim_mat(int argc, char** argv)
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_piezofoundation_sim_mat.h5");
 
-	ModelData_T3D_ME_mt md;
-	md.output_model(model, res_file_hdf5);
+	//ModelData_T3D_ME_mt md;
+	//md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_ME_mt_complete out1("penetration");
-	out1.set_interval_num(2);
-	out1.set_output_init_state();
-	out1.set_output_final_state();
-	out1.set_res_file(res_file_hdf5);
+	//TimeHistory_T3D_ME_mt_complete out1("penetration");
+	//out1.set_interval_num(2);
+	//out1.set_output_init_state();
+	//out1.set_output_final_state();
+	//out1.set_res_file(res_file_hdf5);
 
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(100);
@@ -168,10 +166,10 @@ void test_t3d_me_mt_piezofoundation_sim_mat(int argc, char** argv)
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_mt step("step2");
 	step.set_model(model);
-	step.set_thread_num(4);
+	step.set_thread_num(8);
 	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
-	step.add_time_history(out1);
+	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }
@@ -272,10 +270,10 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
-	step.set_thread_num(4);
+	step.set_thread_num(12);
 	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
-	step.add_time_history(out1);
+	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }

@@ -32,7 +32,7 @@ int Step_T3D_ME_mt::init_calculation()
 	res_file_t3d_me_mt << ",";
 	for (size_t t_id = 0; t_id < thread_num; ++t_id)
 		res_file_t3d_me_mt << "thread " << t_id << ",,,,,,,,,,,,,,,";
-	res_file_t3d_me_mt << "max,,,,,,,,,,,,,,,\nsubstep_id, ";
+	res_file_t3d_me_mt << "avg,,,,,,,,,,,,,,,\nsubstep_id, ";
 	for (size_t t_id = 0; t_id < thread_num + 1; ++t_id)
 		res_file_t3d_me_mt << "sort_pcl_time, sort_pcl_barrier_time, "
 		"pcl_to_mesh_time, pcl_to_mesh_barrier_time, "
@@ -1270,7 +1270,7 @@ int substep_func_omp_T3D_ME_mt(
 	thd.node_de_barrier_time += (mesh_to_pcl_t0 - node_de_t1).count();
 	thd.mesh_to_pcl_time += (mesh_to_pcl_t1 - mesh_to_pcl_t0).count();
 	thd.mesh_to_pcl_barrier_time += (iter_t1 - mesh_to_pcl_t1).count();
-	thd.iteration_time += thd.sort_pcl_time + thd.sort_pcl_barrier_time
+	thd.iteration_time = thd.sort_pcl_time + thd.sort_pcl_barrier_time
 		+ thd.pcl_to_mesh_time + thd.pcl_to_mesh_barrier_time
 		+ thd.sort_node_time + thd.sort_node_barrier_time
 		+ thd.node_a_v_time + thd.node_a_v_barrier_time
