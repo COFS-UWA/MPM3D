@@ -25,13 +25,15 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	constexpr double e0 = 0.55; // dense
 	//constexpr double e0 = 0.75; // loose
 	constexpr double den_grain = 2670.0;
+	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), 2.0, 1.0, 2.0e4, 5.0e-9, 1.0); // elastic
-	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 3.6e8, 5.0e-9, 1.0); // hypo, undrained
-	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0); // hypo, drained
+	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 3.6e8, 5.0e-9, 1.0); // undrained
+	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0); // drained
 	const size_t pcl_num = model.get_pcl_num();
+	MatModel::MaterialModel** mms = model.get_mat_models();
 	// Linear elasticity
 	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	//// Linear elasticity
@@ -42,38 +44,36 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//	model.add_mat_model(pcl_id, le, sizeof(MatModel::LinearElasticity));
 	//}
 	// Stb hypoplasticity
-	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-		shp.set_param(
+		shps->set_param(
 			ini_stress, e0,
 			30.0, 1354.0e6, 0.34,
 			0.18, 1.27,
 			0.49, 0.76, 0.86,
-			//1.5, 43.0, 180.0, //100.0, 180.0,
-			1.5, 43.0, 250.0,
+			1.5, 43.0, 100.0,
+			//1.5, 43.0, 250.0,
 			200.0, 0.2);
-	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
+	 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
+		shps = model.following_SandHypoplasticityStbWrapper(shps);
 	}
 	// Norsand
-	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	MatModel::NorsandWrapper& n = ns[pcl_id];
-	//	n.set_param(
+	//	ns->set_param(
 	//		ini_stress, e0,
 	//		30.0,
-	//		0.86 /*0.7847*/, 0.015,
+	//		0.86, 0.015,
 	//		0.3, 3.6, 250.0,
 	//		200.0, 0.2);
-	//	model.add_mat_model(pcl_id, n, sizeof(MatModel::NorsandWrapper));
+	//	model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
+	//	ns = model.following_NorsandWrapper(ns);
 	//}
 
 	// cavitation
-	model.set_cavitation(100.0, -100.0e3, 0.01);
+	//model.set_cavitation(100.0, -100.0e3, 0.01);
 
 	//model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);

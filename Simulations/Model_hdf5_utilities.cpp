@@ -226,6 +226,31 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 
+		// norsand
+		mm_num = mc.get_num_NorsandWrapper();
+		if (mm_num)
+		{
+			rf.write_attribute(mc_grp_id, "Norsand_num", mm_num);
+
+			NorsandStateData* mm_data = new NorsandStateData[mm_num];
+			mm_id = 0;
+			for (MatModel::NorsandWrapper* iter = mc.first_NorsandWrapper();
+				mc.is_not_end_NorsandWrapper(iter); iter = mc.next_NorsandWrapper(iter))
+			{
+				mm_data[mm_id].from_mm(*iter);
+				++mm_id;
+			}
+			hid_t ns_dt_id = get_norsand_dt_id();
+			rf.write_dataset(
+				mc_grp_id,
+				"Norsand",
+				mm_num,
+				mm_data,
+				ns_dt_id);
+			H5Tclose(ns_dt_id);
+			delete[] mm_data;
+		}
+		
 		return 0;
 	}
 
@@ -461,6 +486,29 @@ namespace Model_hdf5_utilities
 			{
 				mm_data[mm_id].to_mm(*mms);
 				mms = mc.following_SandHypoplasticityStbWrapper(mms);
+			}
+			delete[] mm_data;
+		}
+		
+		// Norsand
+		if (rf.has_dataset(mc_grp_id, "Norsand"))
+		{
+			rf.read_attribute(mc_grp_id, "Norsand_num", mm_num);
+
+			NorsandStateData* mm_data = new NorsandStateData[mm_num];
+			hid_t ns_dt_id = get_norsand_dt_id();
+			rf.read_dataset(
+				mc_grp_id,
+				"Norsand",
+				mm_num,
+				mm_data,
+				ns_dt_id);
+			H5Tclose(ns_dt_id);
+			MatModel::NorsandWrapper* mms = mc.add_NorsandWrapper(mm_num);
+			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
+			{
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_NorsandWrapper(mms);
 			}
 			delete[] mm_data;
 		}
