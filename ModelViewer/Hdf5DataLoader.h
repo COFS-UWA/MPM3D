@@ -94,7 +94,7 @@ protected:
 public:
 	inline MatModelMap& get_mat_model_map() { return mat_model_map; }
 	inline static const MatModelInfo& get_mat_model_info(MatModelType type)
-	{ return mat_model_info[(unsigned char)type]; }
+	{ return mat_model_info[size_t(type)]; }
 
 	int load_frame_data(size_t fm_id, bool need_mat_model = false);
 };

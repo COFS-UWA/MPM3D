@@ -291,7 +291,7 @@ using Model_hdf5_utilities::TrescaStateData;
 
 const Hdf5DataLoader::MatModelInfo
 Hdf5DataLoader::mat_model_info[] = {
-	{
+	{ // 0
 		sizeof(LinearElasticityStateData),
 		offsetof(LinearElasticityStateData, s11),
 		offsetof(LinearElasticityStateData, s22),
@@ -300,7 +300,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(LinearElasticityStateData, s23),
 		offsetof(LinearElasticityStateData, s31)
 	},
-	{
+	{ // 1
 		sizeof(ModifiedCamClayStateData),
 		offsetof(ModifiedCamClayStateData, s11),
 		offsetof(ModifiedCamClayStateData, s22),
@@ -309,7 +309,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(ModifiedCamClayStateData, s23),
 		offsetof(ModifiedCamClayStateData, s31)
 	},
-	{
+	{ // 2
 		sizeof(VonMisesStateData),
 		offsetof(VonMisesStateData, s11),
 		offsetof(VonMisesStateData, s22),
@@ -318,7 +318,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(VonMisesStateData, s23),
 		offsetof(VonMisesStateData, s31)
 	},
-	{
+	{ // 3
 		sizeof(TrescaStateData),
 		offsetof(TrescaStateData, s11),
 		offsetof(TrescaStateData, s22),
@@ -327,7 +327,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(TrescaStateData, s23),
 		offsetof(TrescaStateData, s31)
 	},
-	{
+	{ // 4
 		sizeof(SandHypoplasticityStateData),
 		offsetof(SandHypoplasticityStateData, s11),
 		offsetof(SandHypoplasticityStateData, s22),
@@ -335,5 +335,14 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(SandHypoplasticityStateData, s12),
 		offsetof(SandHypoplasticityStateData, s23),
 		offsetof(SandHypoplasticityStateData, s31)
+	},
+	{ // 5
+		sizeof(SandHypoplasticityStbStateData),
+		offsetof(SandHypoplasticityStbStateData, s11),
+		offsetof(SandHypoplasticityStbStateData, s22),
+		offsetof(SandHypoplasticityStbStateData, s33),
+		offsetof(SandHypoplasticityStbStateData, s12),
+		offsetof(SandHypoplasticityStbStateData, s23),
+		offsetof(SandHypoplasticityStbStateData, s31)
 	}
 };

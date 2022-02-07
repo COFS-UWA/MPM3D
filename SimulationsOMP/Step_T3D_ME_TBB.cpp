@@ -292,12 +292,12 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	
 	self.map_mesh_to_pcl0.update(task_num);
 	t0 = std::chrono::high_resolution_clock::now();
-	IVT_RESUME;
+	//IVT_RESUME;
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl0, self.map_mesh_to_pcl_res, task_num);
 	//self.map_mesh_to_pcl_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, pcl_task_num, 1), self.map_mesh_to_pcl_tbb);
 	//self.valid_pcl_num = self.map_mesh_to_pcl_tbb.res.pcl_num;
-	IVT_PAUSE;
+	//IVT_PAUSE;
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time0 += (t1 - t0).count();
 
@@ -312,30 +312,30 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time1 += (t1 - t0).count();
 
-	if (self.substep_index % 10 == 9)
-	{
-#ifdef TIMING
-		res_file_t3d_me_tbb << self.substep_index << ", "
-			<< self.pcl_sort_time << ", "
-			<< self.ne_sort_time << ", "
-			<< self.map_pcl_to_mesh_time << ", "
-			<< self.update_a_and_v_time << ", "
-			<< self.cal_elem_de_time << ", "
-			<< self.cal_node_de_time << ", "
-			<< self.map_mesh_to_pcl_time << ", "
-			<< self.map_mesh_to_pcl_time0 << ", "
-			<< self.map_mesh_to_pcl_time1 << "\n";
-#endif
-		self.pcl_sort_time = 0;
-		self.ne_sort_time = 0;
-		self.map_pcl_to_mesh_time = 0;
-		self.update_a_and_v_time = 0;
-		self.cal_elem_de_time = 0;
-		self.cal_node_de_time = 0;
-		self.map_mesh_to_pcl_time = 0;
-		self.map_mesh_to_pcl_time0 = 0;
-		self.map_mesh_to_pcl_time1 = 0;
-	}
+//	if (self.substep_index % 10 == 9)
+//	{
+//#ifdef TIMING
+//		res_file_t3d_me_tbb << self.substep_index << ", "
+//			<< self.pcl_sort_time << ", "
+//			<< self.ne_sort_time << ", "
+//			<< self.map_pcl_to_mesh_time << ", "
+//			<< self.update_a_and_v_time << ", "
+//			<< self.cal_elem_de_time << ", "
+//			<< self.cal_node_de_time << ", "
+//			<< self.map_mesh_to_pcl_time << ", "
+//			<< self.map_mesh_to_pcl_time0 << ", "
+//			<< self.map_mesh_to_pcl_time1 << "\n";
+//#endif
+//		self.pcl_sort_time = 0;
+//		self.ne_sort_time = 0;
+//		self.map_pcl_to_mesh_time = 0;
+//		self.update_a_and_v_time = 0;
+//		self.cal_elem_de_time = 0;
+//		self.cal_node_de_time = 0;
+//		self.map_mesh_to_pcl_time = 0;
+//		self.map_mesh_to_pcl_time0 = 0;
+//		self.map_mesh_to_pcl_time1 = 0;
+//	}
 
 	self.continue_calculation();
 	return 0;
