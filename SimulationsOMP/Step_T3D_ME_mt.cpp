@@ -32,7 +32,7 @@ int Step_T3D_ME_mt::init_calculation()
 	res_file_t3d_me_mt << ",";
 	for (size_t t_id = 0; t_id < thread_num; ++t_id)
 		res_file_t3d_me_mt << "thread " << t_id << ",,,,,,,,,,,,,,,";
-	res_file_t3d_me_mt << "max,,,,,,,,,,,,,,,\nsubstep_id, ";
+	res_file_t3d_me_mt << "avg,,,,,,,,,,,,,,,\nsubstep_id, ";
 	for (size_t t_id = 0; t_id < thread_num + 1; ++t_id)
 		res_file_t3d_me_mt << "sort_pcl_time, sort_pcl_barrier_time, "
 		"pcl_to_mesh_time, pcl_to_mesh_barrier_time, "
