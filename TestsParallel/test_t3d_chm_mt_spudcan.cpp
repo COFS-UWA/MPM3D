@@ -2,11 +2,13 @@
 
 #include "ParticleGenerator3D.hpp"
 #include "Model_T3D_CHM_mt.h"
-#include "Step_T3D_CHM_mt.h"
-#include "Step_T3D_CHM_mt_Geo.h"
 #include "ModelData_T3D_CHM_mt.h"
-#include "TimeHistory_T3D_CHM_mt_complete.h"
+#include "Step_T3D_CHM_mt_Geo.h"
 #include "TimeHistory_T3D_CHM_mt_Geo_complete.h"
+#include "Step_T3D_CHM_mt.h"
+#include "TimeHistory_T3D_CHM_mt_complete.h"
+#include "Step_T3D_CHM_TBB.h"
+#include "TimeHistory_T3D_CHM_TBB_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt.h"
 #include "QtApp_Prep_T3D_CHM_mt_Div.h"
@@ -65,37 +67,38 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
 	constexpr double stress_depth_limit = -0.01;
-	constexpr double void_depth_limit = -0.05;
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	teh_mesh.clear();
-	model.init_pcls(pcl_generator, e0 / (1.0+e0), den_grain, 1000.0, 2.0e7, 1.5e-7, 0.7);
+	model.init_pcls(pcl_generator, e0 / (1.0+e0), den_grain, 1000.0, 2.0e7, 1.22e-12, 1.0e-3);
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	const double K0 = 1.0 - sin(30.0 / 180.0 * 3.14159265359);
-	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	// Sand hypoplasticity
-	constexpr double fric_ang = 30.0;
-	constexpr double hs = 1354.0e6;
-	constexpr double n = 0.34;
-	constexpr double alpha = 0.18;
-	constexpr double beta = 1.27;
-	constexpr double ed0 = 0.49;
-	constexpr double ec0 = 0.76;
-	constexpr double ei0 = 0.86;
+	constexpr double fric_ang = 30.02298846;
+	constexpr double hs = 20.29e9;
+	constexpr double n = 0.2966;
+	constexpr double alpha = 0.177;
+	constexpr double beta = 0.04;
+	constexpr double ed0 = 0.441;
+	constexpr double ec0 = 0.831;
+	constexpr double ei0 = 0.956;
 	//
-	constexpr double Ig = 200.0;
+	constexpr double Ig = 130.0;
 	constexpr double niu = 0.2;
 	//
-	constexpr double N = 1.5;
-	constexpr double chi = 43.0;
-	constexpr double H = 180.0;
+	constexpr double N = 1.7;
+	constexpr double chi = 23.0;
+	constexpr double H = 90.0;
+	//
+	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
+	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
+		mms[pcl_id] = shps;
 		double pcl_z = model.get_pcl_pos()[pcl_id].z;
 		auto& pcl_s = model.get_pcl_stress0()[pcl_id];
 		pcl_s.s33 = pcl_z * 9.81 * den_float;
@@ -106,29 +109,28 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 		ini_stress[2] = pcl_z * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
-		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-		mms[pcl_id] = &shp;
-		if (pcl_z > void_depth_limit)
-			shp.set_param(
-				ini_stress, 0.76, // critical state
-				fric_ang, hs, n,
-				alpha, beta,
-				ed0, ec0, ei0,
-				N, chi, H,
-				Ig, niu);
-		else // normal
-			shp.set_param(
-				ini_stress, e0,
-				fric_ang, hs, n,
-				alpha, beta,
-				ed0, ec0, ei0,
-				N, chi, H,
-				Ig, niu);
+		//if (pcl_z > void_depth_limit)
+		//	shp.set_param(
+		//		ini_stress, 0.76, // critical state
+		//		fric_ang, hs, n,
+		//		alpha, beta,
+		//		ed0, ec0, ei0,
+		//		N, chi, H,
+		//		Ig, niu);
+		//else // normal
+		shps->set_param(
+			ini_stress, e0,
+			fric_ang, hs, n,
+			alpha, beta,
+			ed0, ec0, ei0,
+			N, chi, H,
+			Ig, niu);
+		shps = model.following_SandHypoplasticityStbWrapper(shps);
 	}
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
 	constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont/50.0, K_cont/50.0);
 
@@ -176,7 +178,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	//md_disp.set_pts_from_vy_bc_s(0.025);
 	//md_disp.set_pts_from_vz_bc_s(0.025);
 	//md_disp.set_pts_from_vx_bc_f(0.025);
-	//md_disp.set_pts_from_vy_bc_f(0.025);
+	md_disp.set_pts_from_vy_bc_f(0.025);
 	//md_disp.set_pts_from_vz_bc_f(0.025);
 	md_disp.start();
 }
@@ -195,7 +197,7 @@ void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv)
 	//md_disp.set_view_dir(0.0f, 5.0f);
 	//md_disp.set_light_dir(10.0f, 5.0f);
 	//md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(0.6);
+	//md_disp.set_view_dist_scale(1.2);
 	//md_disp.set_pts_from_vx_s_bc(0.05);
 	////md_disp.set_pts_from_vy_s_bc(0.05);
 	////md_disp.set_pts_from_vz_s_bc(0.05);
@@ -234,18 +236,19 @@ void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv)
 void test_t3d_chm_mt_spudcan(int argc, char** argv)
 {
 	Model_T3D_CHM_mt model;
-	Step_T3D_CHM_mt step("step2");
+	//Step_T3D_CHM_mt step("step2");
+	Step_T3D_CHM_TBB step("step2");
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 21);
 	
 	// modified velocity
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
+	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
 	// modified contact stiffness
 	//constexpr double sml_pcl_size = 0.04;
 	//constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
 	//model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont / 50.0, K_cont / 50.0);
 	// modified permeability
-	model.set_k(1.0e-9);
+	//model.set_k(1.0e-9);
 
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -271,7 +274,8 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_CHM_mt_complete out1("penetration");
+	//TimeHistory_T3D_CHM_mt_complete out1("penetration");
+	TimeHistory_T3D_CHM_TBB_complete out1("penetration");
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
@@ -280,7 +284,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	step.set_model(model);
-	step.set_thread_num(22);
+	step.set_thread_num(24);
 	step.set_step_time(3.0); // 3.0
 	//step.set_thread_num(3);
 	//step.set_step_time(1.0e-5);
