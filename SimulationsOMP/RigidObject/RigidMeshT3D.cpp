@@ -1,7 +1,6 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <float.h>
-#include <iostream>
 
 #include "SearchGrid3DTetrahedron.hpp"
 #include "ExtractSurfaceFromT3DMesh.h"
@@ -51,10 +50,6 @@ int RigidMeshT3D::init_from_mesh(
 		auto& g = teh_grids[g_id];
 		if (g.ptehs)
 			grid_pos_type[g_id] = GridPosType::Inside;
-		//std::cout << g_id << ", ";
-		//for (auto pts = g.ptehs; pts; pts = pts->next)
-		//	std::cout << pts->pteh - tmesh.get_elems() << ", ";
-		//std::cout << "\n";
 	}
 	teh_grid.clear(); // release memory
 
@@ -70,7 +65,6 @@ int RigidMeshT3D::init_from_mesh(
 	{
 		const ExtractSurfaceFromT3DMesh::Face& f = faces[f_id];
 		pt_tri_dist[f_id].init_triangle(nodes[f.n1], nodes[f.n2], nodes[f.n3]);
-		//std::cout << f_id << ": " << f.n1 << ", " << f.n2 << ", " << f.n3 << "\n";
 	}
 
 	// apply boundary surface
@@ -109,10 +103,6 @@ int RigidMeshT3D::init_from_mesh(
 		SimulationsOMP::swap_sort_acc<size_t>(
 			face_in_grid_list + gf_start_id,
 			surf_num - gf_start_id);
-		//std::cout << g_id << ": ";
-		//for (size_t f_id = gf_start_id; f_id < surf_num; f_id++)
-		//	std::cout << face_in_grid_list[f_id] << ", ";
-		//std::cout << "\n";
 	}
 	surf_grid.clear(); // release memory
 	surf_extractor.clear();
@@ -213,9 +203,6 @@ bool RigidMeshT3D::detect_collision_with_point(
 	Vector3D &norm
 	) const noexcept
 {
-	//const double p_xl = pt.x - p_r, p_xu = pt.x + p_r;
-	//const double p_yl = pt.y - p_r, p_yu = pt.y + p_r;
-	//const double p_zl = pt.z - p_r, p_zu = pt.z + p_r;
 	if ((pt.x + p_r) < grid.xl || (pt.x - p_r) > grid.xu ||
 		(pt.y + p_r) < grid.yl || (pt.y - p_r) > grid.yu ||
 		(pt.z + p_r) < grid.zl || (pt.z - p_r) > grid.zu)
@@ -224,8 +211,8 @@ bool RigidMeshT3D::detect_collision_with_point(
 	const size_t p_x_id = grid.get_x_id(pt.x);
 	const size_t p_y_id = grid.get_y_id(pt.y);
 	const size_t p_z_id = grid.get_z_id(pt.z);
+	// far inside or outside mesh
 	if (unsigned char(grid_pos_type[offset_from_xyz_id(p_x_id, p_y_id, p_z_id)]) > 2)
-		// far inside or outside mesh
 		return false;
 	
 	// cal dist
@@ -272,9 +259,6 @@ void RigidMeshT3D::search_closest_face(
 	stride_tmp = id_range.zu_id - id_range.zl_id;
 	if (stride < stride_tmp)
 		stride = stride_tmp;
-	//std::cout << stride << ": " << id_range.xl_id << ", " << id_range.xu_id << ", "
-	//	<< id_range.yl_id << ", " << id_range.yu_id << ", "
-	//	<< id_range.zl_id << ", " << id_range.zu_id << "\n";
 	if (stride > 1)
 	{
 		stride >>= 1;
@@ -579,6 +563,4 @@ void RigidMeshT3D::search_closest_face(
 			closest_face.normal_type = norm_type;
 		}
 	}
-
-	//std::cout << closest_face.face_id << ", " << closest_face.distance << "\n";
 }

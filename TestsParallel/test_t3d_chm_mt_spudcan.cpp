@@ -285,7 +285,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(24);
-	step.set_step_time(3.0); // 3.0
+	step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
 	//step.set_thread_num(3);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
@@ -374,6 +374,6 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_chm_mt_spudcan");
-	app.set_gif_name("t3d_chm_mt_spudcan");
+	//app.set_gif_name("t3d_chm_mt_spudcan");
 	app.start();
 }

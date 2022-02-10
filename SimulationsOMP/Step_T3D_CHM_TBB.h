@@ -142,6 +142,7 @@ protected:
 	MapBgMeshToPclTbb map_mesh_to_pcl_tbb;
 
 	// data changed during computation
+	InitPclRes init_pcl_res;
 	union
 	{
 		Force3D react_force;
@@ -150,7 +151,6 @@ protected:
 	union
 	{
 		size_t valid_pcl_num;
-		InitPclRes init_pcl_res;
 		MapBgMeshToPclRes map_mesh_to_pcl_res;
 	};
 	size_t prev_valid_pcl_num;

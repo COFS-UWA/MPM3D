@@ -706,8 +706,7 @@ namespace RigidObject_hdf5_utilities
 			"pt_tri_dist",
 			face_num,
 			pt_tri_dist,
-			pt2tri_dt
-			);
+			pt2tri_dt);
 		H5Tclose(pt2tri_dt);
 
 		return 0;
