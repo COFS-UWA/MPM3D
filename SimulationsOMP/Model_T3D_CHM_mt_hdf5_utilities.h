@@ -504,6 +504,7 @@ int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM
 int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, const char* hdf5_name);
 int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 
 };
 

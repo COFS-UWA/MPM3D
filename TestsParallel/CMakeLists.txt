@@ -58,7 +58,6 @@ add_executable(
     test_t3d_me_mt_spudcan_sand_hypo.cpp
     test_t3d_chm_mt_spudcan_sand_hypo.cpp
     test_t3d_chm_mt_piezofoundation.cpp
-    test_t3d_chm_mt_spudcan.cpp
     # using tbb
     test_tbb_sorting.cpp
     test_tbb_sort_tri_mesh_node_task.cpp
@@ -74,6 +73,9 @@ add_executable(
     # piezofoundation
     test_t3d_me_mt_piezofoundation.cpp
 	test_t3d_me_tbb_piezofoundation.cpp
+	# spudcan
+	test_t3d_me_mt_spudcan.cpp
+	test_t3d_chm_mt_spudcan.cpp
     )
 
 target_include_directories(
