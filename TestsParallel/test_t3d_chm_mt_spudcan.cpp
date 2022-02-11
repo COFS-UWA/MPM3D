@@ -18,6 +18,9 @@
 
 //#define Undrained
 
+// Hypo or Norsand
+//#define Hypo
+
 void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 {
 	TetrahedronMesh teh_mesh;
@@ -80,8 +83,11 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	// Sand hypoplasticity
 	constexpr double fric_ang = 30.02298846;
+	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
+	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+#ifdef Hypo
+	// sand hypoplasticity
 	constexpr double hs = 20.29e9;
 	constexpr double n = 0.2966;
 	constexpr double alpha = 0.177;
@@ -89,16 +95,11 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	constexpr double ed0 = 0.441;
 	constexpr double ec0 = 0.831;
 	constexpr double ei0 = 0.956;
-	//
 	constexpr double Ig = 130.0;
 	constexpr double niu = 0.2;
-	//
 	constexpr double N = 1.7;
 	constexpr double chi = 23.0;
 	constexpr double H = 90.0;
-	//
-	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
-	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -122,6 +123,37 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 			Ig, niu);
 		shps = model.following_SandHypoplasticityStbWrapper(shps);
 	}
+#else
+	// Norsand
+	constexpr double gamma = 0.875;
+	constexpr double lambda = 0.0058;
+	constexpr double Ig = 130.0;
+	constexpr double niu = 0.2;
+	constexpr double N = 0.3;
+	constexpr double chi = 2.2;
+	constexpr double H = 150.0;
+	MatModel::NorsandWrapper *ns = model.add_NorsandWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		mms[pcl_id] = ns;
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		auto& pcl_s = model.get_pcl_stress0()[pcl_id];
+		pcl_s.s33 = pcl_z * 9.81 * den_float;
+		pcl_s.s22 = K0 * pcl_s.s33;
+		pcl_s.s11 = pcl_s.s22;
+		if (pcl_z > stress_depth_limit) // shallow depth
+			pcl_z = stress_depth_limit;
+		ini_stress[2] = pcl_z * 9.81 * den_float;
+		ini_stress[0] = K0 * ini_stress[2];
+		ini_stress[1] = ini_stress[0];
+		ns->set_param(
+			ini_stress, e0, 
+			fric_ang, gamma, lambda,
+			N, chi, H,
+			Ig, niu);
+		ns = model.following_NorsandWrapper(ns);
+	}
+#endif
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
