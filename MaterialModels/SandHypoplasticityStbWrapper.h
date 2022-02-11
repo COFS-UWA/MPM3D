@@ -37,6 +37,7 @@ namespace MatModel
 			__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
 			__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
 			__Float_Type__ Ig, __Float_Type__ niu,
+			__Float_Type__ alpha_vol = 1.0,
 			const __Float_Type__* ini_strain = nullptr);
 		void set_yield_surface(__Float_Type__ Mi, __Float_Type__ pi, __Float_Type__ pl);
 		__Float_Type__ get_phi() const noexcept { return glb.phi; }
@@ -50,6 +51,7 @@ namespace MatModel
 		__Float_Type__ get_N() const noexcept { return glb.N; }
 		__Float_Type__ get_chi() const noexcept { return glb.chi; }
 		__Float_Type__ get_H() const noexcept { return glb.H; }
+		__Float_Type__ get_alpha_vol() const noexcept { return glb.alpha_vol; }
 		__Float_Type__ get_Ig() const noexcept { return glb.Ig; }
 		__Float_Type__ get_niu() const noexcept { return glb.niu; }
 		const __Float_Type__* get_stress() const noexcept { return mat.stress; }

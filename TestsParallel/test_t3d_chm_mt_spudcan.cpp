@@ -67,11 +67,12 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
 	constexpr double stress_depth_limit = -0.01;
+	constexpr double n0 = e0 / (1.0 + e0);
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	teh_mesh.clear();
-	model.init_pcls(pcl_generator, e0 / (1.0+e0), den_grain, 1000.0, 2.0e7, 1.22e-12, 1.0e-3);
+	model.init_pcls(pcl_generator, n0, den_grain, 1000.0, 2.0e7, 1.22e-12, 1.0e-3);
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
@@ -109,15 +110,6 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 		ini_stress[2] = pcl_z * 9.81 * den_float;
 		ini_stress[0] = K0 * ini_stress[2];
 		ini_stress[1] = ini_stress[0];
-		//if (pcl_z > void_depth_limit)
-		//	shp.set_param(
-		//		ini_stress, 0.76, // critical state
-		//		fric_ang, hs, n,
-		//		alpha, beta,
-		//		ed0, ec0, ei0,
-		//		N, chi, H,
-		//		Ig, niu);
-		//else // normal
 		shps->set_param(
 			ini_stress, e0,
 			fric_ang, hs, n,

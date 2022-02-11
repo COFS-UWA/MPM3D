@@ -143,17 +143,19 @@ int Step_T3D_CHM_ud_TBB::init_calculation()
 #endif
 
 	init_pcl.init(thread_num);
-	map_pcl_to_mesh.init();
-	cont_rigid_body.init();
-	update_a_and_v.init();
-	cal_elem_de.init();
-	cal_node_de.init();
-	map_mesh_to_pcl.init();
-
 	ParaUtil::parallel_reduce(init_pcl, init_pcl_res, init_pcl.get_task_num());
 	//init_pcl_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, init_pcl.get_task_num(), 1), init_pcl_res);
 	//valid_pcl_num = init_pcl_tbb.pcl_num;
+
+	valid_pcl_num = init_pcl_res.pcl_num;
+
+	map_pcl_to_mesh.init();
+	cont_rigid_body.init(init_pcl_res.max_pcl_vol);
+	update_a_and_v.init();
+	cal_elem_de.init();
+	cal_node_de.init();
+	map_mesh_to_pcl.init();
 
 	pcl_sort_time = 0;
 	ne_sort_time = 0;

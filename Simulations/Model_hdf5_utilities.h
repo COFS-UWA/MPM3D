@@ -743,7 +743,7 @@ namespace Model_hdf5_utilities
 		double phi, hs, n;
 		double alpha, beta;
 		double ed0, ec0, ei0;
-		double N, chi, H;
+		double N, chi, H, alpha_vol;
 		double Ig, niu;
 		union
 		{
@@ -775,6 +775,7 @@ namespace Model_hdf5_utilities
 			N = mm.get_N();
 			chi = mm.get_chi();
 			H = mm.get_H();
+			alpha_vol = mm.get_alpha_vol();
 			Ig = mm.get_Ig();
 			niu = mm.get_niu();
 			const double* mm_stress = mm.get_stress();
@@ -807,7 +808,7 @@ namespace Model_hdf5_utilities
 				alpha, beta,
 				ed0, ec0, ei0,
 				N, chi, H,
-				Ig, niu, strain);
+				Ig, niu, alpha_vol, strain);
 			mm.set_substep_size(substep_size);
 			mm.set_yield_surface(Mi, pi, pl);
 			status_code = 0;
@@ -829,6 +830,7 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "N", HOFFSET(SandHypoplasticityStbStateData, N), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "chi", HOFFSET(SandHypoplasticityStbStateData, chi), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "H", HOFFSET(SandHypoplasticityStbStateData, H), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "alpha_vol", HOFFSET(SandHypoplasticityStbStateData, alpha_vol), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "Ig", HOFFSET(SandHypoplasticityStbStateData, Ig), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "niu", HOFFSET(SandHypoplasticityStbStateData, niu), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "s11", HOFFSET(SandHypoplasticityStbStateData, s11), H5T_NATIVE_DOUBLE);
