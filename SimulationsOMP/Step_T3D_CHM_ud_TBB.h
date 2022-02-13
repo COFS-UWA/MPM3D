@@ -19,6 +19,8 @@ namespace Model_T3D_CHM_mt_hdf5_utilities
 		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp,
 		ResultFile_hdf5& rf, hid_t frame_grp_id);
 	int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, const char* hdf5_name);
+	int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& step,
+		const char* hdf5_name, const char* th_name, size_t frame_id);
 }
 
 int substep_func_T3D_CHM_ud_TBB(void *_self);
@@ -140,6 +142,7 @@ protected:
 	MapBgMeshToPclTbb map_mesh_to_pcl_tbb;
 
 	// data changed during computation
+	InitPclRes init_pcl_res;
 	union
 	{
 		Force3D react_force;
@@ -148,7 +151,6 @@ protected:
 	union
 	{
 		size_t valid_pcl_num;
-		InitPclRes init_pcl_res;
 		MapBgMeshToPclRes map_mesh_to_pcl_res;
 	};
 	size_t prev_valid_pcl_num;
@@ -179,6 +181,9 @@ public:
 		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::time_history_complete_output_to_hdf5_file(
 		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+	friend int Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
+		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& step,
+		const char* hdf5_name, const char* th_name, size_t frame_id);
 };
 
 #endif
