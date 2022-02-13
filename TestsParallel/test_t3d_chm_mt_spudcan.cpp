@@ -91,7 +91,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	//
 	constexpr double N = 1.7;
 	constexpr double chi = 23.0;
-	constexpr double H = 90.0;
+	constexpr double H = 300.0; // 90.0
 	//
 	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
 	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
@@ -248,7 +248,8 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	//constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
 	//model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont / 50.0, K_cont / 50.0);
 	// modified permeability
-	//model.set_k(1.0e-9);
+	model.set_k(1.22e-9);
+	//model.set_miu(0.684);
 
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -285,7 +286,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(24);
-	step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
+	step.set_step_time(0.6); // 2.5 v=0.15, 0.75 v=0.5
 	//step.set_thread_num(3);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
@@ -350,7 +351,6 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
 	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 1.0, 0.0);
-	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 800);
 	app.set_view_dir(-90.0f, 10.0f);
@@ -371,6 +371,9 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	// p
 	app.set_res_file(rf, "penetration", Hdf5Field::p);
 	app.set_color_map_fld_range(-3000.0, 3000.0);
+	// e
+	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
+	//app.set_color_map_fld_range(0.5, 0.65);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_chm_mt_spudcan");
