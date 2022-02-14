@@ -8,18 +8,19 @@
 #include "Step_T3D_CHM_mt.h"
 #include "TimeHistory_T3D_CHM_mt_complete.h"
 #include "Step_T3D_CHM_TBB.h"
-#include "Step_T3D_CHM_ud_TBB.h"
 #include "TimeHistory_T3D_CHM_TBB_complete.h"
+#include "Step_T3D_CHM_ud_TBB.h"
+#include "TimeHistory_T3D_CHM_ud_TBB_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt.h"
 #include "QtApp_Prep_T3D_CHM_mt_Div.h"
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
-//#define Undrained
+#define Undrained
 
 // Hypo or Norsand
-//#define Hypo
+#define Hypo
 
 void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 {
@@ -99,7 +100,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	constexpr double niu = 0.2;
 	constexpr double N = 1.7;
 	constexpr double chi = 23.0;
-	constexpr double H = 90.0;
+	constexpr double H = 200.0; // 90.0;
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -250,10 +251,10 @@ void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv)
 
 	Step_T3D_CHM_mt_Geo step("step1");
 	step.set_model(model);
-	step.set_thread_num(22);
-	step.set_step_time(1.0); // 1.0
-	//step.set_thread_num(5);
-	//step.set_step_time(1.0e-5);
+	//step.set_thread_num(22);
+	//step.set_step_time(1.0); // 1.0
+	step.set_thread_num(5);
+	step.set_step_time(5.0e-5);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -270,7 +271,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	Step_T3D_CHM_ud_TBB step("step2");
 #endif
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
-		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 21);
+		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 6); // 21
 	
 	// modified velocity
 	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
@@ -305,8 +306,12 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
+#ifndef Undrained
 	//TimeHistory_T3D_CHM_mt_complete out1("penetration");
 	TimeHistory_T3D_CHM_TBB_complete out1("penetration");
+#else
+	TimeHistory_T3D_CHM_ud_TBB_complete out1("penetration");
+#endif
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
@@ -315,12 +320,12 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	step.set_model(model);
-	step.set_thread_num(24);
-	step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
-	//step.set_thread_num(3);
-	//step.set_step_time(1.0e-5);
+	//step.set_thread_num(24);
+	//step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
+	step.set_thread_num(3);
+	step.set_step_time(5.0e-5);
 	step.set_dtime(5.0e-6);
-	step.add_time_history(out1);
+	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }

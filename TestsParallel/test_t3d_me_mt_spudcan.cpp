@@ -15,7 +15,7 @@
 //#define Undrained
 
 // Hypo or Norsand
-//#define Hypo
+#define Hypo
 
 void test_t3d_me_mt_spudcan_model(int argc, char** argv)
 {
@@ -94,7 +94,7 @@ void test_t3d_me_mt_spudcan_model(int argc, char** argv)
 	constexpr double niu = 0.2;
 	constexpr double N = 1.7;
 	constexpr double chi = 23.0;
-	constexpr double H = 90.0;
+	constexpr double H = 270.0; // 90.0
 	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -240,10 +240,10 @@ void test_t3d_me_mt_spudcan_geostatic(int argc, char** argv)
 
 	Step_T3D_ME_mt_Geo step("step1");
 	step.set_model(model);
-	step.set_thread_num(22);
-	step.set_step_time(1.0); // 1.0
-	//step.set_thread_num(5);
-	//step.set_step_time(1.0e-5);
+	//step.set_thread_num(22);
+	//step.set_step_time(1.0); // 1.0
+	step.set_thread_num(5);
+	step.set_step_time(3.0e-5);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -255,7 +255,7 @@ void test_t3d_me_mt_spudcan(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Step_T3D_ME_TBB step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_mt_spudcan_geo.h5", "geostatic", 21);
+		model, step, "t3d_me_mt_spudcan_geo.h5", "geostatic", 21); // 21
 	
 	// modified velocity
 	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
@@ -299,10 +299,10 @@ void test_t3d_me_mt_spudcan(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	step.set_model(model);
-	step.set_thread_num(24);
-	step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
-	//step.set_thread_num(3);
-	//step.set_step_time(1.0e-5);
+	//step.set_thread_num(24);
+	//step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
+	step.set_thread_num(3);
+	step.set_step_time(2.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
