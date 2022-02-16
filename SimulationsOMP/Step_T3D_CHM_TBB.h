@@ -160,6 +160,7 @@ protected:
 	size_t ori_pcl_num, elem_num, node_num;
 #endif
 
+	// time profiling
 	size_t pcl_sort_time;
 	size_t ne_sort_time;
 	size_t map_pcl_to_mesh_time;
