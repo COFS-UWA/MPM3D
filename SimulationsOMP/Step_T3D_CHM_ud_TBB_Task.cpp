@@ -640,9 +640,7 @@ namespace Step_T3D_CHM_ud_TBB_Task
 	{
 		elem_node_id = stp.elem_node_id;
 		node_a_s = stp.node_a_s;
-		//node_a_f = stp.node_a_f;
 		node_v_s = stp.node_v_s;
-		//node_v_f = stp.node_v_f;
 		elem_density_f = stp.elem_density_f;
 		elem_pcl_n = stp.elem_pcl_n;
 		elem_p = stp.elem_p;
@@ -885,8 +883,8 @@ namespace Step_T3D_CHM_ud_TBB_Task
 	void ContactRigidBody::apply_rigid_cylinder(
 		size_t p_id0,
 		size_t p_id1,
-		Force3D& rc_cf)
-		const noexcept
+		Force3D& rc_cf
+		) const noexcept
 	{
 		double dist;
 		Vector3D lnorm, gnorm;

@@ -326,7 +326,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	//step.set_thread_num(3);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6);
-	//step.add_time_history(out1);
+	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }
@@ -365,12 +365,9 @@ void test_t3d_chm_mt_spudcan_geo_result(int argc, char** argv)
 	// plastic mises strain
 	//app.set_res_file(rf, "geostatic", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.35);
-	// p
-	//app.set_res_file(rf, "geostatic", Hdf5Field::p);
-	//app.set_color_map_fld_range(-1000.0, 1000.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	app.set_png_name("t3d_chm_mt_spudcan_geo");
+	//app.set_png_name("t3d_chm_mt_spudcan_geo");
 	//app.set_gif_name("t3d_chm_mt_spudcan_geo");
 	app.start();
 }
@@ -396,8 +393,8 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	app.set_view_dist_scale(0.7f);
 	app.set_display_bg_mesh(false);
 	// s33
-	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-56000.0, 0.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	app.set_color_map_fld_range(-56000.0, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5000.0);

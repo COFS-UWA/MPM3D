@@ -16,6 +16,7 @@ namespace Step_T3D_ME_TBB_Task
 
 	void InitPcl::init(size_t thread_num) noexcept
 	{
+		pcl_m = stp.pcl_m;
 		in_pcl_in_elems = stp.in_pcl_in_elems;
 		in_prev_pcl_ids = stp.in_prev_pcl_ids;
 		task_num = ParaUtil::cal_task_num<
@@ -31,6 +32,7 @@ namespace Step_T3D_ME_TBB_Task
 		const size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
 		const size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
 		size_t valid_pcl_num = 0;
+		double max_pcl_vol = 0.0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = spva0.pcl_index[p_id];
@@ -48,10 +50,14 @@ namespace Step_T3D_ME_TBB_Task
 				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
 			if (e_id != SIZE_MAX)
 				++valid_pcl_num;
+			const double p_vol = pcl_m[ori_p_id] / spva0.pcl_density[ori_p_id];
+			if (max_pcl_vol < p_vol)
+				max_pcl_vol = p_vol;
 			in_pcl_in_elems[p_id] = e_id;
 			in_prev_pcl_ids[p_id] = p_id;
 		}
 		res.pcl_num = valid_pcl_num;
+		res.max_pcl_vol = max_pcl_vol;
 	}
 	
 	void MapPclToBgMesh::init() noexcept
@@ -358,14 +364,14 @@ namespace Step_T3D_ME_TBB_Task
 
 		// contact force calculation
 		ContactRigidBody& crb = stp.cont_rigid_body;
-		if (crb.has_rigid_cone())
-			crb.apply_rigid_cone(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_cube())
 			crb.apply_rigid_cube(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_cylinder())
 			crb.apply_rigid_cylinder(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_mesh())
 			crb.apply_t3d_rigid_object(p_id0, p_id1, res.react_force);
+		//if (crb.has_rigid_cone())
+		//	crb.apply_rigid_cone(p_id0, p_id1, res.react_force);
 	}
 
 	void UpdateAccelerationAndVelocity::init() noexcept
@@ -767,20 +773,36 @@ namespace Step_T3D_ME_TBB_Task
 	}
 
 // ================== contact funct ================
-	void ContactRigidBody::init() noexcept
+	void ContactRigidBody::init(double max_pcl_vol) noexcept
 	{
 		Model_T3D_ME_mt& md = *stp.pmodel;
-		prco = md.has_rigid_cone() ? &md.get_rigid_cone() : nullptr;
-		prcu = md.has_rigid_cube() ? &md.get_rigid_cube() : nullptr;
-		prcy = md.has_rigid_cylinder() ? &md.get_rigid_cylinder() : nullptr;
-		prmesh = md.has_t3d_rigid_mesh() ? &md.get_t3d_rigid_mesh() : nullptr;
-
 		pcm = md.get_contact_model();
-
-		pcl_in_elems = stp.pcl_in_elems;
+		prcy = nullptr;
+		prcu = nullptr;
+		prmesh = nullptr;
+		if (md.has_rigid_cylinder())
+		{
+			prcy = &md.get_rigid_cylinder();
+			prcy->reset_cont_force();
+		}
+		if (md.has_rigid_cube())
+		{
+			prcu = &md.get_rigid_cube();
+			prcu->reset_cont_force();
+		}
+		if (md.has_t3d_rigid_mesh())
+		{
+			prmesh = &md.get_t3d_rigid_mesh();
+			prmesh->reset_cont_force();
+			// set max dist for efficiency
+			prmesh->init_max_dist(0.5 * pow(max_pcl_vol, one_third) * 4.0);
+		}
+		//
 		pcl_pos = stp.pcl_pos;
 		pcl_vol = stp.pcl_vol;
 		elem_node_force = stp.elem_node_force;
+		//
+		pcl_in_elems = stp.pcl_in_elems;
 	}
 
 	void ContactRigidBody::update() noexcept

@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_result(argc, argv);
 
 	//test_t3d_me_mt_spudcan_model(argc, argv);
-	test_t3d_me_mt_spudcan_geostatic(argc, argv);
+	//test_t3d_me_mt_spudcan_geostatic(argc, argv);
 	test_t3d_me_mt_spudcan(argc, argv);
 	//test_t3d_me_mt_spudcan_geo_result(argc, argv);
 	//test_t3d_me_mt_spudcan_result(argc, argv);

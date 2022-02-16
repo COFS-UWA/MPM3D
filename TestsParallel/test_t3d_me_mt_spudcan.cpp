@@ -240,7 +240,11 @@ void test_t3d_me_mt_spudcan_geostatic(int argc, char** argv)
 
 	Step_T3D_ME_mt_Geo step("step1");
 	step.set_model(model);
+<<<<<<< HEAD
 	step.set_thread_num(24);
+=======
+	step.set_thread_num(22);
+>>>>>>> 4c057c1d8c43f38ba522914e8770c2fef26c6ce3
 	step.set_step_time(1.0); // 1.0
 	//step.set_thread_num(5);
 	//step.set_step_time(3.0e-5);
@@ -299,10 +303,10 @@ void test_t3d_me_mt_spudcan(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	step.set_model(model);
-	step.set_thread_num(24);
-	step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
-	//step.set_thread_num(3);
-	//step.set_step_time(2.0e-5);
+	//step.set_thread_num(24);
+	//step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
+	step.set_thread_num(3);
+	step.set_step_time(2.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -343,12 +347,9 @@ void test_t3d_me_mt_spudcan_geo_result(int argc, char** argv)
 	// plastic mises strain
 	//app.set_res_file(rf, "geostatic", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.35);
-	// p
-	//app.set_res_file(rf, "geostatic", Hdf5Field::p);
-	//app.set_color_map_fld_range(-1000.0, 1000.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	app.set_png_name("t3d_me_mt_spudcan_geo");
+	//app.set_png_name("t3d_me_mt_spudcan_geo");
 	//app.set_gif_name("t3d_me_mt_spudcan_geo");
 	app.start();
 }
@@ -375,17 +376,14 @@ void test_t3d_me_mt_spudcan_result(int argc, char** argv)
 	app.set_view_dist_scale(0.7f);
 	app.set_display_bg_mesh(false);
 	// s33
-	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-56000.0, 0.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	app.set_color_map_fld_range(-56000.0, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5000.0);
 	// plastic mises strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.35);
-	// p
-	app.set_res_file(rf, "penetration", Hdf5Field::p);
-	app.set_color_map_fld_range(-3000.0, 3000.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_spudcan");
