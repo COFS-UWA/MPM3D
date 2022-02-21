@@ -318,25 +318,25 @@ int substep_func_T3D_CHM_ud_TBB(void* _self)
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time += (t1 - t0).count();
 
-	if (self.substep_index % 100 == 99)
-	{
-#ifdef TIMING
-		res_file_t3d_chm_ud_tbb << self.pcl_sort_time << ", "
-			<< self.ne_sort_time << ", "
-			<< self.map_pcl_to_mesh_time << ", "
-			<< self.update_a_and_v_time << ", "
-			<< self.cal_elem_de_time << ", "
-			<< self.cal_node_de_time << ", "
-			<< self.map_mesh_to_pcl_time << "\n";
-#endif
-		self.pcl_sort_time = 0;
-		self.ne_sort_time = 0;
-		self.map_pcl_to_mesh_time = 0;
-		self.update_a_and_v_time = 0;
-		self.cal_elem_de_time = 0;
-		self.cal_node_de_time = 0;
-		self.map_mesh_to_pcl_time = 0;
-	}
+//	if (self.substep_index % 100 == 99)
+//	{
+//#ifdef TIMING
+//		res_file_t3d_chm_ud_tbb << self.pcl_sort_time << ", "
+//			<< self.ne_sort_time << ", "
+//			<< self.map_pcl_to_mesh_time << ", "
+//			<< self.update_a_and_v_time << ", "
+//			<< self.cal_elem_de_time << ", "
+//			<< self.cal_node_de_time << ", "
+//			<< self.map_mesh_to_pcl_time << "\n";
+//#endif
+//		self.pcl_sort_time = 0;
+//		self.ne_sort_time = 0;
+//		self.map_pcl_to_mesh_time = 0;
+//		self.update_a_and_v_time = 0;
+//		self.cal_elem_de_time = 0;
+//		self.cal_node_de_time = 0;
+//		self.map_mesh_to_pcl_time = 0;
+//	}
 
 	self.continue_calculation();
 	return 0;

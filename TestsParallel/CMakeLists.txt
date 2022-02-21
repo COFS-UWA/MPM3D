@@ -76,6 +76,7 @@ add_executable(
 	# spudcan
 	test_t3d_me_mt_spudcan.cpp
 	test_t3d_chm_mt_spudcan.cpp
+	test_t3d_chm_mt_spudcan_cy.cpp
     )
 
 target_include_directories(

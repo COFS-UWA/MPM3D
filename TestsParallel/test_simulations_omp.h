@@ -123,11 +123,6 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char **argv);
 void test_t3d_me_mt_piezofoundation_sim_mat(int argc, char** argv);
 void test_t3d_me_mt_piezofoundation_sim_mat_restart(int argc, char** argv);
 
-void test_t3d_chm_mt_spudcan_model(int argc, char** argv);
-void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv);
-void test_t3d_chm_mt_spudcan(int argc, char** argv);
-void test_t3d_chm_mt_spudcan_geo_result(int argc, char** argv);
-void test_t3d_chm_mt_spudcan_result(int argc, char** argv);
 void test_t3d_chm_mt_cap_compression(int argc, char** argv);
 void test_t3d_chm_mt_cap_compression_result(int argc, char** argv);
 void test_t3d_chm_mt_triaxial_compression(int argc, char** argv);
@@ -138,5 +133,15 @@ void test_t3d_chm_tbb_piezofoundation_sim_mat(int argc, char** argv);
 void test_t3d_me_mt_spudcan_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_geostatic(int argc, char** argv);
 void test_t3d_me_mt_spudcan(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_model(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv);
+void test_t3d_chm_mt_spudcan(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_geo_result(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_result(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_geostatic(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy(int argc, char** argv);
 
 #endif
