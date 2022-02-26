@@ -190,8 +190,7 @@ void Model_T3D_CHM_mt::init_mesh(const TetrahedronMesh &mesh)
 {
 	clear_mesh();
 
-	if (mesh.get_elem_num() == 0 ||
-		mesh.get_node_num() == 0)
+	if (mesh.get_elem_num() == 0 || mesh.get_node_num() == 0)
 		return;
 	
 	alloc_mesh(mesh.get_node_num(), mesh.get_elem_num());

@@ -112,8 +112,8 @@ int Step_T3D_CHM_ud_TBB::init_calculation()
 	node_a_f = md.node_a_f;
 	node_v_s = md.node_v_s;
 	node_v_f = md.node_v_f;
+	node_vbc_vec_s = md.node_vbc_vec_s;
 	node_has_vbc_s = md.node_has_vbc_s;
-	node_has_vbc_f = md.node_has_vbc_f;
 	node_am_s = md.node_am_s;
 	node_am_f = md.node_am_f;
 	node_de_vol_s = md.node_de_vol_s;

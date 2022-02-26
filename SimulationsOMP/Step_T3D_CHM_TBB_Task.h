@@ -143,6 +143,7 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::Acceleration Acceleration;
 		typedef Model_T3D_CHM_mt::Velocity Velocity;
 		typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
+		typedef Model_T3D_CHM_mt::NodeVBCVec NodeVBCVec;
 
 		Step_T3D_CHM_TBB& stp;
 
@@ -158,8 +159,10 @@ namespace Step_T3D_CHM_TBB_Task
 		Acceleration* node_a_f;
 		Velocity *node_v_s;
 		Velocity* node_v_f;
-		NodeHasVBC *node_has_vbc_s;
-		NodeHasVBC* node_has_vbc_f;
+		const NodeHasVBC *node_has_vbc_s;
+		const NodeHasVBC* node_has_vbc_f;
+		const NodeVBCVec *node_vbc_vec_s;
+		const NodeVBCVec* node_vbc_vec_f;
 
 		const size_t* node_ids;
 		const size_t* node_elem_offs;
