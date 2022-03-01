@@ -52,7 +52,7 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	MemoryUtils::ItemArray<double> bfz_array(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		double bfz = -1.0;
+		double bfz = -10.0;
 		bfz_pcl_array.add(pcl_id);
 		bfz_array.add(bfz);
 	}
@@ -128,29 +128,13 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	//step.add_time_history(out_cpb);
 	//step.solve();
 
-	//TimeHistory_T3D_CHM_TBB_complete out1("geostatic");
-	//out1.set_res_file(res_file_hdf5);
-	//out1.set_output_init_state();
-	//out1.set_output_final_state();
-	//out1.set_interval_num(100);
-
-	//Step_T3D_CHM_TBB step("step1");
-	//step.set_model(model);
-	//step.set_step_time(1.0);
-	////step.set_step_time(2.0e-4);
-	//step.set_dtime(1.0e-4);
-	//step.set_thread_num(5);
-	//step.add_time_history(out1);
-	//step.add_time_history(out_cpb);
-	//step.solve();
-
-	TimeHistory_T3D_CHM_ud_TBB_complete out1("geostatic");
+	TimeHistory_T3D_CHM_TBB_complete out1("geostatic");
 	out1.set_res_file(res_file_hdf5);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_interval_num(100);
 
-	Step_T3D_CHM_ud_TBB step("step1");
+	Step_T3D_CHM_TBB step("step1");
 	step.set_model(model);
 	step.set_step_time(1.0);
 	//step.set_step_time(2.0e-4);
@@ -159,6 +143,22 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
+
+	//TimeHistory_T3D_CHM_ud_TBB_complete out1("geostatic");
+	//out1.set_res_file(res_file_hdf5);
+	//out1.set_output_init_state();
+	//out1.set_output_final_state();
+	//out1.set_interval_num(100);
+
+	//Step_T3D_CHM_ud_TBB step("step1");
+	//step.set_model(model);
+	//step.set_step_time(1.0);
+	////step.set_step_time(2.0e-4);
+	//step.set_dtime(1.0e-4);
+	//step.set_thread_num(5);
+	//step.add_time_history(out1);
+	//step.add_time_history(out_cpb);
+	//step.solve();
 }
 
 void test_t3d_chm_mt_cylinder_bcs2(int argc, char** argv)

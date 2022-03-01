@@ -12,6 +12,8 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
+#define OED_TEST
+
 void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 {
 	TetrahedronMesh teh_mesh;
@@ -25,13 +27,15 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	constexpr double e0 = 0.55; // dense
 	//constexpr double e0 = 0.75; // loose
 	constexpr double den_grain = 2670.0;
-	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	const double ini_stress[6] = { -30.0e3, -30.0e3, -30.0e3, 0.0, 0.0, 0.0 };
+	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	//const double ini_stress[6] = { -200.0e3, -200.0e3, -200.0e3, 0.0, 0.0, 0.0 };
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), 2.0, 1.0, 2.0e4, 5.0e-9, 1.0); // elastic
-	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 3.6e8, 5.0e-9, 1.0); // undrained
-	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0); // drained
+	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 3.6e8, 5.0e-9, 1.0); // undrained
+	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0); // drained
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// Linear elasticity
@@ -44,33 +48,33 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//	model.add_mat_model(pcl_id, le, sizeof(MatModel::LinearElasticity));
 	//}
 	// Stb hypoplasticity
-	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		shps->set_param(
-			ini_stress, e0,
-			30.0, 1354.0e6, 0.34,
-			0.18, 1.27,
-			0.49, 0.76, 0.86,
-			1.5, 43.0, 100.0,
-			//1.5, 43.0, 250.0,
-			200.0, 0.2);
-	 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
-		shps = model.following_SandHypoplasticityStbWrapper(shps);
-	}
-	// Norsand
-	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	ns->set_param(
+	//	shps->set_param(
 	//		ini_stress, e0,
-	//		30.0,
-	//		0.86, 0.015,
-	//		0.3, 3.6, 250.0,
+	//		30.0, 1354.0e6, 0.34,
+	//		0.18, 1.27,
+	//		0.49, 0.76, 0.86,
+	//		1.5, 43.0, 100.0,
+	//		//1.5, 43.0, 250.0,
 	//		200.0, 0.2);
-	//	model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
-	//	ns = model.following_NorsandWrapper(ns);
+	// 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
+	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
 	//}
+	// Norsand
+	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		ns->set_param(
+			ini_stress, e0,
+			30.0230,
+			0.875, 0.0058,
+			0.3, 2.5, 200.0,
+			200.0, 0.2);
+		model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
+		ns = model.following_NorsandWrapper(ns);
+	}
 
 	// cavitation
 	//model.set_cavitation(100.0, -100.0e3, 0.01);
@@ -78,20 +82,27 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);
-	//const double Kct = 20.0 / (0.025 * 0.025); // elastic 
-	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo undrained 
-	//const double Kct = 2.0e4 / (0.025 * 0.025); // hypo drained
+	//const double Kct = 20.0 / (0.025 * 0.025); // elastic
+#ifndef OED_TEST
+	const double Kct = 1.0e5 / (0.025 * 0.025);
+#else
+	const double Kct = 1.0e6 / (0.025 * 0.025);
+#endif
 	model.set_contact_param(Kct, Kct, 0.1, 0.2, Kct / 10.0, Kct / 10.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
-	//find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.2, false);
+#ifdef OED_TEST
+	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.2, false);
+#endif
 	model.init_fixed_vx_s_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 	model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 
 	IndexArray vy_bc_pt_array(100);
 	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
-	//find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.2, false);
+#ifdef OED_TEST
+	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.2, false);
+#endif
 	model.init_fixed_vy_s_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 	model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
@@ -110,11 +121,11 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//md_disp.set_light_dir(35.0f, -15.0f);
 	////md_disp.set_view_dist_scale(0.5);
 	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	//size_t disp_p_id = 2000;
-	//md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
+	////size_t disp_p_id = 2000;
+	////md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
 	//md_disp.start();
 	//return;
 

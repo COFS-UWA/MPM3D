@@ -53,7 +53,7 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 	MemoryUtils::ItemArray<double> bfz_array(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		double bfz = -1.0;
+		double bfz = -10.0;
 		bfz_pcl_array.add(pcl_id);
 		bfz_array.add(bfz);
 	}
@@ -142,7 +142,6 @@ void test_t3d_me_mt_cylinder_bcs(int argc, char **argv)
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
-
 }
 
 #include "QtApp_Posp_T3D_ME_mt.h"
