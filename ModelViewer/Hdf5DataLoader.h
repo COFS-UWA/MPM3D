@@ -47,7 +47,8 @@ public:
 		VonMises = 2,
 		Tresca = 3,
 		SandHypoplasticity = 4,
-		SandHypoplasticityStb = 5
+		SandHypoplasticityStb = 5,
+		Norsand = 6
 	};
 	struct MatModelPointer
 	{
@@ -67,6 +68,7 @@ public:
 	typedef Model_hdf5_utilities::TrescaStateData TrescaStateData;
 	typedef Model_hdf5_utilities::SandHypoplasticityStateData SandHypoplasticityStateData;
 	typedef Model_hdf5_utilities::SandHypoplasticityStbStateData SandHypoplasticityStbStateData;
+	typedef Model_hdf5_utilities::NorsandStateData NorsandStateData;
 
 	struct MatModelInfo
 	{
@@ -83,18 +85,20 @@ protected:
 	size_t Tresca_num;
 	size_t SandHypoplasticity_num;
 	size_t SandHypoplasticityStb_num;
+	size_t Norsand_num;
 	MemoryUtils::ItemArray<LinearElasticityStateData> LinearElasticity_mem;
 	MemoryUtils::ItemArray<ModifiedCamClayStateData> ModifiedCamClay_mem;
 	MemoryUtils::ItemArray<VonMisesStateData> VonMises_mem;
 	MemoryUtils::ItemArray<TrescaStateData> Tresca_mem;
 	MemoryUtils::ItemArray<SandHypoplasticityStateData> SandHypoplasticity_mem;
 	MemoryUtils::ItemArray<SandHypoplasticityStbStateData> SandHypoplasticityStb_mem;
+	MemoryUtils::ItemArray<NorsandStateData> Norsand_mem;
 	static const MatModelInfo mat_model_info[];
 
 public:
 	inline MatModelMap& get_mat_model_map() { return mat_model_map; }
 	inline static const MatModelInfo& get_mat_model_info(MatModelType type)
-	{ return mat_model_info[(unsigned char)type]; }
+	{ return mat_model_info[size_t(type)]; }
 
 	int load_frame_data(size_t fm_id, bool need_mat_model = false);
 };

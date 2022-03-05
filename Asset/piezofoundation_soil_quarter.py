@@ -130,7 +130,7 @@ seed_edg = prt1.edges.findAt(
     ((0.0, 0.0, -dense_depth*0.5), ),
     ((0.0, dense_width, -dense_depth*0.5), )
     )
-seed_edge_set = prt1.Set(name = 'SeedEdges', edges = seed_edg)       
+seed_edge_set = prt1.Set(name = 'SeedEdges', edges = seed_edg)
 prt1.seedEdgeBySize(edges = seed_edg, size = dense_elem_size, \
     deviationFactor = 0.1, minSizeFactor = 0.1, constraint = FIXED)
 

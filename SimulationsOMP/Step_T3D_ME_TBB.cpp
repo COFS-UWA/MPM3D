@@ -91,6 +91,7 @@ int Step_T3D_ME_TBB::init_calculation()
 	node_a = md.node_a;
 	node_v = md.node_v;
 	node_has_vbc = md.node_has_vbc;
+	node_vbc_vec = md.node_vbc_vec;
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 
@@ -114,8 +115,15 @@ int Step_T3D_ME_TBB::init_calculation()
 #endif
 
 	init_pcl.init(thread_num);
+	ParaUtil::parallel_reduce(init_pcl, init_pcl_res, init_pcl.get_task_num());
+	//init_pcl_tbb.reset();
+	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, init_pcl.get_task_num(), 1), init_pcl_tbb);
+	//valid_pcl_num = init_pcl_tbb.res.pcl_num;
+	
+	valid_pcl_num = init_pcl_res.pcl_num;
+	
 	map_pcl_to_mesh.init();
-	cont_rigid_body.init();
+	cont_rigid_body.init(init_pcl_res.max_pcl_vol);
 	update_a_and_v.init();
 	cal_elem_de.init();
 	cal_node_de.init();
@@ -123,11 +131,6 @@ int Step_T3D_ME_TBB::init_calculation()
 	map_pcl_to_mesh_res.react_force.reset();
 	map_mesh_to_pcl0.init();
 	map_mesh_to_pcl1.init();
-
-	ParaUtil::parallel_reduce(init_pcl, init_pcl_res, init_pcl.get_task_num());
-	//init_pcl_tbb.reset();
-	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, init_pcl.get_task_num(), 1), init_pcl_tbb);
-	//valid_pcl_num = init_pcl_tbb.res.pcl_num;
 
 	pcl_sort_time = 0;
 	ne_sort_time = 0;

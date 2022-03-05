@@ -401,9 +401,9 @@ protected:
 	bool rigid_cube_is_valid;
 	bool rigid_t3d_mesh_is_valid;
 	RigidCylinder rigid_cylinder;
-	RigidCone rigid_cone;
 	RigidCube rigid_cube;
 	RigidObjectByT3DMesh rigid_t3d_mesh;
+	RigidCone rigid_cone;
 
 	// ad hoc design for output
 	double Kn_cont, Kt_cont;

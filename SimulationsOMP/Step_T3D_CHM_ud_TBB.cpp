@@ -112,8 +112,8 @@ int Step_T3D_CHM_ud_TBB::init_calculation()
 	node_a_f = md.node_a_f;
 	node_v_s = md.node_v_s;
 	node_v_f = md.node_v_f;
+	node_vbc_vec_s = md.node_vbc_vec_s;
 	node_has_vbc_s = md.node_has_vbc_s;
-	node_has_vbc_f = md.node_has_vbc_f;
 	node_am_s = md.node_am_s;
 	node_am_f = md.node_am_f;
 	node_de_vol_s = md.node_de_vol_s;
@@ -143,17 +143,19 @@ int Step_T3D_CHM_ud_TBB::init_calculation()
 #endif
 
 	init_pcl.init(thread_num);
-	map_pcl_to_mesh.init();
-	cont_rigid_body.init();
-	update_a_and_v.init();
-	cal_elem_de.init();
-	cal_node_de.init();
-	map_mesh_to_pcl.init();
-
 	ParaUtil::parallel_reduce(init_pcl, init_pcl_res, init_pcl.get_task_num());
 	//init_pcl_tbb.reset();
 	//tbb::parallel_reduce(tbb::blocked_range<size_t>(0, init_pcl.get_task_num(), 1), init_pcl_res);
 	//valid_pcl_num = init_pcl_tbb.pcl_num;
+
+	valid_pcl_num = init_pcl_res.pcl_num;
+
+	map_pcl_to_mesh.init();
+	cont_rigid_body.init(init_pcl_res.max_pcl_vol);
+	update_a_and_v.init();
+	cal_elem_de.init();
+	cal_node_de.init();
+	map_mesh_to_pcl.init();
 
 	pcl_sort_time = 0;
 	ne_sort_time = 0;
@@ -316,25 +318,25 @@ int substep_func_T3D_CHM_ud_TBB(void* _self)
 	t1 = std::chrono::high_resolution_clock::now();
 	self.map_mesh_to_pcl_time += (t1 - t0).count();
 
-	if (self.substep_index % 100 == 99)
-	{
-#ifdef TIMING
-		res_file_t3d_chm_ud_tbb << self.pcl_sort_time << ", "
-			<< self.ne_sort_time << ", "
-			<< self.map_pcl_to_mesh_time << ", "
-			<< self.update_a_and_v_time << ", "
-			<< self.cal_elem_de_time << ", "
-			<< self.cal_node_de_time << ", "
-			<< self.map_mesh_to_pcl_time << "\n";
-#endif
-		self.pcl_sort_time = 0;
-		self.ne_sort_time = 0;
-		self.map_pcl_to_mesh_time = 0;
-		self.update_a_and_v_time = 0;
-		self.cal_elem_de_time = 0;
-		self.cal_node_de_time = 0;
-		self.map_mesh_to_pcl_time = 0;
-	}
+//	if (self.substep_index % 100 == 99)
+//	{
+//#ifdef TIMING
+//		res_file_t3d_chm_ud_tbb << self.pcl_sort_time << ", "
+//			<< self.ne_sort_time << ", "
+//			<< self.map_pcl_to_mesh_time << ", "
+//			<< self.update_a_and_v_time << ", "
+//			<< self.cal_elem_de_time << ", "
+//			<< self.cal_node_de_time << ", "
+//			<< self.map_mesh_to_pcl_time << "\n";
+//#endif
+//		self.pcl_sort_time = 0;
+//		self.ne_sort_time = 0;
+//		self.map_pcl_to_mesh_time = 0;
+//		self.update_a_and_v_time = 0;
+//		self.cal_elem_de_time = 0;
+//		self.cal_node_de_time = 0;
+//		self.map_mesh_to_pcl_time = 0;
+//	}
 
 	self.continue_calculation();
 	return 0;

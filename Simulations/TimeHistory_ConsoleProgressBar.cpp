@@ -6,7 +6,8 @@
 #include "Step.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 
-#define DEFAULT_WIDTH 80
+#define CONSOLE_BAR_MAX_WIDTH 100
+#define DEFAULT_WIDTH 50
 #define DEFAULT_WINDTH_DIV_100 ((float)DEFAULT_WIDTH / 100.0f)
 
 TimeHistory_ConsoleProgressBar::TimeHistory_ConsoleProgressBar() :
@@ -34,20 +35,32 @@ void TimeHistory_ConsoleProgressBar::print_progress()
 	const double stp_time = step->get_step_time();
 	cur_pos = (size_t)(100.0 * (stp_cur_time / stp_time + 0.001));
 	cur_pos = cur_pos > 100 ? 100 : cur_pos;
-	int lpad = (int)(cur_pos * width_div_100);
-	int rpad = width - lpad;
+	const int lpad = (int)(cur_pos * width_div_100);
+	const int rpad = width - lpad;
 	if (remaining_time_is_init && stp_cur_time != 0.0)
 	{
-		std::chrono::system_clock::time_point cur_time = std::chrono::system_clock::now();
+		const std::chrono::system_clock::time_point cur_time = std::chrono::system_clock::now();
+		// format predicted complete time
+		const std::chrono::system_clock::time_point pdict_time = cur_time
+			+ std::chrono::system_clock::duration(size_t((cur_time - start_time).count() * (stp_time - stp_cur_time) / stp_cur_time));
+		const std::time_t prin_pdict_time = std::chrono::system_clock::to_time_t(pdict_time);
+		char pdict_time_str[60];
+		std::strftime(pdict_time_str, 60, "%m/%d-%H:%M", std::localtime(&prin_pdict_time));
+		// remaining time
 		std::chrono::milliseconds elapsed_time
 			= std::chrono::duration_cast<std::chrono::milliseconds>(cur_time - start_time);
-		size_t remaining_time = elapsed_time.count() * (stp_time - stp_cur_time) / stp_cur_time;
+		size_t remaining_time = size_t(elapsed_time.count() * (stp_time - stp_cur_time) / stp_cur_time);
 		const size_t hr = remaining_time / 3600000;
 		remaining_time -= 3600000 * hr;
 		const size_t min = remaining_time / 60000;
 		remaining_time -= 60000 * min;
 		const double sec = double(remaining_time) / 1000.0;
-		printf("\r%3zd%% [%.*s%*s] %zuh %zum %.2lfs left...  ", cur_pos, lpad, PADDING_STR, rpad, "", hr, min, sec);
+		// print progress bar
+		char pg_bar_str[CONSOLE_BAR_MAX_WIDTH];
+		snprintf(pg_bar_str, CONSOLE_BAR_MAX_WIDTH, "\r%3zd%% [%.*s%*s] %zu:%zu:%.2lfs left, to %s.",
+			cur_pos, lpad, PADDING_STR, rpad, "", hr, min, sec, pdict_time_str);
+		const int epad = CONSOLE_BAR_MAX_WIDTH - strlen(pg_bar_str);
+		printf("%s%*s", pg_bar_str, epad, "");
 	}
 	else
 	{

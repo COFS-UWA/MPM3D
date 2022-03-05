@@ -29,8 +29,13 @@ namespace Step_T3D_ME_TBB_Task
 	struct InitPclRes
 	{
 		size_t pcl_num;
+		double max_pcl_vol;
 		inline void join(const InitPclRes& other)
-		{ pcl_num += other.pcl_num; }
+		{
+			pcl_num += other.pcl_num;
+			if (max_pcl_vol < other.max_pcl_vol)
+				max_pcl_vol = other.max_pcl_vol;
+		}
 	};
 	
 	class InitPcl
@@ -41,6 +46,7 @@ namespace Step_T3D_ME_TBB_Task
 		typedef Model_T3D_ME_mt::Position Position;
 		
 		Step_T3D_ME_TBB &stp;
+		const double* pcl_m;
 		size_t* in_pcl_in_elems, * in_prev_pcl_ids;
 		size_t task_num;
 	
@@ -126,6 +132,7 @@ namespace Step_T3D_ME_TBB_Task
 		typedef Model_T3D_ME_mt::Acceleration Acceleration;
 		typedef Model_T3D_ME_mt::Velocity Velocity;
 		typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
+		typedef Model_T3D_ME_mt::NodeVBCVec NodeVBCVec;
 
 		Step_T3D_ME_TBB& stp;
 
@@ -135,7 +142,8 @@ namespace Step_T3D_ME_TBB_Task
 		Acceleration *node_a;
 		double *node_am;
 		Velocity *node_v;
-		NodeHasVBC *node_has_vbc;
+		const NodeHasVBC *node_has_vbc;
+		const NodeVBCVec *node_vbc_vec;
 		// node ranges
 		const size_t* node_ids;
 		const size_t* node_elem_offs;
@@ -295,7 +303,7 @@ namespace Step_T3D_ME_TBB_Task
 
 	public:
 		ContactRigidBody(Step_T3D_ME_TBB& _stp) : stp(_stp) {}
-		void init() noexcept;
+		void init(double max_pcl_vol) noexcept;
 		void update() noexcept;
 		inline bool has_rigid_cone() const noexcept { return prco != nullptr; }
 		inline bool has_rigid_cube() const noexcept { return prcu != nullptr; }

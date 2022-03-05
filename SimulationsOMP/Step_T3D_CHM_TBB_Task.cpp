@@ -14,6 +14,8 @@ namespace Step_T3D_CHM_TBB_Task
 	
 	void InitPcl::init(size_t thread_num) noexcept
 	{
+		pcl_m_s = stp.pcl_m_s;
+		pcl_density_s = stp.pcl_density_s;
 		in_pcl_in_elems = stp.in_pcl_in_elems;
 		in_prev_pcl_ids = stp.in_prev_pcl_ids;
 		task_num = ParaUtil::cal_task_num<
@@ -29,6 +31,7 @@ namespace Step_T3D_CHM_TBB_Task
 		const size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
 		const size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
 		size_t valid_pcl_num = 0;
+		double max_pcl_vol = 0.0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = spva0.pcl_index[p_id];
@@ -46,10 +49,15 @@ namespace Step_T3D_CHM_TBB_Task
 				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
 			if (e_id != SIZE_MAX)
 				++valid_pcl_num;
+			const double p_vol = pcl_m_s[ori_p_id]
+				/ (pcl_density_s[ori_p_id] * (1.0 - spva0.pcl_n[p_id]));
+			if (max_pcl_vol < p_vol)
+				max_pcl_vol = p_vol;
 			in_pcl_in_elems[p_id] = e_id;
 			in_prev_pcl_ids[p_id] = p_id;
 		}
 		res.pcl_num = valid_pcl_num;
+		res.max_pcl_vol = max_pcl_vol;
 	}
 	
 	void MapPclToBgMesh::init() noexcept
@@ -664,6 +672,8 @@ namespace Step_T3D_CHM_TBB_Task
 		node_v_f = stp.node_v_f;
 		node_has_vbc_s = stp.node_has_vbc_s;
 		node_has_vbc_f = stp.node_has_vbc_f;
+		node_vbc_vec_s = stp.node_vbc_vec_s;
+		node_vbc_vec_f = stp.node_vbc_vec_f;
 		// node ranges
 		node_ids = stp.node_ids;
 		node_elem_offs = stp.node_elem_offs;
@@ -690,6 +700,7 @@ namespace Step_T3D_CHM_TBB_Task
 		assert(ve_id1 <= four_elem_num);
 		
 		size_t bc_mask, ne_id;
+		double vbc_len;
 		double n_vm_s = 0.0;
 		double n_vmx_s = 0.0;
 		double n_vmy_s = 0.0;
@@ -751,7 +762,16 @@ namespace Step_T3D_CHM_TBB_Task
 				n_v_s.vx = n_vmx_s / n_vm_s + n_a_s.ax * stp.dtime;
 				n_v_s.vy = n_vmy_s / n_vm_s + n_a_s.ay * stp.dtime;
 				n_v_s.vz = n_vmz_s / n_vm_s + n_a_s.az * stp.dtime;
-				NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
+				const NodeVBCVec& n_vbc_vec_s = node_vbc_vec_s[n_id];
+				vbc_len = n_a_s.ax * n_vbc_vec_s.x + n_a_s.ay * n_vbc_vec_s.y + n_a_s.az * n_vbc_vec_s.z;
+				n_a_s.ax -= vbc_len * n_vbc_vec_s.x;
+				n_a_s.ay -= vbc_len * n_vbc_vec_s.y;
+				n_a_s.az -= vbc_len * n_vbc_vec_s.z;
+				vbc_len = n_v_s.vx * n_vbc_vec_s.x + n_v_s.vy * n_vbc_vec_s.y + n_v_s.vz * n_vbc_vec_s.z;
+				n_v_s.vx -= vbc_len * n_vbc_vec_s.x;
+				n_v_s.vy -= vbc_len * n_vbc_vec_s.y;
+				n_v_s.vz -= vbc_len * n_vbc_vec_s.z;
+				const NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
 				bc_mask = SIZE_MAX + size_t(n_has_vbc_s.has_vx_bc);
 				n_a_s.iax &= bc_mask;
 				n_v_s.ivx &= bc_mask;
@@ -772,7 +792,16 @@ namespace Step_T3D_CHM_TBB_Task
 				n_v_f.vx = n_vmx_f / n_vm_f + n_a_f.ax * stp.dtime;
 				n_v_f.vy = n_vmy_f / n_vm_f + n_a_f.ay * stp.dtime;
 				n_v_f.vz = n_vmz_f / n_vm_f + n_a_f.az * stp.dtime;
-				NodeHasVBC& n_has_vbc_f = node_has_vbc_f[n_id];
+				const NodeVBCVec& n_vbc_vec_f = node_vbc_vec_f[n_id];
+				vbc_len = n_a_f.ax * n_vbc_vec_f.x + n_a_f.ay * n_vbc_vec_f.y + n_a_f.az * n_vbc_vec_f.z;
+				n_a_f.ax -= vbc_len * n_vbc_vec_f.x;
+				n_a_f.ay -= vbc_len * n_vbc_vec_f.y;
+				n_a_f.az -= vbc_len * n_vbc_vec_f.z;
+				vbc_len = n_v_f.vx * n_vbc_vec_f.x + n_v_f.vy * n_vbc_vec_f.y + n_v_f.vz * n_vbc_vec_f.z;
+				n_v_f.vx -= vbc_len * n_vbc_vec_f.x;
+				n_v_f.vy -= vbc_len * n_vbc_vec_f.y;
+				n_v_f.vz -= vbc_len * n_vbc_vec_f.z;
+				const NodeHasVBC& n_has_vbc_f = node_has_vbc_f[n_id];
 				bc_mask = SIZE_MAX + size_t(n_has_vbc_f.has_vx_bc);
 				n_a_f.iax &= bc_mask;
 				n_v_f.ivx &= bc_mask;
@@ -1166,13 +1195,25 @@ namespace Step_T3D_CHM_TBB_Task
 		res.pcl_num = valid_pcl_num;
 	}
 
-	void ContactRigidBody::init() noexcept
+	void ContactRigidBody::init(double max_pcl_vol) noexcept
 	{
 		Model_T3D_CHM_mt& md = *stp.pmodel;
-		prcy = md.has_rigid_cylinder() ? &md.get_rigid_cylinder() : nullptr;
-		prmesh = md.has_t3d_rigid_mesh() ? &md.get_t3d_rigid_mesh() : nullptr;
 		pcm_s = md.get_contact_model_s();
 		pcm_f = md.get_contact_model_f();
+		prcy = nullptr;
+		prmesh = nullptr;
+		if (md.has_rigid_cylinder())
+		{
+			prcy = &md.get_rigid_cylinder();
+			prcy->reset_cont_force();
+		}
+		if (md.has_t3d_rigid_mesh())
+		{
+			prmesh = &md.get_t3d_rigid_mesh();
+			prmesh->reset_cont_force();
+			// set max dist for efficiency
+			prmesh->init_max_dist(0.5 * pow(max_pcl_vol, one_third) * 4.0);
+		}
 		//
 		pcl_pos = stp.pcl_pos;
 		pcl_vol = stp.pcl_vol;

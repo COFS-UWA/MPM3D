@@ -102,6 +102,7 @@ protected:
 	Model_T3D_ME_mt::Acceleration* node_a;
 	Model_T3D_ME_mt::Velocity* node_v;
 	Model_T3D_ME_mt::NodeHasVBC* node_has_vbc;
+	Model_T3D_ME_mt::NodeVBCVec* node_vbc_vec;
 	double* node_am;
 	double* node_de_vol;
 
@@ -130,6 +131,7 @@ protected:
 	MapBgMeshToPclTbb map_mesh_to_pcl_tbb;
 
 	// data changed during computation
+	InitPclRes init_pcl_res;
 	union
 	{
 		Force3D react_force;
@@ -138,15 +140,13 @@ protected:
 	union
 	{
 		size_t valid_pcl_num;
-		InitPclRes init_pcl_res;
 		MapBgMeshToPclRes map_mesh_to_pcl_res;
 	};
 	size_t prev_valid_pcl_num;
 	size_t valid_elem_num;
-	
 #ifdef _DEBUG
-	size_t ori_pcl_num, elem_num, node_num;
 	size_t prev_valid_pcl_num_tmp;
+	size_t ori_pcl_num, elem_num, node_num;
 #endif
 	
 	// time profiling

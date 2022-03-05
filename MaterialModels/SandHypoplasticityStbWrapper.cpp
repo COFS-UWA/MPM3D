@@ -31,7 +31,7 @@ namespace MatModel
 			o_glb.ei0, o_glb.ec0, o_glb.ed0,
 			o_glb.N, glb.chi, glb.H,
 			o_glb.Ig, o_glb.niu,
-			o_glb.ten_E, o_glb.ten_niu);
+			o_glb.ten_E, o_glb.ten_niu, 1.0);
 		const auto& o_mat = other.mat;
 		mat.stress[0] = o_mat.stress[0];
 		mat.stress[1] = o_mat.stress[1];
@@ -61,6 +61,7 @@ namespace MatModel
 		__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
 		__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
 		__Float_Type__ Ig, __Float_Type__ niu,
+		__Float_Type__ alpha_vol,
 		const __Float_Type__* ini_strain)
 	{
 		SandHypoplasticityStbGlobal_set_param(
@@ -69,7 +70,8 @@ namespace MatModel
 			ed0, ec0, ei0,
 			N, chi, H,
 			Ig, niu,
-			1000.0, 0.0);
+			1000.0, 0.0,
+			alpha_vol);
 		SandHypoplasticityStb_set_NC_param(
 			mat, glb,
 			ini_stress,

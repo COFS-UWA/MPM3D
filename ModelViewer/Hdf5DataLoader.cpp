@@ -94,6 +94,9 @@ int Hdf5DataLoader::set_time_history(
 	
 		if (rf.has_dataset(mat_model_id, "SandHypoplasticityStb"))
 			mat_dt_id = Model_hdf5_utilities::get_sand_hypoplasticity_stb_hdf5_dt_id();
+	
+		if (rf.has_dataset(mat_model_id, "Norsand"))
+			mat_dt_id = Model_hdf5_utilities::get_norsand_dt_id();
 	}
 
 	rf.close_group(frame_grp_id);
@@ -274,7 +277,27 @@ int Hdf5DataLoader::load_frame_data(
 			rf.close_dataset(shp_grp);
 		}
 		
-		rf.close_group(mat_model_id);
+		if (rf.has_dataset(mat_model_id, "Norsand"))
+		{
+			hid_t ns_grp = rf.open_dataset(mat_model_id, "Norsand");
+			rf.read_attribute(mat_model_id, "Norsand_num", Norsand_num);
+			Norsand_mem.reserve(Norsand_num);
+			NorsandStateData* ns_mem = Norsand_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"Norsand",
+				Norsand_num,
+				ns_mem,
+				mat_dt_id);
+			mm_pt.type = MatModelType::Norsand;
+			for (size_t mm_id = 0; mm_id < Norsand_num; ++mm_id)
+			{
+				NorsandStateData& mm = ns_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			rf.close_dataset(ns_grp);
+		}
 	}
 
 	frame_id = fm_id;
@@ -285,13 +308,15 @@ exit:
 }
 
 using Model_hdf5_utilities::LinearElasticityStateData;
-using Model_hdf5_utilities::ModifiedCamClayStateData;
-using Model_hdf5_utilities::VonMisesStateData;
 using Model_hdf5_utilities::TrescaStateData;
+using Model_hdf5_utilities::VonMisesStateData;
+using Model_hdf5_utilities::ModifiedCamClayStateData;
+using Model_hdf5_utilities::SandHypoplasticityStbStateData;
+using Model_hdf5_utilities::NorsandStateData;
 
 const Hdf5DataLoader::MatModelInfo
 Hdf5DataLoader::mat_model_info[] = {
-	{
+	{ // 0
 		sizeof(LinearElasticityStateData),
 		offsetof(LinearElasticityStateData, s11),
 		offsetof(LinearElasticityStateData, s22),
@@ -300,7 +325,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(LinearElasticityStateData, s23),
 		offsetof(LinearElasticityStateData, s31)
 	},
-	{
+	{ // 1
 		sizeof(ModifiedCamClayStateData),
 		offsetof(ModifiedCamClayStateData, s11),
 		offsetof(ModifiedCamClayStateData, s22),
@@ -309,7 +334,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(ModifiedCamClayStateData, s23),
 		offsetof(ModifiedCamClayStateData, s31)
 	},
-	{
+	{ // 2
 		sizeof(VonMisesStateData),
 		offsetof(VonMisesStateData, s11),
 		offsetof(VonMisesStateData, s22),
@@ -318,7 +343,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(VonMisesStateData, s23),
 		offsetof(VonMisesStateData, s31)
 	},
-	{
+	{ // 3
 		sizeof(TrescaStateData),
 		offsetof(TrescaStateData, s11),
 		offsetof(TrescaStateData, s22),
@@ -327,7 +352,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(TrescaStateData, s23),
 		offsetof(TrescaStateData, s31)
 	},
-	{
+	{ // 4
 		sizeof(SandHypoplasticityStateData),
 		offsetof(SandHypoplasticityStateData, s11),
 		offsetof(SandHypoplasticityStateData, s22),
@@ -335,5 +360,23 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(SandHypoplasticityStateData, s12),
 		offsetof(SandHypoplasticityStateData, s23),
 		offsetof(SandHypoplasticityStateData, s31)
+	},
+	{ // 5
+		sizeof(SandHypoplasticityStbStateData),
+		offsetof(SandHypoplasticityStbStateData, s11),
+		offsetof(SandHypoplasticityStbStateData, s22),
+		offsetof(SandHypoplasticityStbStateData, s33),
+		offsetof(SandHypoplasticityStbStateData, s12),
+		offsetof(SandHypoplasticityStbStateData, s23),
+		offsetof(SandHypoplasticityStbStateData, s31)
+	},
+	{ // 6
+		sizeof(NorsandStateData),
+		offsetof(NorsandStateData, s11),
+		offsetof(NorsandStateData, s22),
+		offsetof(NorsandStateData, s33),
+		offsetof(NorsandStateData, s12),
+		offsetof(NorsandStateData, s23),
+		offsetof(NorsandStateData, s31)
 	}
 };

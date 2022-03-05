@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cap_compression_result(argc, argv);
 	//test_t3d_me_mt_cap_compression_result_div(argc, argv);
 
+	//test_t3d_chm_mt_cap_compression(argc, argv);
+	//test_t3d_chm_mt_cap_compression_result(argc, argv);
+
 	//test_t3d_me_mt_block_sliding(argc, argv);
 	//test_t3d_me_mt_block_sliding_result(argc, argv);
 
@@ -120,9 +123,6 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
-	//test_t3d_chm_mt_cap_compression(argc, argv);
-	//test_t3d_chm_mt_cap_compression_result(argc, argv);
-
 	//test_t3d_chm_mt_triaxial_compression(argc, argv);
 	//test_t3d_chm_mt_triaxial_compression_result(argc, argv);
 
@@ -147,12 +147,30 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_result(argc, argv);
 
+	//test_t3d_me_mt_spudcan_model(argc, argv);
+	//test_t3d_me_mt_spudcan_geostatic(argc, argv);
+	//test_t3d_me_mt_spudcan(argc, argv);
+	//test_t3d_me_mt_spudcan_geo_result(argc, argv);
+	//test_t3d_me_mt_spudcan_result(argc, argv);
+
 	//test_t3d_me_mt_cylinder_bcs(argc, argv);
 	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
-
+	
 	//test_t3d_chm_mt_cylinder_bcs(argc, argv);
 	//test_t3d_chm_mt_cylinder_bcs2(argc, argv);
 	//test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
+	
+	//test_t3d_me_mt_spudcan_cy_model(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_geostatic(argc, argv);
+	//test_t3d_me_mt_spudcan_cy(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_geo_result(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_result(argc, argv);
+
+	//test_t3d_chm_mt_spudcan_cy_model(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_geostatic(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
 	// tbb parallelism
 	//test_sort_pcl_task();
@@ -187,7 +205,7 @@ int main(int argc, char *argv[])
 	// Time profiling
 	test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
 	// tbb version
-	test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
 	// mt verstion
 	//test_t3d_me_mt_piezofoundation_sim_mat(argc, argv);

@@ -19,6 +19,8 @@ namespace Model_T3D_CHM_mt_hdf5_utilities
 		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp,
 		ResultFile_hdf5& rf, hid_t frame_grp_id);
 	int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, const char* hdf5_name);
+	int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& step,
+		const char* hdf5_name, const char* th_name, size_t frame_id);
 }
 
 int substep_func_T3D_CHM_ud_TBB(void *_self);
@@ -40,6 +42,7 @@ protected:
 	typedef Model_T3D_CHM_mt::StrainInc StrainInc;
 	typedef Model_T3D_CHM_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
+	typedef Model_T3D_CHM_mt::NodeVBCVec NodeVBCVec;
 	typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
 	typedef Step_T3D_CHM_ud_TBB_Task::InitPcl InitPcl;
 	typedef Step_T3D_CHM_ud_TBB_Task::MapPclToBgMesh MapPclToBgMesh;
@@ -111,8 +114,8 @@ protected:
 	Acceleration* node_a_f;
 	Velocity* node_v_s;
 	Velocity* node_v_f;
-	NodeHasVBC* node_has_vbc_s;
-	NodeHasVBC* node_has_vbc_f;
+	const NodeVBCVec* node_vbc_vec_s;
+	const NodeHasVBC* node_has_vbc_s;
 	double* node_am_s;
 	double* node_am_f;
 	double* node_de_vol_s;
@@ -140,6 +143,7 @@ protected:
 	MapBgMeshToPclTbb map_mesh_to_pcl_tbb;
 
 	// data changed during computation
+	InitPclRes init_pcl_res;
 	union
 	{
 		Force3D react_force;
@@ -148,7 +152,6 @@ protected:
 	union
 	{
 		size_t valid_pcl_num;
-		InitPclRes init_pcl_res;
 		MapBgMeshToPclRes map_mesh_to_pcl_res;
 	};
 	size_t prev_valid_pcl_num;
@@ -179,6 +182,9 @@ public:
 		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_mt_hdf5_utilities::time_history_complete_output_to_hdf5_file(
 		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+	friend int Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
+		Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& step,
+		const char* hdf5_name, const char* th_name, size_t frame_id);
 };
 
 #endif

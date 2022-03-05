@@ -16,6 +16,7 @@ namespace Step_T3D_ME_TBB_Task
 
 	void InitPcl::init(size_t thread_num) noexcept
 	{
+		pcl_m = stp.pcl_m;
 		in_pcl_in_elems = stp.in_pcl_in_elems;
 		in_prev_pcl_ids = stp.in_prev_pcl_ids;
 		task_num = ParaUtil::cal_task_num<
@@ -31,6 +32,7 @@ namespace Step_T3D_ME_TBB_Task
 		const size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
 		const size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
 		size_t valid_pcl_num = 0;
+		double max_pcl_vol = 0.0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = spva0.pcl_index[p_id];
@@ -48,10 +50,14 @@ namespace Step_T3D_ME_TBB_Task
 				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
 			if (e_id != SIZE_MAX)
 				++valid_pcl_num;
+			const double p_vol = pcl_m[ori_p_id] / spva0.pcl_density[ori_p_id];
+			if (max_pcl_vol < p_vol)
+				max_pcl_vol = p_vol;
 			in_pcl_in_elems[p_id] = e_id;
 			in_prev_pcl_ids[p_id] = p_id;
 		}
 		res.pcl_num = valid_pcl_num;
+		res.max_pcl_vol = max_pcl_vol;
 	}
 	
 	void MapPclToBgMesh::init() noexcept
@@ -358,14 +364,14 @@ namespace Step_T3D_ME_TBB_Task
 
 		// contact force calculation
 		ContactRigidBody& crb = stp.cont_rigid_body;
-		if (crb.has_rigid_cone())
-			crb.apply_rigid_cone(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_cube())
 			crb.apply_rigid_cube(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_cylinder())
 			crb.apply_rigid_cylinder(p_id0, p_id1, res.react_force);
 		if (crb.has_rigid_mesh())
 			crb.apply_t3d_rigid_object(p_id0, p_id1, res.react_force);
+		//if (crb.has_rigid_cone())
+		//	crb.apply_rigid_cone(p_id0, p_id1, res.react_force);
 	}
 
 	void UpdateAccelerationAndVelocity::init() noexcept
@@ -377,6 +383,7 @@ namespace Step_T3D_ME_TBB_Task
 		node_am = stp.node_am;
 		node_v = stp.node_v;
 		node_has_vbc = stp.node_has_vbc;
+		node_vbc_vec = stp.node_vbc_vec;
 		// node ranges
 		node_ids = stp.node_ids;
 		node_elem_offs = stp.node_elem_offs;
@@ -403,6 +410,7 @@ namespace Step_T3D_ME_TBB_Task
 		assert(ve_id1 <= four_elem_num);
 
 		size_t bc_mask, ne_id;
+		double vbc_len;
 		double n_am = 0.0;
 		double n_fx = 0.0;
 		double n_fy = 0.0;
@@ -444,7 +452,16 @@ namespace Step_T3D_ME_TBB_Task
 				n_v.vx = n_vmx / n_vm + n_a.ax * stp.dtime;
 				n_v.vy = n_vmy / n_vm + n_a.ay * stp.dtime;
 				n_v.vz = n_vmz / n_vm + n_a.az * stp.dtime;
-				NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
+				const NodeVBCVec& n_vbc_vec = node_vbc_vec[n_id];
+				vbc_len = n_a.ax * n_vbc_vec.x + n_a.ay * n_vbc_vec.y + n_a.az * n_vbc_vec.z;
+				n_a.ax -= vbc_len * n_vbc_vec.x;
+				n_a.ay -= vbc_len * n_vbc_vec.y;
+				n_a.az -= vbc_len * n_vbc_vec.z;
+				vbc_len = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+				n_v.vx -= vbc_len * n_vbc_vec.x;
+				n_v.vy -= vbc_len * n_vbc_vec.y;
+				n_v.vz -= vbc_len * n_vbc_vec.z;
+				const NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 				bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 				n_a.iax &= bc_mask;
 				n_v.ivx &= bc_mask;
@@ -767,20 +784,36 @@ namespace Step_T3D_ME_TBB_Task
 	}
 
 // ================== contact funct ================
-	void ContactRigidBody::init() noexcept
+	void ContactRigidBody::init(double max_pcl_vol) noexcept
 	{
 		Model_T3D_ME_mt& md = *stp.pmodel;
-		prco = md.has_rigid_cone() ? &md.get_rigid_cone() : nullptr;
-		prcu = md.has_rigid_cube() ? &md.get_rigid_cube() : nullptr;
-		prcy = md.has_rigid_cylinder() ? &md.get_rigid_cylinder() : nullptr;
-		prmesh = md.has_t3d_rigid_mesh() ? &md.get_t3d_rigid_mesh() : nullptr;
-
 		pcm = md.get_contact_model();
-
-		pcl_in_elems = stp.pcl_in_elems;
+		prcy = nullptr;
+		prcu = nullptr;
+		prmesh = nullptr;
+		if (md.has_rigid_cylinder())
+		{
+			prcy = &md.get_rigid_cylinder();
+			prcy->reset_cont_force();
+		}
+		if (md.has_rigid_cube())
+		{
+			prcu = &md.get_rigid_cube();
+			prcu->reset_cont_force();
+		}
+		if (md.has_t3d_rigid_mesh())
+		{
+			prmesh = &md.get_t3d_rigid_mesh();
+			prmesh->reset_cont_force();
+			// set max dist for efficiency
+			prmesh->init_max_dist(0.5 * pow(max_pcl_vol, one_third) * 4.0);
+		}
+		//
 		pcl_pos = stp.pcl_pos;
 		pcl_vol = stp.pcl_vol;
 		elem_node_force = stp.elem_node_force;
+		//
+		pcl_in_elems = stp.pcl_in_elems;
 	}
 
 	void ContactRigidBody::update() noexcept
