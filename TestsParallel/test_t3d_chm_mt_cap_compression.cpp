@@ -16,6 +16,19 @@
 
 void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 {
+	//
+	constexpr double e0 = 0.536;
+	const double ini_stress[6] = { -30.0e3, -30.0e3, -30.0e3, 0.0, 0.0, 0.0 };
+	//
+	//constexpr double e0 = 0.544;
+	//const double ini_stress[6] = { -50.0e3, -50.0e3, -50.0e3, 0.0, 0.0, 0.0 };
+	//
+	//constexpr double e0 = 0.527;
+	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	//
+	//constexpr double e0 = 0.534;
+	//const double ini_stress[6] = { -200.0e3, -200.0e3, -200.0e3, 0.0, 0.0, 0.0 };
+	
 	TetrahedronMesh teh_mesh;
 	teh_mesh.load_mesh_from_hdf5("../../Asset/brick_mesh_1.00_2x2x10.h5");
 	teh_mesh.init_search_grid(0.05, 0.05, 0.05);
@@ -24,12 +37,10 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 
-	constexpr double e0 = 0.55; // dense
+	//constexpr double e0 = 0.55; // dense
 	//constexpr double e0 = 0.75; // loose
 	constexpr double den_grain = 2670.0;
-	const double ini_stress[6] = { -30.0e3, -30.0e3, -30.0e3, 0.0, 0.0, 0.0 };
-	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
-	//const double ini_stress[6] = { -200.0e3, -200.0e3, -200.0e3, 0.0, 0.0, 0.0 };
+
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
@@ -48,33 +59,32 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//	model.add_mat_model(pcl_id, le, sizeof(MatModel::LinearElasticity));
 	//}
 	// Stb hypoplasticity
-	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	shps->set_param(
-	//		ini_stress, e0,
-	//		30.0, 1354.0e6, 0.34,
-	//		0.18, 1.27,
-	//		0.49, 0.76, 0.86,
-	//		1.5, 43.0, 100.0,
-	//		//1.5, 43.0, 250.0,
-	//		200.0, 0.2);
-	// 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
-	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
-	//}
-	// Norsand
-	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		ns->set_param(
+		shps->set_param(
 			ini_stress, e0,
-			30.0230,
-			0.875, 0.0058,
-			0.3, 2.5, 200.0,
-			200.0, 0.2);
-		model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
-		ns = model.following_NorsandWrapper(ns);
+			30.02298846, 20.29e9, 0.2966, //30.0, 1354.0e6, 0.34,
+			0.177, 0.04, //0.18, 1.27,
+			0.441, 0.831, 0.956, //0.49, 0.76, 0.86,
+			1.7, 23.0, 200.0, //1.5, 43.0, 250.0,
+			130.0, 0.2); //200.0, 0.2);
+	 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
+		shps = model.following_SandHypoplasticityStbWrapper(shps);
 	}
+	// Norsand
+	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	ns->set_param(
+	//		ini_stress, e0,
+	//		30.0230,
+	//		0.875, 0.0058,
+	//		0.3, 2.5, 200.0,
+	//		200.0, 0.2);
+	//	model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
+	//	ns = model.following_NorsandWrapper(ns);
+	//}
 
 	// cavitation
 	//model.set_cavitation(100.0, -100.0e3, 0.01);
@@ -96,7 +106,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.2, false);
 #endif
 	model.init_fixed_vx_s_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
-	model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
+	//model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 
 	IndexArray vy_bc_pt_array(100);
 	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
@@ -104,12 +114,12 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.2, false);
 #endif
 	model.init_fixed_vy_s_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
-	model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
+	//model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
 	IndexArray vz_bc_pt_array(100);
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, 0.0);
 	model.init_fixed_vz_s_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
-	model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
+	//model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
 	//QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
 	////QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
