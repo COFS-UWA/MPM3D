@@ -61,6 +61,12 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 
+	constexpr double e0 = 0.55;
+	constexpr double den_grain = 2670.0;
+	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
+	constexpr double den_float = den_sat - 1000.0;
+	constexpr double stress_depth_limit = -0.01;
+	constexpr double n0 = e0 / (1.0 + e0);
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
@@ -70,15 +76,18 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
+	constexpr double fric_ang = 30.02298846;
+	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
+	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	// Linear elasticity
-	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		MatModel::LinearElasticity& le = *les;
-		le.set_param(1.0e6, 0.2);
-		mms[pcl_id] = les;
-		les = model.following_LinearElasticity(les);
-	}
+	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::LinearElasticity& le = *les;
+	//	le.set_param(1.0e6, 0.2);
+	//	mms[pcl_id] = les;
+	//	les = model.following_LinearElasticity(les);
+	//}
 	// Tresca
 	//MatModel::Tresca *trcs = model.add_Tresca(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
@@ -87,7 +96,72 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	trc.set_param(1.0e6, 0.2, 5.0e3);
 	//	mms[pcl_id] = &trc;
 	//}
-	
+	// Norsand
+	constexpr double gamma = 0.875;
+	constexpr double lambda = 0.0058;
+	constexpr double N = 0.3;
+	constexpr double chi = 2.5;
+	constexpr double H = 200.0;
+	constexpr double Ig = 200.0;
+	constexpr double niu = 0.2;
+	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		mms[pcl_id] = ns;
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		auto& pcl_s = model.get_pcl_stress0()[pcl_id];
+		pcl_s.s33 = pcl_z * 9.81 * den_float;
+		pcl_s.s22 = K0 * pcl_s.s33;
+		pcl_s.s11 = pcl_s.s22;
+		if (pcl_z > stress_depth_limit) // shallow depth
+			pcl_z = stress_depth_limit;
+		ini_stress[2] = pcl_z * 9.81 * den_float;
+		ini_stress[0] = K0 * ini_stress[2];
+		ini_stress[1] = ini_stress[0];
+		ns->set_param(
+			ini_stress, e0,
+			fric_ang, gamma, lambda,
+			N, chi, H,
+			Ig, niu);
+		ns = model.following_NorsandWrapper(ns);
+	}
+	// Hypo
+	//constexpr double hs = 20.29e9;
+	//constexpr double n = 0.2966;
+	//constexpr double alpha = 0.177;
+	//constexpr double beta = 0.04;
+	//constexpr double ed0 = 0.441;
+	//constexpr double ec0 = 0.831;
+	//constexpr double ei0 = 0.956;
+	//constexpr double Ig = 200.0;
+	//constexpr double niu = 0.2;
+	//constexpr double N = 1.7;
+	//constexpr double chi = 25.0;
+	//constexpr double H = 200.0; // 90.0
+	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	mms[pcl_id] = shps;
+	//	double pcl_z = model.get_pcl_pos()[pcl_id].z;
+	//	auto& pcl_s = model.get_pcl_stress0()[pcl_id];
+	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
+	//	pcl_s.s22 = K0 * pcl_s.s33;
+	//	pcl_s.s11 = pcl_s.s22;
+	//	if (pcl_z > stress_depth_limit) // shallow depth
+	//		pcl_z = stress_depth_limit;
+	//	ini_stress[2] = pcl_z * 9.81 * den_float;
+	//	ini_stress[0] = K0 * ini_stress[2];
+	//	ini_stress[1] = ini_stress[0];
+	//	shps->set_param(
+	//		ini_stress, e0,
+	//		fric_ang, hs, n,
+	//		alpha, beta,
+	//		ed0, ec0, ei0,
+	//		N, chi, H,
+	//		Ig, niu);
+	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
+	//}
+
 	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0, 2000.0);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
 	model.set_contact_param(1.0e5 / (sml_pcl_size * sml_pcl_size),
