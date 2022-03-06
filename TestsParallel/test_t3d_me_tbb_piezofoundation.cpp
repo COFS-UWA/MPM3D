@@ -105,36 +105,12 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	mms[pcl_id] = &mc;
 	//}
 	// Norsand
-	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		mms[pcl_id] = ns;
-		double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		auto& pcl_s = model.get_pcl_stress0()[pcl_id];
-		pcl_s.s33 = pcl_z * 9.81 * den_float;
-		pcl_s.s22 = K0 * pcl_s.s33;
-		pcl_s.s11 = pcl_s.s22;
-		if (pcl_z > stress_depth_limit) // shallow depth
-			pcl_z = stress_depth_limit;
-		ini_stress[2] = pcl_z * 9.81 * den_float;
-		ini_stress[0] = K0 * ini_stress[2];
-		ini_stress[1] = ini_stress[0];
-		ns->set_param(
-			ini_stress, e0,
-			30.0,
-			0.86, 0.015,
-			0.3, 3.6, 250.0,
-			200.0, 0.2);
-		ns = model.following_NorsandWrapper(ns);
-	}
-	// Sand hypoplasticity
-	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	mms[pcl_id] = shps;
-	//	
+	//	mms[pcl_id] = ns;
 	//	double pcl_z = model.get_pcl_pos()[pcl_id].z;
-	//	auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+	//	auto& pcl_s = model.get_pcl_stress0()[pcl_id];
 	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
 	//	pcl_s.s22 = K0 * pcl_s.s33;
 	//	pcl_s.s11 = pcl_s.s22;
@@ -143,25 +119,40 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	ini_stress[2] = pcl_z * 9.81 * den_float;
 	//	ini_stress[0] = K0 * ini_stress[2];
 	//	ini_stress[1] = ini_stress[0];
-	//	MatModel::SandHypoplasticityStbWrapper& shp = *shps;
-	//	if (pcl_z > void_depth_limit)
-	//		shp.set_param(
-	//			ini_stress, 0.76,
-	//			30.0, 1354.0e6, 0.34,
-	//			0.18, 1.27,
-	//			0.49, 0.76, 0.86,
-	//			1.5, 43.0, 100.0,
-	//			200.0, 0.2);
-	//	else // normal
-	//		shp.set_param(
-	//			ini_stress, e0,
-	//			30.0, 1354.0e6, 0.34,
-	//			0.18, 1.27,
-	//			0.49, 0.76, 0.86,
-	//			1.5, 43.0, 100.0,
-	//			200.0, 0.2);
-	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
+	//	ns->set_param(
+	//		ini_stress, e0,
+	//		30.0,
+	//		0.86, 0.015,
+	//		0.3, 3.6, 250.0,
+	//		200.0, 0.2);
+	//	ns = model.following_NorsandWrapper(ns);
 	//}
+	// Sand hypoplasticity
+	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		mms[pcl_id] = shps;
+		
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+		pcl_s.s33 = pcl_z * 9.81 * den_float;
+		pcl_s.s22 = K0 * pcl_s.s33;
+		pcl_s.s11 = pcl_s.s22;
+		if (pcl_z > stress_depth_limit) // shallow depth
+			pcl_z = stress_depth_limit;
+		ini_stress[2] = pcl_z * 9.81 * den_float;
+		ini_stress[0] = K0 * ini_stress[2];
+		ini_stress[1] = ini_stress[0];
+		MatModel::SandHypoplasticityStbWrapper& shp = *shps;
+		shp.set_param(
+			ini_stress, e0,
+			30.0, 1354.0e6, 0.34,
+			0.18, 1.27,
+			0.49, 0.76, 0.86,
+			1.5, 43.0, 100.0,
+			200.0, 0.2);
+		shps = model.following_SandHypoplasticityStbWrapper(shps);
+	}
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0, 2000.0);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
@@ -335,20 +326,20 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T3D_ME_TBB_complete out1("penetration");
-	out1.set_interval_num(2);
+	out1.set_interval_num(5);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(100);
+	out_cpb.set_interval_num(1000);
 
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
 	step.set_thread_num(12);
-	step.set_step_time(2.0e-4);
+	step.set_step_time(1.0e-2);
 	step.set_dtime(2.0e-6);
-	//step.add_time_history(out1);
+	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }
