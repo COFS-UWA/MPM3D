@@ -6,6 +6,7 @@ spudcan_diameter = 3.0
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_spudcan.h5", "r")
+#hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_spudcan.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']

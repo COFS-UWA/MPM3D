@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 import find_closest_pcls as fp
 
-file_name = "t3d_chm_mt_spudcan_-7"
+file_name = "t3d_chm_mt_spudcan_ud"
 pore_pos_offset = (0.0, 0.0, -0.3)
 
 class AvgVarData:
