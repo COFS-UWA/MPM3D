@@ -18,7 +18,7 @@ static std::fstream res_file_t3d_me_mt;
 
 #define one_third (1.0/3.0)
 #define one_fourth (0.25)
-#define MAX_PCL_RADIUX_SCALE (5.0)
+#define MAX_PCL_RADIUS_SCALE (5.0)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
 Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) :
@@ -221,7 +221,7 @@ int Step_T3D_ME_mt::init_calculation()
 			if (max_pcl_radius < thread_datas[th_id].max_pcl_vol)
 				max_pcl_radius = thread_datas[th_id].max_pcl_vol;
 		}
-		max_pcl_radius = 0.5 * pow(max_pcl_radius, one_third) * MAX_PCL_RADIUX_SCALE;
+		max_pcl_radius = 0.5 * pow(max_pcl_radius, one_third) * MAX_PCL_RADIUS_SCALE;
 		prmesh->init_max_dist(max_pcl_radius);
 	}
 	

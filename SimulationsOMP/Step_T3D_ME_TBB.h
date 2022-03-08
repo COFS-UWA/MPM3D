@@ -102,6 +102,7 @@ protected:
 	Model_T3D_ME_mt::Acceleration* node_a;
 	Model_T3D_ME_mt::Velocity* node_v;
 	Model_T3D_ME_mt::NodeHasVBC* node_has_vbc;
+	Model_T3D_ME_mt::NodeVBCVec* node_vbc_vec;
 	double* node_am;
 	double* node_de_vol;
 

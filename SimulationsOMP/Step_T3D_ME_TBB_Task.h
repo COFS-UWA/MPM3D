@@ -132,6 +132,7 @@ namespace Step_T3D_ME_TBB_Task
 		typedef Model_T3D_ME_mt::Acceleration Acceleration;
 		typedef Model_T3D_ME_mt::Velocity Velocity;
 		typedef Model_T3D_ME_mt::NodeHasVBC NodeHasVBC;
+		typedef Model_T3D_ME_mt::NodeVBCVec NodeVBCVec;
 
 		Step_T3D_ME_TBB& stp;
 
@@ -141,7 +142,8 @@ namespace Step_T3D_ME_TBB_Task
 		Acceleration *node_a;
 		double *node_am;
 		Velocity *node_v;
-		NodeHasVBC *node_has_vbc;
+		const NodeHasVBC *node_has_vbc;
+		const NodeVBCVec *node_vbc_vec;
 		// node ranges
 		const size_t* node_ids;
 		const size_t* node_elem_offs;

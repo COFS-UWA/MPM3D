@@ -383,6 +383,7 @@ namespace Step_T3D_ME_TBB_Task
 		node_am = stp.node_am;
 		node_v = stp.node_v;
 		node_has_vbc = stp.node_has_vbc;
+		node_vbc_vec = stp.node_vbc_vec;
 		// node ranges
 		node_ids = stp.node_ids;
 		node_elem_offs = stp.node_elem_offs;
@@ -409,6 +410,7 @@ namespace Step_T3D_ME_TBB_Task
 		assert(ve_id1 <= four_elem_num);
 
 		size_t bc_mask, ne_id;
+		double vbc_len;
 		double n_am = 0.0;
 		double n_fx = 0.0;
 		double n_fy = 0.0;
@@ -450,7 +452,16 @@ namespace Step_T3D_ME_TBB_Task
 				n_v.vx = n_vmx / n_vm + n_a.ax * stp.dtime;
 				n_v.vy = n_vmy / n_vm + n_a.ay * stp.dtime;
 				n_v.vz = n_vmz / n_vm + n_a.az * stp.dtime;
-				NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
+				const NodeVBCVec& n_vbc_vec = node_vbc_vec[n_id];
+				vbc_len = n_a.ax * n_vbc_vec.x + n_a.ay * n_vbc_vec.y + n_a.az * n_vbc_vec.z;
+				n_a.ax -= vbc_len * n_vbc_vec.x;
+				n_a.ay -= vbc_len * n_vbc_vec.y;
+				n_a.az -= vbc_len * n_vbc_vec.z;
+				vbc_len = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+				n_v.vx -= vbc_len * n_vbc_vec.x;
+				n_v.vy -= vbc_len * n_vbc_vec.y;
+				n_v.vz -= vbc_len * n_vbc_vec.z;
+				const NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 				bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 				n_a.iax &= bc_mask;
 				n_v.ivx &= bc_mask;

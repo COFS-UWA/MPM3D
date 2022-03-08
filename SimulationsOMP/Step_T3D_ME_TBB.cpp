@@ -91,6 +91,7 @@ int Step_T3D_ME_TBB::init_calculation()
 	node_a = md.node_a;
 	node_v = md.node_v;
 	node_has_vbc = md.node_has_vbc;
+	node_vbc_vec = md.node_vbc_vec;
 	node_am = md.node_am;
 	node_de_vol = md.node_de_vol;
 

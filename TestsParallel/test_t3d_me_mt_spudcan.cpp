@@ -153,7 +153,7 @@ void test_t3d_me_mt_spudcan_model(int argc, char** argv)
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
-	constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
+	constexpr double K_cont = 1.0e5 / (sml_pcl_size * sml_pcl_size); // 1.0e5
 	model.set_contact_param(K_cont, K_cont, 0.1, 5.0);
 
 	// gravity force, float unit weight
@@ -190,8 +190,8 @@ void test_t3d_me_mt_spudcan_model(int argc, char** argv)
 	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-70.0f, 30.0f);
-	md_disp.set_light_dir(-60.0f, 10.0f);
+	md_disp.set_view_dir(-85.0f, 10.0f);
+	md_disp.set_light_dir(-80.0f, 5.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.8);
 	md_disp.set_pts_from_vx_bc(0.025);
@@ -261,7 +261,7 @@ void test_t3d_me_mt_spudcan(int argc, char** argv)
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -3.0); // 0.5
 	// modified contact stiffness
 	constexpr double sml_pcl_size = 0.04;
-	constexpr double K_cont = 1.0e5 / (sml_pcl_size * sml_pcl_size); // 5.0e5
+	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size); // 1.0e5
 	model.set_contact_param(K_cont, K_cont, 0.1, 5.0);
 
 	//QtApp_Prep_T3D_ME_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
@@ -298,7 +298,7 @@ void test_t3d_me_mt_spudcan(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(24);
-	step.set_step_time(0.45); // 0.9 v=0.5, 
+	step.set_step_time(0.15); // 0.9 v=0.5, 
 	//step.set_thread_num(3);
 	//step.set_step_time(2.0e-5);
 	step.set_dtime(5.0e-6); // 5.0e-6

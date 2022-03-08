@@ -42,6 +42,7 @@ protected:
 	typedef Model_T3D_CHM_mt::StrainInc StrainInc;
 	typedef Model_T3D_CHM_mt::ElemNodeIndex ElemNodeIndex;
 	typedef Model_T3D_CHM_mt::ElemNodeVM ElemNodeVM;
+	typedef Model_T3D_CHM_mt::NodeVBCVec NodeVBCVec;
 	typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
 	typedef Step_T3D_CHM_ud_TBB_Task::InitPcl InitPcl;
 	typedef Step_T3D_CHM_ud_TBB_Task::MapPclToBgMesh MapPclToBgMesh;
@@ -113,8 +114,8 @@ protected:
 	Acceleration* node_a_f;
 	Velocity* node_v_s;
 	Velocity* node_v_f;
-	NodeHasVBC* node_has_vbc_s;
-	NodeHasVBC* node_has_vbc_f;
+	const NodeVBCVec* node_vbc_vec_s;
+	const NodeHasVBC* node_has_vbc_s;
 	double* node_am_s;
 	double* node_am_f;
 	double* node_de_vol_s;

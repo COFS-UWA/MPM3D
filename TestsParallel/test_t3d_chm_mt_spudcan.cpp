@@ -17,10 +17,10 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
-//#define Undrained
+#define Undrained
 
 // Hypo or Norsand
-#define Hypo
+//#define Hypo
 
 void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 {
@@ -159,7 +159,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
-	constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
+	constexpr double K_cont = 1.0e5 / (sml_pcl_size * sml_pcl_size); // 1.0e5
 	model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont/50.0, K_cont/50.0);
 
 	// gravity force, float unit weight
@@ -198,7 +198,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-70.0f, 30.0f);
+	md_disp.set_view_dir(-70.0f, 5.0f);
 	md_disp.set_light_dir(-60.0f, 10.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.8);
@@ -206,8 +206,10 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	//md_disp.set_pts_from_vy_bc_s(0.025);
 	//md_disp.set_pts_from_vz_bc_s(0.025);
 	//md_disp.set_pts_from_vx_bc_f(0.025);
-	md_disp.set_pts_from_vy_bc_f(0.025);
+	//md_disp.set_pts_from_vy_bc_f(0.025);
 	//md_disp.set_pts_from_vz_bc_f(0.025);
+	size_t pt_id = 463101;
+	md_disp.set_pts_from_pcl_id(&pt_id, 1, 0.25);
 	md_disp.start();
 }
 
@@ -274,10 +276,10 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 		model, step, "t3d_chm_mt_spudcan_geo.h5", "geostatic", 21); // 21
 	
 	// modified velocity
-	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -2.0);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -3.0);
 	// modified contact stiffness
 	constexpr double sml_pcl_size = 0.04;
-	constexpr double K_cont = 5.0e6 / (sml_pcl_size * sml_pcl_size); // 5.0e5
+	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size); // 5.0e5
 	model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont / 50.0, K_cont / 50.0);
 	// modified permeability
 	//model.set_k(1.22e-10);
@@ -322,7 +324,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(24);
-	step.set_step_time(0.9); // 2.5 v=0.15, 0.9 v=0.5,
+	step.set_step_time(0.15); // 2.5 v=0.15, 0.9 v=0.5,
 	//step.set_thread_num(3);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(5.0e-6); // v=0.5 t=5e-6, v=4 t=2.5e-6

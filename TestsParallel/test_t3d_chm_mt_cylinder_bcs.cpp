@@ -5,9 +5,13 @@
 #include "Model_T3D_CHM_mt.h"
 #include "Step_T3D_CHM_mt_Geo.h"
 #include "Step_T3D_CHM_mt.h"
+#include "Step_T3D_CHM_TBB.h"
+#include "Step_T3D_CHM_ud_TBB.h"
 #include "ModelData_T3D_CHM_mt.h"
 #include "TimeHistory_T3D_CHM_mt_Geo_complete.h"
 #include "TimeHistory_T3D_CHM_mt_complete.h"
+#include "TimeHistory_T3D_CHM_TBB_complete.h"
+#include "TimeHistory_T3D_CHM_ud_TBB_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt.h"
 #include "test_parallel_utils.h"
@@ -28,7 +32,7 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	const double hz = pcl_generator.generate_pcls_in_cylinder(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 0.05, 0.05, 0.05);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	model.init_pcls(pcl_generator, 0.3, 20.0, 10.0, 30000.0, 1.0e-4, 1.0);
-	size_t pcl_num = model.get_pcl_num();
+	const size_t pcl_num = model.get_pcl_num();
 	std::cout << "pcl_num: " << pcl_num << "\n"
 		<< "elem_num: " << model.get_elem_num() << "\n"
 		<< "node_num: " << model.get_node_num() << "\n";
@@ -38,9 +42,9 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	MatModel::LinearElasticity *les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::LinearElasticity &le = les[pcl_id];
-		le.set_param(1000.0, 0.0);
-		mms[pcl_id] = &le;
+		les->set_param(1000.0, 0.0);
+		mms[pcl_id] = les;
+		les = model.following_LinearElasticity(les);
 	}
 
 	// body forces
@@ -48,7 +52,7 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	MemoryUtils::ItemArray<double> bfz_array(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		double bfz = -1.0;
+		double bfz = -10.0;
 		bfz_pcl_array.add(pcl_id);
 		bfz_array.add(bfz);
 	}
@@ -89,22 +93,23 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_CHM_mt_Geo_complete out1("geostatic");
-	out1.set_res_file(res_file_hdf5);
-	out1.set_output_init_state();
-	out1.set_output_final_state();
-	out1.set_interval_num(100);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
-	Step_T3D_CHM_mt_Geo step("step1");
-	step.set_model(model);
-	step.set_step_time(1.0);
-	//step.set_step_time(2.0e-4);
-	step.set_dtime(1.0e-4);
-	step.set_thread_num(5);
-	step.add_time_history(out1);
-	step.add_time_history(out_cpb);
-	step.solve();
+	//TimeHistory_T3D_CHM_mt_Geo_complete out1("geostatic");
+	//out1.set_res_file(res_file_hdf5);
+	//out1.set_output_init_state();
+	//out1.set_output_final_state();
+	//out1.set_interval_num(100);
+
+	//Step_T3D_CHM_mt_Geo step("step1");
+	//step.set_model(model);
+	//step.set_step_time(1.0);
+	////step.set_step_time(2.0e-4);
+	//step.set_dtime(1.0e-4);
+	//step.set_thread_num(5);
+	//step.add_time_history(out1);
+	//step.add_time_history(out_cpb);
+	//step.solve();
 
 	//TimeHistory_T3D_CHM_mt_complete out1("geostatic");
 	//out1.set_res_file(res_file_hdf5);
@@ -119,6 +124,38 @@ void test_t3d_chm_mt_cylinder_bcs(int argc, char **argv)
 	//step.set_step_time(1.0);
 	////step.set_step_time(1.0e-4);
 	//step.set_dtime(1.0e-4);
+	//step.add_time_history(out1);
+	//step.add_time_history(out_cpb);
+	//step.solve();
+
+	TimeHistory_T3D_CHM_TBB_complete out1("geostatic");
+	out1.set_res_file(res_file_hdf5);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_interval_num(100);
+
+	Step_T3D_CHM_TBB step("step1");
+	step.set_model(model);
+	step.set_step_time(1.0);
+	//step.set_step_time(2.0e-4);
+	step.set_dtime(1.0e-4);
+	step.set_thread_num(5);
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
+
+	//TimeHistory_T3D_CHM_ud_TBB_complete out1("geostatic");
+	//out1.set_res_file(res_file_hdf5);
+	//out1.set_output_init_state();
+	//out1.set_output_final_state();
+	//out1.set_interval_num(100);
+
+	//Step_T3D_CHM_ud_TBB step("step1");
+	//step.set_model(model);
+	//step.set_step_time(1.0);
+	////step.set_step_time(2.0e-4);
+	//step.set_dtime(1.0e-4);
+	//step.set_thread_num(5);
 	//step.add_time_history(out1);
 	//step.add_time_history(out_cpb);
 	//step.solve();
@@ -181,8 +218,8 @@ void test_t3d_chm_mt_cylinder_bcs2(int argc, char** argv)
 void test_t3d_chm_mt_cylinder_bcs_result(int argc, char **argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t3d_chm_mt_cylinder_bcs.h5");
-	rf.open("t3d_chm_mt_cylinder_bcs2.h5");
+	rf.open("t3d_chm_mt_cylinder_bcs.h5");
+	//rf.open("t3d_chm_mt_cylinder_bcs2.h5");
 
 	QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
@@ -194,14 +231,14 @@ void test_t3d_chm_mt_cylinder_bcs_result(int argc, char **argv)
 	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-30.0, 0.0);
 	//
-	//app.set_res_file(rf, "geostatic", Hdf5Field::p);
-	//app.set_color_map_fld_range(0.0, 2.0);
+	app.set_res_file(rf, "geostatic", Hdf5Field::p);
+	app.set_color_map_fld_range(0.0, 2.0);
 	//
 	//app.set_res_file(rf, "consolidation", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-30.0, 0.0);
 	//
-	app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 10.0);
+	//app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	//app.set_color_map_fld_range(0.0, 10.0);
 	//
 	//app.set_png_name("t3d_chm_mt_cylinder_bcs");
 	app.set_gif_name("t3d_chm_mt_cylinder_bcs2");
