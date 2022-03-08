@@ -102,6 +102,10 @@ def output_mesh_to_hdf5(nodes, elems, file_name):
     e_dset = mesh_grp.create_dataset("Elements", data=ed)
     h5_file.close()
 
+def move_mesh_in_z_direction(nodes, z_off):
+    for node in nodes:
+        node[3] += z_off
+
 if __name__ == "__main__":
     # text_line = "*Part, name=Part-1"
     # text_line = "*Node"
@@ -125,5 +129,6 @@ if __name__ == "__main__":
     # nodes, elems = get_mesh_from_inp("../Asset/cylinder_2x2_quad_model.inp", "Part-1")
     # output_mesh_to_hdf5(nodes, elems, "../Asset/cylinder_2x2_quad_model.h5")
     nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_quarter_cylinder.inp", "Part-1")
+    move_mesh_in_z_direction(nodes, -10.5)
     output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter_cylinder.h5")
     
