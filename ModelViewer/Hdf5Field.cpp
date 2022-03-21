@@ -63,7 +63,9 @@ namespace Hdf5Field
 			"mat_s23", // 53
 			"mat_s31", // 54
 			"mises strain 3d", // 55
-			"mat_pi" // 56
+			"mat_pi", // 56
+			"u_cav", // 57
+			"is_cavitated" // 58
 		};
 	}
 }

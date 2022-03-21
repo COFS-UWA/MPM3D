@@ -10,6 +10,8 @@ class Step_T3D_CHM_ud_TBB;
 
 namespace Step_T3D_CHM_ud_TBB_Task
 {
+	static constexpr double max_Kf_ratio_divider = 1.0e10;
+	
 	constexpr size_t init_pcl_task_num_per_thread = 100;
 	constexpr size_t map_pcl_to_mesh_task_num_per_thread = 100;
 	constexpr size_t update_node_av_task_num_per_thread = 20;
@@ -252,7 +254,7 @@ namespace Step_T3D_CHM_ud_TBB_Task
 		double* elem_density_f;
 		double* elem_pcl_n;
 		double* elem_p;
-		StrainInc* elem_de;
+		StrainInc *elem_de;
 		const double *node_de_vol_s, *node_de_vol_f;
 
 		const size_t *pcl_index0;
@@ -278,6 +280,11 @@ namespace Step_T3D_CHM_ud_TBB_Task
 		size_t* in_prev_pcl_ids;
 		
 		size_t pcl_num, task_num;
+
+		// cavitation
+		double* pcl_u_cav;
+		double* pcl_is_cavitated;
+		double* elem_u_cav;
 
 	public:
 		MapBgMeshToPcl(Step_T3D_CHM_ud_TBB &_stp) : stp(_stp) {}

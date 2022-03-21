@@ -17,6 +17,7 @@ RigidObjectMotion3D::RigidObjectMotion3D() :
 	vx_bc(0.0), vy_bc(0.0), vz_bc(0.0),
 	vx_ang_bc_mask(0), vy_ang_bc_mask(0), vz_ang_bc_mask(0),
 	vx_ang_bc(0.0), vy_ang_bc(0.0), vz_ang_bc(0.0),
+	pvx_bc_ratio(&one_ratio), pvy_bc_ratio(&one_ratio), pvz_bc_ratio(&one_ratio),
 	fx_ext(0.0), fy_ext(0.0), fz_ext(0.0),
 	mx_ext(0.0), my_ext(0.0), mz_ext(0.0),
 	fx_cont(0.0), fy_cont(0.0), fz_cont(0.0),
@@ -29,8 +30,7 @@ void RigidObjectMotion3D::init(
 	double _y,
 	double _z,
 	double _m,
-	double _moi_data[6]
-	)
+	double _moi_data[6])
 {
 	x_ori = _x;	y_ori = _y;	z_ori = _z;
 	x = _x; y = _y;	z = _z;
@@ -38,6 +38,8 @@ void RigidObjectMotion3D::init(
 	moi[0] = _moi_data[0];	moi[1] = _moi_data[1];
 	moi[2] = _moi_data[2];	moi[3] = _moi_data[3];
 	moi[4] = _moi_data[4];	moi[5] = _moi_data[5];
+	
+	cur_time = 0.0;
 
 	Eigen::Matrix3d moi_mat;
 	moi_mat << moi[0], moi[3], moi[5],

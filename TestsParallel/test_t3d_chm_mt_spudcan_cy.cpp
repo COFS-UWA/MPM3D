@@ -131,11 +131,11 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	// Norsand
 	constexpr double gamma = 0.875;
 	constexpr double lambda = 0.0058;
-	constexpr double Ig = 130.0;
-	constexpr double niu = 0.2;
 	constexpr double N = 0.3;
-	constexpr double chi = 2.2;
-	constexpr double H = 150.0;
+	constexpr double chi = 2.5;
+	constexpr double H = 200.0;
+	constexpr double niu = 0.2;
+	constexpr double Ig = 200.0;
 	MatModel::NorsandWrapper *ns = model.add_NorsandWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
@@ -268,10 +268,10 @@ void test_t3d_chm_mt_spudcan_cy_geostatic(int argc, char** argv)
 
 	Step_T3D_CHM_mt_Geo step("step1");
 	step.set_model(model);
-	step.set_thread_num(22);
-	step.set_step_time(1.0); // 1.0
-	//step.set_thread_num(5);
-	//step.set_step_time(5.0e-5);
+	//step.set_thread_num(22);
+	//step.set_step_time(1.0); // 1.0
+	step.set_thread_num(5);
+	step.set_step_time(5.0e-5);
 	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -366,11 +366,12 @@ void test_t3d_chm_mt_spudcan_cy_geo_result(int argc, char** argv)
 	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 800);
-	app.set_view_dir(-90.0f, 10.0f);
+	app.set_view_dir(-90.0f, 5.0f);
 	app.set_fog_coef(0.02f);
-	app.set_light_dir(-135.0f, 20.0f);
+	app.set_light_dir(-135.0f, 10.0f);
 	app.set_light_dist_scale(1.0f);
-	app.set_view_dist_scale(0.85f);
+	app.move_view_pos(0.0, 0.0, 3.0);
+	app.set_view_dist_scale(0.55f);
 	app.set_display_bg_mesh(false);
 	// s33
 	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
@@ -403,11 +404,12 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 800);
-	app.set_view_dir(-90.0f, 10.0f);
+	app.set_view_dir(-90.0f, 5.0f);
 	app.set_fog_coef(0.02f);
-	app.set_light_dir(-135.0f, 20.0f);
+	app.set_light_dir(-135.0f, 10.0f);
 	app.set_light_dist_scale(1.0f);
-	app.set_view_dist_scale(0.7f);
+	app.move_view_pos(0.0, 0.0, 3.0);
+	app.set_view_dist_scale(0.55f);
 	app.set_display_bg_mesh(false);
 	// s33
 	app.set_res_file(rf, "penetration", Hdf5Field::s33);

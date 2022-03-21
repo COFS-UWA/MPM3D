@@ -29,6 +29,9 @@ struct ParticleData
 	double pe11, pe22, pe33, pe12, pe23, pe31;
 	size_t mat_id; // material model id
 
+	// cavitation
+	double u_cav, is_cavitated;
+
 	void from_pcl(
 		Model_T3D_CHM_mt& md,
 		size_t pcl_offset,
@@ -101,6 +104,9 @@ struct ParticleData
 		pe23 = pcl_pe.e23;
 		pe31 = pcl_pe.e31;
 		mat_id = md.pcl_mat_model[id]->get_id();
+		// cavitation
+		u_cav = md.pcl_u_cav[pcl_offset];
+		is_cavitated = md.pcl_is_cavitated[pcl_offset];
 	}
 
 	void from_pcl(
@@ -173,6 +179,9 @@ struct ParticleData
 		pe23 = pcl_pe.e23;
 		pe31 = pcl_pe.e31;
 		mat_id = stp.pcl_mat_model[id]->get_id();
+		// cavitation
+		u_cav = stp.pcl_u_cav[pcl_offset];
+		is_cavitated = stp.pcl_is_cavitated[pcl_offset];
 	}
 
 	void from_pcl(
@@ -245,6 +254,9 @@ struct ParticleData
 		pe23 = pcl_pe.e23;
 		pe31 = pcl_pe.e31;
 		mat_id = stp.pcl_mat_model[id]->get_id();
+		// cavitation
+		u_cav = stp.pcl_u_cav[pcl_offset];
+		is_cavitated = stp.pcl_is_cavitated[pcl_offset];
 	}
 
 	void to_pcl(
@@ -324,6 +336,9 @@ struct ParticleData
 		pcl_pstrain.e23 = pe23;
 		pcl_pstrain.e31 = pe31;
 		md.pcl_mat_model[id] = &mm;
+		// cavitation
+		md.pcl_u_cav[pcl_offset] = u_cav;
+		md.pcl_is_cavitated[pcl_offset] = is_cavitated;
 	}
 };
 
@@ -383,6 +398,9 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "pe23", HOFFSET(ParticleData, pe23), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "pe31", HOFFSET(ParticleData, pe31), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
+	// cavitation
+	H5Tinsert(res, "u_cav", HOFFSET(ParticleData, u_cav), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "is_cavitated", HOFFSET(ParticleData, is_cavitated), H5T_NATIVE_DOUBLE);
 	return res;
 }
 

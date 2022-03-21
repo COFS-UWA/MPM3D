@@ -656,6 +656,7 @@ namespace Step_T3D_CHM_ud_TBB_Task
 		elem_pcl_n = stp.elem_pcl_n;
 		elem_p = stp.elem_p;
 		elem_de = stp.elem_de;
+		elem_u_cav = stp.elem_u_cav;
 		node_de_vol_s = stp.node_de_vol_s;
 		node_de_vol_f = stp.node_de_vol_f;
 		pcl_pos = stp.pcl_pos;
@@ -665,6 +666,11 @@ namespace Step_T3D_CHM_ud_TBB_Task
 		prev_pcl_ids = stp.prev_pcl_ids;
 		in_pcl_in_elems = stp.in_pcl_in_elems;
 		in_prev_pcl_ids = stp.in_prev_pcl_ids;
+
+		// cavitation
+		pcl_u_cav = stp.pcl_u_cav;
+		pcl_is_cavitated = stp.pcl_is_cavitated;
+		elem_u_cav = stp.elem_u_cav;
 	}
 
 	void MapBgMeshToPcl::update(size_t tsk_num) noexcept
@@ -712,6 +718,8 @@ namespace Step_T3D_CHM_ud_TBB_Task
 		Model_T3D_CHM_mt& md = *(stp.pmodel);
 		size_t valid_pcl_num = 0;
 		e_id = SIZE_MAX;
+		// cavitation
+		double e_u_cav, e_is_cavitated;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			if (e_id != pcl_in_elems[p_id])
@@ -741,7 +749,21 @@ namespace Step_T3D_CHM_ud_TBB_Task
 					+ node_de_vol_f[eni.n3]
 					+ node_de_vol_f[eni.n4]) * one_fourth;
 				e_density_f = elem_density_f[e_id] / (1.0 - e_de_vol_f);
-				e_p = elem_p[e_id] + stp.Kf * e_de_vol_f;
+				//e_p = elem_p[e_id] + stp.Kf * e_de_vol_f;
+				// cavitation
+				double Kf_ratio = 1.0;
+				if (stp.m_cav != 0.0) // consider cavitation
+				{
+					e_u_cav = elem_u_cav[e_id];
+					e_is_cavitated = false;
+					if (elem_p[e_id] < 0.0)
+					{
+						const double tmp = elem_p[e_id] / elem_u_cav[e_id] + stp.u_cav_off;
+						Kf_ratio = tmp < stp.u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, stp.m_cav))) : (1.0 / max_Kf_ratio_divider);
+						e_is_cavitated = Kf_ratio < stp.f_cav_end ? true : false;
+					}
+				}
+				e_p = elem_p[e_id] + Kf_ratio * stp.Kf * e_de_vol_f;
 
 				pe_de = elem_de + e_id;
 				e_de_vol_s *= one_third;
@@ -850,6 +872,12 @@ namespace Step_T3D_CHM_ud_TBB_Task
 			p_pe0.e12 = p_pe1.e12 + pstrain[3];
 			p_pe0.e23 = p_pe1.e23 + pstrain[4];
 			p_pe0.e31 = p_pe1.e31 + pstrain[5];
+
+			if (stp.m_cav != 0.0)
+			{
+				pcl_u_cav[p_id] = e_u_cav;
+				pcl_is_cavitated[p_id] = e_is_cavitated;
+			}
 		}
 		res.pcl_num = valid_pcl_num;
 	}

@@ -17,10 +17,10 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
-#define Undrained
+//#define Undrained
 
 // Hypo or Norsand
-#define Hypo
+//#define Hypo
 
 void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 {
@@ -71,7 +71,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	constexpr double e0 = 0.55;
 	constexpr double den_grain = 2670.0;
 	constexpr double den_dry = den_grain / (e0 + 1.0);
-	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
+	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000.0 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
 	constexpr double stress_depth_limit = -0.01;
 	constexpr double n0 = e0 / (1.0 + e0);
@@ -208,8 +208,6 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	//md_disp.set_pts_from_vx_bc_f(0.025);
 	//md_disp.set_pts_from_vy_bc_f(0.025);
 	//md_disp.set_pts_from_vz_bc_f(0.025);
-	size_t pt_id = 463101;
-	md_disp.set_pts_from_pcl_id(&pt_id, 1, 0.25);
 	md_disp.start();
 }
 

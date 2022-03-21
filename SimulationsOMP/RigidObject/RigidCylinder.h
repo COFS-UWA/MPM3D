@@ -3,6 +3,7 @@
 
 #include "Geometry3D.h"
 #include "Force3D.h"
+#include "Ratio.h"
 
 class RigidCylinder
 {
@@ -22,7 +23,7 @@ protected:
 		struct { size_t iax, iay, iaz; };
 		Vector3D acceleration;
 	};
-	
+
 	union
 	{
 		struct { double vx, vy, vz; };
@@ -39,7 +40,7 @@ protected:
 		};
 		Force3D cont_force;
 	};
-	
+
 	union
 	{
 		struct
@@ -59,10 +60,14 @@ protected:
 		struct { size_t iax_bc, iay_bc, iaz_bc; };
 		Vector3D acceleration_bc;
 	};
+
+	OneRatio one_ratio;
+	QuadraticRampUpRatio qru_x_ratio, qru_y_ratio, qru_z_ratio;
+	Ratio* pvx_bc_ratio, * pvy_bc_ratio, * pvz_bc_ratio;
+	double cur_time;
 	union
 	{
 		struct { double vx_bc, vy_bc, vz_bc; };
-		struct { size_t ivx_bc, ivy_bc, ivz_bc; };
 		Vector3D velocity_bc;
 	};
 
@@ -107,6 +112,12 @@ public:
 	void set_cont_force(const Force3D &cf) noexcept;
 	void set_ext_force(double fx, double fy, double fz,
 			double mx, double my, double mz) noexcept;
+	inline void set_const_vx_bc() noexcept { pvx_bc_ratio = &one_ratio; }
+	inline void set_const_vy_bc() noexcept { pvy_bc_ratio = &one_ratio; }
+	inline void set_const_vz_bc() noexcept { pvz_bc_ratio = &one_ratio; }
+	inline void set_ramp_up_vx_bc(double ru_time) noexcept { pvx_bc_ratio = &qru_x_ratio; qru_x_ratio.set_ramp_up_range(ru_time); }
+	inline void set_ramp_up_vy_bc(double ru_time) noexcept { pvy_bc_ratio = &qru_y_ratio; qru_y_ratio.set_ramp_up_range(ru_time); }
+	inline void set_ramp_up_vz_bc(double ru_time) noexcept { pvz_bc_ratio = &qru_z_ratio; qru_z_ratio.set_ramp_up_range(ru_time); }
 
 	inline void reset_cont_force() noexcept
 	{

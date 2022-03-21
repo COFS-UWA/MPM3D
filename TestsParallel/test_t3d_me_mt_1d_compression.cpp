@@ -111,6 +111,7 @@ void test_t3d_me_mt_1d_compression_result(int argc, char **argv)
 	app.set_ani_time(5.0);
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
+	//app.move_view_pos(0.0, 0.0, 0.5);
 	app.set_light_dir(90.0f, 30.0f);
 	app.set_color_map_fld_range(-10.0, 0.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
