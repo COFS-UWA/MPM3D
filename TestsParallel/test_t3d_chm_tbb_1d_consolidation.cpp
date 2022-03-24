@@ -23,45 +23,42 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
-	// linear elasticity
-	model.init_pcls(pcl_generator, 0.3, 20.0, 10.0, 10000.0, 1.0e-4, 1.0);
-	// Norsand
-	//model.init_pcls(pcl_generator, 0.3, 2670.0, 1000.0, 0.0, 3.925e-10, 1.0e-3);
+	//model.init_pcls(pcl_generator, 0.3, 20.0, 10.0, 10000.0, 1.0e-4, 1.0); // linear elasticity
+	model.init_pcls(pcl_generator, 0.3, 2670.0, 1000.0, 0.0, 3.925e-10, 1.0e-3); // Norsand
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// linear elasticity
-	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		les->set_param(1000.0, 0.0);
-		mms[pcl_id] = les;
-		les = model.following_LinearElasticity(les);
-	}
-	// Norsand
-	//constexpr double fric_ang = 30.0;
-	//constexpr double gamma = 0.875;
-	//constexpr double lambda = 0.0058;
-	//constexpr double N = 0.3;
-	//constexpr double chi = 2.5;
-	//constexpr double H = 200.0;
-	//constexpr double Ig = 200.0;
-	//constexpr double niu = 0.2;
-	////
-	//constexpr double e0 = 0.55;
-	//constexpr double sv = -13000.0;
-	//const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
-	//const double ini_stress[6] = { sv*K0, sv*K0, sv, 0.0, 0.0, 0.0 };
-	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	mms[pcl_id] = ns;
-	//	ns->set_param(
-	//		ini_stress, e0,
-	//		fric_ang, gamma, lambda,
-	//		N, chi, H,
-	//		Ig, niu);
-	//	ns = model.following_NorsandWrapper(ns);
+	//	les->set_param(1000.0, 0.0);
+	//	mms[pcl_id] = les;
+	//	les = model.following_LinearElasticity(les);
 	//}
+	// Norsand
+	constexpr double fric_ang = 30.0;
+	constexpr double gamma = 0.875;
+	constexpr double lambda = 0.0058;
+	constexpr double N = 0.3;
+	constexpr double chi = 2.5;
+	constexpr double H = 200.0;
+	constexpr double niu = 0.2;
+	constexpr double Ig = 200.0;
+	constexpr double e0 = 0.55;
+	constexpr double sv = -13000.0;
+	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
+	const double ini_stress[6] = { sv*K0, sv*K0, sv, 0.0, 0.0, 0.0 };
+	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		mms[pcl_id] = ns;
+		ns->set_param(
+			ini_stress, e0,
+			fric_ang, gamma, lambda,
+			N, chi, H,
+			Ig, niu);
+		ns = model.following_NorsandWrapper(ns);
+	}
 
 	IndexArray tbc_pcl_array(100);
 	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));

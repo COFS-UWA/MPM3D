@@ -135,7 +135,7 @@ void test_t3d_chm_tbb_cap_compression_result(int argc, char** argv)
 	app.set_light_dir(30.0f, 20.0f);
 	//app.set_view_dist_scale(1.1);
 	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
-	//app.set_png_name("t3d_chm_tbb_cap_compression");
+	app.set_png_name("t3d_chm_tbb_cap_compression");
 	//app.set_gif_name("t3d_chm_tbb_cap_compression");
 	// s33
 	//app.set_res_file(rf, "compression", Hdf5Field::s33);
