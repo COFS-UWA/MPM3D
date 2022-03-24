@@ -17,7 +17,7 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
-//#define Undrained
+#define Undrained
 
 // Hypo or Norsand
 //#define Hypo
@@ -284,7 +284,7 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	model.set_k(1.0e-7);
 	//model.set_miu(0.675);
 
-	model.set_cavitation(100.0, );
+	model.set_cavitation(100.0, -20.0e3, 0.1, 0.0, 0.0, 9.81e3);
 
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -372,7 +372,7 @@ void test_t3d_chm_mt_spudcan_geo_result(int argc, char** argv)
 void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_chm_mt_spudcan_tmp.h5");
+	rf.open("t3d_chm_mt_spudcan.h5");
 
 	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	////app.set_res_file(rf, "penetration", 50, Hdf5Field::s33);
@@ -392,18 +392,21 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	// s33
 	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-56000.0, 0.0);
-	// shear stress
-	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
-	//app.set_color_map_fld_range(0.0, 5000.0);
 	// plastic mises strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.35);
 	// p
-	app.set_res_file(rf, "penetration", Hdf5Field::p);
-	app.set_color_map_fld_range(-1.0e5, 1.0e5);// -1.0e5, 1.0e5
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_color_map_fld_range(-1.0e5, 1.0e5);// -1.0e5, 1.0e5
 	// e
 	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
 	//app.set_color_map_fld_range(0.5, 0.65);
+	// u_cav
+	app.set_res_file(rf, "penetration", Hdf5Field::u_cav);
+	app.set_color_map_fld_range(-75.0e3, -20.0e3);
+	// is_cavitated
+	//app.set_res_file(rf, "penetration", Hdf5Field::is_cavitated);
+	//app.set_color_map_fld_range(-125.0e3, -15.0e3);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_chm_mt_spudcan");
