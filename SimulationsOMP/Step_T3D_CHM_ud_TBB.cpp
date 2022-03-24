@@ -23,7 +23,8 @@ Step_T3D_CHM_ud_TBB::Step_T3D_CHM_ud_TBB(const char* _name) :
 	map_mesh_to_pcl(*this),
 	init_pcl_tbb(init_pcl),
 	map_pcl_to_mesh_tbb(map_pcl_to_mesh),
-	map_mesh_to_pcl_tbb(map_mesh_to_pcl) {}
+	map_mesh_to_pcl_tbb(map_mesh_to_pcl),
+	m_cav(0.0) {}
 
 Step_T3D_CHM_ud_TBB::~Step_T3D_CHM_ud_TBB() {}
 
@@ -122,6 +123,13 @@ int Step_T3D_CHM_ud_TBB::init_calculation()
 	Kf = md.Kf;
 	miu = md.miu;
 	k = md.k;
+	m_cav = md.m_cav;
+	f_cav_end = md.f_cav_end;
+	u_cav_off = pow(1.0 / f_cav_end - 1.0, 1.0 / m_cav) - 1.0;
+	u_div_u_cav_lim = pow(Step_T3D_CHM_ud_TBB_Task::max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
+	pcl_u_cav = md.pcl_u_cav;
+	pcl_is_cavitated = md.pcl_is_cavitated;
+	elem_u_cav = md.elem_u_cav;
 
 	pcl_sort.init(md.ori_pcl_num, thread_num);
 	ne_sort.init(md.elem_num, md.node_num, md.ori_pcl_num, thread_num,

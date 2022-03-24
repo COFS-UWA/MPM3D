@@ -520,6 +520,10 @@ public:
 	inline void set_sticky_contact_between_pcl_and_rect() noexcept { pcm = &sticky_contact; }
 	inline ContactModel3D *get_contact_model() noexcept { return pcm; }
 
+	inline void set_cylinder_vx_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vx_bc(ramp_up_time); }
+	inline void set_cylinder_vy_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vy_bc(ramp_up_time); }
+	inline void set_cylinder_vz_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vz_bc(ramp_up_time); }
+	
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

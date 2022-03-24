@@ -122,6 +122,11 @@ protected:
 	double* node_de_vol_f;
 
 	double Kf, miu, k;
+	// cavitation
+	double m_cav, f_cav_end, u_cav_off, u_div_u_cav_lim;
+	double* pcl_u_cav;
+	double* pcl_is_cavitated;
+	double *elem_u_cav;
 
 	ParaUtil::PclSort pcl_sort;
 	ParaUtil::NodeElemSort<4> ne_sort;

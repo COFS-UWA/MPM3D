@@ -15,6 +15,7 @@ RigidCylinder::RigidCylinder() :
 	vx_bc_mask(0), vy_bc_mask(0), vz_bc_mask(0),
 	ax_bc(0.0), ay_bc(0.0), az_bc(0.0),
 	vx_bc(0.0), vy_bc(0.0), vz_bc(0.0),
+	pvx_bc_ratio(&one_ratio), pvy_bc_ratio(&one_ratio), pvz_bc_ratio(&one_ratio),
 	r2(0.0), m(0.0), inv_m(0.0) {}
 
 RigidCylinder::~RigidCylinder() {}
@@ -44,6 +45,7 @@ void RigidCylinder::init(
 	lbbox.yu = r;
 	lbbox.zl = -h_div_2;
 	lbbox.zu = h_div_2;
+	cur_time = 0.0;
 }
 
 void RigidCylinder::update_motion(double dt) noexcept
@@ -59,6 +61,15 @@ void RigidCylinder::update_motion(double dt) noexcept
 	vx += ax * dt;
 	vy += ay * dt;
 	vz += az * dt;
+	cur_time += dt;
+	union
+	{
+		struct { double adj_vx_bc, adj_vy_bc, adj_vz_bc; };
+		struct { size_t ivx_bc, ivy_bc, ivz_bc; };
+	};
+	adj_vx_bc = (*pvx_bc_ratio)(cur_time) * vx_bc;
+	adj_vy_bc = (*pvy_bc_ratio)(cur_time) * vy_bc;
+	adj_vz_bc = (*pvz_bc_ratio)(cur_time) * vz_bc;
 	ivx = (ivx & ~vx_bc_mask) | (ivx_bc & vx_bc_mask);
 	ivy = (ivy & ~vy_bc_mask) | (ivy_bc & vy_bc_mask);
 	ivz = (ivz & ~vz_bc_mask) | (ivz_bc & vz_bc_mask);

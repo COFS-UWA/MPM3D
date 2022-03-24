@@ -43,19 +43,26 @@ void test_t3d_chm_tbb_cap_compression(int argc, char **argv)
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		MatModel::NorsandWrapper& n = ns[pcl_id];
-		n.set_param(
+		ns->set_param(
 			ini_stress, e0,
 			30.0,
-			0.86 /*0.7847*/, 0.015,
-			0.3, 3.6, 250.0,
+			0.875, 0.0058,
+			0.3, 2.5, 200.0,
 			200.0, 0.2);
-		model.add_mat_model(pcl_id, n, sizeof(MatModel::NorsandWrapper));
+		model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
+		ns = model.following_NorsandWrapper(ns);
 	}
 
-	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
+	// cavitation
+	//model.set_cavitation(100.0, -100.0e3, 0.01);
+	model.set_cavitation(100.0, -100.0e3, 0.01, 0.0, 0.0, 10.0e3);
+
+	//constexpr double ramp_up_time = 0.25;
+	//model.set_cylinder_vz_bc_ramp_up_time(ramp_up_time);
+	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);
 	//const double Kct = 20.0 / (0.025 * 0.025); // elastic
-	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo undrained 
+	const double Kct = 1.0e6 / (0.025 * 0.025); // hypo undrained 
 	model.set_contact_param(Kct, Kct, 0.1, 0.2, Kct / 10.0, Kct / 10.0);
 
 	IndexArray vx_bc_pt_array(100);
@@ -86,8 +93,6 @@ void test_t3d_chm_tbb_cap_compression(int argc, char **argv)
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	////size_t disp_p_id = 2000;
-	////md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
 	//md_disp.start();
 	//return;
 
@@ -97,12 +102,12 @@ void test_t3d_chm_tbb_cap_compression(int argc, char **argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(500);
 	TimeHistory_T3D_CHM_ud_TBB_complete out1("compression");
 	out1.set_res_file(res_file_hdf5);
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(500);
 
 	Step_T3D_CHM_ud_TBB step("step1");
 	step.set_model(model);
@@ -136,8 +141,13 @@ void test_t3d_chm_tbb_cap_compression_result(int argc, char** argv)
 	//app.set_res_file(rf, "compression", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-800.0e3, 0.0); // norsand
 	// 	p
-	app.set_res_file(rf, "compression", Hdf5Field::p);
-	app.set_color_map_fld_range(-200.0e3, 50.0e3); // norsand
-	//
+	//app.set_res_file(rf, "compression", Hdf5Field::p);
+	//app.set_color_map_fld_range(-200.0e3, 50.0e3); // norsand
+	// u_cav
+	app.set_res_file(rf, "compression", Hdf5Field::u_cav);
+	app.set_color_map_fld_range(-100.0e3, -90.0e3);
+	// is cavitated
+	//app.set_res_file(rf, "compression", Hdf5Field::is_cavitated);
+	//app.set_color_map_fld_range(0.0, 1.0); // norsand
 	app.start();
 }

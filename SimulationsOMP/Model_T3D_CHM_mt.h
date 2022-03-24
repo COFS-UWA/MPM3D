@@ -154,7 +154,7 @@ public:
 	struct SortedPclVarArrays
 	{
 		size_t *pcl_index; // ori_pcl_num
-		double* pcl_n;
+		double* pcl_n; // ori_pcl_num
 		double *pcl_density_f; // ori_pcl_num
 		Velocity *pcl_v_s; // ori_pcl_num
 		Velocity* pcl_v_f; // ori_pcl_num
@@ -241,7 +241,16 @@ protected:
 	NodeVBCVec* node_vbc_vec_f; // node_num
 
 	double Kf, k, miu;
-	double m_cav, u_cav, f_cav_end; // param for cavitation
+
+	// param for cavitation
+	double m_cav, f_cav_end;
+	double u_cav, u_cav_x, u_cav_y, u_cav_z;
+	// cavitation
+	// pcl
+	double* pcl_u_cav; // cavitation triggering pore pressure
+	double* pcl_is_cavitated; // 0.0 not cavitated, 1.0 cavitated
+	// mesh
+	double *elem_u_cav;
 
 // ======== Non calculation data ========
 	size_t ori_pcl_num;
@@ -302,8 +311,19 @@ public:
 	inline void set_Kf(double _Kf) noexcept { Kf = _Kf; }
 	inline void set_k(double _k) noexcept { k = _k; }
 	inline void set_miu(double _miu) noexcept { miu = _miu; }
-	inline void set_cavitation(double _m_cav, double _u_cav, double _f_cav_end) noexcept
-	{ m_cav = _m_cav; u_cav = _u_cav; f_cav_end = _f_cav_end; }
+	
+	// cavitation pore pressure < 0.0
+	inline double get_m_cav() const noexcept { return m_cav; }
+	inline double get_u_cav() const noexcept { return u_cav; }
+	inline double get_f_cav_end() const noexcept { return f_cav_end; }
+	inline double get_u_cav_x() const noexcept { return u_cav_x; }
+	inline double get_u_cav_y() const noexcept { return u_cav_y; }
+	inline double get_u_cav_z() const noexcept { return u_cav_z; }
+	void set_cavitation(
+		double _m_cav, double _u_cav, double _f_cav_end,
+		double _u_cav_x = 0.0,
+		double _u_cav_y = 0.0,
+		double _u_cav_z = 0.0) noexcept;
 
 	void clear_mesh();
 	void alloc_mesh(size_t n_num, size_t e_num);
@@ -574,6 +594,10 @@ public:
 	inline ContactModel3D *get_contact_model_s() noexcept { return pcm_s; }
 	inline ContactModel3D* get_contact_model_f() noexcept { return pcm_f; }
 
+	inline void set_cylinder_vx_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vx_bc(ramp_up_time); }
+	inline void set_cylinder_vy_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vy_bc(ramp_up_time); }
+	inline void set_cylinder_vz_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vz_bc(ramp_up_time); }
+	
 protected:
 	friend struct Model_T3D_CHM_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_CHM_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

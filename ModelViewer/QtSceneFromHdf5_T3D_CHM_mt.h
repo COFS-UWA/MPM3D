@@ -56,6 +56,7 @@ protected:
 	GLfloat fov_angle;
 	QVector3D view_dir;
 	QVector3D up_dir;
+	QVector3D view_movement;
 	QVector3D view_pos;
 	// bounding circle
 	float md_radius;
@@ -116,6 +117,8 @@ public:
 		set_view_dir(-vd_x, -vd_y, -vd_z);
 	}
 	inline void set_view_dist_scale(float scale) { view_dist_scale = scale; }
+	inline void move_view_pos(float dx, float dy, float dz)
+	{ view_movement.setX(dx); view_movement.setY(dy); view_movement.setZ(dz); }
 
 	inline void set_light_dir(QVector3D& _dir) { light_dir = _dir; }
 	inline void set_light_dir(float x, float y, float z)

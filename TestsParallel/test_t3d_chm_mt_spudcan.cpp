@@ -71,7 +71,7 @@ void test_t3d_chm_mt_spudcan_model(int argc, char** argv)
 	constexpr double e0 = 0.55;
 	constexpr double den_grain = 2670.0;
 	constexpr double den_dry = den_grain / (e0 + 1.0);
-	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000 * e0 / (e0 + 1.0);
+	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000.0 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
 	constexpr double stress_depth_limit = -0.01;
 	constexpr double n0 = e0 / (1.0 + e0);
@@ -283,6 +283,8 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	// modified permeability
 	model.set_k(1.0e-7);
 	//model.set_miu(0.675);
+
+	model.set_cavitation(100.0, );
 
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);

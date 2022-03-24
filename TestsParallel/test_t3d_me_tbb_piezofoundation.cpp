@@ -87,47 +87,44 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	les = model.following_LinearElasticity(les);
 	//}
 	// Mohr Coulomb
-	//MatModel::MohrCoulombWrapper *mcs = model.add_MohrCoulombWrapper(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	//const double pcl_z = -1.0; //debug
-	//	//const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
-	//	double pcl_z = model.get_pcl_pos()[pcl_id].z;
-	//	auto &pcl_s = model.get_pcl_stress0()[pcl_id];
-	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
-	//	pcl_s.s22 = K0 * pcl_s.s33;
-	//	pcl_s.s11 = pcl_s.s22;
-	//	ini_stress[2] = pcl_s.s33;
-	//	ini_stress[0] = pcl_s.s22;
-	//	ini_stress[1] = pcl_s.s11;
-	//	MatModel::MohrCoulombWrapper &mc = mcs[pcl_id];
-	//	mc.set_param(ini_stress, 30.0, 0.0, 5.0, 1.0e6, 0.15);
-	//	mms[pcl_id] = &mc;
-	//}
-	// Norsand
-	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	MatModel::MohrCoulombWrapper *mcs = model.add_MohrCoulombWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		mms[pcl_id] = ns;
-
+		mms[pcl_id] = mcs;
 		double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		auto& pcl_s = model.get_pcl_stress0()[pcl_id];
+		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
 		pcl_s.s33 = pcl_z * 9.81 * den_float;
 		pcl_s.s22 = K0 * pcl_s.s33;
 		pcl_s.s11 = pcl_s.s22;
-		if (pcl_z > stress_depth_limit) // shallow depth
-			pcl_z = stress_depth_limit;
-		ini_stress[2] = pcl_z * 9.81 * den_float;
-		ini_stress[0] = K0 * ini_stress[2];
-		ini_stress[1] = ini_stress[0];
-		ns->set_param(
-			ini_stress, e0,
-			30.0,
-			0.86, 0.015,
-			0.3, 3.6, 250.0,
-			200.0, 0.2);
-		ns = model.following_NorsandWrapper(ns);
+		ini_stress[2] = pcl_s.s33;
+		ini_stress[0] = pcl_s.s22;
+		ini_stress[1] = pcl_s.s11;
+		mcs->set_param(ini_stress, 30.0, 0.0, 5.0, 1.0e6, 0.15);
+		mcs = model.following_MohrCoulombWrapper(mcs);
 	}
+	// Norsand
+	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	mms[pcl_id] = ns;
+	//	double pcl_z = model.get_pcl_pos()[pcl_id].z;
+	//	auto& pcl_s = model.get_pcl_stress0()[pcl_id];
+	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
+	//	pcl_s.s22 = K0 * pcl_s.s33;
+	//	pcl_s.s11 = pcl_s.s22;
+	//	if (pcl_z > stress_depth_limit) // shallow depth
+	//		pcl_z = stress_depth_limit;
+	//	ini_stress[2] = pcl_z * 9.81 * den_float;
+	//	ini_stress[0] = K0 * ini_stress[2];
+	//	ini_stress[1] = ini_stress[0];
+	//	ns->set_param(
+	//		ini_stress, e0,
+	//		30.0,
+	//		0.86, 0.015,
+	//		0.3, 3.6, 250.0,
+	//		200.0, 0.2);
+	//	ns = model.following_NorsandWrapper(ns);
+	//}
 	// Sand hypoplasticity
 	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)

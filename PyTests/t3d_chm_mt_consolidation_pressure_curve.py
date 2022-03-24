@@ -4,6 +4,8 @@ import h5py as py
 
 from OneDConsolidation import OneDConsolidation
 
+file_name = "t3d_chm_tbb_1d_consolidation"
+
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
 plot1.set_xlabel("time")
@@ -13,10 +15,10 @@ out_time = []
 pcl_var = []
 
 # numerical solution
-hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_1d_consolidation.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
 th_grp = hdf5_file['TimeHistory']['consolidation']
 
-csv_file = open("../Build/TestsParallel/t3d_chm_mt_1d_consolidation_p.csv", "w")
+csv_file = open("../Build/TestsParallel/" + file_name + "_disp.csv", "w")
 
 output_num = th_grp.attrs['output_num']
 pcl_z = 0.0

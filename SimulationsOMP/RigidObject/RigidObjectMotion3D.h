@@ -4,6 +4,7 @@
 #include "GeometryUtils.h"
 #include "Geometry3D.h"
 #include "Force3D.h"
+#include "Ratio.h"
 
 class RigidObjectMotion3D
 {
@@ -66,11 +67,11 @@ protected:
 	};
 	
 	size_t vx_bc_mask, vy_bc_mask, vz_bc_mask;
-	union
-	{
-		struct { double vx_bc, vy_bc, vz_bc; };
-		struct { size_t ivx_bc, ivy_bc, ivz_bc; };
-	};
+	OneRatio one_ratio;
+	QuadraticRampUpRatio qru_x_ratio, qru_y_ratio, qru_z_ratio;
+	Ratio *pvx_bc_ratio, *pvy_bc_ratio, *pvz_bc_ratio;
+	double cur_time;
+	double vx_bc, vy_bc, vz_bc;
 
 	size_t vx_ang_bc_mask, vy_ang_bc_mask, vz_ang_bc_mask;
 	union
@@ -192,6 +193,12 @@ public:
 	inline void set_vx_bc(double _vx) noexcept { vx_bc = _vx; vx_bc_mask = SIZE_MAX; }
 	inline void set_vy_bc(double _vy) noexcept { vy_bc = _vy; vy_bc_mask = SIZE_MAX; }
 	inline void set_vz_bc(double _vz) noexcept { vz_bc = _vz; vz_bc_mask = SIZE_MAX; }
+	inline void set_const_vx_bc() noexcept { pvx_bc_ratio = &one_ratio; }
+	inline void set_const_vy_bc() noexcept { pvy_bc_ratio = &one_ratio; }
+	inline void set_const_vz_bc() noexcept { pvz_bc_ratio = &one_ratio; }
+	inline void set_ramp_up_vx_bc(double ru_time) noexcept { pvx_bc_ratio = &qru_x_ratio; qru_x_ratio.set_ramp_up_range(ru_time); }
+	inline void set_ramp_up_vy_bc(double ru_time) noexcept { pvy_bc_ratio = &qru_y_ratio; qru_y_ratio.set_ramp_up_range(ru_time); }
+	inline void set_ramp_up_vz_bc(double ru_time) noexcept { pvz_bc_ratio = &qru_z_ratio; qru_z_ratio.set_ramp_up_range(ru_time); }
 	inline void set_vx_ang_bc(double _vx_ang) noexcept { vx_ang_bc = _vx_ang; vx_ang_bc_mask = SIZE_MAX; }
 	inline void set_vy_ang_bc(double _vy_ang) noexcept { vy_ang_bc = _vy_ang; vy_ang_bc_mask = SIZE_MAX; }
 	inline void set_vz_ang_bc(double _vz_ang) noexcept { vz_ang_bc = _vz_ang; vz_ang_bc_mask = SIZE_MAX; }
@@ -211,6 +218,15 @@ public:
 		vy += ay * dt;
 		vz += az * dt;
 		// apply vbc
+		cur_time += dt;
+		union
+		{
+			struct { double adj_vx_bc, adj_vy_bc, adj_vz_bc; };
+			struct { size_t ivx_bc, ivy_bc, ivz_bc; };
+		};
+		adj_vx_bc = vx_bc * (*pvx_bc_ratio)(cur_time);
+		adj_vy_bc = vy_bc * (*pvy_bc_ratio)(cur_time);
+		adj_vz_bc = vz_bc * (*pvz_bc_ratio)(cur_time);
 		ivx = (ivx & ~vx_bc_mask) | (ivx_bc & vx_bc_mask);
 		ivy = (ivy & ~vy_bc_mask) | (ivy_bc & vy_bc_mask);
 		ivz = (ivz & ~vz_bc_mask) | (ivz_bc & vz_bc_mask);

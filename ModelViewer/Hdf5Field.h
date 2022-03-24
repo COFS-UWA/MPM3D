@@ -61,6 +61,9 @@
 #include "Hdf5MatExtraction_s23.h"
 #include "Hdf5MatExtraction_s31.h"
 #include "Hdf5MatExtraction_pi.h"
+// cavitation
+#include "Hdf5FieldExtraction_u_cav.h"
+#include "Hdf5FieldExtraction_is_cavitated.h"
 
 namespace Hdf5Field
 {
@@ -122,7 +125,10 @@ namespace Hdf5Field
 		mat_s23 = 53,
 		mat_s31 = 54,
 		mises_strain_3d = 55,
-		mat_pi = 56
+		mat_pi = 56,
+		// cavitation
+		u_cav = 57,
+		is_cavitated = 58
 	};
 
 	namespace Hdf5Field_internal
@@ -191,7 +197,9 @@ namespace Hdf5Field
 			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s23>, // 53
 			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_s31>, // 54
 			&make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_mises_strain_3d>, // 55
-			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_pi> // 56
+			&make_Hdf5FieldExtraction_template<Hdf5MatExtraction_pi>, // 56
+			& make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_u_cav>, // 57
+			& make_Hdf5FieldExtraction_template<Hdf5FieldExtraction_is_cavitated> // 58
 		};
 		const size_t make_func_num = sizeof(make_funcs) / sizeof(make_funcs[0]);
 	}

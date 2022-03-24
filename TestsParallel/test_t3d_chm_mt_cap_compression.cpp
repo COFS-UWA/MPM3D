@@ -17,14 +17,14 @@
 void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 {
 	//
-	constexpr double e0 = 0.536;
-	const double ini_stress[6] = { -30.0e3, -30.0e3, -30.0e3, 0.0, 0.0, 0.0 };
+	//constexpr double e0 = 0.536;
+	//const double ini_stress[6] = { -30.0e3, -30.0e3, -30.0e3, 0.0, 0.0, 0.0 };
 	//
 	//constexpr double e0 = 0.544;
 	//const double ini_stress[6] = { -50.0e3, -50.0e3, -50.0e3, 0.0, 0.0, 0.0 };
 	//
-	//constexpr double e0 = 0.527;
-	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	constexpr double e0 = 0.527;
+	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	//
 	//constexpr double e0 = 0.534;
 	//const double ini_stress[6] = { -200.0e3, -200.0e3, -200.0e3, 0.0, 0.0, 0.0 };
@@ -59,39 +59,39 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//	model.add_mat_model(pcl_id, le, sizeof(MatModel::LinearElasticity));
 	//}
 	// Stb hypoplasticity
-	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		shps->set_param(
-			ini_stress, e0,
-			30.02298846, 20.29e9, 0.2966, //30.0, 1354.0e6, 0.34,
-			0.177, 0.04, //0.18, 1.27,
-			0.441, 0.831, 0.956, //0.49, 0.76, 0.86,
-			1.7, 23.0, 200.0, //1.5, 43.0, 250.0,
-			130.0, 0.2); //200.0, 0.2);
-	 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
-		shps = model.following_SandHypoplasticityStbWrapper(shps);
-	}
-	// Norsand
-	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	ns->set_param(
+	//	shps->set_param(
 	//		ini_stress, e0,
-	//		30.0230,
-	//		0.875, 0.0058,
-	//		0.3, 2.5, 200.0,
-	//		200.0, 0.2);
-	//	model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
-	//	ns = model.following_NorsandWrapper(ns);
+	//		30.02298846, 20.29e9, 0.2966, //30.0, 1354.0e6, 0.34,
+	//		0.177, 0.04, //0.18, 1.27,
+	//		0.441, 0.831, 0.956, //0.49, 0.76, 0.86,
+	//		1.7, 23.0, 200.0, //1.5, 43.0, 250.0,
+	//		130.0, 0.2); //200.0, 0.2);
+	// 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
+	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
 	//}
+	// Norsand
+	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		ns->set_param(
+			ini_stress, e0,
+			30.0,
+			0.875, 0.0058,
+			0.3, 2.5, 200.0,
+			200.0, 0.2);
+		model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
+		ns = model.following_NorsandWrapper(ns);
+	}
 
 	// cavitation
 	//model.set_cavitation(100.0, -100.0e3, 0.01);
 
-	//model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
+	model.set_cylinder_vz_bc_ramp_up_time(1.0);
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.01);
 	//const double Kct = 20.0 / (0.025 * 0.025); // elastic
 #ifndef OED_TEST
 	const double Kct = 1.0e5 / (0.025 * 0.025);
@@ -159,7 +159,7 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	Step_T3D_CHM_ud_mt_subiter step("step1");
 	step.set_model(model);
 	step.set_thread_num(5);
-	step.set_step_time(1.0); // 1.0
+	step.set_step_time(6.0); // 1.0
 	//step.set_mass_factor(0.1); // debug
 	//step.set_step_time(1.0e-4); // debug
 	step.set_max_subiter_num(0); // debug

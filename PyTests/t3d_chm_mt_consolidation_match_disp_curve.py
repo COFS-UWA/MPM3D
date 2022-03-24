@@ -50,15 +50,15 @@ for o_id in range(output_num):
 line1, = plot1.plot(out_time, pcl_var)
 
 # analytical solution
-u0 = 1.0
+u0 = 10000.0
+kv = 3.925e-12
+Es = 2500000.0
+#
 H = 1.0
-E = 1000.0
-niu = 0.0 # possion ratio
-kv = 1.0e-4
-miu = 1.0 # dynamic viscosity
-
-Es = (1 - niu) / (1 + niu) / (1 - 2.0*niu) * E # Es = (1-v) / (1 + v) / (1-2v) * E
-Cv = kv * Es / miu
+miu = 1.0e-3 # dynamic viscosity
+#
+Cv = Es * kv / miu
+print("Cv = %f\n" % Cv)
 con_res = OneDConsolidation(Cv, Es, u0, H)
 time = 15.0 # time of consolidation
 data_num = 100
@@ -77,10 +77,10 @@ csv_file.write("analytical,\n")
 for o_id in range(data_num):
     csv_file.write("%f, %f\n" % (t_list[o_id], u_list[o_id]))
 
-#line2, = plot1.plot(t_list, u_list, 'r--')
+line2, = plot1.plot(t_list, u_list, 'r--')
 # with open("consolidation_disp_ana_SE.csv", "w") as out_file:
     # for i in range(len(t_list)):
         # out_file.write("%f, %f\n" % (t_list[i], u_list[i]))
 
-#plt.legend(handles=[line1, line2], labels=['MPM', 'Analytical Solution'])
+plt.legend(handles=[line1, line2], labels=['MPM', 'Analytical Solution'])
 plt.show()
