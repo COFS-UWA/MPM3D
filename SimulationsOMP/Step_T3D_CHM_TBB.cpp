@@ -93,7 +93,6 @@ int Step_T3D_CHM_TBB::init_calculation()
 	elem_pcl_m_f = md.elem_pcl_m_f;
 	elem_de = md.elem_de;
 	elem_p = md.elem_p;
-	elem_n2_miu_div_k_vol = md.elem_n2_miu_div_k_vol;
 	elem_seep_force = md.elem_seep_force;
 	elem_m_de_vol_s = md.elem_m_de_vol_s;
 	elem_m_de_vol_f = md.elem_m_de_vol_f;

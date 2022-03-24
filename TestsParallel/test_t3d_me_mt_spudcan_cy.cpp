@@ -66,7 +66,6 @@ void test_t3d_me_mt_spudcan_cy_model(int argc, char** argv)
 	
 	constexpr double e0 = 0.55;
 	constexpr double den_grain = 2670.0;
-	constexpr double den_dry = den_grain / (e0 + 1.0);
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000.0 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
 	constexpr double stress_depth_limit = -0.01;
@@ -162,7 +161,7 @@ void test_t3d_me_mt_spudcan_cy_model(int argc, char** argv)
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);
 	MemoryUtils::ItemArray<double> bfz_array(pcl_num);
-	double bfz = -9.81 * den_float / den_dry;
+	double bfz = -9.81 * den_float / den_sat;
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		bfz_pcl_array.add(pcl_id);
@@ -273,15 +272,16 @@ void test_t3d_me_mt_spudcan_cy(int argc, char** argv)
 	Step_T3D_ME_TBB step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, step, "t3d_me_mt_spudcan_cy_geo.h5", "geostatic", 11);
-	
-	// modified velocity
-	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.15);
-	// modified contact stiffness
-	//constexpr double sml_pcl_size = 0.04;
-	//constexpr double K_cont = 5.0e4 / (sml_pcl_size * sml_pcl_size);
-	//model.set_contact_param(K_cont, K_cont, 0.1, 5.0, K_cont / 50.0, K_cont / 50.0);
-	// modified permeability
-	//model.set_k(1.0e-9);
+
+	constexpr double footing_radius = 1.5;
+	constexpr double dense_elem_size = 0.125 * footing_radius;
+	constexpr double sml_pcl_size = dense_elem_size * 0.25;
+	constexpr double K_cont = 5.0e6 / (sml_pcl_size * sml_pcl_size);
+	model.set_contact_param(K_cont, K_cont, 0.3640, 5.0);
+	//model.set_frictional_contact_between_spcl_and_rect();
+
+	// modified velocity and permeability
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
 
 	//QtApp_Prep_T3D_ME_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -315,8 +315,7 @@ void test_t3d_me_mt_spudcan_cy(int argc, char** argv)
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(2000);
 
-	step.set_model(model);
-	step.set_thread_num(24);
+	step.set_thread_num(30);
 	step.set_step_time(0.9); // 3.0 v=0.15, 0.9 v=0.5
 	//step.set_thread_num(3);
 	//step.set_step_time(5.0e-5);
@@ -336,9 +335,9 @@ void test_t3d_me_mt_spudcan_cy_geo_result(int argc, char** argv)
 	rf.open("t3d_me_mt_spudcan_cy_geo.h5");
 
 	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
-	////app.set_res_file(rf, "penetration", 50, Hdf5Field::s33);
-	////app.set_res_file(rf, "penetration", 50, Hdf5Field::max_shear_stress);
-	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
+	//app.set_res_file(rf, "geostatic", 11, Hdf5Field::s33);
+	//app.set_color_map_fld_range(-111000.0, 0.0);
+
 	QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
 	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 1.0, 0.0);
@@ -353,17 +352,12 @@ void test_t3d_me_mt_spudcan_cy_geo_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	// s33
 	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_s33);
 	app.set_color_map_fld_range(-111000.0, 0.0);
-	// shear stress
-	//app.set_res_file(rf, "geostatic", Hdf5Field::max_shear_stress);
-	//app.set_color_map_fld_range(0.0, 5000.0);
-	// plastic mises strain
-	//app.set_res_file(rf, "geostatic", Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.35);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_png_name("t3d_chm_mt_spudcan_geo");
-	//app.set_gif_name("t3d_chm_mt_spudcan_geo");
+	//app.set_png_name("t3d_me_mt_spudcan_cy_geo");
+	//app.set_gif_name("t3d_me_mt_spudcan_cy_geo");
 	app.start();
 }
 
@@ -390,7 +384,7 @@ void test_t3d_me_mt_spudcan_cy_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	// s33
 	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-56000.0, 0.0);
+	app.set_color_map_fld_range(-111000.0, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5000.0);

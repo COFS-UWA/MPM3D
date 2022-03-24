@@ -258,11 +258,12 @@ void test_t3d_me_mt_spudcan(int argc, char** argv)
 		model, step, "t3d_me_mt_spudcan_geo.h5", "geostatic", 21); // 21
 	
 	// modified velocity
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -3.0); // 0.5
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -2.0); // 0.5
 	// modified contact stiffness
 	constexpr double sml_pcl_size = 0.04;
-	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size); // 1.0e5
-	model.set_contact_param(K_cont, K_cont, 0.1, 5.0);
+	constexpr double K_cont = 5.0e6 / (sml_pcl_size * sml_pcl_size); // 1.0e5
+	model.set_contact_param(K_cont, K_cont, 0.3640, 5.0);
+	model.set_frictional_contact_between_pcl_and_rect();
 
 	//QtApp_Prep_T3D_ME_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -298,7 +299,7 @@ void test_t3d_me_mt_spudcan(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(24);
-	step.set_step_time(0.15); // 0.9 v=0.5, 
+	step.set_step_time(0.225); // 0.9 v = 0.5, 
 	//step.set_thread_num(3);
 	//step.set_step_time(2.0e-5);
 	step.set_dtime(5.0e-6); // 5.0e-6

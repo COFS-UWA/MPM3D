@@ -2,11 +2,13 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
+file_name = "t3d_me_mt_spudcan_cy"
+#file_name = "t3d_chm_mt_spudcan"
+
 spudcan_diameter = 3.0
 
 # Numerical result
-#hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_spudcan.h5", "r")
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_spudcan.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']
@@ -33,7 +35,7 @@ for th_id in range(th_num):
 
 hdf5_file.close()
 
-data_file = open("../Build/TestsParallel/t3d_chm_mt_spudcan_rf.csv", "w")
+data_file = open("../Build/TestsParallel/" + file_name + "_rf.csv", "w")
 for i in range(len(rb_z)):
     data_file.write("%f, %f, %f, %f\n" % (rb_z[i], rb_fz[i], rb_z_norm[i], rb_fz_norm[i]))
 data_file.close()
