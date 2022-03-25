@@ -2,7 +2,10 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
+<<<<<<< HEAD
 #file_name = "t3d_me_mt_spudcan_cy"
+=======
+>>>>>>> 6eaedf73359b59c75acdb0c2cf6fd1b9fb67592b
 file_name = "t3d_chm_mt_spudcan"
 
 spudcan_diameter = 3.0

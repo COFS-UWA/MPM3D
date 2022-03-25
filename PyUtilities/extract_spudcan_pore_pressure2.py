@@ -4,12 +4,12 @@ import h5py as py
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Array
 
-sim_name = "t3d_chm_mt_spudcan"
+sim_name = "t3d_chm_mt_spudcan_-7"
 model_var_r0 = 0.2
-model_var_z0 = -1.0
-model_var_dr = 0.1
-model_var_dz = 0.1
-proc_num = 10
+model_var_z0 = -0.5
+model_var_dr = 0.2
+model_var_dz = 0.2
+proc_num = 12
 
 # time history name
 th_name = "penetration"

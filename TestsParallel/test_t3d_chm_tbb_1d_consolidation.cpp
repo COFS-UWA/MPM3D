@@ -24,7 +24,7 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
 	//model.init_pcls(pcl_generator, 0.3, 20.0, 10.0, 10000.0, 1.0e-4, 1.0); // linear elasticity
-	model.init_pcls(pcl_generator, 0.3, 2670.0, 1000.0, 0.0, 3.925e-10, 1.0e-3); // Norsand
+	model.init_pcls(pcl_generator, 0.3, 2670.0, 1000.0, 1.0e8, 5.0e-13, 1.0e-3); // Norsand
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// linear elasticity
@@ -45,7 +45,7 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	constexpr double niu = 0.2;
 	constexpr double Ig = 200.0;
 	constexpr double e0 = 0.55;
-	constexpr double sv = -13000.0;
+	constexpr double sv = -80.0e3;
 	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
 	const double ini_stress[6] = { sv*K0, sv*K0, sv, 0.0, 0.0, 0.0 };
 	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
@@ -63,7 +63,7 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	IndexArray tbc_pcl_array(100);
 	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
 	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	double tz_mag = 0.025 * 0.025 * -1.0;
+	double tz_mag = 0.025 * 0.025 * sv; // -1.0
 	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
 		tzs_mem.add(tz_mag);
 	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
@@ -104,7 +104,7 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	md.output_model(model, res_file_hdf5);
 
 	TimeHistory_T3D_CHM_TBB_complete out1("consolidation");
-	out1.set_interval_num(50);
+	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
@@ -113,8 +113,8 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 
 	Step_T3D_CHM_TBB step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
-	step.set_dtime(5.0e-6);
+	step.set_step_time(40.0);
+	step.set_dtime(2.5e-6);
 	step.set_thread_num(5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -135,12 +135,14 @@ void test_t3d_chm_tbb_1d_consolidation_result(int argc, char **argv)
 	app.set_ani_time(5.0);
 	app.set_win_size(900, 900);
 	app.set_view_dir(30.0f, 30.0f);
-	app.move_view_pos(0.0, 0.0, 0.5);
+	app.move_view_pos(0.0, 0.0, 0.1);
 	app.set_light_dir(90.0f, 30.0f);
-	app.set_res_file(rf, "consolidation", Hdf5Field::p);
-	app.set_color_map_fld_range(0.0, 1.0);
 	app.set_color_map_geometry(0.7f, 0.45f, 0.5f);
 	//app.set_png_name("t3d_chm_tbb_1d_consolidation");
 	//app.set_gif_name("t3d_chm_tbb_1d_consolidation");
+	// p
+	app.set_res_file(rf, "consolidation", Hdf5Field::p);
+	app.set_color_map_fld_range(0.0, 1.0e4);
+	//
 	app.start();
 }
