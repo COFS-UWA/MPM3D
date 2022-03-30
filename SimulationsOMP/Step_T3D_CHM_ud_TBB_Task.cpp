@@ -719,7 +719,7 @@ namespace Step_T3D_CHM_ud_TBB_Task
 		size_t valid_pcl_num = 0;
 		e_id = SIZE_MAX;
 		// cavitation
-		double e_u_cav, e_is_cavitated;
+		double e_u_cav, Kf_ratio;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			if (e_id != pcl_in_elems[p_id])
@@ -751,16 +751,14 @@ namespace Step_T3D_CHM_ud_TBB_Task
 				e_density_f = elem_density_f[e_id] / (1.0 - e_de_vol_f);
 				//e_p = elem_p[e_id] + stp.Kf * e_de_vol_f;
 				// cavitation
-				double Kf_ratio = 1.0;
+				Kf_ratio = 1.0;
 				if (stp.m_cav != 0.0) // consider cavitation
 				{
 					e_u_cav = elem_u_cav[e_id];
-					e_is_cavitated = false;
 					if (elem_p[e_id] < 0.0)
 					{
 						const double tmp = elem_p[e_id] / elem_u_cav[e_id] + stp.u_cav_off;
 						Kf_ratio = tmp < stp.u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, stp.m_cav))) : (1.0 / max_Kf_ratio_divider);
-						e_is_cavitated = Kf_ratio < stp.f_cav_end ? true : false;
 					}
 				}
 				e_p = elem_p[e_id] + Kf_ratio * stp.Kf * e_de_vol_f;
@@ -876,7 +874,7 @@ namespace Step_T3D_CHM_ud_TBB_Task
 			if (stp.m_cav != 0.0)
 			{
 				pcl_u_cav[p_id] = e_u_cav;
-				pcl_is_cavitated[p_id] = e_is_cavitated;
+				pcl_is_cavitated[p_id] = Kf_ratio;
 			}
 		}
 		res.pcl_num = valid_pcl_num;
