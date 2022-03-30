@@ -19,10 +19,10 @@ void test_t3d_me_mt_spudcan_cy_model(int argc, char** argv)
 {
 	constexpr double footing_radius = 1.5;
 
-	constexpr double cy_radius = 6.0 * footing_radius;
+	constexpr double cy_radius = 6.0 * footing_radius; // 6
 	constexpr double cy_coarse_radius = 3.5 * footing_radius;
 	constexpr double cy_top = 0.5 * footing_radius;
-	constexpr double cy_depth = 7.0 * footing_radius;
+	constexpr double cy_depth = 7.0 * footing_radius; // 7
 	constexpr double cy_coarse_depth = 4.0 * footing_radius;
 	constexpr double cy_len = cy_top + cy_depth;
 	constexpr double dense_elem_size = 0.125 * footing_radius;

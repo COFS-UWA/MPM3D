@@ -26,10 +26,10 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 {
 	constexpr double footing_radius = 1.5;
 
-	constexpr double cy_radius = 6.0 * footing_radius;
+	constexpr double cy_radius = 8.0 * footing_radius; // 6.0
 	constexpr double cy_coarse_radius = 3.5 * footing_radius;
 	constexpr double cy_top = 0.5 * footing_radius;
-	constexpr double cy_depth = 7.0 * footing_radius;
+	constexpr double cy_depth = 8.0 * footing_radius; // 7.0
 	constexpr double cy_coarse_depth = 4.0 * footing_radius;
 	constexpr double cy_len = cy_top + cy_depth;
 	constexpr double dense_elem_size = 0.125 * footing_radius;
@@ -38,7 +38,7 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	constexpr double lgr_pcl_size = coarse_elem_size * 0.25;
 
 	TetrahedronMesh teh_mesh;
-	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_quarter_cylinder.h5");
+	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_quarter_cylinder_8D.h5");
 	teh_mesh.init_search_grid(0.2, 0.2, 0.2);
 	std::cout << "node_num: " << teh_mesh.get_node_num() << "\n"
 			  << "elem_num: " << teh_mesh.get_elem_num() << "\n";
@@ -65,10 +65,10 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 		0.0, 0.0, 1.0,
 		0.0, cy_radius,
 		0.0, 90.0,
-		cy_depth,
+		cy_depth - cy_coarse_depth,
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	//
-	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
 	constexpr double e0 = 0.55;
@@ -218,14 +218,14 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	md_disp.set_view_dir(-80.0f, 30.0f);
 	md_disp.set_light_dir(-70.0f, 20.0f);
 	md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(1.2);
+	md_disp.set_view_dist_scale(0.8);
 	//md_disp.set_pts_from_vx_bc_s(0.04);
 	//md_disp.set_pts_from_vy_bc_s(0.04);
 	//md_disp.set_pts_from_vz_bc_s(0.04);
-	//md_disp.set_pts_from_vec_bc_s(0.04);
+	md_disp.set_pts_from_vec_bc_s(0.04);
 	//md_disp.set_pts_from_vx_bc_f(0.04);
 	//md_disp.set_pts_from_vy_bc_f(0.04);
-	md_disp.set_pts_from_vz_bc_f(0.04);
+	//md_disp.set_pts_from_vz_bc_f(0.04);
 	md_disp.start();
 }
 
