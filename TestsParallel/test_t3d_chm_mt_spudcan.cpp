@@ -17,7 +17,7 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
-#define Undrained
+//#define Undrained
 
 // Hypo or Norsand
 //#define Hypo
@@ -279,9 +279,9 @@ void test_t3d_chm_mt_spudcan(int argc, char** argv)
 	constexpr double sml_pcl_size = 0.04;
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size); // 5.0e5
 	model.set_contact_param(K_cont, K_cont, 0.364, 5.0, K_cont / 50.0, K_cont / 50.0);
-	//model.set_frictional_contact_between_spcl_and_rect();
+	model.set_frictional_contact_between_spcl_and_rect();
 	// modified permeability
-	model.set_k(1.0e-7);
+	model.set_k(1.0e-9);
 	//model.set_miu(0.675);
 
 	model.set_cavitation(100.0, -120.0e3, 0.05, 0.0, 0.0, 9.81e3);
@@ -402,11 +402,11 @@ void test_t3d_chm_mt_spudcan_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
 	//app.set_color_map_fld_range(0.5, 0.65);
 	// u_cav
-	app.set_res_file(rf, "penetration", Hdf5Field::u_cav);
-	app.set_color_map_fld_range(-175.0e3, -120.0e3);
+	//app.set_res_file(rf, "penetration", Hdf5Field::u_cav);
+	//app.set_color_map_fld_range(-175.0e3, -120.0e3);
 	// is_cavitated
-	//app.set_res_file(rf, "penetration", Hdf5Field::is_cavitated);
-	//app.set_color_map_fld_range(0.0, 1.0);
+	app.set_res_file(rf, "penetration", Hdf5Field::is_cavitated);
+	app.set_color_map_fld_range(0.0, 1.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_chm_mt_spudcan");
