@@ -146,6 +146,10 @@ public:
 	{
 		bg_color[0] = r; bg_color[1] = g; bg_color[2] = b;
 	}
+	inline void set_color_map_char_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		color_map_obj.set_char_color(r, g, b);
+	}
 
 	inline void set_fog_coef(float coef) { fog_coef = coef; }
 	inline void set_fog_color(QVector3D& color) { fog_color = color; }

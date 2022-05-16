@@ -41,9 +41,9 @@ void test_t3d_chm_tbb_1d_consolidation(int argc, char **argv)
 	constexpr double lambda = 0.0058;
 	constexpr double N = 0.3;
 	constexpr double chi = 2.5;
-	constexpr double H = 200.0;
+	constexpr double H = 230.0;
 	constexpr double niu = 0.2;
-	constexpr double Ig = 200.0;
+	constexpr double Ig = 230.0;
 	constexpr double e0 = 0.55;
 	constexpr double sv = -80.0e3;
 	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);

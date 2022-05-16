@@ -68,7 +68,7 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 		cy_depth - cy_coarse_depth,
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	//
-	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
 	constexpr double e0 = 0.55;
@@ -222,7 +222,7 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	//md_disp.set_pts_from_vx_bc_s(0.04);
 	//md_disp.set_pts_from_vy_bc_s(0.04);
 	//md_disp.set_pts_from_vz_bc_s(0.04);
-	md_disp.set_pts_from_vec_bc_s(0.04);
+	//md_disp.set_pts_from_vec_bc_s(0.04);
 	//md_disp.set_pts_from_vx_bc_f(0.04);
 	//md_disp.set_pts_from_vy_bc_f(0.04);
 	//md_disp.set_pts_from_vz_bc_f(0.04);
@@ -305,25 +305,25 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 	//model.set_k(1.2e-9);
 	//model.set_miu(684.0e-3);
 
-	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
-	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	//md_disp.set_model(model);
-	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(80.0f, -30.0f);
-	//md_disp.set_light_dir(70.0f, -25.0f);
-	//md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(1.1);
-	////md_disp.set_pts_from_vx_s_bc(0.05);
-	////md_disp.set_pts_from_vy_s_bc(0.05);
-	////md_disp.set_pts_from_vz_s_bc(0.05);
-	////md_disp.set_pts_from_vec_s_bc(0.05);
+	QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
+	//QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	//md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	md_disp.set_model(model);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(80.0f, -30.0f);
+	md_disp.set_light_dir(70.0f, -25.0f);
+	md_disp.set_display_bg_mesh(false);
+	md_disp.set_view_dist_scale(1.1);
+	//md_disp.set_pts_from_vx_s_bc(0.05);
+	//md_disp.set_pts_from_vy_s_bc(0.05);
+	//md_disp.set_pts_from_vz_s_bc(0.05);
+	//md_disp.set_pts_from_vec_s_bc(0.05);
 	//md_disp.set_pts_from_vx_f_bc(0.05);
-	////md_disp.set_pts_from_vy_f_bc(0.05);
-	////md_disp.set_pts_from_vz_f_bc(0.05);
-	////md_disp.set_pts_from_vec_f_bc(0.05);
-	//md_disp.start();
-	//return;
+	//md_disp.set_pts_from_vy_f_bc(0.05);
+	//md_disp.set_pts_from_vz_f_bc(0.05);
+	//md_disp.set_pts_from_vec_f_bc(0.05);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_mt_spudcan_cy.h5");
@@ -395,34 +395,40 @@ void test_t3d_chm_mt_spudcan_cy_geo_result(int argc, char** argv)
 void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_chm_mt_spudcan_cy.h5");
+	//rf.open("t3d_chm_mt_spudcan_cy_vstaud.h5");
+	rf.open("D:\\t3d_chm_mt_spudcan_cy_vstaud.h5");
 
-	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
-	////app.set_res_file(rf, "penetration", 50, Hdf5Field::s33);
+	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
+	//app.set_res_file(rf, "penetration", 100, Hdf5Field::p);
+	app.set_res_file(rf, "penetration", 100, Hdf5Field::s33);
 	////app.set_res_file(rf, "penetration", 50, Hdf5Field::max_shear_stress);
 	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
-	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
-		QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
-	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 1.0, 0.0);
-	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
+	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
+	//	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
+	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.1, 0.0);
+	////QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_win_size(1200, 800);
+	app.set_win_size(1600, 800);
 	app.set_view_dir(-90.0f, 5.0f);
 	app.set_fog_coef(0.02f);
-	app.set_light_dir(-135.0f, 10.0f);
+	app.set_light_dir(-90.0f, 5.0f);
 	app.set_light_dist_scale(1.0f);
-	app.move_view_pos(0.0, 0.0, 3.0);
-	app.set_view_dist_scale(0.55f);
+	app.move_view_pos(0.0, 0.0, -0.5);
+	app.set_view_dist_scale(0.75f);
 	app.set_display_bg_mesh(false);
+	app.set_update_rb_pos();
+	//app.set_bg_color(QVector3D(1.0, 1.0, 1.0));
+	//app.set_color_map_char_color(0.0, 0.0, 0.0);
+	app.set_color_map_geometry(1.8f, 0.4f, 0.45f);
 	// s33
 	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-111000.0, 0.0);
+	app.set_color_map_fld_range(-2.0e5, 0.0);
 	// p
 	//app.set_res_file(rf, "penetration", Hdf5Field::p);
-	//app.set_color_map_fld_range(-1.0e5, 1.0e5);// -1.0e5, 1.0e5
+	//app.set_color_map_fld_range(-1.0e5, 1.0e5); // -1.0e5, 1.0e5
 	// e
-	app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
-	app.set_color_map_fld_range(0.5, 0.65);
+	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
+	//app.set_color_map_fld_range(0.5, 0.65);
 	// shear stress
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 5000.0);
@@ -430,8 +436,7 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.35);
 	//
-	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	//app.set_png_name("t3d_chm_mt_spudcan");
+	app.set_png_name("t3d_chm_mt_spudcan");
 	//app.set_gif_name("t3d_chm_mt_spudcan");
 	app.start();
 }

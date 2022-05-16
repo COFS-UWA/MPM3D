@@ -510,8 +510,7 @@ bool QtSceneFromHdf5_T3D_CHM_mt::init_color_map_texture()
 			color_map,
 			field_name.c_str(),
 			"%11.6e",
-			"../../Asset/times_new_roman.ttf"
-			);
+			"../../Asset/times_new_roman.ttf");
 	}
 
 	return true;
