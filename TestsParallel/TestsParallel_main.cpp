@@ -205,8 +205,8 @@ int main(int argc, char *argv[])
 	// Time profiling
 	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
 	// tbb version
-	test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
-	//test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
+	test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
 	// mt verstion
 	//test_t3d_me_mt_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_mt_piezofoundation_sim_mat_restart(argc, argv);

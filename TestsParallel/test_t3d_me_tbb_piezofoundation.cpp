@@ -87,23 +87,21 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	les = model.following_LinearElasticity(les);
 	//}
 	// Mohr Coulomb
-	//MatModel::MohrCoulombWrapper *mcs = model.add_MohrCoulombWrapper(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	//const double pcl_z = -1.0; //debug
-	//	//const double pcl_z = model.get_pcl_pos()[pcl_id].z - 1.0;
-	//	double pcl_z = model.get_pcl_pos()[pcl_id].z;
-	//	auto &pcl_s = model.get_pcl_stress0()[pcl_id];
-	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
-	//	pcl_s.s22 = K0 * pcl_s.s33;
-	//	pcl_s.s11 = pcl_s.s22;
-	//	ini_stress[2] = pcl_s.s33;
-	//	ini_stress[0] = pcl_s.s22;
-	//	ini_stress[1] = pcl_s.s11;
-	//	MatModel::MohrCoulombWrapper &mc = mcs[pcl_id];
-	//	mc.set_param(ini_stress, 30.0, 0.0, 5.0, 1.0e6, 0.15);
-	//	mms[pcl_id] = &mc;
-	//}
+	MatModel::MohrCoulombWrapper *mcs = model.add_MohrCoulombWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		mms[pcl_id] = mcs;
+		double pcl_z = model.get_pcl_pos()[pcl_id].z;
+		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+		pcl_s.s33 = pcl_z * 9.81 * den_float;
+		pcl_s.s22 = K0 * pcl_s.s33;
+		pcl_s.s11 = pcl_s.s22;
+		ini_stress[2] = pcl_s.s33;
+		ini_stress[0] = pcl_s.s22;
+		ini_stress[1] = pcl_s.s11;
+		mcs->set_param(ini_stress, 30.0, 0.0, 0.5, 1.0e6, 0.2);
+		mcs = model.following_MohrCoulombWrapper(mcs);
+	}
 	// Norsand
 	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
@@ -128,31 +126,31 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	ns = model.following_NorsandWrapper(ns);
 	//}
 	// Sand hypoplasticity
-	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		mms[pcl_id] = shps;
-		
-		double pcl_z = model.get_pcl_pos()[pcl_id].z;
-		auto &pcl_s = model.get_pcl_stress0()[pcl_id];
-		pcl_s.s33 = pcl_z * 9.81 * den_float;
-		pcl_s.s22 = K0 * pcl_s.s33;
-		pcl_s.s11 = pcl_s.s22;
-		if (pcl_z > stress_depth_limit) // shallow depth
-			pcl_z = stress_depth_limit;
-		ini_stress[2] = pcl_z * 9.81 * den_float;
-		ini_stress[0] = K0 * ini_stress[2];
-		ini_stress[1] = ini_stress[0];
-		MatModel::SandHypoplasticityStbWrapper& shp = *shps;
-		shp.set_param(
-			ini_stress, e0,
-			30.0, 1354.0e6, 0.34,
-			0.18, 1.27,
-			0.49, 0.76, 0.86,
-			1.5, 43.0, 100.0,
-			200.0, 0.2);
-		shps = model.following_SandHypoplasticityStbWrapper(shps);
-	}
+	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	mms[pcl_id] = shps;
+	//	
+	//	double pcl_z = model.get_pcl_pos()[pcl_id].z;
+	//	auto &pcl_s = model.get_pcl_stress0()[pcl_id];
+	//	pcl_s.s33 = pcl_z * 9.81 * den_float;
+	//	pcl_s.s22 = K0 * pcl_s.s33;
+	//	pcl_s.s11 = pcl_s.s22;
+	//	if (pcl_z > stress_depth_limit) // shallow depth
+	//		pcl_z = stress_depth_limit;
+	//	ini_stress[2] = pcl_z * 9.81 * den_float;
+	//	ini_stress[0] = K0 * ini_stress[2];
+	//	ini_stress[1] = ini_stress[0];
+	//	MatModel::SandHypoplasticityStbWrapper& shp = *shps;
+	//	shp.set_param(
+	//		ini_stress, e0,
+	//		30.0, 1354.0e6, 0.34,
+	//		0.18, 1.27,
+	//		0.49, 0.76, 0.86,
+	//		1.5, 43.0, 100.0,
+	//		200.0, 0.2);
+	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
+	//}
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0, 2000.0);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -1.5);
@@ -232,8 +230,8 @@ void test_t3d_me_mt_piezofoundation_sim_mat(int argc, char** argv)
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_mt step("step2");
 	step.set_model(model);
-	step.set_thread_num(8);
-	step.set_step_time(2.0e-4);
+	step.set_thread_num(11);
+	step.set_step_time(0.15);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -340,7 +338,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
 	step.set_thread_num(12);
-	step.set_step_time(0.5);
+	step.set_step_time(0.1); // 0.5
 	step.set_dtime(2.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -352,7 +350,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Step_T3D_ME_TBB step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_tbb_piezofoundation_sim_mat.h5", "penetration", 5);
+		model, step, "t3d_me_tbb_piezofoundation_sim_mat_nor.h5", "penetration", 6);
 	std::cout << "Completed loading model.\n";
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
@@ -368,7 +366,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char** argv)
 	//return;
 
 	//ResultFile_hdf5 res_file_hdf5;
-	//res_file_hdf5.create("t3d_me_tbb_piezofoundation_sim_mat.h5");
+	//res_file_hdf5.create("t3d_me_tbb_piezofoundation_sim_mat_restart.h5");
 
 	//ModelData_T3D_ME_mt md;
 	//md.output_model(model, res_file_hdf5);
@@ -383,8 +381,8 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char** argv)
 	out_cpb.set_interval_num(100);
 
 	std::cout << "Start solving...\n";
-	step.set_thread_num(12);
-	step.set_step_time(2.0e-3);
+	step.set_thread_num(2);
+	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
