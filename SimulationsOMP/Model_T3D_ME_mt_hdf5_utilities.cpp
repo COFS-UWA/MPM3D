@@ -1058,9 +1058,9 @@ int load_me_mt_model_from_hdf5_file(
 	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
 	// rigid object
 	load_rigid_cylinder_from_hdf5_file(md, rf, th_frame_id);
-	load_rigid_cube_from_hdf5_file(md, rf, th_frame_id);;
-	load_t3d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
+	load_rigid_cube_from_hdf5_file(md, rf, th_frame_id);
 	load_rigid_cone_from_hdf5_file(md, rf, md_grp_id);
+	load_t3d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
 
 	step.set_model(md);
 	step.is_first_step = false;

@@ -97,7 +97,6 @@ protected:
 	double* elem_pcl_m_f;
 	StrainInc* elem_de;
 	double* elem_p;
-	double* elem_n2_miu_div_k_vol;
 	Force* elem_seep_force;
 	double* elem_m_de_vol_s;
 	double* elem_m_de_vol_f;
@@ -124,6 +123,11 @@ protected:
 	double* node_de_vol_f;
 
 	double Kf, miu, k;
+	// cavitation
+	double m_cav, f_cav_end, u_cav_off, u_div_u_cav_lim;
+	double* pcl_u_cav;
+	double* pcl_is_cavitated;
+	double* elem_u_cav;
 
 	ParaUtil::PclSort pcl_sort;
 	ParaUtil::NodeElemSort<4> ne_sort;

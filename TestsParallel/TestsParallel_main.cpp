@@ -141,25 +141,18 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
 
-	//test_t3d_chm_mt_spudcan_model(argc, argv);
-	//test_t3d_chm_mt_spudcan_geostatic(argc, argv);
-	//test_t3d_chm_mt_spudcan(argc, argv);
-	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
-	//test_t3d_chm_mt_spudcan_result(argc, argv);
-
 	//test_t3d_me_mt_spudcan_model(argc, argv);
 	//test_t3d_me_mt_spudcan_geostatic(argc, argv);
 	//test_t3d_me_mt_spudcan(argc, argv);
 	//test_t3d_me_mt_spudcan_geo_result(argc, argv);
 	//test_t3d_me_mt_spudcan_result(argc, argv);
 
-	//test_t3d_me_mt_cylinder_bcs(argc, argv);
-	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
-	
-	//test_t3d_chm_mt_cylinder_bcs(argc, argv);
-	//test_t3d_chm_mt_cylinder_bcs2(argc, argv);
-	//test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
-	
+	//test_t3d_chm_mt_spudcan_model(argc, argv);
+	//test_t3d_chm_mt_spudcan_geostatic(argc, argv);
+	//test_t3d_chm_mt_spudcan(argc, argv);
+	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
+	//test_t3d_chm_mt_spudcan_result(argc, argv);
+
 	//test_t3d_me_mt_spudcan_cy_model(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_geostatic(argc, argv);
 	//test_t3d_me_mt_spudcan_cy(argc, argv);
@@ -170,7 +163,14 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
-	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
+	test_t3d_chm_mt_spudcan_cy_result(argc, argv);
+
+	//test_t3d_me_mt_cylinder_bcs(argc, argv);
+	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
+
+	//test_t3d_chm_mt_cylinder_bcs(argc, argv);
+	//test_t3d_chm_mt_cylinder_bcs2(argc, argv);
+	//test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
 
 	// tbb parallelism
 	//test_sort_pcl_task();
@@ -196,9 +196,11 @@ int main(int argc, char *argv[])
 	//test_t3d_me_tbb_cap_compression(argc, argv);
 	//test_t3d_me_tbb_cap_compression_result(argc, argv);
 
+	// norsand consolidation
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 	
+	// element test simulation
 	//test_t3d_chm_tbb_cap_compression(argc, argv);
 	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
 
@@ -206,7 +208,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
 	// tbb version
 	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
-	test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
 	// mt verstion
 	//test_t3d_me_mt_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_mt_piezofoundation_sim_mat_restart(argc, argv);

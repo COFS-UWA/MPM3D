@@ -6,6 +6,9 @@ from multiprocessing import Pool
 
 import find_closest_pcls as fp
 
+file_name = "t3d_chm_mt_spudcan_-7"
+pore_pos_offset = (0.0, 0.0, -0.3)
+
 class AvgVarData:
     def __init__(self, pcl_ids, pcl_vols, pcl_xs, pcl_ys, pcl_zs, pcl_ps, \
                  pcl_num, closest_pcls_set, proc_num, proc_id):
@@ -48,16 +51,15 @@ def cal_avg_var(data):
 
 if __name__ == "__main__":
     # extract offset number spudcan tip
-    pore_pos_offset = (0.0, 0.0, -0.1)
     tip_initial_pos = (0.0, 0.0, 0.0)
     closest_pcl_num = 10
     proc_num = 5
 
-    data_file = open("../Build/TestsParallel/t3d_chm_mt_spudcan_pore.csv", "w")
+    data_file = open("../Build/TestsParallel/" + file_name + "_pore.csv", "w")
     data_file.write("pos_x, pos_y, pos_z, avg_x, avg_y, avg_z, avg_pore\n")
 
     # Numerical result
-    hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_spudcan.h5", "r")
+    hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
 
     pore_pos = (tip_initial_pos[0] + pore_pos_offset[0], \
                 tip_initial_pos[1] + pore_pos_offset[1], \

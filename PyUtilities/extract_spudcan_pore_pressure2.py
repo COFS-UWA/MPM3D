@@ -4,12 +4,14 @@ import h5py as py
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Array
 
-sim_name = "t3d_chm_mt_spudcan"
+#path_name = "D:/"
+path_name = "../Build/TestsParallel/"
+sim_name = "t3d_chm_mt_spudcan_cy_vstaud"
 model_var_r0 = 0.2
-model_var_z0 = -1.0
-model_var_dr = 0.1
-model_var_dz = 0.1
-proc_num = 10
+model_var_z0 = -0.5
+model_var_dr = 0.2
+model_var_dz = 0.2
+proc_num = 2
 
 # time history name
 th_name = "penetration"
@@ -38,9 +40,10 @@ def get_avg_pore(pcl_xs, pcl_ys, pcl_zs, pcl_vols, pcl_ps, pcl_num, \
     return (avg_p, eff_pcl_vol, eff_pcl_num)
 
 class AvgPoreParam:
-    def __init__(self, sim_name, th_name, rb_name, rb_ini_z, \
+    def __init__(self, path_name, sim_name, th_name, rb_name, rb_ini_z, \
                  model_var_r0, model_var_z0, model_var_dr, model_var_dz, \
                  model_cen_x = 0.0, model_cen_y = 0.0):
+        self.path_name = path_name
         self.sim_name = sim_name
         self.th_name = th_name
         self.rb_name = rb_name
@@ -55,7 +58,7 @@ class AvgPoreParam:
 def proc_get_th_avg_pressure(th_id_range, param, \
     rb_z, pcl_r, pcl_z, pcl_pore):
     #
-    hdf5_file = py.File("../Build/TestsParallel/" + param.sim_name + ".h5", "r")
+    hdf5_file = py.File(param.path_name + param.sim_name + ".h5", "r")
     th_grp = hdf5_file['TimeHistory'][param.th_name]
     th_num = th_grp.attrs['output_num']
     # cal avg pore pressure for each time histories
@@ -88,7 +91,7 @@ def proc_get_th_avg_pressure(th_id_range, param, \
     hdf5_file.close()
 
 if __name__ == "__main__":
-    hdf5_file = py.File("../Build/TestsParallel/" + sim_name + ".h5", "r")
+    hdf5_file = py.File(path_name + sim_name + ".h5", "r")
     th_grp = hdf5_file['TimeHistory'][th_name]
     th_num = th_grp.attrs['output_num']
     frame_grp = th_grp['frame_0']
@@ -101,7 +104,7 @@ if __name__ == "__main__":
     proc_pcl_z = Array('d', [0.0]*th_num)
     proc_pcl_pore = Array('d', [0.0]*th_num)
     procs = []
-    proc_param = AvgPoreParam(sim_name, th_name, rb_name, rb_ini_z, \
+    proc_param = AvgPoreParam(path_name, sim_name, th_name, rb_name, rb_ini_z, \
                               model_var_r0, model_var_z0, model_var_dr, model_var_dz)
     for proc_id in range(proc_num):
         p = Process(target = proc_get_th_avg_pressure, \

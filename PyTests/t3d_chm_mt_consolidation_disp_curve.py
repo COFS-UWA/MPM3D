@@ -4,6 +4,8 @@ import h5py as py
 
 from OneDConsolidation import OneDConsolidation
 
+file_name = "t3d_chm_tbb_1d_consolidation_20kPa"
+
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
 plot1.set_xlabel("time")
@@ -13,10 +15,10 @@ out_time = []
 pcl_var = []
 
 # numerical solution
-hdf5_file = py.File("../Build/TestsParallel/t3d_chm_mt_1d_consolidation.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
 th_grp = hdf5_file['TimeHistory']['consolidation']
 
-csv_file = open("../Build/TestsParallel/t3d_chm_mt_1d_consolidation_disp.csv", "w")
+csv_file = open("../Build/TestsParallel/" + file_name + "_disp.csv", "w")
 
 output_num = th_grp.attrs['output_num']
 is_init = False
@@ -31,7 +33,7 @@ for t_id in range(output_num):
     pcl_ids = pcl_dset['id']
     pcl_zs = pcl_dset['z']
     for p_id in range(len(pcl_dset)):
-        if pcl_ids[p_id] == 799:
+        if pcl_ids[p_id] == 2559:
             var = pcl_zs[p_id]
             if not is_init:
                 init_z = var
@@ -48,17 +50,17 @@ for o_id in range(output_num):
 line1, = plot1.plot(out_time, pcl_var)
 
 # analytical solution
-u0 = 1.0
+u0 = 20.0e3
 H = 1.0
-E = 1000.0
+E = 5.0e6
 niu = 0.0 # possion ratio
-kv = 1.0e-4
-miu = 1.0 # dynamic viscosity
+kv = 5.0e-13
+miu = 1.0e-3 # dynamic viscosity
+time = 20.0 # time of consolidation
 
 Es = (1 - niu) / (1 + niu) / (1 - 2.0*niu) * E # Es = (1-v) / (1 + v) / (1-2v) * E
 Cv = kv * Es / miu
 con_res = OneDConsolidation(Cv, Es, u0, H)
-time = 15.0 # time of consolidation
 data_num = 100
 t_list = np.zeros(data_num + 2)
 u_list = np.zeros(data_num + 2)
@@ -71,14 +73,16 @@ for i in range(data_num):
     u_list[i + 2] = con_res.calSettlement(t_list[i + 2])
     t_list[i + 2] += t_list[1]
 
+print("Cv: %f" % Cv)
+
 csv_file.write("analytical,\n")
 for o_id in range(data_num):
     csv_file.write("%f, %f\n" % (t_list[o_id], u_list[o_id]))
 
 line2, = plot1.plot(t_list, u_list, 'r--')
-# with open("consolidation_disp_ana_SE.csv", "w") as out_file:
-    # for i in range(len(t_list)):
-        # out_file.write("%f, %f\n" % (t_list[i], u_list[i]))
+with open("consolidation_disp_ana_SE.csv", "w") as out_file:
+    for i in range(len(t_list)):
+        out_file.write("%f, %f\n" % (t_list[i], u_list[i]))
 
 plt.legend(handles=[line1, line2], labels=['MPM', 'Analytical Solution'])
 plt.show()

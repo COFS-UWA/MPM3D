@@ -99,7 +99,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 		ini_stress[2] = pcl_s.s33;
 		ini_stress[0] = pcl_s.s22;
 		ini_stress[1] = pcl_s.s11;
-		mcs->set_param(ini_stress, 30.0, 0.0, 0.5, 1.0e6, 0.2);
+		mcs->set_param(ini_stress, 30.0, 0.0, 5.0, 1.0e6, 0.15);
 		mcs = model.following_MohrCoulombWrapper(mcs);
 	}
 	// Norsand

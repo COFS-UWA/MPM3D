@@ -74,7 +74,7 @@ void QtSceneFromHdf5_T3D_ME_mt::update_view_mat()
 	view_dir.normalize();
 	view_pos = md_centre - dist_from_obj * view_dir;
 	view_mat.setToIdentity();
-	view_mat.lookAt(view_pos, md_centre, up_dir);
+	view_mat.lookAt(view_pos + view_movement, md_centre + view_movement, up_dir);
 }
 
 void QtSceneFromHdf5_T3D_ME_mt::update_proj_mat()

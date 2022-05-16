@@ -39,6 +39,7 @@ void test_t3d_me_tbb_cap_compression(int argc, char **argv)
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.02);
 	model.set_contact_param(20.0 / (0.025*0.025), 20.0 / (0.025*0.025), 0.1, 0.1);
+	model.set_cylinder_vz_bc_ramp_up_time(1.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);

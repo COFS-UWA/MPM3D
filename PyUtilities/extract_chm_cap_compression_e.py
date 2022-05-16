@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 
 file_name = "t3d_chm_mt_cap_compression"
 #file_name = "t3d_chm_tbb_cap_compression"
-#mm_name = 'SandHypoplasticityStb'
-mm_name = 'Norsand'
+mm_name = 'SandHypoplasticityStb'
+#mm_name = 'Norsand'
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")

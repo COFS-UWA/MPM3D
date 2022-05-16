@@ -31,7 +31,8 @@ Model_T3D_CHM_mt::Model_T3D_CHM_mt() :
 	contact_mem(nullptr),
 	pcm_s(&smooth_contact_s),
 	pcm_f(&smooth_contact_f),
-	m_cav(0.0), u_cav(0.0), f_cav_end(0.05) {}
+	u_cav_x(0.0), u_cav_y(0.0), u_cav_z(0.0), u_cav(0.0),
+	m_cav(0.0), f_cav_end(0.05) {}
 
 Model_T3D_CHM_mt::~Model_T3D_CHM_mt()
 {
@@ -48,6 +49,35 @@ Model_T3D_CHM_mt::~Model_T3D_CHM_mt()
 	clear_tys();
 	clear_tzs();
 	clear_contact_mem();
+}
+
+void Model_T3D_CHM_mt::set_cavitation(
+	double _m_cav,
+	double _u_cav,
+	double _f_cav_end,
+	double _u_cav_x,
+	double _u_cav_y,
+	double _u_cav_z) noexcept
+{
+	m_cav = _m_cav;
+	u_cav = _u_cav;
+	f_cav_end = _f_cav_end;
+	u_cav_x = _u_cav_x;
+	u_cav_y = _u_cav_y;
+	u_cav_z = _u_cav_z;
+	for (size_t e_id = 0; e_id < elem_num; ++e_id)
+	{
+		const ElemNodeIndex &en_ids = elem_node_id[e_id];
+		const Position& n1_pos = node_pos[en_ids.n1];
+		const Position& n2_pos = node_pos[en_ids.n2];
+		const Position& n3_pos = node_pos[en_ids.n3];
+		const Position& n4_pos = node_pos[en_ids.n4];
+		const double elem_cen_x = (n1_pos.x + n2_pos.x + n3_pos.x + n4_pos.x) * 0.25;
+		const double elem_cen_y = (n1_pos.y + n2_pos.y + n3_pos.y + n4_pos.y) * 0.25;
+		const double elem_cen_z = (n1_pos.z + n2_pos.z + n3_pos.z + n4_pos.z) * 0.25;
+		const double e_u_cav = u_cav + elem_cen_x * u_cav_x + elem_cen_y * u_cav_y + elem_cen_z * u_cav_z;
+		elem_u_cav[e_id] = e_u_cav < 0.0 ? e_u_cav : 0.0;
+	}
 }
 
 Cube Model_T3D_CHM_mt::get_mesh_bbox()
@@ -95,7 +125,9 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 	size_t mem_len = (sizeof(ElemNodeIndex)
 		+ sizeof(DShapeFuncABC) + sizeof(DShapeFuncD)
 		+ sizeof(double) * 10 + sizeof(StrainInc)
-		+ sizeof(ElemNodeVM) * 8 + sizeof(Force) * 9) * e_num
+		+ sizeof(ElemNodeVM) * 8 + sizeof(Force) * 9
+		+ sizeof(double) // cavitation
+			) * e_num
 		+ (sizeof(Position) + sizeof(Acceleration) * 2 + sizeof(Velocity) * 6
 		+ sizeof(Displacement) * 4
 		+ sizeof(NodeHasVBC) * 2 + sizeof(NodeVBCVec) * 2
@@ -141,6 +173,10 @@ void Model_T3D_CHM_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(Force) * elem_num * 4;
 	elem_node_force_f = (Force*)cur_mem;
 	cur_mem += sizeof(Force) * elem_num * 4;
+
+	// cavitation
+	elem_u_cav = (double *)cur_mem;
+	cur_mem += sizeof(double) * elem_num;
 
 	node_pos = (Position*)cur_mem;
 	cur_mem += sizeof(Position) * node_num;
@@ -261,6 +297,23 @@ void Model_T3D_CHM_mt::init_mesh(const TetrahedronMesh &mesh)
 		edNd.d3 = pit.get_coef3();
 		edNd.d4 = pit.get_coef4();
 	}
+
+	if (m_cav != 0.0)
+	{
+		for (size_t e_id = 0; e_id < elem_num; ++e_id)
+		{
+			const ElemNodeIndex& en_ids = elem_node_id[e_id];
+			const Position& n1_pos = node_pos[en_ids.n1];
+			const Position& n2_pos = node_pos[en_ids.n2];
+			const Position& n3_pos = node_pos[en_ids.n3];
+			const Position& n4_pos = node_pos[en_ids.n4];
+			const double elem_cen_x = (n1_pos.x + n2_pos.x + n3_pos.x + n4_pos.x) * 0.25;
+			const double elem_cen_y = (n1_pos.y + n2_pos.y + n3_pos.y + n4_pos.y) * 0.25;
+			const double elem_cen_z = (n1_pos.z + n2_pos.z + n3_pos.z + n4_pos.z) * 0.25;
+			const double e_u_cav = u_cav + elem_cen_x * u_cav_x + elem_cen_y * u_cav_y + elem_cen_z * u_cav_z;
+			elem_u_cav[e_id] = e_u_cav < 0.0 ? e_u_cav : 0.0;
+		}
+	}
 }
 
 void Model_T3D_CHM_mt::clear_search_grid()
@@ -362,7 +415,9 @@ void Model_T3D_CHM_mt::alloc_pcls(size_t num)
 		+ (sizeof(size_t) + sizeof(double) * 3
 		+ sizeof(Velocity) * 2 + sizeof(Displacement) * 2
 		+ sizeof(Stress) + sizeof(Strain) * 3
-		+ sizeof(ShapeFunc)) * 2) * num;
+		+ sizeof(ShapeFunc)) * 2
+		+ sizeof(double) * 2 // cavitation
+		) * num;
 	pcl_mem_raw = new char[mem_len];
 
 	char* cur_mem = pcl_mem_raw;
@@ -393,6 +448,12 @@ void Model_T3D_CHM_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(StrainInc) * num;
 	pcl_dpstrain = (StrainInc*)cur_mem;
 	cur_mem += sizeof(StrainInc) * num;
+
+	// cavitation
+	pcl_u_cav = (double *)cur_mem;
+	cur_mem += sizeof(double) * num;
+	pcl_is_cavitated = (double *)cur_mem;
+	cur_mem += sizeof(double) * num;
 
 	SortedPclVarArrays &spva0 = sorted_pcl_var_arrays[0];
 	spva0.pcl_index = (size_t*)cur_mem;
@@ -545,6 +606,9 @@ int Model_T3D_CHM_mt::init_pcls(
 		p_pe.e23 = 0.0;
 		p_pe.e31 = 0.0;
 		pcl_mat_model[p_id] = nullptr;
+		// cavitation
+		pcl_u_cav[p_id] = 0.0;
+		pcl_is_cavitated[p_id] = 0.0;
 	}
 
 	Kf = _Kf; k = _k; miu = _miu;
