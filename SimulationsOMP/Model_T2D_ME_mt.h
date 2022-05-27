@@ -325,6 +325,15 @@ public:
 		return SIZE_MAX;
 	}
 
+	inline void add_mat_model(size_t pcl_id,
+		MatModel::MaterialModel& mat_model,
+		size_t model_size)
+	{
+		pcl_mat_model[pcl_id] = &mat_model;
+		//pcl_mat_model_copy_offset[pcl_id] = pcl_mat_model_total_size;
+		//pcl_mat_model_total_size += model_size;
+	}
+	
 protected: // rigid object contact
 	size_t *contact_substep_id; // ori_pcl_num
 	Position *prev_contact_pos; // ori_pcl_num

@@ -64,6 +64,8 @@ void test_t2d_chm_mt_block_sliding(int argc, char** argv)
 	QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
 	md_disp.set_win_size(900, 900);
 	md_disp.set_model(model);
+	md_disp.set_bg_color(1.0f, 1.0f, 1.0f);
+	md_disp.set_pcl_color(0.267f, 0.447f, 0.769f);
 	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	md_disp.start();
