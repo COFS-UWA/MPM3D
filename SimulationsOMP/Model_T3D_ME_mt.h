@@ -270,6 +270,15 @@ public:
 	void init_fixed_vz_bc(size_t vz_bc_num, const size_t* vz_bcs);
 	void set_vbc_vec(size_t n_id, double vecx, double vecy, double vecz);
 
+	inline void add_mat_model(size_t pcl_id,
+		MatModel::MaterialModel& mat_model,
+		size_t model_size)
+	{
+		pcl_mat_model[pcl_id] = &mat_model;
+		//pcl_mat_model_copy_offset[pcl_id] = pcl_mat_model_total_size;
+		//pcl_mat_model_total_size += model_size;
+	}
+
 protected:
 public:
 	inline bool is_in_element(

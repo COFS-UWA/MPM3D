@@ -319,30 +319,30 @@ int cal_substep_func_T3D_ME_TBB(void* _self)
 	self.map_mesh_to_pcl_time1 += (t1 - t0).count();
 	self.map_mesh_to_pcl_time = self.map_mesh_to_pcl_time0 + self.map_mesh_to_pcl_time1;
 
-//	if (self.substep_index % 10 == 9)
-//	{
-//#ifdef TIMING
-//		res_file_t3d_me_tbb << self.substep_index << ", "
-//			<< self.pcl_sort_time << ", "
-//			<< self.ne_sort_time << ", "
-//			<< self.map_pcl_to_mesh_time << ", "
-//			<< self.update_a_and_v_time << ", "
-//			<< self.cal_elem_de_time << ", "
-//			<< self.cal_node_de_time << ", "
-//			<< self.map_mesh_to_pcl_time << ", "
-//			<< self.map_mesh_to_pcl_time0 << ", "
-//			<< self.map_mesh_to_pcl_time1 << "\n";
-//#endif
-//		self.pcl_sort_time = 0;
-//		self.ne_sort_time = 0;
-//		self.map_pcl_to_mesh_time = 0;
-//		self.update_a_and_v_time = 0;
-//		self.cal_elem_de_time = 0;
-//		self.cal_node_de_time = 0;
-//		self.map_mesh_to_pcl_time = 0;
-//		self.map_mesh_to_pcl_time0 = 0;
-//		self.map_mesh_to_pcl_time1 = 0;
-//	}
+	if (self.substep_index % 10 == 9)
+	{
+#ifdef TIMING
+		res_file_t3d_me_tbb << self.substep_index << ", "
+			<< self.pcl_sort_time << ", "
+			<< self.ne_sort_time << ", "
+			<< self.map_pcl_to_mesh_time << ", "
+			<< self.update_a_and_v_time << ", "
+			<< self.cal_elem_de_time << ", "
+			<< self.cal_node_de_time << ", "
+			<< self.map_mesh_to_pcl_time << ", "
+			<< self.map_mesh_to_pcl_time0 << ", "
+			<< self.map_mesh_to_pcl_time1 << "\n";
+#endif
+		self.pcl_sort_time = 0;
+		self.ne_sort_time = 0;
+		self.map_pcl_to_mesh_time = 0;
+		self.update_a_and_v_time = 0;
+		self.cal_elem_de_time = 0;
+		self.cal_node_de_time = 0;
+		self.map_mesh_to_pcl_time = 0;
+		self.map_mesh_to_pcl_time0 = 0;
+		self.map_mesh_to_pcl_time1 = 0;
+	}
 
 	self.continue_calculation();
 	return 0;

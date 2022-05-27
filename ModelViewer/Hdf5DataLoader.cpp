@@ -88,6 +88,9 @@ int Hdf5DataLoader::set_time_history(
 
 		if (rf.has_dataset(mat_model_id, "Tresca"))
 			mat_dt_id = Model_hdf5_utilities::get_tresca_hdf5_dt_id();
+		
+		if (rf.has_dataset(mat_model_id, "MohrCoulomb"))
+			mat_dt_id = Model_hdf5_utilities::get_mohr_coulomb_hdf5_dt_id();
 
 		if (rf.has_dataset(mat_model_id, "SandHypoplasticity"))
 			mat_dt_id = Model_hdf5_utilities::get_sand_hypoplasticity_hdf5_dt_id();
@@ -231,6 +234,28 @@ int Hdf5DataLoader::load_frame_data(
 			rf.close_dataset(tc_grp);
 		}
 
+		if (rf.has_dataset(mat_model_id, "MohrCoulomb"))
+		{
+			hid_t mc_grp = rf.open_dataset(mat_model_id, "MohrCoulomb");
+			rf.read_attribute(mat_model_id, "MohrCoulomb_num", MohrCoulomb_num);
+			MohrCoulomb_mem.reserve(MohrCoulomb_num);
+			MohrCoulombStateData* mc_mem = MohrCoulomb_mem.get_mem();
+			rf.read_dataset(
+				mat_model_id,
+				"MohrCoulomb",
+				MohrCoulomb_num,
+				mc_mem,
+				mat_dt_id);
+			mm_pt.type = MatModelType::MohrCoulomb;
+			for (size_t mm_id = 0; mm_id < MohrCoulomb_num; ++mm_id)
+			{
+				MohrCoulombStateData& mm = mc_mem[mm_id];
+				mm_pt.pmat = &mm;
+				mat_model_map.emplace(mm.id, mm_pt);
+			}
+			rf.close_dataset(mc_grp);
+		}
+
 		if (rf.has_dataset(mat_model_id, "SandHypoplasticity"))
 		{
 			hid_t shp_grp = rf.open_dataset(mat_model_id, "SandHypoplasticity");
@@ -353,6 +378,15 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(TrescaStateData, s31)
 	},
 	{ // 4
+		sizeof(MohrCoulombStateData),
+		offsetof(MohrCoulombStateData, s11),
+		offsetof(MohrCoulombStateData, s22),
+		offsetof(MohrCoulombStateData, s33),
+		offsetof(MohrCoulombStateData, s12),
+		offsetof(MohrCoulombStateData, s23),
+		offsetof(MohrCoulombStateData, s31)
+	},
+	{ // 5
 		sizeof(SandHypoplasticityStateData),
 		offsetof(SandHypoplasticityStateData, s11),
 		offsetof(SandHypoplasticityStateData, s22),
@@ -361,7 +395,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(SandHypoplasticityStateData, s23),
 		offsetof(SandHypoplasticityStateData, s31)
 	},
-	{ // 5
+	{ // 6
 		sizeof(SandHypoplasticityStbStateData),
 		offsetof(SandHypoplasticityStbStateData, s11),
 		offsetof(SandHypoplasticityStbStateData, s22),
@@ -370,7 +404,7 @@ Hdf5DataLoader::mat_model_info[] = {
 		offsetof(SandHypoplasticityStbStateData, s23),
 		offsetof(SandHypoplasticityStbStateData, s31)
 	},
-	{ // 6
+	{ // 7
 		sizeof(NorsandStateData),
 		offsetof(NorsandStateData, s11),
 		offsetof(NorsandStateData, s22),

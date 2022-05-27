@@ -396,7 +396,7 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	//rf.open("t3d_chm_mt_spudcan_cy_vstaud.h5");
-	rf.open("D:\\t3d_chm_mt_spudcan_cy_vstaud.h5");
+	rf.open("E:\\t3d_chm_mt_spudcan_cy_vstapd1_v0.1.h5");
 
 	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.set_res_file(rf, "penetration", 100, Hdf5Field::p);
@@ -422,7 +422,7 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 	app.set_color_map_geometry(1.8f, 0.4f, 0.45f);
 	// s33
 	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-2.0e5, 0.0);
+	app.set_color_map_fld_range(-1.0e6, 0.0);
 	// p
 	//app.set_res_file(rf, "penetration", Hdf5Field::p);
 	//app.set_color_map_fld_range(-1.0e5, 1.0e5); // -1.0e5, 1.0e5

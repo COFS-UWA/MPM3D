@@ -15,7 +15,7 @@ proc_num = 8
 
 # (r0, z0, dr, dz)
 # absolute rb_position
-var_depth = -3.0
+var_depth = -1.5
 var_pos = [
     (0.1, var_depth, 0.2, 0.2),
     (0.3, var_depth, 0.2, 0.2),
