@@ -46,9 +46,10 @@ public:
 		ModifiedCamClay = 1,
 		VonMises = 2,
 		Tresca = 3,
-		SandHypoplasticity = 4,
-		SandHypoplasticityStb = 5,
-		Norsand = 6
+		MohrCoulomb = 4,
+		SandHypoplasticity = 5,
+		SandHypoplasticityStb = 6,
+		Norsand = 7
 	};
 	struct MatModelPointer
 	{
@@ -66,6 +67,7 @@ public:
 	typedef Model_hdf5_utilities::ModifiedCamClayStateData ModifiedCamClayStateData;
 	typedef Model_hdf5_utilities::VonMisesStateData VonMisesStateData;
 	typedef Model_hdf5_utilities::TrescaStateData TrescaStateData;
+	typedef Model_hdf5_utilities::MohrCoulombStateData MohrCoulombStateData;
 	typedef Model_hdf5_utilities::SandHypoplasticityStateData SandHypoplasticityStateData;
 	typedef Model_hdf5_utilities::SandHypoplasticityStbStateData SandHypoplasticityStbStateData;
 	typedef Model_hdf5_utilities::NorsandStateData NorsandStateData;
@@ -83,6 +85,7 @@ protected:
 	size_t ModifiedCamClay_num;
 	size_t VonMises_num;
 	size_t Tresca_num;
+	size_t MohrCoulomb_num;
 	size_t SandHypoplasticity_num;
 	size_t SandHypoplasticityStb_num;
 	size_t Norsand_num;
@@ -90,6 +93,7 @@ protected:
 	MemoryUtils::ItemArray<ModifiedCamClayStateData> ModifiedCamClay_mem;
 	MemoryUtils::ItemArray<VonMisesStateData> VonMises_mem;
 	MemoryUtils::ItemArray<TrescaStateData> Tresca_mem;
+	MemoryUtils::ItemArray<MohrCoulombStateData> MohrCoulomb_mem;
 	MemoryUtils::ItemArray<SandHypoplasticityStateData> SandHypoplasticity_mem;
 	MemoryUtils::ItemArray<SandHypoplasticityStbStateData> SandHypoplasticityStb_mem;
 	MemoryUtils::ItemArray<NorsandStateData> Norsand_mem;

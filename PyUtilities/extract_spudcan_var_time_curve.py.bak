@@ -12,7 +12,7 @@ model_var_r0 = 0.2
 model_var_z0 = -0.3
 model_var_dr = 0.2
 model_var_dz = 0.2
-proc_num = 3
+proc_num = 2
 
 # time history name
 th_name = "penetration"

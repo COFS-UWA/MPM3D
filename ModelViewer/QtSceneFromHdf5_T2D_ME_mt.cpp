@@ -246,7 +246,10 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		return res;
 
 	// init particle data
-	res = data_loader.load_frame_data(frame_id);
+	need_mat_model_data = pfld->need_mat_model_data();
+	res = data_loader.load_frame_data(
+		frame_id,
+		need_mat_model_data);
 	if (res) return res;
 
 	size_t pcl_num = data_loader.get_pcl_num();

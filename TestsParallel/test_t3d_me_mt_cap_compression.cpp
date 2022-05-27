@@ -24,7 +24,8 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
-	model.init_pcls(pcl_generator, 1800.0);
+	model.init_pcls(pcl_generator, 10.0);
+	//model.init_pcls(pcl_generator, 1800.0);
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// Linear elasticity
@@ -43,19 +44,28 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//	le.set_param(1000.0, 0.0);
 	//	mms[pcl_id] = &le;
 	//}
-	// Stb hypoplasticity
-	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
-	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	// Mohr Coulomb
+	const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
-		shp.set_param(
-			ini_stress, 0.55,
-			30.0, 1354.0e6, 0.34,
-			0.18, 1.27,
-			0.49, 0.76, 0.86);
-		mms[pcl_id] = &shp;
+		mcs->set_param(ini_stress, 30.0, 0.0, 100.0, 10000.0, 0.3);
+		model.add_mat_model(pcl_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
+		mcs = model.following_MohrCoulombWrapper(mcs);
 	}
+	// Stb hypoplasticity
+	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	//MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
+	//	shp.set_param(
+	//		ini_stress, 0.55,
+	//		30.0, 1354.0e6, 0.34,
+	//		0.18, 1.27,
+	//		0.49, 0.76, 0.86);
+	//	mms[pcl_id] = &shp;
+	//}
 	// Stb hypoplasticity
 	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
@@ -74,9 +84,9 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//}
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);
-	//const double Kct = 20.0 / (0.025 * 0.025); // elastic 
-	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
+	const double Kct = 100.0 / (0.025 * 0.025); 
+	//const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
 	model.set_contact_param(Kct, Kct, 0.1, 0.2);
 
 	//model.init_rigid_cone(0.0, 0.5, 0.5, 0.34641, 0.3, 0.2);
@@ -97,21 +107,22 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	std::cout << "pcl_num: " << model.get_pcl_num() << ",\n"
 		"elem_num: " << model.get_elem_num() << ",\n"
 		"node_num: " << model.get_node_num() << ",\n";
-	QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
-	//QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
-	//QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	//md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
-	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(30.0f, 25.0f); // (-130.0f, -5.0f)
-	md_disp.set_light_dir(40.0f, 30.0f); // (-140.0f, -10.0f)
-	md_disp.set_view_dist_scale(1.0);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+
+	//QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
+	////QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
+	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(30.0f, 25.0f); // (-130.0f, -5.0f)
+	//md_disp.set_light_dir(40.0f, 30.0f); // (-140.0f, -10.0f)
+	//md_disp.set_view_dist_scale(1.0);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_mt_cap_compression.h5");
@@ -127,8 +138,8 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_thread_num(5);
-	step.set_step_time(1.0);
+	step.set_thread_num(4);
+	step.set_step_time(0.5);
 	//step.set_step_time(5.0e-4);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
@@ -264,12 +275,12 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 	app.set_color_map_geometry(0.95f, 0.45f, 0.5f);
 	// s33
 	app.set_res_file(rf, "compression", Hdf5Field::s33);
-	app.set_color_map_fld_range(-200.0e3, -100.0);
+	app.set_color_map_fld_range(-100.0, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 30.0);
 	//
-	app.set_png_name("t3d_me_mt_cap_compression");
+	//app.set_png_name("t3d_me_mt_cap_compression");
 	//app.set_gif_name("t3d_me_mt_cap_compression");
 	app.start();
 }

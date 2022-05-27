@@ -540,6 +540,12 @@ namespace Model_hdf5_utilities
 		H5Tinsert(res, "cohesion", HOFFSET(MohrCoulombStateData, cohesion), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "E", HOFFSET(MohrCoulombStateData, E), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "niu", HOFFSET(MohrCoulombStateData, niu), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s11", HOFFSET(MohrCoulombStateData, s11), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s22", HOFFSET(MohrCoulombStateData, s22), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s33", HOFFSET(MohrCoulombStateData, s33), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s12", HOFFSET(MohrCoulombStateData, s12), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s23", HOFFSET(MohrCoulombStateData, s23), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "s31", HOFFSET(MohrCoulombStateData, s31), H5T_NATIVE_DOUBLE);
 		H5Tinsert(res, "status_code", HOFFSET(MohrCoulombStateData, status_code), H5T_NATIVE_INT);
 		return res;
 	}

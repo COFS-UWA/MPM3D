@@ -37,6 +37,7 @@ protected:
 	QOpenGLShaderProgram shader_circles;
 	QOpenGLShaderProgram shader_char;
 
+	bool need_mat_model_data;
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rc;

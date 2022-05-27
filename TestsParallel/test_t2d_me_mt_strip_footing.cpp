@@ -31,12 +31,14 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
 	model.init_search_grid(tri_mesh, 0.02, 0.02);
-	model.init_pcls(pcl_generator, 1800.0);
+	constexpr double density = 1800.0;
+	model.init_pcls(pcl_generator, density);
 	tri_mesh.clear();
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
 	std::cout << "pcl_num: " << pcl_num << "\n";
+	
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// Tresca
 	//MatModel::Tresca* tes = model.add_Tresca(model.get_pcl_num());
@@ -47,11 +49,15 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	//	tes = model.following_Tresca(tes);
 	//}
 	// Mohr-Coulomb
-	const double mc_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double mc_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(model.get_pcl_num());
 	for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		mcs->set_param(mc_stress, 30.0, 0.0, 0.1, 4.0e6, 0.3);
+		const double depth = model.get_pcl_pos()[p_id].y;
+		mc_stress[1] = depth * 9.81 * density;
+		mc_stress[0] = mc_stress[1] * 0.5; // 30.0
+		mc_stress[2] = mc_stress[0];
+		mcs->set_param(mc_stress, 30.0, 0.0, 1.0, 5.0e6, 0.3);
 		model.add_mat_model(p_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
 		mcs = model.following_MohrCoulombWrapper(mcs);
 	}
@@ -98,9 +104,9 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
+	step.set_step_time(0.5); // 1.0
 	step.set_dtime(5.0e-6);
-	step.set_thread_num(2);
+	step.set_thread_num(5);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -112,23 +118,24 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 void test_t2d_me_mt_strip_footing_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t2d_me_mt_strip_footing.h5");
-	//rf.open("t2d_me_mt_strip_footing_rough.h5");
-	rf.open("t2d_me_mt_strip_footing_smooth_niu03.h5");
+	rf.open("t2d_me_mt_strip_footing.h5");
 
 	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
 	app.set_win_size(1400, 1000);
 	app.set_ani_time(10.0);
-	app.set_display_range(0.0, 2.0, -3.5, 0.3);
+	//app.set_display_range(0.0, 2.0, -3.5, 0.3);
 	app.set_color_map_geometry(1.05, 0.3f, 0.5f);
 	// s22
 	//app.set_res_file(rf, "loading", Hdf5Field::s22);
-	//app.set_color_map_fld_range(-25.7e3, 0.0);
+	//app.set_color_map_fld_range(-1.0e5, 0.0);
+	// mat s22
+	app.set_res_file(rf, "loading", Hdf5Field::mat_s22);
+	app.set_color_map_fld_range(-1.0e5, 0.0);
 	// pe
-	app.set_res_file(rf, "loading", Hdf5Field::plastic_mises_strain_2d);
-	app.set_color_map_fld_range(0.0, 0.05);
+	//app.set_res_file(rf, "loading", Hdf5Field::plastic_mises_strain_2d);
+	//app.set_color_map_fld_range(0.0, 0.05);
 	//
-	app.set_gif_name("t2d_me_mt_strip_footing");
+	//app.set_gif_name("t2d_me_mt_strip_footing");
 
 	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
 	//app.set_win_size(2000, 900);
