@@ -1,8 +1,8 @@
 #include "TestsParallel_pcp.h"
 
+#include <cmath>
 #include <iomanip>
 
-#include "test_parallel_utils.h"
 #include "TriangleMesh.h"
 #include "ParticleGenerator2D.hpp"
 #include "Model_T2D_ME_mt.h"
@@ -12,53 +12,61 @@
 #include "TimeHistory_T2D_ME_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T2D_ME_mt.h"
+
+#include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
 void test_t2d_me_mt_strip_footing(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
-	//tri_mesh.load_mesh_from_hdf5("../../Asset/strip_footing_soil_mesh.h5");
-	//model.init_search_grid(tri_mesh, 0.1, 0.1);
-	tri_mesh.load_mesh_from_hdf5("../../Asset/strip_footing_soil_mesh_denser.h5");
-	tri_mesh.init_search_grid(0.0333333, 0.0333333);
+	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_pipe_conference_mesh2_half.h5");
+	tri_mesh.init_search_grid(0.02, 0.02);
+
+	ParticleGenerator2D<TriangleMesh> pcl_generator;
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -3.5, 0.0), 0.03, 0.03);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -5.0, -3.5), 0.03, 0.03);
+	pcl_generator.replace_with_pcls_in_grid_layout(Rect(0.0, 3.5, -3.5, 0.0), 0.01, 0.01);
+	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
 
 	Model_T2D_ME_mt model;
 	model.init_mesh(tri_mesh);
-	//model.init_search_grid(tri_mesh, 0.1, 0.1);
-	model.init_search_grid(tri_mesh, 0.0333333, 0.0333333);
+	model.init_search_grid(tri_mesh, 0.02, 0.02);
+	model.init_pcls(pcl_generator, 1800.0);
+	tri_mesh.clear();
+	pcl_generator.clear();
 
-	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	//pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -3.5, 0.0), 0.025, 0.025);
-	//pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -5.0, -3.5), 0.07, 0.07);
-	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -3.5, 0.0), 0.01, 0.01);
-	pcl_generator.generate_pcls_in_grid_layout(Rect(-5.0, 5.0, -5.0, -3.5), 0.03, 0.03);
-	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
-	model.init_pcls(pcl_generator, 1.8e3);
-	std::cout << model.get_pcl_num() << "\n";
+	const size_t pcl_num = model.get_pcl_num();
+	std::cout << "pcl_num: " << pcl_num << "\n";
 	MatModel::MaterialModel** mms = model.get_mat_models();
-	//MatModel::VonMises* vms = model.add_VonMises(model.get_pcl_num());
-	//for (szie_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
+	// Tresca
+	//MatModel::Tresca* tes = model.add_Tresca(model.get_pcl_num());
+	//for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	//{
-	//	vms[p_id].set_param(4000.0, 0.3, 10.0);
-	//	mms[p_id] = &vms[p_id];
+	//	tes->set_param(4000.0e3, 0.45, 5.0e3);
+	//	model.add_mat_model(p_id, *tes, sizeof(MatModel::Tresca));
+	//	tes = model.following_Tresca(tes);
 	//}
-	MatModel::Tresca* tes = model.add_Tresca(model.get_pcl_num());
+	// Mohr-Coulomb
+	const double mc_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(model.get_pcl_num());
 	for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		tes[p_id].set_param(4000.0e3, 0.3, 5.0e3);
-		mms[p_id] = &tes[p_id];
+		mcs->set_param(mc_stress, 30.0, 0.0, 0.1, 4.0e6, 0.3);
+		model.add_mat_model(p_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
+		mcs = model.following_MohrCoulombWrapper(mcs);
 	}
 
+	const double contact_fric_ang = 20.0;
 	model.init_rigid_rect(0.0, 0.1, 1.0, 0.2, 1.0);
-	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
-	model.set_contact_param(10000.0e3, 10000.0e3, 0.2, 1.5);
+	model.set_rigid_rect_velocity(0.0, -0.1, 0.0);
+	model.set_contact_param(1.0e5 / 0.01, 1.0e5 / 0.01, tan(contact_fric_ang/180.0*3.14159265359), 1.5);
 	//model.set_frictional_contact_between_pcl_and_rect();
-	model.set_rough_contact_between_pcl_and_rect();
+	//model.set_rough_contact_between_pcl_and_rect();
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
-	find_2d_nodes_on_x_line(model, vx_bc_pt_array, -5.0);
-	find_2d_nodes_on_x_line(model, vx_bc_pt_array,  5.0, false);
+	find_2d_nodes_on_x_line(model, vx_bc_pt_array, 0.0);
+	find_2d_nodes_on_x_line(model, vx_bc_pt_array, 5.0, false);
 	model.init_fixed_vx_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 
 	// vy bc
@@ -71,7 +79,7 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	//md_disp.set_model(model);
 	////md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
 	//md_disp.start();
 	//return;
 
@@ -90,9 +98,9 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(7.0); // 10.0
+	step.set_step_time(1.0);
 	step.set_dtime(5.0e-6);
-	step.set_thread_num(20);
+	step.set_thread_num(2);
 	step.add_time_history(out1);
 	step.add_time_history(out_pb);
 	step.solve();

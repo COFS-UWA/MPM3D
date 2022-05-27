@@ -27,9 +27,9 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	tri_mesh.clear();
 	// undrained
 	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 1.0e7, 1.0e-12, 1.0e-3); // dt = 1e-6
-	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 1.0e7, 5.0e-13, 1.0e-3); // dt = 1e-6
+	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 1.0e7, 5.0e-13, 1.0e-3); // dt = 1e-6
 	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e7, 2.0e-13, 1.0e-3); // dt = 4e-7
-	model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e7, 1.0e-13, 1.0e-3); // dt = 2e-7
+	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 2.0e7, 1.0e-13, 1.0e-3); // dt = 2e-7
 	// drained
 	//model.init_pcls(pcl_generator, 0.6, 2650.0, 1000.0, 0.0, 1.0, 1.0e-3);
 	pcl_generator.clear();
@@ -54,10 +54,9 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	model.set_rigid_circle_velocity(0.0, -0.05, 0.0);
 	// pcl size = 0.02
 	model.set_contact_param(1.0e5 / 0.02, 1.0e5 / 0.02, 0.0, 10.0, 1.0e3 / 0.02, 1.0e3 / 0.02);
-	// old ver
-	//model.set_contact_param(1.0e5, 1.0e5, 0.0, 10.0, 1.0e3, 1.0e3);
-	model.set_rough_contact_between_spcl_and_circle();
-	model.set_rough_contact_between_fpcl_and_circle();
+	//model.set_rough_contact_between_spcl_and_circle();
+	model.set_sticky_contact_between_spcl_and_rb();
+	//model.set_rough_contact_between_fpcl_and_circle();
 
 	IndexArray left_right_bc_pt_array(100);
 	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, -3.5);
@@ -70,23 +69,23 @@ void test_t2d_chm_mt_pipe_conference(int argc, char** argv)
 	model.init_fixed_vy_s_bc(bottom_bc_pt_array.get_num(), bottom_bc_pt_array.get_mem());
 	model.init_fixed_vy_f_bc(bottom_bc_pt_array.get_num(), bottom_bc_pt_array.get_mem());
 	
-	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
-	//md_disp.set_win_size(1800, 950);
-	//md_disp.set_model(model);
-	//md_disp.set_pts_from_vx_s_bc(0.03);
-	////md_disp.set_pts_from_vx_f_bc(0.03);
-	////md_disp.set_pts_from_vy_s_bc(0.03);
-	////md_disp.set_pts_from_vy_f_bc(0.03);
-	//// all
-	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
-	//// left
-	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
-	//// middle
-	////md_disp.set_display_range(-2.25, 2.25, -1.3, 1.3);
-	//// right
-	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
+	md_disp.set_win_size(1800, 950);
+	md_disp.set_model(model);
+	md_disp.set_pts_from_vx_s_bc(0.03);
+	//md_disp.set_pts_from_vx_f_bc(0.03);
+	//md_disp.set_pts_from_vy_s_bc(0.03);
+	//md_disp.set_pts_from_vy_f_bc(0.03);
+	// all
+	//md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
+	// left
+	//md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
+	// middle
+	//md_disp.set_display_range(-2.25, 2.25, -1.3, 1.3);
+	// right
+	//md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_chm_mt_pipe_conference1.h5");
