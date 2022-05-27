@@ -9,7 +9,7 @@ path_name = "../Build/TestsParallel/"
 sim_name = "t3d_chm_mt_spudcan_cy_vstaud"
 var_name = "p"
 model_var_r0 = 0.2
-model_var_z0 = -0.5
+model_var_z0 = -0.3
 model_var_dr = 0.2
 model_var_dz = 0.2
 proc_num = 2
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     pcl_r = []
     pcl_z = []
     pcl_var = []
-    csv_file = open(path_name + sim_name + "_pore.csv", "w")
+    csv_file = open(path_name + sim_name + "_" + var_name + ".csv", "w")
     csv_file.write("rb_z, pcl_r, pcl_z, pcl_var\n")
     for th_id in range(th_num):
         rb_z.append(proc_rb_z[th_id])
