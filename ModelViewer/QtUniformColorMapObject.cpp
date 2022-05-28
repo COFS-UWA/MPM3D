@@ -463,8 +463,7 @@ int QtUniformColorMapObject::init(
 	gl.glBufferData(GL_ARRAY_BUFFER,
 		line_node_mem.get_num() * sizeof(Type0NodeData),
 		(GLvoid *)line_node_mem.get_mem(),
-		GL_STREAM_DRAW
-		);
+		GL_STREAM_DRAW);
 
 	// type
 	gl.glVertexAttribIPointer(0, 1, GL_INT,
@@ -479,8 +478,7 @@ int QtUniformColorMapObject::init(
 	gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 		line_elem_mem.get_num() * sizeof(GLuint),
 		(GLvoid *)line_elem_mem.get_mem(),
-		GL_STREAM_DRAW
-		);
+		GL_STREAM_DRAW);
 
 	// color squares gl buffer
 	gl.glBindVertexArray(tri_vao);

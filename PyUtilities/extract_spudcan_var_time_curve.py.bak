@@ -4,31 +4,24 @@ import h5py as py
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Array
 
-<<<<<<< HEAD
-sim_name = "t3d_chm_mt_spudcan_cy_HIg230"
-=======
-#path_name = "D:/"
-path_name = "../Build/TestsParallel/"
+path_name = "E:/"
+#path_name = "../Build/TestsParallel/"
 sim_name = "t3d_chm_mt_spudcan_cy_vstaud"
->>>>>>> 49c228ff327445f2b425566ad73810f84a6487b6
+var_name = "p"
 model_var_r0 = 0.2
-model_var_z0 = -0.5
+model_var_z0 = -0.3
 model_var_dr = 0.2
 model_var_dz = 0.2
-<<<<<<< HEAD
-proc_num = 5
-=======
 proc_num = 2
->>>>>>> 49c228ff327445f2b425566ad73810f84a6487b6
 
 # time history name
 th_name = "penetration"
 rb_name = "RigidObjectByT3DMesh"
 
-def get_avg_pore(pcl_xs, pcl_ys, pcl_zs, pcl_vols, pcl_ps, pcl_num, \
-                 model_var_r, model_var_z, model_var_dr, model_var_dz, \
-                 model_cen_x, model_cen_y):
-    avg_p = 0.0
+def get_avg_var(pcl_xs, pcl_ys, pcl_zs, pcl_vols, pcl_vars, pcl_num, \
+                model_var_r, model_var_z, model_var_dr, model_var_dz, \
+                model_cen_x, model_cen_y):
+    avg_var = 0.0
     eff_pcl_vol = 0.0
     eff_pcl_num = 0
     avg_rmin2 = (model_var_r - model_var_dr) * (model_var_r - model_var_dr)
@@ -39,22 +32,24 @@ def get_avg_pore(pcl_xs, pcl_ys, pcl_zs, pcl_vols, pcl_ps, pcl_num, \
         md_p_dr2 = md_p_dx * md_p_dx + md_p_dy * md_p_dy
         md_p_dz = abs(pcl_zs[pcl_id] - model_var_z)
         if md_p_dr2 <= avg_rmax2 and md_p_dr2 >= avg_rmin2 and md_p_dz <= model_var_dz:
-            avg_p += pcl_ps[pcl_id] * pcl_vols[pcl_id]
+            avg_var += pcl_vars[pcl_id] * pcl_vols[pcl_id]
             eff_pcl_vol += pcl_vols[pcl_id]
             eff_pcl_num += 1
     if (eff_pcl_vol != 0.0):
-        avg_p /= eff_pcl_vol
+        avg_var /= eff_pcl_vol
     # average pore pressure, effective pcl vol, effective pcl num
-    return (avg_p, eff_pcl_vol, eff_pcl_num)
+    return (avg_var, eff_pcl_vol, eff_pcl_num)
 
-class AvgPoreParam:
-    def __init__(self, path_name, sim_name, th_name, rb_name, rb_ini_z, \
-                 model_var_r0, model_var_z0, model_var_dr, model_var_dz, \
+class AvgVarParam:
+    def __init__(self, path_name, sim_name, th_name, rb_name, var_name, \
+                 rb_ini_z, model_var_r0, model_var_z0, \
+                 model_var_dr, model_var_dz, \
                  model_cen_x = 0.0, model_cen_y = 0.0):
         self.path_name = path_name
         self.sim_name = sim_name
         self.th_name = th_name
         self.rb_name = rb_name
+        self.var_name = var_name
         self.rb_ini_z = rb_ini_z
         self.model_var_r0 = model_var_r0
         self.model_var_z0 = model_var_z0
@@ -63,8 +58,8 @@ class AvgPoreParam:
         self.model_cen_x = model_cen_x
         self.model_cen_y = model_cen_y
 
-def proc_get_th_avg_pressure(th_id_range, param, \
-    rb_z, pcl_r, pcl_z, pcl_pore):
+def proc_get_th_avg_var(th_id_range, param, \
+    rb_z, pcl_r, pcl_z, pcl_var):
     #
     hdf5_file = py.File(param.path_name + param.sim_name + ".h5", "r")
     th_grp = hdf5_file['TimeHistory'][param.th_name]
@@ -85,13 +80,13 @@ def proc_get_th_avg_pressure(th_id_range, param, \
         pcl_ys = pcl_dset[:]['y']
         pcl_zs = pcl_dset[:]['z']
         pcl_vols = pcl_dset[:]['vol']
-        pcl_ps = pcl_dset[:]['p']
+        pcl_vars = pcl_dset[:][param.var_name]
         pcl_num = len(pcl_dset)
-        avg_p, eff_pcl_vol, eff_pcl_num = get_avg_pore( \
-            pcl_xs, pcl_ys, pcl_zs, pcl_vols, pcl_ps, pcl_num, \
+        avg_var, eff_pcl_vol, eff_pcl_num = get_avg_var( \
+            pcl_xs, pcl_ys, pcl_zs, pcl_vols, pcl_vars, pcl_num, \
             avg_r, avg_z, param.model_var_dr, param.model_var_dz, \
             param.model_cen_x, param.model_cen_y)
-        pcl_pore[th_id] = avg_p
+        pcl_var[th_id] = avg_var
         # print msg
         if th_id_range[0] == 0:
             print("processed %d%%, %d pcls nearby." % (int((th_id+1)/(th_id_range[1]-th_id_range[0])*100.0), eff_pcl_num))
@@ -110,14 +105,14 @@ if __name__ == "__main__":
     proc_rb_z = Array('d', [0.0]*th_num)
     proc_pcl_r = Array('d', [0.0]*th_num)
     proc_pcl_z = Array('d', [0.0]*th_num)
-    proc_pcl_pore = Array('d', [0.0]*th_num)
+    proc_pcl_var = Array('d', [0.0]*th_num)
     procs = []
-    proc_param = AvgPoreParam(path_name, sim_name, th_name, rb_name, rb_ini_z, \
-                              model_var_r0, model_var_z0, model_var_dr, model_var_dz)
+    proc_param = AvgVarParam(path_name, sim_name, th_name, rb_name, var_name, \
+                             rb_ini_z, model_var_r0, model_var_z0, model_var_dr,model_var_dz)
     for proc_id in range(proc_num):
-        p = Process(target = proc_get_th_avg_pressure, \
+        p = Process(target = proc_get_th_avg_var, \
                     args = ([int(proc_id * th_num / proc_num), int((proc_id+1) * th_num / proc_num)], \
-                             proc_param, proc_rb_z, proc_pcl_r, proc_pcl_z, proc_pcl_pore))
+                             proc_param, proc_rb_z, proc_pcl_r, proc_pcl_z, proc_pcl_var))
         procs.append(p)
         p.start()
     
@@ -132,22 +127,22 @@ if __name__ == "__main__":
     rb_z = []
     pcl_r = []
     pcl_z = []
-    pcl_pore = []
-    csv_file = open("../Build/TestsParallel/" + sim_name + "_pore.csv", "w")
-    csv_file.write("rb_z, pcl_r, pcl_z, pcl_pore\n")
+    pcl_var = []
+    csv_file = open(path_name + sim_name + "_" + var_name + ".csv", "w")
+    csv_file.write("rb_z, pcl_r, pcl_z, pcl_var\n")
     for th_id in range(th_num):
         rb_z.append(proc_rb_z[th_id])
         pcl_r.append(proc_pcl_r[th_id])
         pcl_z.append(proc_pcl_z[th_id])
-        pcl_pore.append(proc_pcl_pore[th_id])
+        pcl_var.append(proc_pcl_var[th_id])
         # output data
-        # rb_z, pcl_r, pcl_z, pcl_pore
-        csv_file.write("%f, %f, %f, %f,\n" %  (rb_z[th_id], pcl_r[th_id], pcl_z[th_id], pcl_pore[th_id]))
+        # rb_z, pcl_r, pcl_z, pcl_var
+        csv_file.write("%f, %f, %f, %f,\n" %  (rb_z[th_id], pcl_r[th_id], pcl_z[th_id], pcl_var[th_id]))
     csv_file.close()
 
     # plot data
     fig = plt.figure()
     plot1 = fig.subplots(1, 1)
-    line1, = plot1.plot(pcl_pore, rb_z)
+    line1, = plot1.plot(pcl_var, rb_z)
     plt.ylim(rb_z[0], rb_z[-1])
     plt.show()

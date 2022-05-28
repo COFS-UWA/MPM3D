@@ -42,20 +42,19 @@ void test_t3d_chm_tbb_cap_compression(int argc, char **argv)
 	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::NorsandWrapper& n = ns[pcl_id];
 		ns->set_param(
 			ini_stress, e0,
 			30.0,
 			0.875, 0.0058,
-			0.3, 2.5, 200.0,
-			200.0, 0.2);
+			0.3, 2.5, 230.0,
+			230.0, 0.2);
 		model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
 		ns = model.following_NorsandWrapper(ns);
 	}
 
 	// cavitation
 	//model.set_cavitation(100.0, -100.0e3, 0.01);
-	model.set_cavitation(100.0, -100.0e3, 0.01, 0.0, 0.0, 10.0e3);
+	//model.set_cavitation(100.0, -100.0e3, 0.01, 0.0, 0.0, 10.0e3);
 
 	//constexpr double ramp_up_time = 0.25;
 	//model.set_cylinder_vz_bc_ramp_up_time(ramp_up_time);

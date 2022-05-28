@@ -131,6 +131,16 @@ int QtSceneFromHdf5_T3D_CHM_mt_Div<DivisionSet>
 	if (!init_color_map_texture())
 		return -2;
 	init_shaders(mh_bbox, wd, ht);
+
+	if (need_update_rb_pos)
+	{
+		char frame_name[50];
+		snprintf(frame_name, 50, "frame_%zu", frame_id);
+		hid_t frame_grp_id = rf.open_group(th_id, frame_name);
+		update_rigid_objects_buffer(frame_grp_id, rf);
+		rf.close_group(frame_grp_id);
+	}
+	
 	return 0;
 }
 

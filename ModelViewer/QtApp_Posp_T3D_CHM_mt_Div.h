@@ -84,6 +84,7 @@ public:
 	inline void set_light_dist_scale(float dist_sc) { scene.set_light_dist_scale(dist_sc); }
 
 	inline void set_bg_color(QVector3D& color) { scene.set_bg_color(color); }
+	inline void set_color_map_char_color(GLfloat r, GLfloat g, GLfloat b) { scene.set_color_map_char_color(r, g, b); }
 
 	inline void set_fog_coef(float coef) { scene.set_fog_coef(coef); }
 	inline void set_fog_color(QVector3D& color) { scene.set_fog_color(color); }
@@ -96,6 +97,8 @@ public:
 
 	inline void set_display_bg_mesh(bool op = true) { scene.set_display_bg_mesh(op); }
 	inline void set_display_pcls(bool op = true) { scene.set_display_pcls(op); }
+
+	inline void set_update_rb_pos(bool op = true) { scene.set_update_rb_pos(op); }
 
 	inline void set_color_map_fld_range(double min, double max)
 	{ scene.set_color_map_fld_range(min, max); }

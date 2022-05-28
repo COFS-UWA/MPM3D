@@ -320,9 +320,9 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 	////md_disp.set_pts_from_vz_s_bc(0.05);
 	////md_disp.set_pts_from_vec_s_bc(0.05);
 	//md_disp.set_pts_from_vx_f_bc(0.05);
-	////md_disp.set_pts_from_vy_f_bc(0.05);
-	////md_disp.set_pts_from_vz_f_bc(0.05);
-	////md_disp.set_pts_from_vec_f_bc(0.05);
+	//md_disp.set_pts_from_vy_f_bc(0.05);
+	//md_disp.set_pts_from_vz_f_bc(0.05);
+	//md_disp.set_pts_from_vec_f_bc(0.05);
 	//md_disp.start();
 	//return;
 
@@ -396,7 +396,8 @@ void test_t3d_chm_mt_spudcan_cy_geo_result(int argc, char** argv)
 void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_chm_mt_spudcan_cy.h5");
+	//rf.open("t3d_chm_mt_spudcan_cy_vstaud.h5");
+	rf.open("E:\\t3d_chm_mt_spudcan_cy_vstapd1_v0.1.h5");
 
 	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.set_res_file(rf, "penetration", 100, Hdf5Field::s33);
@@ -407,14 +408,18 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.1, 0.0);
 	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_win_size(1200, 800);
+	app.set_win_size(1600, 800);
 	app.set_view_dir(-90.0f, 5.0f);
 	app.set_fog_coef(0.02f);
-	app.set_light_dir(-135.0f, 10.0f);
+	app.set_light_dir(-90.0f, 5.0f);
 	app.set_light_dist_scale(1.0f);
 	//app.move_view_pos(0.0, 0.0, 3.0);
 	app.set_view_dist_scale(0.7f);
 	app.set_display_bg_mesh(false);
+	app.set_update_rb_pos();
+	//app.set_bg_color(QVector3D(1.0, 1.0, 1.0));
+	//app.set_color_map_char_color(0.0, 0.0, 0.0);
+	app.set_color_map_geometry(1.8f, 0.4f, 0.45f);
 	// s33
 	app.set_res_file(rf, "penetration", Hdf5Field::s33);
 	app.set_color_map_fld_range(-5.0e6, 0.0);

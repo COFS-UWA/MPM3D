@@ -142,22 +142,13 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	ini_stress[0] = K0 * ini_stress[2];
 	//	ini_stress[1] = ini_stress[0];
 	//	MatModel::SandHypoplasticityStbWrapper& shp = *shps;
-	//	if (pcl_z > void_depth_limit)
-	//		shp.set_param(
-	//			ini_stress, 0.76,
-	//			30.0, 1354.0e6, 0.34,
-	//			0.18, 1.27,
-	//			0.49, 0.76, 0.86,
-	//			1.5, 43.0, 100.0,
-	//			200.0, 0.2);
-	//	else // normal
-	//		shp.set_param(
-	//			ini_stress, e0,
-	//			30.0, 1354.0e6, 0.34,
-	//			0.18, 1.27,
-	//			0.49, 0.76, 0.86,
-	//			1.5, 43.0, 100.0,
-	//			200.0, 0.2);
+	//	shp.set_param(
+	//		ini_stress, e0,
+	//		30.0, 1354.0e6, 0.34,
+	//		0.18, 1.27,
+	//		0.49, 0.76, 0.86,
+	//		1.5, 43.0, 100.0,
+	//		200.0, 0.2);
 	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
 	//}
 
@@ -239,8 +230,8 @@ void test_t3d_me_mt_piezofoundation_sim_mat(int argc, char** argv)
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_mt step("step2");
 	step.set_model(model);
-	step.set_thread_num(8);
-	step.set_step_time(2.0e-4);
+	step.set_thread_num(11);
+	step.set_step_time(0.15);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -341,13 +332,13 @@ void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv)
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
-	out_cpb.set_interval_num(100);
+	out_cpb.set_interval_num(1000);
 
 	std::cout << "Start solving...\n";
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
 	step.set_thread_num(12);
-	step.set_step_time(0.5);
+	step.set_step_time(0.1); // 0.5
 	step.set_dtime(2.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -359,7 +350,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Step_T3D_ME_TBB step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_tbb_piezofoundation_sim_mat.h5", "penetration", 5);
+		model, step, "t3d_me_tbb_piezofoundation_sim_mat_nor.h5", "penetration", 6);
 	std::cout << "Completed loading model.\n";
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
@@ -375,7 +366,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char** argv)
 	//return;
 
 	//ResultFile_hdf5 res_file_hdf5;
-	//res_file_hdf5.create("t3d_me_tbb_piezofoundation_sim_mat.h5");
+	//res_file_hdf5.create("t3d_me_tbb_piezofoundation_sim_mat_restart.h5");
 
 	//ModelData_T3D_ME_mt md;
 	//md.output_model(model, res_file_hdf5);
@@ -390,8 +381,8 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char** argv)
 	out_cpb.set_interval_num(100);
 
 	std::cout << "Start solving...\n";
-	step.set_thread_num(12);
-	step.set_step_time(2.0e-3);
+	step.set_thread_num(2);
+	step.set_step_time(2.0e-4);
 	step.set_dtime(2.0e-6);
 	//step.add_time_history(out1);
 	step.add_time_history(out_cpb);
