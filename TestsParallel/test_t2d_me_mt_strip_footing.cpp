@@ -50,10 +50,18 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	//}
 	// Mohr-Coulomb
 	double mc_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	auto* pcl_stresses = model.get_pcl_stress0();
 	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(model.get_pcl_num());
 	for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		const double depth = model.get_pcl_pos()[p_id].y;
+		double depth = model.get_pcl_pos()[p_id].y;
+		//
+		auto& pcl_s = pcl_stresses[p_id];
+		pcl_s.s22 = depth * 9.81 * (density - 1000.0);
+		pcl_s.s11 = pcl_s.s22 * 0.5;
+		//
+		if (depth > -0.05)
+			depth = -0.05;
 		mc_stress[1] = depth * 9.81 * density;
 		mc_stress[0] = mc_stress[1] * 0.5; // 30.0
 		mc_stress[2] = mc_stress[0];
@@ -68,6 +76,17 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	model.set_contact_param(1.0e5 / 0.01, 1.0e5 / 0.01, tan(contact_fric_ang/180.0*3.14159265359), 1.5);
 	//model.set_frictional_contact_between_pcl_and_rect();
 	//model.set_rough_contact_between_pcl_and_rect();
+
+	// gravity force, float unit weight
+	IndexArray bfy_pcl_array(pcl_num);
+	MemoryUtils::ItemArray<double> bfy_array(pcl_num);
+	double bfy = -9.81 * (density - 1000.0) / density;
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		bfy_pcl_array.add(pcl_id);
+		bfy_array.add(bfy);
+	}
+	model.init_bfys(pcl_num, bfy_pcl_array.get_mem(), bfy_array.get_mem());
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);

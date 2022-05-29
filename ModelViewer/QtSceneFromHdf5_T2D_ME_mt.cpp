@@ -423,7 +423,7 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 
 void QtSceneFromHdf5_T2D_ME_mt::update_scene(size_t frame_id)
 {
-	data_loader.load_frame_data(frame_id);
+	data_loader.load_frame_data(frame_id, need_mat_model_data);
 
 	size_t pcl_num = data_loader.get_pcl_num();
 	pcl_fld_mem.reserve(pcl_num * 4);
