@@ -1,7 +1,6 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <fstream>
-#include <iostream>
 #include <omp.h>
 
 #include "Step_T2D_CHM_mt_Geo.h"
@@ -559,9 +558,6 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 		e_s22 += p_s0.s22 * p_vol;
 		e_s12 += p_s0.s12 * p_vol;
 
-		if (e_s12 < -10.0)
-			int eee = substp_id;
-
 		// map velocity
 		ShapeFunc& p_N0 = pcl_N0[p_id];
 		// solid velocity
@@ -636,11 +632,6 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 			en3_f_s.fx = en3_fx_s;
 			en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * e_s22) * e_p_vol;
 			en3_f_s.fy = en3_fy_s;
-
-			if (en3_f_s.fy > 10.0 || en3_f_s.fy < -10.0)
-			{
-				int eee = substp_id;
-			}
 
 			e_id = pcl_in_elem0[p_id + 1];
 			assert(e_id < self.elem_num || e_id == SIZE_MAX);
@@ -862,12 +853,6 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 		n_am_de_vol_s += elem_m_de_vol_s[e_id];
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
-			if (n_id == 28 && substp_id == 1)
-			{
-				int eee = substp_id;
-				int eeee = p_id;
-			}
-
 			node_de_vol_s[n_id] = n_am_de_vol_s * one_third / node_am_s[n_id];
 			n_id = node_has_elem0[ve_id + 1];
 			assert(n_id < self.node_num || n_id == SIZE_MAX);
@@ -919,15 +904,13 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 		ori_p_id = spva0.pcl_index[p_id];
 		assert(ori_p_id < md.ori_pcl_num);
 		MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];
-		pcl_mm.integrate(pe_de->de);
+		double dstrain[6] = { pe_de->de11, pe_de->de22, 0.0, pe_de->de12, 0.0, 0.0 };
+		pcl_mm.integrate(dstrain);
 		dstress = pcl_mm.get_dstress();
 		Stress& p_s = pcl_stress0[p_id];
 		p_s.s11 += dstress[0];
 		p_s.s22 += dstress[1];
 		p_s.s12 += dstress[3];
-
-		//if (pcl_stress0[495].s12 < -10.0)
-		//	int efef = p_id;
 	}
 
 #pragma omp master

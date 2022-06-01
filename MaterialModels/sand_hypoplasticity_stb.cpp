@@ -39,7 +39,8 @@ void SandHypoplasticityStbGlobal_set_param(
 	__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
 	__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
 	__Float_Type__ Ig, __Float_Type__ niu,
-	__Float_Type__ tE, __Float_Type__ tniu)
+	__Float_Type__ tE, __Float_Type__ tniu,
+	__Float_Type__ alpha_vol)
 {
 	dat.phi = phi;
 	dat.hs = hs;
@@ -59,7 +60,6 @@ void SandHypoplasticityStbGlobal_set_param(
 	dat.chi = chi;
 	dat.H = H;
 	dat.Mtc = ffmat(6.0) * sin_phi / (ffmat(3.0) - sin_phi);
-	//dat.N_chi_div_Mtc = N * chi / dat.Mtc;
 
 	dat.Ig = Ig;
 	dat.niu = niu;
@@ -71,6 +71,8 @@ void SandHypoplasticityStbGlobal_set_param(
 	dat.ten_lambda = dat.ten_E * dat.ten_niu /
 		((ffmat(1.0) + dat.ten_niu) * (ffmat(1.0) - dat.ten_niu - dat.ten_niu));
 	dat.ten_lambda_2G = dat.ten_lambda + dat.ten_G;
+
+	dat.alpha_vol = alpha_vol;
 }
 
 void SandHypoplasticityStb_set_NC_param(
@@ -242,7 +244,7 @@ int32_t SandHypoplasticityStbGlobal::hypoplasticity_substp(
 	dstress[5] = L1_tmp * dstrain[5] + L2_tmp * s_cap[5] + N_tmp * (s_cap[5] + s_cap[5]);
 
 	// scale void ratio
-	de = (ffmat(1.0) + e) * (dstrain[0] + dstrain[1] + dstrain[2]) * 2.0;
+	de = (ffmat(1.0) + e) * (dstrain[0] + dstrain[1] + dstrain[2]);
 	return 1;
 }
 
@@ -387,6 +389,7 @@ int32_t integrate_sand_hypoplasticity_stb(
 		ddstrain[5] = act_substp_size * dstrain[5];
 
 		glb_dat.hypoplasticity_substp(mat_dat.stress, mat_dat.e, ddstrain, dstress1, de1);
+		de1 *= glb_dat.alpha_vol;
 
 		stress1[0] = mat_dat.stress[0] + dstress1[0] * ffmat(0.5);
 		stress1[1] = mat_dat.stress[1] + dstress1[1] * ffmat(0.5);
@@ -404,6 +407,7 @@ int32_t integrate_sand_hypoplasticity_stb(
 		e1 = mat_dat.e + de1 * ffmat(0.5);
 
 		glb_dat.hypoplasticity_substp(stress1, e1, ddstrain, dstress2, de2);
+		de2 *= glb_dat.alpha_vol;
 
 		stress2[0] = mat_dat.stress[0] - dstress1[0] + dstress2[0] + dstress2[0];
 		stress2[1] = mat_dat.stress[1] - dstress1[1] + dstress2[1] + dstress2[1];
@@ -421,6 +425,7 @@ int32_t integrate_sand_hypoplasticity_stb(
 		e2 = mat_dat.e - de1 + de2 + de2;
 
 		glb_dat.hypoplasticity_substp(stress2, e2, ddstrain, dstress3, de3);
+		de3 *= glb_dat.alpha_vol;
 
 		dstress3[0] = ffmat(1.0) / ffmat(6.0) * dstress1[0]
 			+ ffmat(2.0) / ffmat(3.0) * dstress2[0]

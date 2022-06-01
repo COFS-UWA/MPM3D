@@ -77,6 +77,7 @@ public:
 	inline void set_view_dir(float x, float y, float z) { scene.set_view_dir(x, y, z); }
 	inline void set_view_dir(float theta, float fai) { scene.set_view_dir(theta, fai); }
 	inline void set_view_dist_scale(float dist_sc) { scene.set_view_dist_scale(dist_sc); }
+	inline void move_view_pos(float dx, float dy, float dz) { scene.move_view_pos(dx, dy, dz); }
 
 	inline void set_light_dir(float x, float y, float z) { scene.set_light_dir(x, y, z); }
 	inline void set_light_dir(float theta, float fai) { scene.set_light_dir(theta, fai); }

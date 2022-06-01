@@ -10,18 +10,15 @@
 
 #include "Step_T3D_ME_mt.h"
 
-#ifdef _DEBUG
+#define TIMING
+
 static std::fstream res_file_t3d_me_mt;
 #define TIME_POINT(txx) auto (txx) = std::chrono::high_resolution_clock::now()
 #define TIME_DURATION(t0, t1, d) (d) = ((t0) - (t1)).count()
-#else
-#define TIME_POINT(txx) ((void)0)
-#define TIME_DURATION(t0, t1, d) ((void)0)
-#endif
 
 #define one_third (1.0/3.0)
 #define one_fourth (0.25)
-#define MAX_PCL_RADIUX_SCALE (5.0)
+#define MAX_PCL_RADIUS_SCALE (5.0)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
 Step_T3D_ME_mt::Step_T3D_ME_mt(const char* _name) :
@@ -31,9 +28,21 @@ Step_T3D_ME_mt::~Step_T3D_ME_mt() {}
 
 int Step_T3D_ME_mt::init_calculation()
 {
-#ifdef _DEBUG
 	res_file_t3d_me_mt.open("step_t3d_me_mt.csv", std::ios::out | std::ios::binary);
-#endif
+	res_file_t3d_me_mt << ",";
+	for (size_t t_id = 0; t_id < thread_num; ++t_id)
+		res_file_t3d_me_mt << "thread " << t_id << ",,,,,,,,,,,,,,,";
+	res_file_t3d_me_mt << "avg,,,,,,,,,,,,,,,\nsubstep_id, ";
+	for (size_t t_id = 0; t_id < thread_num + 1; ++t_id)
+		res_file_t3d_me_mt << "sort_pcl_time, sort_pcl_barrier_time, "
+		"pcl_to_mesh_time, pcl_to_mesh_barrier_time, "
+		"sort_node_time, sort_node_barrier_time , "
+		"node_a_v_time, node_a_v_barrier_time, "
+		"elem_de_time, elem_de_barrier_time, "
+		"node_de_time, node_de_barrier_time, "
+		"mesh_to_pcl_time, mesh_to_pcl_barrier_time,"
+		"iteration_time,";
+	res_file_t3d_me_mt << "\n";
 
 	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt *)model;
 
@@ -212,7 +221,7 @@ int Step_T3D_ME_mt::init_calculation()
 			if (max_pcl_radius < thread_datas[th_id].max_pcl_vol)
 				max_pcl_radius = thread_datas[th_id].max_pcl_vol;
 		}
-		max_pcl_radius = 0.5 * pow(max_pcl_radius, one_third) * MAX_PCL_RADIUX_SCALE;
+		max_pcl_radius = 0.5 * pow(max_pcl_radius, one_third) * MAX_PCL_RADIUS_SCALE;
 		prmesh->init_max_dist(max_pcl_radius);
 	}
 	
@@ -220,41 +229,13 @@ int Step_T3D_ME_mt::init_calculation()
 	pcl_in_elems[1][prev_valid_pcl_num] = SIZE_MAX;
 	valid_elem_num = 0;
 
-#ifdef _DEBUG
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "sort_pcl " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "sort_pcl_bar " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "pcl_to_mesh_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "sort_node_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "sort_node_barrier_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "node_a_v_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "node_a_v_barrier_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "elem_de_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "elem_de_barrier_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "node_de_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "node_de_barrier_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "mesh_to_pcl_time " << th_id << ", ";
-	for (size_t th_id = 0; th_id < thread_num; ++th_id)
-		res_file_t3d_me_mt << "mesh_to_pcl_barrier_time " << th_id << ", ";
-	res_file_t3d_me_mt << "\n";
-
 	for (size_t t_id = 0; t_id < thread_num; ++t_id)
 	{
 		ThreadData& thd = thread_datas[t_id];
 		thd.sort_pcl_time = 0;
 		thd.sort_pcl_barrier_time = 0;
 		thd.pcl_to_mesh_time = 0;
+		thd.pcl_to_mesh_barrier_time = 0;
 		thd.sort_node_time = 0;
 		thd.sort_node_barrier_time = 0;
 		thd.node_a_v_time = 0;
@@ -265,8 +246,8 @@ int Step_T3D_ME_mt::init_calculation()
 		thd.node_de_barrier_time = 0;
 		thd.mesh_to_pcl_time = 0;
 		thd.mesh_to_pcl_barrier_time = 0;
+		thd.iteration_time = 0;
 	}
-#endif
 
 	return 0;
 }
@@ -818,7 +799,6 @@ int substep_func_omp_T3D_ME_mt(
 
 	TIME_POINT(pcl_to_mesh_t1);
 #define sort_node_t0 pcl_to_mesh_t1
-	size_t sort_node_barrier_time = 0;
 
 	// sort node-elem pair according to node id
 	size_t ve_id;
@@ -842,7 +822,7 @@ int substep_func_omp_T3D_ME_mt(
 	barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
 	barrier_t1 = std::chrono::high_resolution_clock::now();
-	sort_node_barrier_time += (barrier_t1 - barrier_t0).count();
+	size_t map_pcl_to_mesh_barrier_time = (barrier_t1 - barrier_t0).count();
 
 	for (th_id = 0; th_id < my_th_id; ++th_id)
 	{
@@ -877,7 +857,7 @@ int substep_func_omp_T3D_ME_mt(
 	barrier_t0 = std::chrono::high_resolution_clock::now();
 #pragma omp barrier
 	barrier_t1 = std::chrono::high_resolution_clock::now();
-	sort_node_barrier_time += (barrier_t1 - barrier_t0).count();
+	size_t sort_node_barrier_time = (barrier_t1 - barrier_t0).count();
 
 #pragma omp master
 	{
@@ -1031,6 +1011,8 @@ int substep_func_omp_T3D_ME_mt(
 		}
 	}
 
+	TIME_POINT(node_a_v_t1);
+
 	// update rigid object
 #pragma omp master
 	{
@@ -1063,11 +1045,9 @@ int substep_func_omp_T3D_ME_mt(
 		self.prev_valid_pcl_num = self.valid_pcl_num;
 		self.valid_pcl_num = 0;
 	}
-
-	TIME_POINT(node_a_v_t1);
 	
+	TIME_POINT(elem_de_tn1);
 #pragma omp barrier
-
 	TIME_POINT(elem_de_t0);
 
 	// cal element strain and "enhancement"
@@ -1102,9 +1082,7 @@ int substep_func_omp_T3D_ME_mt(
 	}
 
 	TIME_POINT(elem_de_t1);
-
 #pragma omp barrier
-
 	TIME_POINT(node_de_t0);
 
 	double n_am_de_vol = 0.0;
@@ -1125,9 +1103,7 @@ int substep_func_omp_T3D_ME_mt(
 	}
 
 	TIME_POINT(node_de_t1);
-
 #pragma omp barrier
-
 	TIME_POINT(mesh_to_pcl_t0);
 
 	Acceleration* pn_a1, * pn_a2, * pn_a3, * pn_a4;
@@ -1277,116 +1253,130 @@ int substep_func_omp_T3D_ME_mt(
 	TIME_POINT(mesh_to_pcl_t1);
 
 #pragma omp barrier
-
-	TIME_POINT(iter_t1);
-
-#ifdef _DEBUG
-	thd.sort_pcl_barrier_time += sort_pcl_barrier_time;
-	thd.sort_pcl_time += (sort_pcl_t1 - sort_pcl_t0).count() - sort_pcl_barrier_time;
-	thd.pcl_to_mesh_time += (pcl_to_mesh_t1 - pcl_to_mesh_t0).count();
-	thd.sort_node_barrier_time += sort_node_barrier_time;
-	thd.sort_node_time += (sort_node_t1 - sort_node_t0).count() - sort_node_barrier_time;
-	thd.node_a_v_time += (node_a_v_t1 - node_a_v_t0).count();
-	thd.node_a_v_barrier_time += (elem_de_t0 - node_a_v_t1).count();
-	thd.elem_de_time += (elem_de_t1 - elem_de_t0).count();
-	thd.elem_de_barrier_time += (node_de_t0 - elem_de_t1).count();
-	thd.node_de_time += (node_de_t1 - node_de_t0).count();
-	thd.node_de_barrier_time += (mesh_to_pcl_t0 - node_de_t1).count();
-	thd.mesh_to_pcl_time += (mesh_to_pcl_t1 - mesh_to_pcl_t0).count();
-	thd.mesh_to_pcl_barrier_time += (iter_t1 - mesh_to_pcl_t1).count();
-
-#pragma omp master
-{
-	if (self.substep_index % 10 == 9)
-	{
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.sort_pcl_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.sort_pcl_barrier_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.pcl_to_mesh_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.sort_node_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.sort_node_barrier_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.node_a_v_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.node_a_v_barrier_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.elem_de_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.elem_de_barrier_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.node_de_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.node_de_barrier_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.mesh_to_pcl_time << ", ";
-		}
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			res_file_t3d_me_mt << thd.mesh_to_pcl_barrier_time << ", ";
-		}
-		res_file_t3d_me_mt << "\n";
-
-		for (size_t t_id = 0; t_id < thread_num; ++t_id)
-		{
-			ThreadData& thd = self.thread_datas[t_id];
-			thd.sort_pcl_time = 0;
-			thd.sort_pcl_barrier_time = 0;
-			thd.pcl_to_mesh_time = 0;
-			thd.sort_node_time = 0;
-			thd.sort_node_barrier_time = 0;
-			thd.node_a_v_time = 0;
-			thd.node_a_v_barrier_time = 0;
-			thd.elem_de_time = 0;
-			thd.elem_de_barrier_time = 0;
-			thd.node_de_time = 0;
-			thd.node_de_barrier_time = 0;
-			thd.mesh_to_pcl_time = 0;
-			thd.mesh_to_pcl_barrier_time = 0;
-		}
-	}
-}
-
-#endif
+//
+//	TIME_POINT(iter_t1);
+//
+//	thd.sort_pcl_time += (sort_pcl_t1 - sort_pcl_t0).count() - sort_pcl_barrier_time;
+//	thd.sort_pcl_barrier_time += sort_pcl_barrier_time;
+//	thd.pcl_to_mesh_time += (pcl_to_mesh_t1 - pcl_to_mesh_t0).count();
+//	thd.pcl_to_mesh_barrier_time += map_pcl_to_mesh_barrier_time;
+//	thd.sort_node_time += (sort_node_t1 - sort_node_t0).count() - map_pcl_to_mesh_barrier_time - sort_node_barrier_time;
+//	thd.sort_node_barrier_time += sort_node_barrier_time;
+//	thd.node_a_v_time += (node_a_v_t1 - node_a_v_t0).count();
+//	thd.node_a_v_barrier_time += (elem_de_t0 - elem_de_tn1).count();
+//	thd.elem_de_time += (elem_de_t1 - elem_de_t0).count();
+//	thd.elem_de_barrier_time += (node_de_t0 - elem_de_t1).count();
+//	thd.node_de_time += (node_de_t1 - node_de_t0).count();
+//	thd.node_de_barrier_time += (mesh_to_pcl_t0 - node_de_t1).count();
+//	thd.mesh_to_pcl_time += (mesh_to_pcl_t1 - mesh_to_pcl_t0).count();
+//	thd.mesh_to_pcl_barrier_time += (iter_t1 - mesh_to_pcl_t1).count();
+//	thd.iteration_time += thd.sort_pcl_time + thd.sort_pcl_barrier_time
+//		+ thd.pcl_to_mesh_time + thd.pcl_to_mesh_barrier_time
+//		+ thd.sort_node_time + thd.sort_node_barrier_time
+//		+ thd.node_a_v_time + thd.node_a_v_barrier_time
+//		+ thd.elem_de_time + thd.elem_de_barrier_time
+//		+ thd.node_de_time + thd.node_de_barrier_time
+//		+ thd.mesh_to_pcl_time + thd.mesh_to_pcl_barrier_time;
+//
+//#pragma omp master
+//{
+//	if (self.substep_index % 10 == 9)
+//	{
+//#ifdef TIMING
+//		size_t avg_sort_pcl_time = 0;
+//		size_t avg_sort_pcl_barrier_time = 0;
+//		size_t avg_pcl_to_mesh_time = 0;
+//		size_t avg_pcl_to_mesh_barrier_time = 0;
+//		size_t avg_sort_node_time = 0;
+//		size_t avg_sort_node_barrier_time = 0;
+//		size_t avg_node_a_v_time = 0;
+//		size_t avg_node_a_v_barrier_time = 0;
+//		size_t avg_elem_de_time = 0;
+//		size_t avg_elem_de_barrier_time = 0;
+//		size_t avg_node_de_time = 0;
+//		size_t avg_node_de_barrier_time = 0;
+//		size_t avg_mesh_to_pcl_time = 0;
+//		size_t avg_mesh_to_pcl_barrier_time = 0;
+//		size_t avg_iteration_time = 0;
+//
+//		res_file_t3d_me_mt << self.substep_index << ", ";
+//
+//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+//		{
+//			ThreadData& thd = self.thread_datas[t_id];
+//			avg_sort_pcl_time += thd.sort_pcl_time;
+//			avg_sort_pcl_barrier_time += thd.sort_pcl_barrier_time;
+//			avg_pcl_to_mesh_time += thd.pcl_to_mesh_time;
+//			avg_pcl_to_mesh_barrier_time += thd.pcl_to_mesh_barrier_time;
+//			avg_sort_node_time += thd.sort_node_time;
+//			avg_sort_node_barrier_time += thd.sort_node_barrier_time;
+//			avg_node_a_v_time += thd.node_a_v_time;
+//			avg_node_a_v_barrier_time += thd.node_a_v_barrier_time;
+//			avg_elem_de_time += thd.elem_de_time;
+//			avg_elem_de_barrier_time += thd.elem_de_barrier_time;
+//			avg_node_de_time += thd.node_de_time;
+//			avg_node_de_barrier_time += thd.node_de_barrier_time;
+//			avg_mesh_to_pcl_time += thd.mesh_to_pcl_time;
+//			avg_mesh_to_pcl_barrier_time += thd.mesh_to_pcl_barrier_time;
+//			avg_iteration_time += thd.iteration_time;
+//
+//			res_file_t3d_me_mt << thd.sort_pcl_time << ", " << thd.sort_pcl_barrier_time << ", "
+//				<< thd.pcl_to_mesh_time << ", " << thd.pcl_to_mesh_barrier_time << ", "
+//				<< thd.sort_node_time << ", " << thd.sort_node_barrier_time << ", "
+//				<< thd.node_a_v_time << ", " << thd.node_a_v_barrier_time << ", "
+//				<< thd.elem_de_time << ", " << thd.elem_de_barrier_time << ", "
+//				<< thd.node_de_time << ", " << thd.node_de_barrier_time << ", "
+//				<< thd.mesh_to_pcl_time << ", " << thd.mesh_to_pcl_barrier_time << ", "
+//				<< thd.iteration_time << ",";
+//		}
+//
+//		avg_sort_pcl_time /= thread_num;
+//		avg_sort_pcl_barrier_time /= thread_num;
+//		avg_pcl_to_mesh_time /= thread_num;
+//		avg_pcl_to_mesh_barrier_time /= thread_num;
+//		avg_sort_node_time /= thread_num;
+//		avg_sort_node_barrier_time /= thread_num;
+//		avg_node_a_v_time /= thread_num;
+//		avg_node_a_v_barrier_time /= thread_num;
+//		avg_elem_de_time /= thread_num;
+//		avg_elem_de_barrier_time /= thread_num;
+//		avg_node_de_time /= thread_num;
+//		avg_node_de_barrier_time /= thread_num;
+//		avg_mesh_to_pcl_time /= thread_num;
+//		avg_mesh_to_pcl_barrier_time /= thread_num;
+//		avg_iteration_time /= thread_num;
+//
+//		res_file_t3d_me_mt << avg_sort_pcl_time << ", " << avg_sort_pcl_barrier_time << ", "
+//			<< avg_pcl_to_mesh_time << ", " << avg_pcl_to_mesh_barrier_time << ", "
+//			<< avg_sort_node_time << ", " << avg_sort_node_barrier_time << ", "
+//			<< avg_node_a_v_time << ", " << avg_node_a_v_barrier_time << ", "
+//			<< avg_elem_de_time << ", " << avg_elem_de_barrier_time << ", "
+//			<< avg_node_de_time << ", " << avg_node_de_barrier_time << ", "
+//			<< avg_mesh_to_pcl_time << ", " << avg_mesh_to_pcl_barrier_time << ", "
+//			<< avg_iteration_time << ",\n";
+//#endif
+//
+//		for (size_t t_id = 0; t_id < thread_num; ++t_id)
+//		{
+//			ThreadData& thd = self.thread_datas[t_id];
+//			thd.sort_pcl_time = 0;
+//			thd.sort_pcl_barrier_time = 0;
+//			thd.pcl_to_mesh_time = 0;
+//			thd.pcl_to_mesh_barrier_time = 0;
+//			thd.sort_node_time = 0;
+//			thd.sort_node_barrier_time = 0;
+//			thd.node_a_v_time = 0;
+//			thd.node_a_v_barrier_time = 0;
+//			thd.elem_de_time = 0;
+//			thd.elem_de_barrier_time = 0;
+//			thd.node_de_time = 0;
+//			thd.node_de_barrier_time = 0;
+//			thd.mesh_to_pcl_time = 0;
+//			thd.mesh_to_pcl_barrier_time = 0;
+//			thd.iteration_time = 0;
+//		}
+//	}
+//}
 
 	return 0;
 }

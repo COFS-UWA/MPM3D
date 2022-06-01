@@ -10,6 +10,7 @@ QtSceneFromHdf5_T3D_CHM_mt::QtSceneFromHdf5_T3D_CHM_mt(
 	// view direction
 	fov_angle(45.0f), view_dist_scale(1.0f),
 	view_dir(1.0f, 0.0f, 0.0f), up_dir(0.0f, 0.0f, 1.0f),
+	view_movement(0.0f, 0.0f, 0.0f),
 	bg_color(0.2f, 0.3f, 0.3f),
 	// fog effect
 	fog_coef(0.0f), fog_color(bg_color),
@@ -71,7 +72,7 @@ void QtSceneFromHdf5_T3D_CHM_mt::update_view_mat()
 	view_dir.normalize();
 	view_pos = md_centre - dist_from_obj * view_dir;
 	view_mat.setToIdentity();
-	view_mat.lookAt(view_pos, md_centre, up_dir);
+	view_mat.lookAt(view_pos + view_movement, md_centre + view_movement, up_dir);
 }
 
 void QtSceneFromHdf5_T3D_CHM_mt::update_proj_mat()
@@ -509,8 +510,7 @@ bool QtSceneFromHdf5_T3D_CHM_mt::init_color_map_texture()
 			color_map,
 			field_name.c_str(),
 			"%11.6e",
-			"../../Asset/times_new_roman.ttf"
-			);
+			"../../Asset/times_new_roman.ttf");
 	}
 
 	return true;

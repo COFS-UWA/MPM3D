@@ -270,6 +270,15 @@ public:
 	void init_fixed_vz_bc(size_t vz_bc_num, const size_t* vz_bcs);
 	void set_vbc_vec(size_t n_id, double vecx, double vecy, double vecz);
 
+	inline void add_mat_model(size_t pcl_id,
+		MatModel::MaterialModel& mat_model,
+		size_t model_size)
+	{
+		pcl_mat_model[pcl_id] = &mat_model;
+		//pcl_mat_model_copy_offset[pcl_id] = pcl_mat_model_total_size;
+		//pcl_mat_model_total_size += model_size;
+	}
+
 protected:
 public:
 	inline bool is_in_element(
@@ -401,9 +410,9 @@ protected:
 	bool rigid_cube_is_valid;
 	bool rigid_t3d_mesh_is_valid;
 	RigidCylinder rigid_cylinder;
-	RigidCone rigid_cone;
 	RigidCube rigid_cube;
 	RigidObjectByT3DMesh rigid_t3d_mesh;
+	RigidCone rigid_cone;
 
 	// ad hoc design for output
 	double Kn_cont, Kt_cont;
@@ -520,6 +529,10 @@ public:
 	inline void set_sticky_contact_between_pcl_and_rect() noexcept { pcm = &sticky_contact; }
 	inline ContactModel3D *get_contact_model() noexcept { return pcm; }
 
+	inline void set_cylinder_vx_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vx_bc(ramp_up_time); }
+	inline void set_cylinder_vy_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vy_bc(ramp_up_time); }
+	inline void set_cylinder_vz_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vz_bc(ramp_up_time); }
+	
 	friend class Model_T3D_ME_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_ME_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_ME_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T3D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);

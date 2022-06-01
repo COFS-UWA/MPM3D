@@ -3,13 +3,13 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_piezofoundation2.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_piezofoundation.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']
 
-rb_z = [0.0]
-rb_fz = [0.0]
+rb_z = []
+rb_fz = []
 is_init = False
 ini_z = 0.0
 for th_id in range(th_num):
@@ -19,9 +19,8 @@ for th_id in range(th_num):
     if not is_init:
         ini_z = cen_z
         is_init = True
-    else:
-        rb_z.append(ini_z - cen_z)
-        rb_fz.append(rf_z)
+    rb_z.append(ini_z - cen_z)
+    rb_fz.append(rf_z)
 
 hdf5_file.close()
 

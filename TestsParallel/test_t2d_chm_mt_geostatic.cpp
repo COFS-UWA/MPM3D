@@ -35,8 +35,9 @@ void test_t2d_chm_mt_geostatic(int argc, char** argv)
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(model.get_pcl_num());
 	for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		les[p_id].set_param(1000.0, 0.0);
-		mms[p_id] = &les[p_id];
+		les->set_param(1000.0, 0.0);
+		mms[p_id] = les;
+		les = model.following_LinearElasticity(les);
 	}
 
 	std::cout << "pcl_num: " << pcl_num << ",\n"
@@ -100,8 +101,8 @@ void test_t2d_chm_mt_geostatic(int argc, char** argv)
 
 	Step_T2D_CHM_mt_Geo step("step1");
 	step.set_model(model);
-	//step.set_step_time(1.0);
-	step.set_step_time(1.0e-5);
+	step.set_step_time(1.0);
+	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(2);
 	step.add_time_history(out);
@@ -121,6 +122,6 @@ void test_t2d_chm_mt_geostatic_result(int argc, char** argv)
 	app.set_ani_time(1.0);
 	app.set_res_file(rf, "geostatic", Hdf5Field::s22);
 	app.set_win_size(900, 900);
-	app.set_color_map_fld_range(-2.0, 2.0);
+	app.set_color_map_fld_range(-2.0, 0.0);
 	app.start();
 }

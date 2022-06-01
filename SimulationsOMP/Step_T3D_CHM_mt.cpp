@@ -213,6 +213,7 @@ int Step_T3D_CHM_mt::init_calculation()
 	pcm_f = md.pcm_f;
 	memset(md.contact_substep_ids_f, 0xFF, sizeof(size_t)* md.ori_pcl_num);
 	
+	cf_tmp.reset();
 	if (md.has_rigid_cylinder())
 	{
 		prcy = &md.get_rigid_cylinder();

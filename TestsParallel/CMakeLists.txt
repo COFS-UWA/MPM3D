@@ -38,6 +38,7 @@ add_executable(
     test_t2d_chm_mt_pipe_conference.cpp
     test_t2d_chm_mt_pipe_conference_restart.cpp
     test_t2d_chm_mt_pipe_conference_den.cpp
+	test_t2d_chm_mt_pipe_conference_den_half.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_me_mt_1d_compression.cpp
     test_t3d_me_mt_cylinder_bcs.cpp
@@ -59,7 +60,6 @@ add_executable(
     test_t3d_me_mt_spudcan_sand_hypo.cpp
     test_t3d_chm_mt_spudcan_sand_hypo.cpp
     test_t3d_chm_mt_piezofoundation.cpp
-    test_t3d_chm_mt_spudcan.cpp
     # using tbb
     test_tbb_sorting.cpp
     test_tbb_sort_tri_mesh_node_task.cpp
@@ -71,9 +71,15 @@ add_executable(
     test_t3d_me_tbb_cap_compression.cpp
     test_t3d_chm_tbb_1d_consolidation.cpp
     test_t3d_chm_tbb_cap_compression.cpp
+	test_t3d_chm_tbb_piezofoundation.cpp
     # piezofoundation
     test_t3d_me_mt_piezofoundation.cpp
 	test_t3d_me_tbb_piezofoundation.cpp
+	# spudcan
+	test_t3d_me_mt_spudcan.cpp
+	test_t3d_chm_mt_spudcan.cpp
+	test_t3d_me_mt_spudcan_cy.cpp
+	test_t3d_chm_mt_spudcan_cy.cpp
     )
 
 target_include_directories(

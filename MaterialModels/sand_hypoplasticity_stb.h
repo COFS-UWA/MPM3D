@@ -20,6 +20,7 @@ struct SandHypoplasticityStbGlobal
 	__Float_Type__ ei0, ec0, ed0;
 	// norsand
 	__Float_Type__ N, chi, H;
+	__Float_Type__ alpha_vol;
 	// elasticity
 	__Float_Type__ Ig, niu;
 	// tensile
@@ -49,7 +50,8 @@ void SandHypoplasticityStbGlobal_set_param(
 	__Float_Type__ ed0, __Float_Type__ ec0, __Float_Type__ ei0,
 	__Float_Type__ N, __Float_Type__ chi, __Float_Type__ H,
 	__Float_Type__ Ig, __Float_Type__ niu,
-	__Float_Type__ tE, __Float_Type__ tniu);
+	__Float_Type__ tE, __Float_Type__ tniu,
+	__Float_Type__ alpha_vol);
 
 struct SandHypoplasticityStb
 {

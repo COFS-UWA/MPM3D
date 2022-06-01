@@ -10,32 +10,31 @@ class Step_T3D_CHM_TBB;
 
 namespace Step_T3D_CHM_TBB_Task
 {
-	constexpr size_t task_num_per_thread = 4;
+	static constexpr double max_Kf_ratio_divider = 1.0e10;
+	
+	constexpr size_t init_pcl_task_num_per_thread = 100;
+	constexpr size_t map_pcl_to_mesh_task_num_per_thread = 100;
+	constexpr size_t update_node_av_task_num_per_thread = 20;
+	constexpr size_t cal_elem_de_task_num_per_thread = 20;
+	constexpr size_t cal_node_de_task_num_per_thread = 20;
+	constexpr size_t map_mesh_to_pcl_task_num_per_thread = 100;
 
-	constexpr size_t min_pcl_num_per_init_pcl_task = 100;
 	constexpr size_t min_pcl_num_per_task = 100;
 	constexpr size_t min_node_elem_num_per_task = 20;
 	constexpr size_t min_elem_num_per_task = 20;
 
 	constexpr size_t cache_line_size = 64;
 
-	struct PclRange
-	{
-		size_t p_id0, p_id1;
-		char padding[cache_line_size];
-	};
-
-	struct NodeElemRange
-	{
-		size_t ve_id0, ve_id1;
-		char padding[cache_line_size];
-	};
-	
 	struct InitPclRes
 	{
 		size_t pcl_num;
+		double max_pcl_vol;
 		inline void join(const InitPclRes &other)
-		{ pcl_num += other.pcl_num; }
+		{
+			pcl_num += other.pcl_num;
+			if (max_pcl_vol < other.max_pcl_vol)
+				max_pcl_vol = other.max_pcl_vol;
+		}
 	};
 
 	class InitPcl
@@ -46,6 +45,8 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::Position Position;
 		
 		Step_T3D_CHM_TBB& stp;
+		const double* pcl_m_s;
+		const double* pcl_density_s;
 		size_t *in_pcl_in_elems, *in_prev_pcl_ids;
 		size_t task_num;
 
@@ -102,8 +103,7 @@ namespace Step_T3D_CHM_TBB_Task
 		// pcl range
 		const size_t* pcl_in_elems;
 		const size_t* prev_pcl_ids;
-		PclRange* pcl_ranges;
-
+		
 		// pcl_vars0
 		size_t *pcl_index0;
 		double* pcl_n0;
@@ -145,6 +145,7 @@ namespace Step_T3D_CHM_TBB_Task
 		typedef Model_T3D_CHM_mt::Acceleration Acceleration;
 		typedef Model_T3D_CHM_mt::Velocity Velocity;
 		typedef Model_T3D_CHM_mt::NodeHasVBC NodeHasVBC;
+		typedef Model_T3D_CHM_mt::NodeVBCVec NodeVBCVec;
 
 		Step_T3D_CHM_TBB& stp;
 
@@ -160,12 +161,13 @@ namespace Step_T3D_CHM_TBB_Task
 		Acceleration* node_a_f;
 		Velocity *node_v_s;
 		Velocity* node_v_f;
-		NodeHasVBC *node_has_vbc_s;
-		NodeHasVBC* node_has_vbc_f;
+		const NodeHasVBC *node_has_vbc_s;
+		const NodeHasVBC* node_has_vbc_f;
+		const NodeVBCVec *node_vbc_vec_s;
+		const NodeVBCVec* node_vbc_vec_f;
 
 		const size_t* node_ids;
 		const size_t* node_elem_offs;
-		NodeElemRange *node_elem_ranges;
 		
 		size_t four_elem_num, task_num;
 
@@ -221,13 +223,15 @@ namespace Step_T3D_CHM_TBB_Task
 		const double* elem_m_de_vol_s, *elem_m_de_vol_f;
 		const double* node_am_s, *node_am_f;
 		double* node_de_vol_s, *node_de_vol_f;
-		
+		// node ranges
 		const size_t* node_ids, * node_elem_offs;
-		NodeElemRange* node_elem_ranges;
+
+		size_t four_elem_num, task_num;
 
 	public:
 		CalNodeDe(Step_T3D_CHM_TBB &_stp) : stp(_stp) {}
 		void init() noexcept;
+		void update(size_t tsk_num) noexcept;
 		void work(size_t tsk_id) const;
 		inline void operator() (const tbb::blocked_range<size_t>& range) const
 		{ work(range.begin()); }
@@ -288,10 +292,16 @@ namespace Step_T3D_CHM_TBB_Task
 
 		const size_t* pcl_in_elems;
 		const size_t* prev_pcl_ids;
-		PclRange* pcl_ranges;
 		size_t* in_pcl_in_elems;
 		size_t* in_prev_pcl_ids;
 		
+		size_t pcl_num, task_num;
+		
+		// cavitation
+		double* pcl_u_cav;
+		double* pcl_is_cavitated;
+		double* elem_u_cav;
+
 	public:
 		MapBgMeshToPcl(Step_T3D_CHM_TBB &_stp) : stp(_stp) {}
 		void init() noexcept;
@@ -329,7 +339,7 @@ namespace Step_T3D_CHM_TBB_Task
 
 	public:
 		ContactRigidBody(Step_T3D_CHM_TBB& _stp) : stp(_stp) {}
-		void init() noexcept;
+		void init(double max_pcl_vol) noexcept;
 		void update() noexcept;
 		inline bool has_rigid_cylinder() const noexcept { return prcy != nullptr; }
 		inline bool has_rigid_mesh() const noexcept { return prmesh != nullptr; }

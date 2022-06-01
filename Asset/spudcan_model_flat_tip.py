@@ -3,13 +3,13 @@ from abaqusConstants import *
 from caeModules import *
 
 # model parameters
-# D = 6 m, beta = 150 degree
+# D = 3 m, beta = 150 degree
 h1 = 0.36
 h2 = 0.47
 h3 = 1.2
-r_tip = 0.25
+r_tip = 0.157
 r1 = 1.5
-r2 = 0.235
+r2 = 0.236
 
 # create spudcan model
 md = mdb.models['Model-1']

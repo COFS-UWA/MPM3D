@@ -612,6 +612,47 @@ int output_pcl_data_to_hdf5_file(
 	return res;
 }
 
+int output_pcl_data_to_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	Step_T3D_CHM_ud_TBB& stp,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	hid_t pcl_data_grp_id = rf.create_group(grp_id, "ParticleData");
+
+	const size_t ori_pcl_num = md.get_ori_pcl_num();
+	rf.write_attribute(pcl_data_grp_id, "ori_pcl_num", ori_pcl_num);
+
+	const size_t pcl_num = stp.prev_valid_pcl_num;
+	rf.write_attribute(pcl_data_grp_id, "pcl_num", pcl_num);
+
+	int res = 0;
+	if (pcl_num)
+	{
+		ParticleData* pcl_data = new ParticleData[pcl_num];
+		for (size_t p_id = 0; p_id < pcl_num; ++p_id)
+		{
+			ParticleData& pd = pcl_data[p_id];
+			pd.from_pcl(stp, p_id);
+		}
+		hid_t pcl_dt_id = get_pcl_dt_id();
+		res = rf.write_dataset(
+			pcl_data_grp_id,
+			"field",
+			pcl_num,
+			pcl_data,
+			pcl_dt_id);
+		H5Tclose(pcl_dt_id);
+		delete[] pcl_data;
+	}
+
+	rf.close_group(pcl_data_grp_id);
+	return res;
+}
+
 int load_pcl_data_from_hdf5_file(
 	Model_T3D_CHM_mt& md,
 	ResultFile_hdf5& rf,
@@ -861,6 +902,16 @@ int output_model_to_hdf5_file(
 	rf.write_attribute(md_grp_id, "miu", md.get_miu());
 	rf.write_attribute(md_grp_id, "k", md.get_k());
 	rf.write_attribute(md_grp_id, "Kf", md.get_Kf());
+	// cavitation
+	if (md.get_m_cav() != 0.0)
+	{
+		rf.write_attribute(md_grp_id, "m_cav", md.get_m_cav());
+		rf.write_attribute(md_grp_id, "u_cav", md.get_u_cav());
+		rf.write_attribute(md_grp_id, "f_cav_end", md.get_f_cav_end());
+		rf.write_attribute(md_grp_id, "u_cav_x", md.get_u_cav_x());
+		rf.write_attribute(md_grp_id, "u_cav_y", md.get_u_cav_y());
+		rf.write_attribute(md_grp_id, "u_cav_z", md.get_u_cav_z());
+	}
 	// background mesh
 	output_background_mesh_to_hdf5_file(md, rf, md_grp_id);
 	// search mesh
@@ -942,6 +993,22 @@ int time_history_complete_output_to_hdf5_file(
 	return 0;
 }
 
+int time_history_complete_output_to_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	Step_T3D_CHM_ud_TBB& stp,
+	ResultFile_hdf5& rf,
+	hid_t frame_grp_id)
+{
+	// particle data
+	output_pcl_data_to_hdf5_file(md, stp, rf, frame_grp_id);
+	// material model
+	output_material_model_to_hdf5_file(md, rf, frame_grp_id);
+	// rigid object
+	output_rigid_cylinder_to_hdf5_file(md, rf, frame_grp_id);
+	output_t3d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
+	return 0;
+}
+
 int load_model_from_hdf5_file(
 	Model_T3D_CHM_mt& md,
 	const char* hdf5_name)
@@ -960,6 +1027,19 @@ int load_model_from_hdf5_file(
 	rf.read_attribute(md_grp_id, "k", k);
 	rf.read_attribute(md_grp_id, "Kf", Kf);
 	md.set_fluid_props(Kf, k, miu);
+	// cavitation
+	if (rf.has_attribute(md_grp_id, "m_cav"))
+	{
+		double m_cav, f_cav_end;
+		double u_cav, u_cav_x, u_cav_y, u_cav_z;
+		rf.read_attribute(md_grp_id, "m_cav", m_cav);
+		rf.read_attribute(md_grp_id, "f_cav_end", f_cav_end);
+		rf.read_attribute(md_grp_id, "u_cav", u_cav);
+		rf.read_attribute(md_grp_id, "u_cav_x", u_cav_x);
+		rf.read_attribute(md_grp_id, "u_cav_y", u_cav_y);
+		rf.read_attribute(md_grp_id, "u_cav_z", u_cav_z);
+		md.set_cavitation(m_cav, u_cav, f_cav_end, u_cav_x, u_cav_y, u_cav_z);
+	}
 	// background mesh
 	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
 	// search mesh
@@ -999,6 +1079,155 @@ int load_model_from_hdf5_file(
 	rf.read_attribute(md_grp_id, "k", k);
 	rf.read_attribute(md_grp_id, "Kf", Kf);
 	md.set_fluid_props(Kf, k, miu);
+	// cavitation
+	if (rf.has_attribute(md_grp_id, "m_cav"))
+	{
+		double m_cav, f_cav_end;
+		double u_cav, u_cav_x, u_cav_y, u_cav_z;
+		rf.read_attribute(md_grp_id, "m_cav", m_cav);
+		rf.read_attribute(md_grp_id, "f_cav_end", f_cav_end);
+		rf.read_attribute(md_grp_id, "u_cav", u_cav);
+		rf.read_attribute(md_grp_id, "u_cav_x", u_cav_x);
+		rf.read_attribute(md_grp_id, "u_cav_y", u_cav_y);
+		rf.read_attribute(md_grp_id, "u_cav_z", u_cav_z);
+		md.set_cavitation(m_cav, u_cav, f_cav_end, u_cav_x, u_cav_y, u_cav_z);
+	}
+	// background mesh
+	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
+	// search mesh
+	load_search_mesh_from_hdf5_file(md, rf, md_grp_id);
+	// boundary condition
+	load_boundary_condition_from_hdf5_file(md, rf, md_grp_id);
+	// rigid object
+	load_t3d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
+
+	// time history
+	hid_t th_grp_id = rf.get_time_history_grp_id();
+	hid_t th_id = rf.open_group(th_grp_id, th_name);
+	char th_frame_name[30];
+	snprintf(th_frame_name, 30, "frame_%zu", frame_id);
+	hid_t th_frame_id = rf.open_group(th_id, th_frame_name);
+
+	// material model
+	load_material_model_from_hdf5_file(md, rf, th_frame_id);
+	// particle data
+	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
+	// rigid object state
+	load_rigid_cylinder_from_hdf5_file(md, rf, th_frame_id);
+	load_t3d_rigid_mesh_state_from_hdf5_file(md, rf, th_frame_id);
+
+	step.set_model(md);
+	step.is_first_step = false;
+	rf.read_attribute(th_frame_id, "total_time", step.start_time);
+	rf.read_attribute(th_frame_id, "total_substep_num", step.prev_substep_num);
+
+	rf.close_group(th_frame_id);
+	rf.close_group(th_id);
+	return 0;
+}
+
+int load_model_from_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	Step_T3D_CHM_TBB& step,
+	const char* hdf5_name,
+	const char* th_name,
+	size_t frame_id)
+{
+	ResultFile_hdf5 rf;
+	rf.open(hdf5_name);
+	hid_t file_id = rf.get_file_id();
+	if (file_id < 0)
+		return -1;
+
+	// model data
+	hid_t md_grp_id = rf.get_model_data_grp_id();
+	// fluid properties
+	double miu, k, Kf;
+	rf.read_attribute(md_grp_id, "miu", miu);
+	rf.read_attribute(md_grp_id, "k", k);
+	rf.read_attribute(md_grp_id, "Kf", Kf);
+	md.set_fluid_props(Kf, k, miu);
+	// cavitation
+	if (rf.has_attribute(md_grp_id, "m_cav"))
+	{
+		double m_cav, f_cav_end;
+		double u_cav, u_cav_x, u_cav_y, u_cav_z;
+		rf.read_attribute(md_grp_id, "m_cav", m_cav);
+		rf.read_attribute(md_grp_id, "f_cav_end", f_cav_end);
+		rf.read_attribute(md_grp_id, "u_cav", u_cav);
+		rf.read_attribute(md_grp_id, "u_cav_x", u_cav_x);
+		rf.read_attribute(md_grp_id, "u_cav_y", u_cav_y);
+		rf.read_attribute(md_grp_id, "u_cav_z", u_cav_z);
+		md.set_cavitation(m_cav, u_cav, f_cav_end, u_cav_x, u_cav_y, u_cav_z);
+	}
+	// background mesh
+	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
+	// search mesh
+	load_search_mesh_from_hdf5_file(md, rf, md_grp_id);
+	// boundary condition
+	load_boundary_condition_from_hdf5_file(md, rf, md_grp_id);
+	// rigid object
+	load_t3d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
+
+	// time history
+	hid_t th_grp_id = rf.get_time_history_grp_id();
+	hid_t th_id = rf.open_group(th_grp_id, th_name);
+	char th_frame_name[30];
+	snprintf(th_frame_name, 30, "frame_%zu", frame_id);
+	hid_t th_frame_id = rf.open_group(th_id, th_frame_name);
+
+	// material model
+	load_material_model_from_hdf5_file(md, rf, th_frame_id);
+	// particle data
+	load_pcl_data_from_hdf5_file(md, rf, th_frame_id);
+	// rigid object state
+	load_rigid_cylinder_from_hdf5_file(md, rf, th_frame_id);
+	load_t3d_rigid_mesh_state_from_hdf5_file(md, rf, th_frame_id);
+
+	step.set_model(md);
+	step.is_first_step = false;
+	rf.read_attribute(th_frame_id, "total_time", step.start_time);
+	rf.read_attribute(th_frame_id, "total_substep_num", step.prev_substep_num);
+
+	rf.close_group(th_frame_id);
+	rf.close_group(th_id);
+	return 0;
+}
+
+int load_model_from_hdf5_file(
+	Model_T3D_CHM_mt& md,
+	Step_T3D_CHM_ud_TBB& step,
+	const char* hdf5_name,
+	const char* th_name,
+	size_t frame_id)
+{
+	ResultFile_hdf5 rf;
+	rf.open(hdf5_name);
+	hid_t file_id = rf.get_file_id();
+	if (file_id < 0)
+		return -1;
+
+	// model data
+	hid_t md_grp_id = rf.get_model_data_grp_id();
+	// fluid properties
+	double miu, k, Kf;
+	rf.read_attribute(md_grp_id, "miu", miu);
+	rf.read_attribute(md_grp_id, "k", k);
+	rf.read_attribute(md_grp_id, "Kf", Kf);
+	md.set_fluid_props(Kf, k, miu);
+	// cavitation
+	if (rf.has_attribute(md_grp_id, "m_cav"))
+	{
+		double m_cav, f_cav_end;
+		double u_cav, u_cav_x, u_cav_y, u_cav_z;
+		rf.read_attribute(md_grp_id, "m_cav", m_cav);
+		rf.read_attribute(md_grp_id, "f_cav_end", f_cav_end);
+		rf.read_attribute(md_grp_id, "u_cav", u_cav);
+		rf.read_attribute(md_grp_id, "u_cav_x", u_cav_x);
+		rf.read_attribute(md_grp_id, "u_cav_y", u_cav_y);
+		rf.read_attribute(md_grp_id, "u_cav_z", u_cav_z);
+		md.set_cavitation(m_cav, u_cav, f_cav_end, u_cav_x, u_cav_y, u_cav_z);
+	}
 	// background mesh
 	load_background_mesh_from_hdf5_file(md, rf, md_grp_id);
 	// search mesh

@@ -12,8 +12,24 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
+//#define OED_TEST
+
 void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 {
+	//constexpr double e0 = 0.536;
+	//const double ini_stress[6] = { -30.0e3, -30.0e3, -30.0e3, 0.0, 0.0, 0.0 };
+	//
+	//constexpr double e0 = 0.544;
+	//const double ini_stress[6] = { -50.0e3, -50.0e3, -50.0e3, 0.0, 0.0, 0.0 };
+	//
+	//constexpr double e0 = 0.527;
+	constexpr double e0 = 0.55;
+	//constexpr double e0 = 0.72;
+	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	//
+	//constexpr double e0 = 0.534;
+	//const double ini_stress[6] = { -200.0e3, -200.0e3, -200.0e3, 0.0, 0.0, 0.0 };
+	
 	TetrahedronMesh teh_mesh;
 	teh_mesh.load_mesh_from_hdf5("../../Asset/brick_mesh_1.00_2x2x10.h5");
 	teh_mesh.init_search_grid(0.05, 0.05, 0.05);
@@ -22,16 +38,16 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 
-	constexpr double e0 = 0.55; // dense
-	//constexpr double e0 = 0.75; // loose
 	constexpr double den_grain = 2670.0;
+
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
 	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), 2.0, 1.0, 2.0e4, 5.0e-9, 1.0); // elastic
-	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 3.6e8, 5.0e-9, 1.0); // hypo, undrained
-	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0); // hypo, drained
+	//model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 3.6e8, 5.0e-9, 1.0); // undrained
+	model.init_pcls(pcl_generator, e0 / (1.0 + e0), den_grain, 1000.0, 0.0, 5.0e-9, 1.0); // drained
 	const size_t pcl_num = model.get_pcl_num();
+	MatModel::MaterialModel** mms = model.get_mat_models();
 	// Linear elasticity
 	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	//// Linear elasticity
@@ -42,63 +58,81 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//	model.add_mat_model(pcl_id, le, sizeof(MatModel::LinearElasticity));
 	//}
 	// Stb hypoplasticity
-	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
-	MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		MatModel::SandHypoplasticityStbWrapper& shp = shps[pcl_id];
-		shp.set_param(
-			ini_stress, e0,
-			30.0, 1354.0e6, 0.34,
-			0.18, 1.27,
-			0.49, 0.76, 0.86,
-			//1.5, 43.0, 180.0, //100.0, 180.0,
-			1.5, 43.0, 250.0,
-			200.0, 0.2);
-	 	model.add_mat_model(pcl_id, shp, sizeof(MatModel::SandHypoplasticityStbWrapper));
-	}
-	// Norsand
-	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
-	//MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	MatModel::NorsandWrapper& n = ns[pcl_id];
-	//	n.set_param(
+	//	//shps->set_param(
+	//	//	ini_stress, e0,
+	//	//	30.02298846, 20.29e9, 0.2966,
+	//	//	0.177, 0.04,
+	//	//	0.441, 0.831, 0.956,
+	//	//	1.7, 23.0, 200.0,
+	//	//	130.0, 0.2);
+	//	shps->set_param(
 	//		ini_stress, e0,
-	//		30.0,
-	//		0.86 /*0.7847*/, 0.015,
-	//		0.3, 3.6, 250.0,
-	//		200.0, 0.2);
-	//	model.add_mat_model(pcl_id, n, sizeof(MatModel::NorsandWrapper));
+	//		30.0, 1354.0e6, 0.34,
+	//		0.18, 1.27,
+	//		0.49, 0.76, 0.86,
+	//		1.5, 43.0, 100.0, // 100.0, 180.0
+	//		200.0, 0.2, 2.0);
+	// 	model.add_mat_model(pcl_id, *shps, sizeof(MatModel::SandHypoplasticityStbWrapper));
+	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
 	//}
+	// Norsand
+	MatModel::NorsandWrapper* ns = model.add_NorsandWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		//ns->set_param(
+		//	ini_stress, e0,
+		//	30.0,
+		//	0.875, 0.0058,
+		//	0.3, 2.5, 230.0,
+		//	230.0, 0.2);
+		ns->set_param(
+			ini_stress, e0,
+			30.0,
+			0.85, 0.011,
+			0.3, 3.5, 250.0,
+			150.0, 0.2);
+		model.add_mat_model(pcl_id, *ns, sizeof(MatModel::NorsandWrapper));
+		ns = model.following_NorsandWrapper(ns);
+	}
 
 	// cavitation
-	model.set_cavitation(100.0, -100.0e3, 0.01);
+	//model.set_cavitation(100.0, -300.0e3, 0.05);
 
-	//model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
+	//model.set_cylinder_vz_bc_ramp_up_time(1.0);
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.05);
-	//const double Kct = 20.0 / (0.025 * 0.025); // elastic 
-	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo undrained 
-	//const double Kct = 2.0e4 / (0.025 * 0.025); // hypo drained
+	//const double Kct = 20.0 / (0.025 * 0.025); // elastic
+#ifndef OED_TEST
+	const double Kct = 1.0e5 / (0.025 * 0.025); // drained loose
+	//const double Kct = 1.0e6 / (0.025 * 0.025); // undrained
+#else
+	const double Kct = 1.0e6 / (0.025 * 0.025);
+#endif
 	model.set_contact_param(Kct, Kct, 0.1, 0.2, Kct / 10.0, Kct / 10.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
-	//find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.2, false);
+#ifdef OED_TEST
+	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.2, false);
+#endif
 	model.init_fixed_vx_s_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
-	model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
+	//model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 
 	IndexArray vy_bc_pt_array(100);
 	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
-	//find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.2, false);
+#ifdef OED_TEST
+	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.2, false);
+#endif
 	model.init_fixed_vy_s_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
-	model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
+	//model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
 	IndexArray vz_bc_pt_array(100);
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, 0.0);
 	model.init_fixed_vz_s_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
-	model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
+	//model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
 	//QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
 	////QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
@@ -106,15 +140,15 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(30.0f, -20.0f);
-	//md_disp.set_light_dir(35.0f, -15.0f);
+	//md_disp.set_view_dir(15.0f, -10.0f);
+	//md_disp.set_light_dir(20.0f, -15.0f);
 	////md_disp.set_view_dist_scale(0.5);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	//size_t disp_p_id = 2000;
-	//md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
+	////size_t disp_p_id = 2000;
+	////md_disp.set_pts_from_pcl_id(&disp_p_id, 1, 0.01);
 	//md_disp.start();
 	//return;
 
@@ -178,16 +212,21 @@ void test_t3d_chm_mt_cap_compression_result(int argc, char** argv)
 	app.set_view_dir(30.0f, 0.0f);
 	app.set_light_dir(30.0f, 20.0f);
 	//app.set_view_dist_scale(1.1);
-	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
-	//app.set_png_name("t3d_chm_mt_cap_compression");
+	app.set_color_map_geometry(0.95f, 0.45f, 0.5f);
+	app.set_png_name("t3d_chm_mt_cap_compression");
 	//app.set_gif_name("t3d_chm_mt_cap_compression");
 	// s33
-	//app.set_res_file(rf, "compression", Hdf5Field::s33);
+	//app.set_res_file(rf, "compression", Hdf5Field::mat_s33);
 	////app.set_color_map_fld_range(-50.0, 0.0); // elastic
-	//app.set_color_map_fld_range(-800.0e3, 0.0); // hypo
-	// 	p
-	app.set_res_file(rf, "compression", Hdf5Field::p);
-	app.set_color_map_fld_range(-200.0e3, 50.0e3); // hypo
+	////app.set_color_map_fld_range(-200e3, -100.0e3); // norsand drained
+	//app.set_color_map_fld_range(-600e3, -100.0e3); // norsand undrained
+	// e
+	app.set_res_file(rf, "compression", Hdf5Field::mat_e);
+	app.set_color_map_fld_range(0.54, 0.6);
+	// p
+	//app.set_res_file(rf, "compression", Hdf5Field::p);
+	////app.set_color_map_fld_range(-100.0e3, 100.0e3); // sand hypo
+	//app.set_color_map_fld_range(-400.0e3, 100.0e3); // norsand
 	// shear strain
 	//app.set_res_file(rf, "compression", Hdf5Field::mises_strain_3d);
 	//app.set_color_map_fld_range(0.0, 0.1);

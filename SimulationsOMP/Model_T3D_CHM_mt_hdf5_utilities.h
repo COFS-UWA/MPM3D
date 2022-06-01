@@ -7,6 +7,7 @@
 #include "Step_T3D_CHM_mt_Geo.h"
 #include "Step_T3D_CHM_ud_mt_subiter.h"
 #include "Step_T3D_CHM_TBB.h"
+#include "Step_T3D_CHM_ud_TBB.h"
 
 namespace Model_T3D_CHM_mt_hdf5_utilities
 {
@@ -27,6 +28,9 @@ struct ParticleData
 	double ee11, ee22, ee33, ee12, ee23, ee31;
 	double pe11, pe22, pe33, pe12, pe23, pe31;
 	size_t mat_id; // material model id
+
+	// cavitation
+	double u_cav, is_cavitated;
 
 	void from_pcl(
 		Model_T3D_CHM_mt& md,
@@ -100,6 +104,9 @@ struct ParticleData
 		pe23 = pcl_pe.e23;
 		pe31 = pcl_pe.e31;
 		mat_id = md.pcl_mat_model[id]->get_id();
+		// cavitation
+		u_cav = md.pcl_u_cav[pcl_offset];
+		is_cavitated = md.pcl_is_cavitated[pcl_offset];
 	}
 
 	void from_pcl(
@@ -172,6 +179,84 @@ struct ParticleData
 		pe23 = pcl_pe.e23;
 		pe31 = pcl_pe.e31;
 		mat_id = stp.pcl_mat_model[id]->get_id();
+		// cavitation
+		u_cav = stp.pcl_u_cav[pcl_offset];
+		is_cavitated = stp.pcl_is_cavitated[pcl_offset];
+	}
+
+	void from_pcl(
+		Step_T3D_CHM_ud_TBB& stp,
+		size_t pcl_offset)
+	{
+		auto& spva = stp.spvas[stp.prev_spva_id()];
+		id = spva.pcl_index[pcl_offset];
+		const Model_T3D_CHM_mt::Force& pcl_bf_s = stp.pcl_bf_s[id];
+		bfx_s = pcl_bf_s.fx;
+		bfy_s = pcl_bf_s.fy;
+		bfz_s = pcl_bf_s.fz;
+		const Model_T3D_CHM_mt::Force& pcl_bf_f = stp.pcl_bf_f[id];
+		bfx_f = pcl_bf_f.fx;
+		bfy_f = pcl_bf_f.fy;
+		bfz_f = pcl_bf_f.fz;
+		const Model_T3D_CHM_mt::Force& pcl_t = stp.pcl_t[id];
+		tx = pcl_t.fx;
+		ty = pcl_t.fy;
+		tz = pcl_t.fz;
+		n = spva.pcl_n[pcl_offset];
+		m_s = stp.pcl_m_s[id];
+		density_s = stp.pcl_density_s[id];
+		density_f = spva.pcl_density_f[pcl_offset];
+		vol = m_s / (density_s * (1.0 - n));
+		const Model_T3D_CHM_mt::Position& pcl_pos = stp.pcl_pos[id];
+		const Model_T3D_CHM_mt::Displacement& pcl_u_s = spva.pcl_u_s[pcl_offset];
+		x = pcl_pos.x + pcl_u_s.ux;
+		y = pcl_pos.y + pcl_u_s.uy;
+		z = pcl_pos.z + pcl_u_s.uz;
+		Model_T3D_CHM_mt::Displacement& pcl_u_f = spva.pcl_u_f[pcl_offset];
+		ux_f = pcl_u_f.ux - pcl_u_s.ux;
+		uy_f = pcl_u_f.uy - pcl_u_s.uy;
+		uz_f = pcl_u_f.uz - pcl_u_s.uz;
+		Model_T3D_CHM_mt::Velocity& pcl_v_s = spva.pcl_v_s[pcl_offset];
+		vx_s = pcl_v_s.vx;
+		vy_s = pcl_v_s.vy;
+		vz_s = pcl_v_s.vz;
+		Model_T3D_CHM_mt::Velocity& pcl_v_f = spva.pcl_v_f[pcl_offset];
+		vx_f = pcl_v_f.vx;
+		vy_f = pcl_v_f.vy;
+		vz_f = pcl_v_f.vz;
+		Model_T3D_CHM_mt::Stress& pcl_stress = spva.pcl_stress[pcl_offset];
+		s11 = pcl_stress.s11;
+		s22 = pcl_stress.s22;
+		s33 = pcl_stress.s33;
+		s12 = pcl_stress.s12;
+		s23 = pcl_stress.s23;
+		s31 = pcl_stress.s31;
+		p = spva.pcl_p[pcl_offset];
+		Model_T3D_CHM_mt::Strain& pcl_e = spva.pcl_strain[pcl_offset];
+		e11 = pcl_e.e11;
+		e22 = pcl_e.e22;
+		e33 = pcl_e.e33;
+		e12 = pcl_e.e12;
+		e23 = pcl_e.e23;
+		e31 = pcl_e.e31;
+		Model_T3D_CHM_mt::Strain& pcl_ee = spva.pcl_estrain[pcl_offset];
+		ee11 = pcl_ee.e11;
+		ee22 = pcl_ee.e22;
+		ee33 = pcl_ee.e33;
+		ee12 = pcl_ee.e12;
+		ee23 = pcl_ee.e23;
+		ee31 = pcl_ee.e31;
+		Model_T3D_CHM_mt::Strain& pcl_pe = spva.pcl_pstrain[pcl_offset];
+		pe11 = pcl_pe.e11;
+		pe22 = pcl_pe.e22;
+		pe33 = pcl_pe.e33;
+		pe12 = pcl_pe.e12;
+		pe23 = pcl_pe.e23;
+		pe31 = pcl_pe.e31;
+		mat_id = stp.pcl_mat_model[id]->get_id();
+		// cavitation
+		u_cav = stp.pcl_u_cav[pcl_offset];
+		is_cavitated = stp.pcl_is_cavitated[pcl_offset];
 	}
 
 	void to_pcl(
@@ -251,6 +336,9 @@ struct ParticleData
 		pcl_pstrain.e23 = pe23;
 		pcl_pstrain.e31 = pe31;
 		md.pcl_mat_model[id] = &mm;
+		// cavitation
+		md.pcl_u_cav[pcl_offset] = u_cav;
+		md.pcl_is_cavitated[pcl_offset] = is_cavitated;
 	}
 };
 
@@ -310,6 +398,9 @@ inline hid_t get_pcl_dt_id()
 	H5Tinsert(res, "pe23", HOFFSET(ParticleData, pe23), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "pe31", HOFFSET(ParticleData, pe31), H5T_NATIVE_DOUBLE);
 	H5Tinsert(res, "mat_id", HOFFSET(ParticleData, mat_id), H5T_NATIVE_ULLONG);
+	// cavitation
+	H5Tinsert(res, "u_cav", HOFFSET(ParticleData, u_cav), H5T_NATIVE_DOUBLE);
+	H5Tinsert(res, "is_cavitated", HOFFSET(ParticleData, is_cavitated), H5T_NATIVE_DOUBLE);
 	return res;
 }
 
@@ -404,6 +495,7 @@ int output_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt &stp, Res
 int output_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt_Geo& stp, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_mt_subiter& stp, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
+int output_pcl_data_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp, ResultFile_hdf5& rf, hid_t grp_id);
 int load_pcl_data_from_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 int output_material_model_to_hdf5_file(Model_T3D_CHM_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -424,10 +516,13 @@ int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM
 int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt_Geo& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_mt_subiter& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+int time_history_complete_output_to_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 
 // load model data from hdf5 to model data
 int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, const char* hdf5_name);
 int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_mt& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
+int load_model_from_hdf5_file(Model_T3D_CHM_mt& md, Step_T3D_CHM_ud_TBB& step, const char* hdf5_name, const char* th_name, size_t frame_id);
 
 };
 

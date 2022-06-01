@@ -7,9 +7,15 @@
 # External dependencies
 Eigen, Hdf5, Qt5 (5.15.0), Intel Threading Building Block (TBB), OpenGL
 
+<<<<<<< HEAD
 Eigen libraries are all the header files and put into Vendors/ folder as Eigen/include/Eigen
 
 TBB, Hdf5, freetype comes in from vcpkg:
+=======
+Eigen libraries are all the header files, and put into Vendors\Eigen\include\Eigen\ folder
+
+TBB, Hdf5, freetype comes as vcpkg packages:
+>>>>>>> dbf1ced75ace06f8b297850a7eecf93970f556e9
 • tbb:x64-windows
 • hdf5:x64-windows
 • freetype:x64-windows

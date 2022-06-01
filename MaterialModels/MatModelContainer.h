@@ -1,7 +1,7 @@
 #ifndef __Mat_Model_Container_h__
 #define __Mat_Model_Container_h__
 
-#include "ItemBuffer.hpp"
+#include "CLAItemBuffer.hpp"
 #include "LinkList.hpp"
 
 #include "LinearElasticity.h"
@@ -23,7 +23,7 @@ namespace MatModel
 	class __Mat_Model_Container__
 	{
 	protected:
-		MemoryUtils::ItemBuffer<MModel> buffer;
+		MemoryUtils::CLAItemBuffer<MModel> buffer;
 		LinkList<MModel, offsetof(MModel, pointer_by_container)> list;
 
 	public:
@@ -43,7 +43,7 @@ namespace MatModel
 				new (iter) MModel;
 				iter->id = container->gen_uid();
 				list.append(iter);
-				++iter;
+				iter = buffer.following_item(iter);
 			}
 			return res;
 		}
@@ -53,6 +53,7 @@ namespace MatModel
 		inline MModel *first() { return list.first(); }
 		inline MModel *next(MModel *mm) { return list.next(mm); }
 		inline bool is_not_end(MModel *mm) { return list.is_not_end(mm); }
+		inline MModel* following_model(MModel* mm) { return buffer.following_item(mm); }
 	};
 
 #define __Add_Mat_Model_to_Model_Container__(ModelName) \
@@ -78,6 +79,10 @@ public:                                          \
 	inline bool is_not_end_##ModelName##(ModelName *mm) \
 	{                                            \
 		return ModelName##Container.is_not_end(mm);  \
+	}                                             \
+	inline ModelName* following_##ModelName##(ModelName* mm) \
+	{                                            \
+		return ModelName##Container.following_model(mm);  \
 	}
 
 	class MatModelContainer

@@ -8,6 +8,7 @@ add_library(
     # precompiled header
     CommonUtils_pcp.h CommonUtils_pcp.cpp
     #
+	ivt_utils.h
     LinkList.hpp
     StackList.hpp
     RandNumGenerator.h RandNumGenerator.cpp
@@ -20,6 +21,14 @@ target_include_directories(
     CommonUtils PUBLIC
     ${COMMONUTILS_INCLUDE_DIR}
     )
+
+if (EXISTS $ENV{IVT_ROOT})
+	message(STATUS "$ENV{IVT_ROOT}/lib64/libittnotify.lib")
+	target_compile_definitions(CommonUtils PUBLIC __IVT_FOUND__)
+	target_include_directories(CommonUtils PUBLIC "$ENV{IVT_ROOT}/include/")
+	target_link_directories(CommonUtils PUBLIC "$ENV{IVT_ROOT}/lib64/")
+	target_link_libraries(CommonUtils PUBLIC "$ENV{IVT_ROOT}/lib64/libittnotify.lib")
+endif()
 
 if (MSVC)
     target_compile_definitions(CommonUtils PRIVATE _CRT_SECURE_NO_WARNINGS)

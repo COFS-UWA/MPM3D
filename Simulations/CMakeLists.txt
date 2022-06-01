@@ -87,11 +87,11 @@ target_include_directories(
 target_link_libraries(
     Simulations PUBLIC
     # Internal dependencies
+	CommonUtils
     MemoryUtils
     MaterialModels
     Geometry
     # External dependencies
-    #${HDF5_LIBRARIES}
 	hdf5::hdf5-shared hdf5::hdf5_hl-shared
     )
 

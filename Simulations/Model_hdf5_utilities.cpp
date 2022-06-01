@@ -226,6 +226,31 @@ namespace Model_hdf5_utilities
 			delete[] mm_data;
 		}
 
+		// norsand
+		mm_num = mc.get_num_NorsandWrapper();
+		if (mm_num)
+		{
+			rf.write_attribute(mc_grp_id, "Norsand_num", mm_num);
+
+			NorsandStateData* mm_data = new NorsandStateData[mm_num];
+			mm_id = 0;
+			for (MatModel::NorsandWrapper* iter = mc.first_NorsandWrapper();
+				mc.is_not_end_NorsandWrapper(iter); iter = mc.next_NorsandWrapper(iter))
+			{
+				mm_data[mm_id].from_mm(*iter);
+				++mm_id;
+			}
+			hid_t ns_dt_id = get_norsand_dt_id();
+			rf.write_dataset(
+				mc_grp_id,
+				"Norsand",
+				mm_num,
+				mm_data,
+				ns_dt_id);
+			H5Tclose(ns_dt_id);
+			delete[] mm_data;
+		}
+		
 		return 0;
 	}
 
@@ -258,9 +283,8 @@ namespace Model_hdf5_utilities
 			MatModel::LinearElasticity* mms = mc.add_LinearElasticity(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				LinearElasticityStateData& mmd = mm_data[mm_id];
-				MatModel::LinearElasticity& mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_LinearElasticity(mms);
 			}
 			delete[] mm_data;
 		}
@@ -284,9 +308,8 @@ namespace Model_hdf5_utilities
 			MatModel::ModifiedCamClay* mms = mc.add_ModifiedCamClay(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				ModifiedCamClayStateData& mmd = mm_data[mm_id];
-				MatModel::ModifiedCamClay& mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_ModifiedCamClay(mms);
 			}
 			delete[] mm_data;
 		}
@@ -312,9 +335,8 @@ namespace Model_hdf5_utilities
 				= mc.add_UndrainedModifiedCamClay(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				UndrainedModifiedCamClayStateData& mmd = mm_data[mm_id];
-				MatModel::UndrainedModifiedCamClay& mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_UndrainedModifiedCamClay(mms);
 			}
 			delete[] mm_data;
 		}
@@ -338,9 +360,8 @@ namespace Model_hdf5_utilities
 			MatModel::VonMises* mms = mc.add_VonMises(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				VonMisesStateData& mmd = mm_data[mm_id];
-				MatModel::VonMises &mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_VonMises(mms);
 			}
 			delete[] mm_data;
 		}
@@ -364,9 +385,8 @@ namespace Model_hdf5_utilities
 			MatModel::Tresca* mms = mc.add_Tresca(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				TrescaStateData& mmd = mm_data[mm_id];
-				MatModel::Tresca& mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_Tresca(mms);
 			}
 			delete[] mm_data;
 		}
@@ -389,9 +409,8 @@ namespace Model_hdf5_utilities
 				= mc.add_MohrCoulombWrapper(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				MohrCoulombStateData& mmd = mm_data[mm_id];
-				MatModel::MohrCoulombWrapper& mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_MohrCoulombWrapper(mms);
 			}
 			delete[] mm_data;
 		}
@@ -415,9 +434,8 @@ namespace Model_hdf5_utilities
 				= mc.add_SandHypoplasticityByUmat(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				SandHypoplasticityByUmatStateData& mmd = mm_data[mm_id];
-				MatModel::SandHypoplasticityByUmat& mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_SandHypoplasticityByUmat(mms);
 			}
 			delete[] mm_data;
 		}
@@ -441,9 +459,8 @@ namespace Model_hdf5_utilities
 				= mc.add_SandHypoplasticityWrapper(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				SandHypoplasticityStateData& mmd = mm_data[mm_id];
-				MatModel::SandHypoplasticityWrapper &mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_SandHypoplasticityWrapper(mms);
 			}
 			delete[] mm_data;
 		}
@@ -467,9 +484,31 @@ namespace Model_hdf5_utilities
 				= mc.add_SandHypoplasticityStbWrapper(mm_num);
 			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
 			{
-				SandHypoplasticityStbStateData& mmd = mm_data[mm_id];
-				MatModel::SandHypoplasticityStbWrapper& mm = mms[mm_id];
-				mmd.to_mm(mm);
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_SandHypoplasticityStbWrapper(mms);
+			}
+			delete[] mm_data;
+		}
+		
+		// Norsand
+		if (rf.has_dataset(mc_grp_id, "Norsand"))
+		{
+			rf.read_attribute(mc_grp_id, "Norsand_num", mm_num);
+
+			NorsandStateData* mm_data = new NorsandStateData[mm_num];
+			hid_t ns_dt_id = get_norsand_dt_id();
+			rf.read_dataset(
+				mc_grp_id,
+				"Norsand",
+				mm_num,
+				mm_data,
+				ns_dt_id);
+			H5Tclose(ns_dt_id);
+			MatModel::NorsandWrapper* mms = mc.add_NorsandWrapper(mm_num);
+			for (size_t mm_id = 0; mm_id < mm_num; ++mm_id)
+			{
+				mm_data[mm_id].to_mm(*mms);
+				mms = mc.following_NorsandWrapper(mms);
 			}
 			delete[] mm_data;
 		}

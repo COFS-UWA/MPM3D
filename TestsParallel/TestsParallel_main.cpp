@@ -6,9 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-	//test_von_mises(argc, argv);
-
-	//test_Step_OMP(argc, argv);
+    //test_Step_OMP(argc, argv);
 
 	//test_t2d_me_mt_test1(argc, argv);
 	
@@ -63,6 +61,9 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cap_compression_result(argc, argv);
 	//test_t3d_me_mt_cap_compression_result_div(argc, argv);
 
+	//test_t3d_chm_mt_cap_compression(argc, argv);
+	//test_t3d_chm_mt_cap_compression_result(argc, argv);
+
 	//test_t3d_me_mt_block_sliding(argc, argv);
 	//test_t3d_me_mt_block_sliding_result(argc, argv);
 
@@ -94,8 +95,8 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
 
-	test_t2d_chm_mt_geostatic(argc, argv);
-	//test_t2d_chm_mt_geostatic_result(argc, argv);
+	//test_t2d_chm_mt_geostatic(argc, argv);
+	test_t2d_chm_mt_geostatic_result(argc, argv);
 
 	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
@@ -106,6 +107,10 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_pipe_conference_den(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_den_restart(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_den_result(argc, argv);
+
+	//test_t2d_chm_mt_pipe_conference_den_half_geo(argc, argv);
+	//test_t2d_chm_mt_pipe_conference_den_half(argc, argv);
+	//test_t2d_chm_mt_pipe_conference_den_half_result(argc, argv);
 
 	//test_t3d_me_mt_test_spudcan_model(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_model(argc, argv);
@@ -125,9 +130,6 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
-	//test_t3d_chm_mt_cap_compression(argc, argv);
-	//test_t3d_chm_mt_cap_compression_result(argc, argv);
-
 	//test_t3d_chm_mt_triaxial_compression(argc, argv);
 	//test_t3d_chm_mt_triaxial_compression_result(argc, argv);
 
@@ -145,18 +147,30 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation2(argc, argv);
 	//test_t3d_me_mt_piezofoundation_geo_result(argc, argv);
 	//test_t3d_me_mt_piezofoundation_result(argc, argv);
-	//test_t3d_me_tbb_piezofoundation_hypo(argc, argv);
-	//test_t3d_me_tbb_piezofoundation_result(argc, argv);
 
-	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
-	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
-	//test_t3d_me_tbb_piezofoundation_result(argc, argv);
+	//test_t3d_me_mt_spudcan_model(argc, argv);
+	//test_t3d_me_mt_spudcan_geostatic(argc, argv);
+	//test_t3d_me_mt_spudcan(argc, argv);
+	//test_t3d_me_mt_spudcan_geo_result(argc, argv);
+	//test_t3d_me_mt_spudcan_result(argc, argv);
 
 	//test_t3d_chm_mt_spudcan_model(argc, argv);
 	//test_t3d_chm_mt_spudcan_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan(argc, argv);
 	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_result(argc, argv);
+
+	//test_t3d_me_mt_spudcan_cy_model(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_geostatic(argc, argv);
+	//test_t3d_me_mt_spudcan_cy(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_geo_result(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_result(argc, argv);
+
+	//test_t3d_chm_mt_spudcan_cy_model(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_geostatic(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
 	//test_t3d_me_mt_cylinder_bcs(argc, argv);
 	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
@@ -189,12 +203,28 @@ int main(int argc, char *argv[])
 	//test_t3d_me_tbb_cap_compression(argc, argv);
 	//test_t3d_me_tbb_cap_compression_result(argc, argv);
 
+	// norsand consolidation
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 	
+	// element test simulation
 	//test_t3d_chm_tbb_cap_compression(argc, argv);
 	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
 
+	// Time profiling
+	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
+	// tbb version
+	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
+	// mt verstion
+	//test_t3d_me_mt_piezofoundation_sim_mat(argc, argv);
+	//test_t3d_me_mt_piezofoundation_sim_mat_restart(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_result(argc, argv);
+	
+	//test_t3d_chm_tbb_piezofoundation_sim_mat_model(argc, argv);
+	//test_t3d_chm_tbb_piezofoundation_sim_mat(argc, argv);
+	//test_t3d_chm_tbb_piezofoundation_result(argc, argv);
+	
 	system("pause");
 	return 0;
 }

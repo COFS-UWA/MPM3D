@@ -11,9 +11,7 @@
 #define N_min (1.0e-10)
 #define Block_Low(th_id, th_num, data_num) ((th_id)*(data_num)/(th_num))
 
-#ifdef _DEBUG
-static std::fstream res_file_t2d_me_mt;
-#endif
+static std::fstream res_file_t2d_me_mt; // debug
 
 Step_T3D_CHM_ud_mt::Step_T3D_CHM_ud_mt(const char* _name) : 
 	Step_T3D_CHM_mt(_name, "Step_T3D_CHM_ud_mt", &substep_func_omp_T3D_CHM_ud_mt) {}
@@ -641,6 +639,8 @@ int substep_func_omp_T3D_CHM_ud_mt(
 			e_s31 /= e_p_vol;
 			e_p /= e_p_vol;
 			elem_p[e_id] = e_p;
+			if (e_p_vol > elem_vol[e_id])
+				e_p_vol = elem_vol[e_id];
 
 			const DShapeFuncABC& e_dN = elem_N_abc[e_id];
 			// node 1

@@ -75,6 +75,9 @@ void test_t2d_chm_mt_pipe_conference_restart1(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_den(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_den_restart(int argc, char** argv);
 
+void test_t2d_chm_mt_pipe_conference_den_half_geo(int argc, char** argv);
+void test_t2d_chm_mt_pipe_conference_den_half(int argc, char** argv);
+
 void test_t3d_me_mt_cylinder_foundation_create_model_ch_den(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_ch_den(int argc, char** argv);
 void test_t3d_me_mt_cylinder_foundation_restart_ch_den(int argc, char** argv);
@@ -121,15 +124,31 @@ void test_t3d_me_mt_piezofoundation_result(int argc, char** argv);
 
 void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv);
 void test_t3d_me_tbb_piezofoundation_sim_mat(int argc, char** argv);
-void test_t3d_me_tbb_piezofoundation_hypo(int argc, char** argv);
+void test_t3d_me_tbb_piezofoundation_sim_mat_restart(int argc, char **argv);
+void test_t3d_me_mt_piezofoundation_sim_mat(int argc, char** argv);
+void test_t3d_me_mt_piezofoundation_sim_mat_restart(int argc, char** argv);
+
+void test_t3d_chm_mt_cap_compression(int argc, char** argv);
+void test_t3d_chm_mt_cap_compression_result(int argc, char** argv);
+void test_t3d_chm_mt_triaxial_compression(int argc, char** argv);
+
+void test_t3d_chm_tbb_piezofoundation_sim_mat_model(int argc, char** argv);
+void test_t3d_chm_tbb_piezofoundation_sim_mat(int argc, char** argv);
+
+void test_t3d_me_mt_spudcan_model(int argc, char** argv);
+void test_t3d_me_mt_spudcan_geostatic(int argc, char** argv);
+void test_t3d_me_mt_spudcan(int argc, char** argv);
 
 void test_t3d_chm_mt_spudcan_model(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_geostatic(int argc, char** argv);
 void test_t3d_chm_mt_spudcan(int argc, char** argv);
-void test_t3d_chm_mt_spudcan_geo_result(int argc, char** argv);
-void test_t3d_chm_mt_spudcan_result(int argc, char** argv);
-void test_t3d_chm_mt_cap_compression(int argc, char** argv);
-void test_t3d_chm_mt_cap_compression_result(int argc, char** argv);
-void test_t3d_chm_mt_triaxial_compression(int argc, char** argv);
+
+void test_t3d_me_mt_spudcan_cy_model(int argc, char** argv);
+void test_t3d_me_mt_spudcan_cy_geostatic(int argc, char** argv);
+void test_t3d_me_mt_spudcan_cy(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_geostatic(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy(int argc, char** argv);
 
 #endif

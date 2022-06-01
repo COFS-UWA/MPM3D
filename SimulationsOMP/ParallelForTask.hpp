@@ -28,7 +28,7 @@ namespace ParaUtil
 				recycle_as_child_of(continuation);
 				continuation.set_ref_count(num);
 				end_id = head_id + 1;
-				for (size_t i = 1; i < num; ++i)
+				for (size_t i = num; i-- != 1;)
 					tbb::task::spawn(*new (continuation.allocate_child()) ParallelForTask<Operator>(work, head_id + i, head_id + i + 1));
 				return this;
 			}
@@ -38,9 +38,9 @@ namespace ParaUtil
 			const size_t head_id1 = head_id + blk_low_id(1, divide_num, num);
 			const size_t head_id2 = head_id + blk_low_id(2, divide_num, num);
 			const size_t head_id3 = head_id + blk_low_id(3, divide_num, num);
-			tbb::task::spawn(*new (continuation.allocate_child()) ParallelForTask<Operator>(work, head_id1, head_id2));
-			tbb::task::spawn(*new (continuation.allocate_child()) ParallelForTask<Operator>(work, head_id2, head_id3));
 			tbb::task::spawn(*new (continuation.allocate_child()) ParallelForTask<Operator>(work, head_id3, end_id));
+			tbb::task::spawn(*new (continuation.allocate_child()) ParallelForTask<Operator>(work, head_id2, head_id3));
+			tbb::task::spawn(*new (continuation.allocate_child()) ParallelForTask<Operator>(work, head_id1, head_id2));
 			end_id = head_id1;
 			return this;
 		}

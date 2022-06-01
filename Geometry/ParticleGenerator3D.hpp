@@ -81,7 +81,7 @@ public:
 		double xb, double yb, double zb, // bottom position of cylinder
 		double xd, double yd, double zd, // direction of cylinder axis
 		double radius0, double radius1,
-		double theta0, double theta1,
+		double theta0, double theta1, // in degree
 		double height,
 		double hr, double htheta, double hz);
 	void clear_pcls_outside_cylinder(
@@ -260,19 +260,17 @@ double ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
 		add_pcl(pcl_tmp);
 	}
 	//
-	double pr, ptheta;
 	size_t theta_num;
 	const double r0 = 1.0 * hr;
-	double ht;
 	for (size_t r_id = 0; r_id < r_num; ++r_id)
 	{
-		pr = r0 + double(r_id) * hr;
+		const double pr = r0 + double(r_id) * hr;
 		theta_num = size_t(ceil(2.0*pi*pr/htheta));
-		ht = 2.0 * pi / double(theta_num);
-		pcl_tmp.vol = ((pr + 0.5 * hr)*(pr + 0.5 * hr) - (pr - 0.5 * hr) * (pr - 0.5 * hr)) * ht * 0.5;
+		const double ht = 2.0 * pi / double(theta_num);
+		pcl_tmp.vol = ((pr + 0.5 * hr)*(pr + 0.5 * hr) - (pr - 0.5 * hr) * (pr - 0.5 * hr)) * ht * 0.5 * hz;
 		for (size_t t_id = 0; t_id < theta_num; ++t_id)
 		{
-			ptheta = double(t_id) * ht;
+			const double ptheta = double(t_id) * ht;
 			pcl.x = pr * sin(ptheta);
 			pcl.y = pr * cos(ptheta);
 			for (z_id = 0; z_id < z_num; ++z_id)
@@ -293,7 +291,7 @@ double ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
 	double xb, double yb, double zb, // bottom position of cylinder
 	double xd, double yd, double zd, // direction of cylinder axis
 	double radius0, double radius1,
-	double theta0, double theta1,
+	double theta0, double theta1, // in degrees
 	double height,
 	double hr, double htheta, double hz)
 {
@@ -312,6 +310,8 @@ double ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
 	size_t z_num = size_t(ceil(height / hz));
 	hz = height / double(z_num);
 	const double pi = asin(1.0) * 2.0;
+	theta0 = deg_to_rad(theta0);
+	theta1 = deg_to_rad(theta1);
 	// pcl at centre line
 	Particle pcl, pcl_tmp;
 	double pr, ptheta;
@@ -324,7 +324,7 @@ double ParticleGenerator3D<TetrahedronMesh>::generate_pcls_in_cylinder(
 		const size_t theta_num = size_t(ceil(dtheta * pr / htheta));
 		const double ht = dtheta / double(theta_num);
 		const double t0 = theta0 + 0.5 * ht;
-		pcl_tmp.vol = ((pr + 0.5 * hr) * (pr + 0.5 * hr) - (pr - 0.5 * hr) * (pr - 0.5 * hr)) * ht * 0.5;
+		pcl_tmp.vol = ((pr + 0.5 * hr) * (pr + 0.5 * hr) - (pr - 0.5 * hr) * (pr - 0.5 * hr)) * ht * 0.5 * hz;
 		for (size_t t_id = 0; t_id < theta_num; ++t_id)
 		{
 			ptheta = t0 + double(t_id) * ht;

@@ -31,22 +31,15 @@ void test_t3d_me_tbb_cap_compression(int argc, char **argv)
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::LinearElasticity& le = les[pcl_id];
-		le.set_param(1000.0, 0.0);
-		mms[pcl_id] = &le;
+		les->set_param(1000.0, 0.0);
+		mms[pcl_id] = les;
+		les = model.following_LinearElasticity(les);
 	}
-	// Tresca
-	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	MatModel::LinearElasticity& le = les[pcl_id];
-	//	le.set_param(1000.0, 0.0);
-	//	mms[pcl_id] = &le;
-	//}
 
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.02);
 	model.set_contact_param(20.0 / (0.025*0.025), 20.0 / (0.025*0.025), 0.1, 0.1);
+	model.set_cylinder_vz_bc_ramp_up_time(1.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
@@ -95,7 +88,7 @@ void test_t3d_me_tbb_cap_compression(int argc, char **argv)
 	step.set_step_time(2.5);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(5);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

@@ -11,6 +11,7 @@ add_library(
     ItemArray.hpp
     ItemArrayFast.hpp
     ItemBuffer.hpp
+	CLAItemBuffer.hpp
     ItemStack.hpp
     MemoryBuffer.h
     StringBuffer.h

@@ -14,10 +14,12 @@ namespace Step_T3D_CHM_TBB_Task
 	
 	void InitPcl::init(size_t thread_num) noexcept
 	{
+		pcl_m_s = stp.pcl_m_s;
+		pcl_density_s = stp.pcl_density_s;
 		in_pcl_in_elems = stp.in_pcl_in_elems;
 		in_prev_pcl_ids = stp.in_prev_pcl_ids;
 		task_num = ParaUtil::cal_task_num<
-			min_pcl_num_per_init_pcl_task, task_num_per_thread>(
+			min_pcl_num_per_task, init_pcl_task_num_per_thread>(
 				thread_num, stp.prev_valid_pcl_num);
 	}
 
@@ -29,6 +31,7 @@ namespace Step_T3D_CHM_TBB_Task
 		const size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
 		const size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
 		size_t valid_pcl_num = 0;
+		double max_pcl_vol = 0.0;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			const size_t ori_p_id = spva0.pcl_index[p_id];
@@ -46,10 +49,15 @@ namespace Step_T3D_CHM_TBB_Task
 				e_id = md.find_pcl_in_which_elem_tol(p_p.x, p_p.y, p_p.z, p_N);
 			if (e_id != SIZE_MAX)
 				++valid_pcl_num;
+			const double p_vol = pcl_m_s[ori_p_id]
+				/ (pcl_density_s[ori_p_id] * (1.0 - spva0.pcl_n[p_id]));
+			if (max_pcl_vol < p_vol)
+				max_pcl_vol = p_vol;
 			in_pcl_in_elems[p_id] = e_id;
 			in_prev_pcl_ids[p_id] = p_id;
 		}
 		res.pcl_num = valid_pcl_num;
+		res.max_pcl_vol = max_pcl_vol;
 	}
 	
 	void MapPclToBgMesh::init() noexcept
@@ -76,7 +84,6 @@ namespace Step_T3D_CHM_TBB_Task
 		// pcl range
 		pcl_in_elems = stp.pcl_in_elems;
 		prev_pcl_ids = stp.prev_pcl_ids;
-		pcl_ranges = stp.pcl_ranges;
 	}
 
 	void MapPclToBgMesh::update(size_t tsk_num) noexcept
@@ -119,10 +126,6 @@ namespace Step_T3D_CHM_TBB_Task
 		while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
 		++p_id1;
 		assert(p_id1 <= stp.valid_pcl_num);
-
-		PclRange& pcl_range = pcl_ranges[tsk_id];
-		pcl_range.p_id0 = p_id0;
-		pcl_range.p_id1 = p_id1;
 
 		double e_p_m_s = 0.0;
 		double e_p_m_f = 0.0;
@@ -669,10 +672,11 @@ namespace Step_T3D_CHM_TBB_Task
 		node_v_f = stp.node_v_f;
 		node_has_vbc_s = stp.node_has_vbc_s;
 		node_has_vbc_f = stp.node_has_vbc_f;
-		//
+		node_vbc_vec_s = stp.node_vbc_vec_s;
+		node_vbc_vec_f = stp.node_vbc_vec_f;
+		// node ranges
 		node_ids = stp.node_ids;
 		node_elem_offs = stp.node_elem_offs;
-		node_elem_ranges = stp.node_elem_ranges;
 	}
 
 	void UpdateAccelerationAndVelocity::update(size_t tsk_num)
@@ -694,13 +698,9 @@ namespace Step_T3D_CHM_TBB_Task
 		while (ve_id1 != SIZE_MAX && n_id == node_ids[--ve_id1]);
 		++ve_id1;
 		assert(ve_id1 <= four_elem_num);
-
-		// store the division
-		NodeElemRange& ne_range = node_elem_ranges[tsk_id];
-		ne_range.ve_id0 = ve_id0;
-		ne_range.ve_id1 = ve_id1;
-
+		
 		size_t bc_mask, ne_id;
+		double vbc_len;
 		double n_vm_s = 0.0;
 		double n_vmx_s = 0.0;
 		double n_vmy_s = 0.0;
@@ -762,7 +762,16 @@ namespace Step_T3D_CHM_TBB_Task
 				n_v_s.vx = n_vmx_s / n_vm_s + n_a_s.ax * stp.dtime;
 				n_v_s.vy = n_vmy_s / n_vm_s + n_a_s.ay * stp.dtime;
 				n_v_s.vz = n_vmz_s / n_vm_s + n_a_s.az * stp.dtime;
-				NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
+				const NodeVBCVec& n_vbc_vec_s = node_vbc_vec_s[n_id];
+				vbc_len = n_a_s.ax * n_vbc_vec_s.x + n_a_s.ay * n_vbc_vec_s.y + n_a_s.az * n_vbc_vec_s.z;
+				n_a_s.ax -= vbc_len * n_vbc_vec_s.x;
+				n_a_s.ay -= vbc_len * n_vbc_vec_s.y;
+				n_a_s.az -= vbc_len * n_vbc_vec_s.z;
+				vbc_len = n_v_s.vx * n_vbc_vec_s.x + n_v_s.vy * n_vbc_vec_s.y + n_v_s.vz * n_vbc_vec_s.z;
+				n_v_s.vx -= vbc_len * n_vbc_vec_s.x;
+				n_v_s.vy -= vbc_len * n_vbc_vec_s.y;
+				n_v_s.vz -= vbc_len * n_vbc_vec_s.z;
+				const NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
 				bc_mask = SIZE_MAX + size_t(n_has_vbc_s.has_vx_bc);
 				n_a_s.iax &= bc_mask;
 				n_v_s.ivx &= bc_mask;
@@ -783,7 +792,16 @@ namespace Step_T3D_CHM_TBB_Task
 				n_v_f.vx = n_vmx_f / n_vm_f + n_a_f.ax * stp.dtime;
 				n_v_f.vy = n_vmy_f / n_vm_f + n_a_f.ay * stp.dtime;
 				n_v_f.vz = n_vmz_f / n_vm_f + n_a_f.az * stp.dtime;
-				NodeHasVBC& n_has_vbc_f = node_has_vbc_f[n_id];
+				const NodeVBCVec& n_vbc_vec_f = node_vbc_vec_f[n_id];
+				vbc_len = n_a_f.ax * n_vbc_vec_f.x + n_a_f.ay * n_vbc_vec_f.y + n_a_f.az * n_vbc_vec_f.z;
+				n_a_f.ax -= vbc_len * n_vbc_vec_f.x;
+				n_a_f.ay -= vbc_len * n_vbc_vec_f.y;
+				n_a_f.az -= vbc_len * n_vbc_vec_f.z;
+				vbc_len = n_v_f.vx * n_vbc_vec_f.x + n_v_f.vy * n_vbc_vec_f.y + n_v_f.vz * n_vbc_vec_f.z;
+				n_v_f.vx -= vbc_len * n_vbc_vec_f.x;
+				n_v_f.vy -= vbc_len * n_vbc_vec_f.y;
+				n_v_f.vz -= vbc_len * n_vbc_vec_f.z;
+				const NodeHasVBC& n_has_vbc_f = node_has_vbc_f[n_id];
 				bc_mask = SIZE_MAX + size_t(n_has_vbc_f.has_vx_bc);
 				n_a_f.iax &= bc_mask;
 				n_v_f.ivx &= bc_mask;
@@ -893,22 +911,35 @@ namespace Step_T3D_CHM_TBB_Task
 		node_am_f = stp.node_am_f;
 		node_de_vol_s = stp.node_de_vol_s;
 		node_de_vol_f = stp.node_de_vol_f;
-		//
+		// node ranges
 		node_ids = stp.node_ids;
 		node_elem_offs = stp.node_elem_offs;
-		node_elem_ranges = stp.node_elem_ranges;
 	}
 
+	void CalNodeDe::update(size_t tsk_num) noexcept
+	{
+		four_elem_num = stp.valid_elem_num * 4;
+		task_num = tsk_num;
+	}
+	
 	void CalNodeDe::work(size_t tsk_id) const
 	{
-		NodeElemRange &ne_range = node_elem_ranges[tsk_id];
-		const size_t ve_id0 = ne_range.ve_id0;
-		const size_t ve_id1 = ne_range.ve_id1;
+		size_t n_id;
+		size_t ve_id0 = Block_Low(tsk_id, task_num, four_elem_num);
+		n_id = node_ids[ve_id0];
+		while (ve_id0 != SIZE_MAX && n_id == node_ids[--ve_id0]);
+		++ve_id0;
+		assert(ve_id0 <= four_elem_num);
+		size_t ve_id1 = Block_Low(tsk_id + 1, task_num, four_elem_num);
+		n_id = node_ids[ve_id1];
+		while (ve_id1 != SIZE_MAX && n_id == node_ids[--ve_id1]);
+		++ve_id1;
+		assert(ve_id1 <= four_elem_num);
 
 		size_t e_id;
 		double n_am_de_vol_s = 0.0;
 		double n_am_de_vol_f = 0.0;
-		size_t n_id = node_ids[ve_id0];
+		n_id = node_ids[ve_id0];
 #ifdef _DEBUG
 		assert(n_id < stp.node_num || n_id == SIZE_MAX);
 #endif
@@ -945,6 +976,7 @@ namespace Step_T3D_CHM_TBB_Task
 		elem_pcl_n = stp.elem_pcl_n;
 		elem_p = stp.elem_p;
 		elem_de = stp.elem_de;
+
 		node_de_vol_s = stp.node_de_vol_s;
 		node_de_vol_f = stp.node_de_vol_f;
 		pcl_pos = stp.pcl_pos;
@@ -952,12 +984,16 @@ namespace Step_T3D_CHM_TBB_Task
 		// range
 		pcl_in_elems = stp.pcl_in_elems;
 		prev_pcl_ids = stp.prev_pcl_ids;
-		pcl_ranges = stp.pcl_ranges;
 		in_pcl_in_elems = stp.in_pcl_in_elems;
 		in_prev_pcl_ids = stp.in_prev_pcl_ids;
+
+		// cavitation
+		pcl_u_cav = stp.pcl_u_cav;
+		pcl_is_cavitated = stp.pcl_is_cavitated;
+		elem_u_cav = stp.elem_u_cav;
 	}
 
-	void MapBgMeshToPcl::update(size_t thread_num) noexcept
+	void MapBgMeshToPcl::update(size_t tsk_num) noexcept
 	{
 		const auto& spva0 = stp.spvas[stp.next_spva_id()];
 		const auto& spva1 = stp.spvas[stp.prev_spva_id()];
@@ -977,13 +1013,24 @@ namespace Step_T3D_CHM_TBB_Task
 		pcl_strain1 = spva1.pcl_strain;
 		pcl_estrain1 = spva1.pcl_estrain;
 		pcl_pstrain1 = spva1.pcl_pstrain;
+
+		pcl_num = stp.prev_valid_pcl_num;
+		task_num = tsk_num;
 	}
 	
 	void MapBgMeshToPcl::work(size_t tsk_id, MapBgMeshToPclRes &res) const
 	{
-		PclRange& pcl_range = pcl_ranges[tsk_id];
-		const size_t p_id0 = pcl_range.p_id0;
-		const size_t p_id1 = pcl_range.p_id1;
+		size_t e_id;
+		size_t p_id0 = Block_Low(tsk_id, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id0];
+		while (p_id0 != SIZE_MAX && e_id == pcl_in_elems[--p_id0]);
+		++p_id0;
+		assert(p_id0 <= stp.prev_valid_pcl_num);
+		size_t p_id1 = Block_Low(tsk_id + 1, task_num, stp.prev_valid_pcl_num);
+		e_id = pcl_in_elems[p_id1];
+		while (p_id1 != SIZE_MAX && e_id == pcl_in_elems[--p_id1]);
+		++p_id1;
+		assert(p_id1 <= stp.prev_valid_pcl_num);
 
 		const Acceleration* pn1_a_s, * pn2_a_s, * pn3_a_s, * pn4_a_s;
 		const Acceleration* pn1_a_f, * pn2_a_f, * pn3_a_f, * pn4_a_f;
@@ -994,7 +1041,9 @@ namespace Step_T3D_CHM_TBB_Task
 		double dstrain[6];
 		Model_T3D_CHM_mt& md = *(stp.pmodel);
 		size_t valid_pcl_num = 0;
-		size_t e_id = SIZE_MAX;
+		e_id = SIZE_MAX;
+		// cavitation
+		double e_u_cav, Kf_ratio;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			if (e_id != pcl_in_elems[p_id])
@@ -1032,8 +1081,20 @@ namespace Step_T3D_CHM_TBB_Task
 					+ node_de_vol_f[eni.n3]
 					+ node_de_vol_f[eni.n4]) * one_fourth;
 				e_density_f = elem_density_f[e_id] / (1.0 - e_de_vol_f);
-				e_p = elem_p[e_id] + stp.Kf * e_de_vol_f;
-
+				//e_p = elem_p[e_id] + stp.Kf * e_de_vol_f;
+				// cavitation
+				Kf_ratio = 1.0;
+				if (stp.m_cav != 0.0) // consider cavitation
+				{
+					e_u_cav = elem_u_cav[e_id];
+					if (elem_p[e_id] < 0.0)
+					{
+						const double tmp = elem_p[e_id] / elem_u_cav[e_id] + stp.u_cav_off;
+						Kf_ratio = tmp < stp.u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, stp.m_cav))) : (1.0 / max_Kf_ratio_divider);
+					}
+				}
+				e_p = elem_p[e_id] + Kf_ratio * stp.Kf * e_de_vol_f;
+				
 				pe_de = elem_de + e_id;
 				e_de_vol_s *= one_third;
 				pe_de->de11 += e_de_vol_s;
@@ -1149,17 +1210,36 @@ namespace Step_T3D_CHM_TBB_Task
 			p_pe0.e12 = p_pe1.e12 + pstrain[3];
 			p_pe0.e23 = p_pe1.e23 + pstrain[4];
 			p_pe0.e31 = p_pe1.e31 + pstrain[5];
+
+			if (stp.m_cav != 0.0)
+			{
+				pcl_u_cav[p_id] = e_u_cav;
+				pcl_is_cavitated[p_id] = Kf_ratio;
+			}
 		}
+
 		res.pcl_num = valid_pcl_num;
 	}
 
-	void ContactRigidBody::init() noexcept
+	void ContactRigidBody::init(double max_pcl_vol) noexcept
 	{
 		Model_T3D_CHM_mt& md = *stp.pmodel;
-		prcy = md.has_rigid_cylinder() ? &md.get_rigid_cylinder() : nullptr;
-		prmesh = md.has_t3d_rigid_mesh() ? &md.get_t3d_rigid_mesh() : nullptr;
 		pcm_s = md.get_contact_model_s();
 		pcm_f = md.get_contact_model_f();
+		prcy = nullptr;
+		prmesh = nullptr;
+		if (md.has_rigid_cylinder())
+		{
+			prcy = &md.get_rigid_cylinder();
+			prcy->reset_cont_force();
+		}
+		if (md.has_t3d_rigid_mesh())
+		{
+			prmesh = &md.get_t3d_rigid_mesh();
+			prmesh->reset_cont_force();
+			// set max dist for efficiency
+			prmesh->init_max_dist(0.5 * pow(max_pcl_vol, one_third) * 4.0);
+		}
 		//
 		pcl_pos = stp.pcl_pos;
 		pcl_vol = stp.pcl_vol;

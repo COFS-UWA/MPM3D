@@ -85,6 +85,9 @@ add_library(
     Hdf5FieldExtraction_vy_f.h Hdf5FieldExtraction_vy_f.cpp
     Hdf5FieldExtraction_vz_f.h Hdf5FieldExtraction_vz_f.cpp
     Hdf5FieldExtraction_p.h Hdf5FieldExtraction_p.cpp
+	# Cavitation
+	Hdf5FieldExtraction_u_cav.h Hdf5FieldExtraction_u_cav.cpp
+	Hdf5FieldExtraction_is_cavitated.h Hdf5FieldExtraction_is_cavitated.cpp
     # Constitutive model
     Hdf5MatExtraction_max_shear_stress.h Hdf5MatExtraction_max_shear_stress.cpp
     Hdf5MatExtraction_e.h Hdf5MatExtraction_e.cpp

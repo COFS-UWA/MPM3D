@@ -84,9 +84,9 @@ namespace ParaUtil
 					continuation.set_ref_count(3);
 					recycle_as_child_of(continuation);
 					tbb::task::spawn(*new (continuation.allocate_child())
-						ParallelReduceTask<Operator, Result>(work, continuation.result1, head_id + 1, head_id + 2));
-					tbb::task::spawn(*new (continuation.allocate_child())
 						ParallelReduceTask<Operator, Result>(work, continuation.result2, head_id + 2, head_id + 3));
+					tbb::task::spawn(*new (continuation.allocate_child())
+						ParallelReduceTask<Operator, Result>(work, continuation.result1, head_id + 1, head_id + 2));
 					return this;
 				}
 				ParallelReduceContin4Task<Result>& continuation
@@ -95,11 +95,11 @@ namespace ParaUtil
 				continuation.set_ref_count(4);
 				recycle_as_child_of(continuation);
 				tbb::task::spawn(*new (continuation.allocate_child())
-					ParallelReduceTask<Operator, Result>(work, continuation.result1, head_id + 1, head_id + 2));
+					ParallelReduceTask<Operator, Result>(work, continuation.result3, head_id + 3, head_id + 4));
 				tbb::task::spawn(*new (continuation.allocate_child())
 					ParallelReduceTask<Operator, Result>(work, continuation.result2, head_id + 2, head_id + 3));
 				tbb::task::spawn(*new (continuation.allocate_child())
-					ParallelReduceTask<Operator, Result>(work, continuation.result3, head_id + 3, head_id + 4));
+					ParallelReduceTask<Operator, Result>(work, continuation.result1, head_id + 1, head_id + 2));
 				return this;
 			}
 
@@ -111,9 +111,9 @@ namespace ParaUtil
 			const size_t head_id1 = head_id + blk_low_id(1, divide_num, num);
 			const size_t head_id2 = head_id + blk_low_id(2, divide_num, num);
 			const size_t head_id3 = head_id + blk_low_id(3, divide_num, num);
-			tbb::task::spawn(*new (continuation.allocate_child()) ParallelReduceTask<Operator, Result>(work, continuation.result1, head_id1, head_id2));
-			tbb::task::spawn(*new (continuation.allocate_child()) ParallelReduceTask<Operator, Result>(work, continuation.result2, head_id2, head_id3));
 			tbb::task::spawn(*new (continuation.allocate_child()) ParallelReduceTask<Operator, Result>(work, continuation.result3, head_id3, end_id));
+			tbb::task::spawn(*new (continuation.allocate_child()) ParallelReduceTask<Operator, Result>(work, continuation.result2, head_id2, head_id3));
+			tbb::task::spawn(*new (continuation.allocate_child()) ParallelReduceTask<Operator, Result>(work, continuation.result1, head_id1, head_id2));
 			end_id = head_id1;
 			return this;
 		}
