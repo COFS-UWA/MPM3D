@@ -86,13 +86,16 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cylinder_foundation_ch_den(argc, argv);
 	//test_t3d_me_mt_cylinder_foundation_result_ch_den2(argc, argv);
 
-	test_t2d_chm_mt_block_sliding(argc, argv);
+	//test_t2d_chm_mt_block_sliding(argc, argv);
 	//test_t2d_chm_mt_block_sliding_result(argc, argv);
 
 	//test_t2d_chm_mt_1d_consolidation(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_restart(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
+
+	test_t2d_chm_mt_geostatic(argc, argv);
+	//test_t2d_chm_mt_geostatic_result(argc, argv);
 
 	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
@@ -122,7 +125,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
 	//test_t3d_me_mt_triaxial_compression_result(argc, argv);
 
-	test_t3d_chm_mt_cap_compression(argc, argv);
+	//test_t3d_chm_mt_cap_compression(argc, argv);
 	//test_t3d_chm_mt_cap_compression_result(argc, argv);
 
 	//test_t3d_chm_mt_triaxial_compression(argc, argv);
