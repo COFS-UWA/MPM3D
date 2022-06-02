@@ -19,13 +19,17 @@
 void test_t2d_me_mt_strip_footing(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
-	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_pipe_conference_mesh2_half.h5");
+	//tri_mesh.load_mesh_from_hdf5("../../Asset/rect_pipe_conference_mesh2_half.h5");
+	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_strip_footing_half.h5");
 	tri_mesh.init_search_grid(0.02, 0.02);
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -3.5, 0.0), 0.03, 0.03);
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -5.0, -3.5), 0.03, 0.03);
-	pcl_generator.replace_with_pcls_in_grid_layout(Rect(0.0, 3.5, -3.5, 0.0), 0.01, 0.01);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -3.5, 0.0), 0.03, 0.03);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -5.0, -3.5), 0.03, 0.03);
+	//pcl_generator.replace_with_pcls_in_grid_layout(Rect(0.0, 3.5, -3.5, 0.0), 0.01, 0.01);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 9.0, -4.5, 0.0), 0.03, 0.03);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 9.0, -9.0, -4.5), 0.03, 0.03);
+	pcl_generator.replace_with_pcls_in_grid_layout(Rect(0.0, 4.5, -4.5, 0.0), 0.01, 0.01);
 	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
 
 	Model_T2D_ME_mt model;
@@ -37,8 +41,10 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	pcl_generator.clear();
 
 	const size_t pcl_num = model.get_pcl_num();
-	std::cout << "pcl_num: " << pcl_num << "\n";
-	
+	std::cout << "pcl_num: " << pcl_num << ",\n"
+		<< "elem_num: " << model.get_elem_num() << ",\n"
+		<< "node_num: " << model.get_node_num() << ",\n";
+
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// Tresca
 	//MatModel::Tresca* tes = model.add_Tresca(model.get_pcl_num());
@@ -99,14 +105,14 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, -5.0);
 	model.init_fixed_vy_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
-	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(1500, 950);
-	//md_disp.set_model(model);
-	////md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(1500, 950);
+	md_disp.set_model(model);
+	md_disp.set_display_range(-0.6, 1.0, -1.5, 0.6);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
+	md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_strip_footing.h5");
