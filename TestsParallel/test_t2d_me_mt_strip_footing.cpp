@@ -57,10 +57,10 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 		double depth = model.get_pcl_pos()[p_id].y;
 		//
 		auto& pcl_s = pcl_stresses[p_id];
-		pcl_s.s22 = depth * 9.81 * (density - 1000.0);
+		pcl_s.s22 = depth * 9.81 * density;
 		pcl_s.s11 = pcl_s.s22 * 0.25;
 		//
-		mc_stress[1] = depth * 9.81 * (density - 1000.0);
+		mc_stress[1] = depth * 9.81 * density;
 		mc_stress[0] = mc_stress[1] * 0.25;
 		mc_stress[2] = mc_stress[0];
 		mcs->set_param(mc_stress, 30.0, 0.0, 0.1, 1.0e8, 0.2); // 1.0e8
@@ -78,7 +78,7 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	// gravity force, float unit weight
 	IndexArray bfy_pcl_array(pcl_num);
 	MemoryUtils::ItemArray<double> bfy_array(pcl_num);
-	double bfy = -9.81 * (density - 1000.0) / density;
+	double bfy = -9.81;// *(density - 1000.0) / density;
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
 		bfy_pcl_array.add(pcl_id);
