@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_strip_footing_smaller(argc, argv);
 	//test_t2d_me_mt_strip_footing_smaller_result(argc, argv);
 
-	test_t2d_me_mt_strip_footing(argc, argv);
+	//test_t2d_me_mt_strip_footing(argc, argv);
 	//test_t2d_me_mt_strip_footing_result(argc, argv);
 
 	//test_t3d_me_mt_1d_compression(argc, argv);
@@ -94,6 +94,9 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_1d_consolidation_restart(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
+
+	//test_t2d_chm_mt_geostatic(argc, argv);
+	test_t2d_chm_mt_geostatic_result(argc, argv);
 
 	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
