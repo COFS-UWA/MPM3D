@@ -20,9 +20,13 @@ int substep_func_omp_T2D_CHM_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
 int substep_func_omp_T2D_CHM_mt2(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
+class Step_T2D_CHM_mt_Geo;
+int substep_func_omp_T2D_CHM_mt_Geo(void* _self, size_t my_th_id,
+	double dt, double cur_time, size_t substp_id);
 class Step_T2D_CHM_TBB;
 int substep_func_T2D_CHM_TBB(void* _self);
 namespace Step_T2D_CHM_Task { class CalData; };
+
 
 class ResultFile_hdf5;
 namespace Model_T2D_CHM_mt_hdf5_utilities
@@ -54,6 +58,9 @@ struct Model_T2D_CHM_mt : public Model,
 	friend int substep_func_omp_T2D_CHM_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 	friend int substep_func_omp_T2D_CHM_mt2(void* _self, size_t my_th_id,
+		double dt, double cur_time, size_t substp_id);
+	friend class Step_T2D_CHM_mt_Geo;
+	friend int substep_func_omp_T2D_CHM_mt_Geo(void* _self, size_t my_th_id,
 		double dt, double cur_time, size_t substp_id);
 	friend class Step_T2D_CHM_TBB;
 	friend int substep_func_T2D_CHM_TBB(void* _self);
