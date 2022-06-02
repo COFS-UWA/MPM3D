@@ -185,6 +185,7 @@ public:
 	inline const Position *get_pcl_pos() const noexcept { return pcl_pos; }
 	inline const double *get_pcl_m() const noexcept { return pcl_m; }
 	inline const double* get_pcl_density0() const noexcept { return sorted_pcl_var_arrays[0].pcl_density; }
+	inline Stress* get_pcl_stress0() const noexcept { return sorted_pcl_var_arrays[0].pcl_stress; }
 	inline size_t get_node_num() const noexcept { return node_num; }
 	inline const Position *get_node_pos() const noexcept { return node_pos; }
 	inline size_t get_elem_num() const noexcept { return elem_num; }
