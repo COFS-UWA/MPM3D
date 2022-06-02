@@ -62,10 +62,10 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 		//
 		if (depth > -0.05)
 			depth = -0.05;
-		mc_stress[1] = depth * 9.81 * density;
+		mc_stress[1] = depth * 9.81 * (density - 1000.0);
 		mc_stress[0] = mc_stress[1] * 0.5; // 30.0
 		mc_stress[2] = mc_stress[0];
-		mcs->set_param(mc_stress, 30.0, 0.0, 1.0, 5.0e6, 0.3);
+		mcs->set_param(mc_stress, 30.0, 0.0, 0.1, 50.0e6, 0.3);
 		model.add_mat_model(p_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
 		mcs = model.following_MohrCoulombWrapper(mcs);
 	}
