@@ -3,7 +3,7 @@
 #include <fstream>
 #include <omp.h>
 
-#include "Step_T2D_CHM_mt_Geo.h"
+#include "Step_T2D_ME_mt_Geo.h"
 
 #define one_third (1.0/3.0)
 #define N_min (1.0e-10)
@@ -13,38 +13,35 @@
 static std::fstream res_file_t2d_me_mt;
 #endif
 
-Step_T2D_CHM_mt_Geo::Step_T2D_CHM_mt_Geo(const char* _name) : 
-	Step_OMP(_name, "Step_T2D_CHM_mt_Geo", &substep_func_omp_T2D_CHM_mt_Geo) {}
+Step_T2D_ME_mt_Geo::Step_T2D_ME_mt_Geo(const char* _name) : 
+	Step_OMP(_name, "Step_T2D_ME_mt_Geo", &substep_func_omp_T2D_ME_mt_Geo) {}
 
-Step_T2D_CHM_mt_Geo::~Step_T2D_CHM_mt_Geo() {}
+Step_T2D_ME_mt_Geo::~Step_T2D_ME_mt_Geo() {}
 
-int Step_T2D_CHM_mt_Geo::init_calculation()
+int Step_T2D_ME_mt_Geo::init_calculation()
 {
 #ifdef _DEBUG
 	res_file_t2d_me_mt.open("t3d_chm_mt_res.txt", std::ios::out | std::ios::binary);
 #endif
 
-	Model_T2D_CHM_mt &md = *(Model_T2D_CHM_mt *)model;
+	Model_T2D_ME_mt &md = *(Model_T2D_ME_mt *)model;
 
 	omp_set_num_threads(thread_num);
 
-	pcl_m_s = md.pcl_m_s;
-	pcl_density_s = md.pcl_density_s;
-	pcl_vol_s = md.pcl_vol_s;
-	pcl_bf_s = md.pcl_bf_s;
-	pcl_bf_f = md.pcl_bf_f;
+	pcl_m = md.pcl_m;
+	pcl_bf = md.pcl_bf;
 	pcl_t = md.pcl_t;
 	pcl_pos = md.pcl_pos;
 	pcl_vol = md.pcl_vol;
 	pcl_mat_model = md.pcl_mat_model;
 
-	Model_T2D_CHM_mt::SortedPclVarArrays& md_spva0
+	Model_T2D_ME_mt::SortedPclVarArrays& md_spva0
 		= md.sorted_pcl_var_arrays[0];
 	SortedPclVarArrays& spva0 = sorted_pcl_var_arrays[0];
 	spva0.pcl_index = md_spva0.pcl_index;
-	spva0.pcl_n = md_spva0.pcl_n;
-	spva0.pcl_v_s = md_spva0.pcl_v_s;
-	spva0.pcl_u_s = md_spva0.pcl_u_s;
+	spva0.pcl_v = md_spva0.pcl_v;
+	spva0.pcl_disp = md_spva0.pcl_disp;
+	spva0.pcl_density = md_spva0.pcl_density;
 	spva0.pcl_stress = md_spva0.pcl_stress;
 	spva0.pcl_N = md_spva0.pcl_N;
 
@@ -52,25 +49,24 @@ int Step_T2D_CHM_mt_Geo::init_calculation()
 	node_num = md.node_num;
 
 	elem_node_id = md.elem_node_id;
-	elem_N_ab = md.elem_N_ab;
-	elem_N_c = md.elem_N_c;
+	elem_N_ab = md.elem_dN_ab;
+	elem_N_c = md.elem_dN_c;
 	elem_area = md.elem_area;
 
-	elem_pcl_n = md.elem_pcl_n;
-	elem_pcl_m_s = md.elem_pcl_m_s;
+	elem_pcl_m = md.elem_pcl_m;
 	elem_de = md.elem_de;
 
-	elem_m_de_vol_s = md.elem_m_de_vol_s;
+	elem_m_de_vol = md.elem_m_de_vol;
 
 	// element-node data
-	elem_node_vm_s = md.elem_node_vm_s;
-	elem_node_force_s = md.elem_node_force_s;
+	elem_node_vm = md.elem_node_vm;
+	elem_node_force = md.elem_node_force;
 
-	node_a_s = md.node_a_s;
-	node_v_s = md.node_v_s;
-	node_has_vbc_s = md.node_has_vbc_s;
-	node_am_s = md.node_am_s;
-	node_de_vol_s = md.node_de_vol_s;
+	node_a = md.node_a;
+	node_v = md.node_v;
+	node_has_vbc = md.node_has_vbc;
+	node_am = md.node_am;
+	node_de_vol = md.node_de_vol;
 
 	thread_datas = (ThreadData*)thread_mem.alloc(sizeof(ThreadData) * thread_num);
 
@@ -160,14 +156,13 @@ int Step_T2D_CHM_mt_Geo::init_calculation()
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
 			ori_p_id = spva0.pcl_index[p_id];
-			const double p_vol = pcl_m_s[ori_p_id]
-				/ (pcl_density_s[ori_p_id] * (1.0 - spva0.pcl_n[p_id]));
+			const double p_vol = pcl_m[ori_p_id] / spva0.pcl_density[ori_p_id];
 			Position& p_p = pcl_pos[ori_p_id];
-			Displacement& p_u_s = spva0.pcl_u_s[p_id];
-			p_p.x += p_u_s.ux;
-			p_p.y += p_u_s.uy;
-			p_u_s.ux = 0.0;
-			p_u_s.uy = 0.0;
+			Displacement& p_disp = spva0.pcl_disp[p_id];
+			p_p.x += p_disp.ux;
+			p_p.y += p_disp.uy;
+			p_disp.ux = 0.0;
+			p_disp.uy = 0.0;
 			ShapeFunc& p_N = spva0.pcl_N[p_id];
 			e_id = md.find_pcl_in_which_elem(p_p.x, p_p.y, p_N);
 			if (e_id == SIZE_MAX)
@@ -416,38 +411,38 @@ int Step_T2D_CHM_mt_Geo::init_calculation()
 	return 0;
 }
 
-int Step_T2D_CHM_mt_Geo::finalize_calculation()
+int Step_T2D_ME_mt_Geo::finalize_calculation()
 {
 	for (size_t t_id = 0; t_id < thread_num; ++t_id)
 		thread_datas[t_id].~ThreadData();
 	return 0;
 }
 
-int substep_func_omp_T2D_CHM_mt_Geo(
+int substep_func_omp_T2D_ME_mt_Geo(
 	void* _self,
 	size_t my_th_id,
 	double dt,
 	double cur_time,
 	size_t substp_id)
 {
-	typedef Model_T2D_CHM_mt::ShapeFunc ShapeFunc;
-	typedef Model_T2D_CHM_mt::DShapeFuncAB DShapeFuncAB;
-	typedef Model_T2D_CHM_mt::DShapeFuncC DShapeFuncC;
-	typedef Model_T2D_CHM_mt::Force Force;
-	typedef Model_T2D_CHM_mt::Position Position;
-	typedef Model_T2D_CHM_mt::Displacement Displacement;
-	typedef Model_T2D_CHM_mt::Velocity Velocity;
-	typedef Model_T2D_CHM_mt::Acceleration Acceleration;
-	typedef Model_T2D_CHM_mt::Stress Stress;
-	typedef Model_T2D_CHM_mt::Strain Strain;
-	typedef Model_T2D_CHM_mt::StrainInc StrainInc;
-	typedef Model_T2D_CHM_mt::SortedPclVarArrays SortedPclVarArrays;
-	typedef Model_T2D_CHM_mt::ElemNodeIndex ElemNodeIndex;
-	typedef Model_T2D_CHM_mt::ElemNodeVM ElemNodeVM;
-	typedef Model_T2D_CHM_mt::NodeHasVBC NodeHasVBC;
-	typedef Step_T2D_CHM_mt_Geo::ThreadData ThreadData;
+	typedef Model_T2D_ME_mt::ShapeFunc ShapeFunc;
+	typedef Model_T2D_ME_mt::ShapeFuncAB DShapeFuncAB;
+	typedef Model_T2D_ME_mt::ShapeFuncC DShapeFuncC;
+	typedef Model_T2D_ME_mt::Force Force;
+	typedef Model_T2D_ME_mt::Position Position;
+	typedef Model_T2D_ME_mt::Displacement Displacement;
+	typedef Model_T2D_ME_mt::Velocity Velocity;
+	typedef Model_T2D_ME_mt::Acceleration Acceleration;
+	typedef Model_T2D_ME_mt::Stress Stress;
+	typedef Model_T2D_ME_mt::Strain Strain;
+	typedef Model_T2D_ME_mt::StrainInc StrainInc;
+	typedef Model_T2D_ME_mt::SortedPclVarArrays SortedPclVarArrays;
+	typedef Model_T2D_ME_mt::ElemNodeIndex ElemNodeIndex;
+	typedef Model_T2D_ME_mt::ElemNodeVM ElemNodeVM;
+	typedef Model_T2D_ME_mt::NodeHasVBC NodeHasVBC;
+	typedef Step_T2D_ME_mt_Geo::ThreadData ThreadData;
 
-	Step_T2D_CHM_mt_Geo& self = *(Step_T2D_CHM_mt_Geo*)(_self);
+	Step_T2D_ME_mt_Geo& self = *(Step_T2D_ME_mt_Geo*)(_self);
 	
 	if (self.valid_pcl_num == 0)
 	{
@@ -458,12 +453,10 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 		return 0;
 	}
 	
-	Model_T2D_CHM_mt& md = *(Model_T2D_CHM_mt *)(self.model);
+	Model_T2D_ME_mt& md = *(Model_T2D_ME_mt *)(self.model);
 
-	const double* const pcl_m_s = self.pcl_m_s;
-	const double* const pcl_density_s = self.pcl_density_s;
-	const double* const pcl_vol_s = self.pcl_vol_s;
-	const Force* const pcl_bf_s = self.pcl_bf_s;
+	const double* const pcl_m = self.pcl_m;
+	const Force* const pcl_bf = self.pcl_bf;
 	const Force* const pcl_t = self.pcl_t;
 	const Position* const pcl_pos = self.pcl_pos;
 	double* const pcl_vol = self.pcl_vol;
@@ -471,32 +464,32 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 	
 	const size_t thread_num = self.thread_num;
 	ThreadData &thd = self.thread_datas[my_th_id];
+
 	SortedPclVarArrays &spva0 = self.sorted_pcl_var_arrays[0];
 	size_t* const pcl_index0 = spva0.pcl_index;
-	double* const pcl_n0 = spva0.pcl_n;
-	Displacement* const pcl_u_s0 = spva0.pcl_u_s;
-	Velocity* const pcl_v_s0 = spva0.pcl_v_s;
-	Stress* const pcl_stress0 = spva0.pcl_stress;
+	const double* const pcl_density0 = spva0.pcl_density;
+	Velocity* const pcl_v0 = spva0.pcl_v;
+	Displacement* const pcl_disp = spva0.pcl_disp;
 	ShapeFunc* const pcl_N0 = spva0.pcl_N;
+	Stress* const pcl_stress0 = spva0.pcl_stress;
 
 	const ElemNodeIndex* const elem_node_id = self.elem_node_id;
 	const DShapeFuncAB *const elem_N_ab = self.elem_N_ab;
 	const DShapeFuncC *const elem_N_c = self.elem_N_c;
 	const double* const elem_area = self.elem_area;
 
-	double* const elem_pcl_n = self.elem_pcl_n;
-	double* const elem_pcl_m_s = self.elem_pcl_m_s;
+	double* const elem_pcl_m = self.elem_pcl_m;
 	StrainInc* const elem_de = self.elem_de;
-	double* const elem_m_de_vol_s = self.elem_m_de_vol_s;
+	double* const elem_m_de_vol = self.elem_m_de_vol;
 
-	ElemNodeVM* const elem_node_vm_s = self.elem_node_vm_s;
-	Force* const elem_node_force_s = self.elem_node_force_s;
+	ElemNodeVM* const elem_node_vm = self.elem_node_vm;
+	Force* const elem_node_force = self.elem_node_force;
 	
-	Acceleration* const node_a_s = self.node_a_s;
-	Velocity* const node_v_s = self.node_v_s;
-	NodeHasVBC* const node_has_vbc_s = self.node_has_vbc_s;
-	double* const node_am_s = self.node_am_s;
-	double* const node_de_vol_s = self.node_de_vol_s;
+	Acceleration* const node_a = self.node_a;
+	Velocity* const node_v = self.node_v;
+	NodeHasVBC* const node_has_vbc = self.node_has_vbc;
+	double* const node_am = self.node_am;
+	double* const node_de_vol = self.node_de_vol;
 	
 	const size_t* pcl_in_elem0 = self.pcl_in_elems[0];
 	const size_t* node_has_elem0 = self.node_has_elems[0];
@@ -512,29 +505,27 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 	const size_t p_id0 = thd.p_id0;
 	const size_t p_id1 = thd.p_id1;
 	size_t p_id, ori_p_id, e_id, ne_id;
-	double p_n, p_m_s, p_vol, p_N_m;
-	double one_third_bfx_s, one_third_bfy_s;
-	double en1_vm_s = 0.0;
-	double en1_vmx_s = 0.0;
-	double en1_vmy_s = 0.0;
-	double en2_vm_s = 0.0;
-	double en2_vmx_s = 0.0;
-	double en2_vmy_s = 0.0;
-	double en3_vm_s = 0.0;
-	double en3_vmx_s = 0.0;
-	double en3_vmy_s = 0.0;
-	double e_p_m_s = 0.0;
-	double e_n = 0.0;
+	double p_m, p_vol, p_N_m, one_third_bfx, one_third_bfy;
+	double en1_vm = 0.0;
+	double en1_vmx = 0.0;
+	double en1_vmy = 0.0;
+	double en2_vm = 0.0;
+	double en2_vmx = 0.0;
+	double en2_vmy = 0.0;
+	double en3_vm = 0.0;
+	double en3_vmx = 0.0;
+	double en3_vmy = 0.0;
+	double e_p_m = 0.0;
 	double e_p_vol = 0.0;
 	double e_s11 = 0.0;
 	double e_s22 = 0.0;
 	double e_s12 = 0.0;
-	double en1_fx_s = 0.0;
-	double en1_fy_s = 0.0;
-	double en2_fx_s = 0.0;
-	double en2_fy_s = 0.0;
-	double en3_fx_s = 0.0;
-	double en3_fy_s = 0.0;
+	double en1_fx = 0.0;
+	double en1_fy = 0.0;
+	double en2_fx = 0.0;
+	double en2_fy = 0.0;
+	double en3_fx = 0.0;
+	double en3_fy = 0.0;
 	e_id = pcl_in_elem0[p_id0];
 	for (p_id = p_id0; p_id < p_id1; ++p_id)
 	{
@@ -544,16 +535,14 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 
 		// map pcl mass and volume
 		// m_s
-		p_m_s = pcl_m_s[ori_p_id];
-		e_p_m_s += p_m_s;
-		// e_n
-		e_n += pcl_vol_s[ori_p_id];
-		// vol
-		p_n = pcl_n0[p_id];
-		p_vol = pcl_vol_s[ori_p_id] / (1.0 - p_n);
+		p_m = pcl_m[ori_p_id];
+		e_p_m += p_m;
+
+		// map pcl volume
+		p_vol = p_m / pcl_density0[p_id];
 		pcl_vol[p_id] = p_vol;
 		e_p_vol += p_vol;
-
+		
 		// map stress
 		Stress& p_s0 = pcl_stress0[p_id];
 		e_s11 += p_s0.s11 * p_vol;
@@ -563,51 +552,49 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 		// map velocity
 		ShapeFunc& p_N0 = pcl_N0[p_id];
 		// solid velocity
-		Velocity &p_v_s0 = pcl_v_s0[p_id];
-		p_N_m = (p_N0.N1 > N_tol ? p_N0.N1 : N_tol) * p_m_s;
-		en1_vm_s += p_N_m;
-		en1_vmx_s += p_N_m * p_v_s0.vx;
-		en1_vmy_s += p_N_m * p_v_s0.vy;
-		p_N_m = (p_N0.N2 > N_tol ? p_N0.N2 : N_tol) * p_m_s;
-		en2_vm_s += p_N_m;
-		en2_vmx_s += p_N_m * p_v_s0.vx;
-		en2_vmy_s += p_N_m * p_v_s0.vy;
-		p_N_m = (p_N0.N3 > N_tol ? p_N0.N3 : N_tol) * p_m_s;
-		en3_vm_s += p_N_m;
-		en3_vmx_s += p_N_m * p_v_s0.vx;
-		en3_vmy_s += p_N_m * p_v_s0.vy;
+		Velocity &p_v0 = pcl_v0[p_id];
+		p_N_m = (p_N0.N1 > N_tol ? p_N0.N1 : N_tol) * p_m;
+		en1_vm += p_N_m;
+		en1_vmx += p_N_m * p_v0.vx;
+		en1_vmy += p_N_m * p_v0.vy;
+		p_N_m = (p_N0.N2 > N_tol ? p_N0.N2 : N_tol) * p_m;
+		en2_vm += p_N_m;
+		en2_vmx += p_N_m * p_v0.vx;
+		en2_vmy += p_N_m * p_v0.vy;
+		p_N_m = (p_N0.N3 > N_tol ? p_N0.N3 : N_tol) * p_m;
+		en3_vm += p_N_m;
+		en3_vmx += p_N_m * p_v0.vx;
+		en3_vmy += p_N_m * p_v0.vy;
 
 		// solid external load
-		const Force &p_bf_s = self.pcl_bf_s[ori_p_id];
-		one_third_bfx_s = one_third * p_bf_s.fx;
-		one_third_bfy_s = one_third * p_bf_s.fy;
+		const Force &p_bf_s = self.pcl_bf[ori_p_id];
+		one_third_bfx = one_third * p_bf_s.fx;
+		one_third_bfy = one_third * p_bf_s.fy;
 		const Force &p_t = self.pcl_t[ori_p_id];
-		en1_fx_s += one_third_bfx_s + p_N0.N1 * p_t.fx;
-		en1_fy_s += one_third_bfy_s + p_N0.N1 * p_t.fy;
-		en2_fx_s += one_third_bfx_s + p_N0.N2 * p_t.fx;
-		en2_fy_s += one_third_bfy_s + p_N0.N2 * p_t.fy;
-		en3_fx_s += one_third_bfx_s + p_N0.N3 * p_t.fx;
-		en3_fy_s += one_third_bfy_s + p_N0.N3 * p_t.fy;
+		en1_fx += one_third_bfx + p_N0.N1 * p_t.fx;
+		en1_fy += one_third_bfy + p_N0.N1 * p_t.fy;
+		en2_fx += one_third_bfx + p_N0.N2 * p_t.fx;
+		en2_fy += one_third_bfy + p_N0.N2 * p_t.fy;
+		en3_fx += one_third_bfx + p_N0.N3 * p_t.fx;
+		en3_fy += one_third_bfy + p_N0.N3 * p_t.fy;
 
 		if (e_id != pcl_in_elem0[p_id + 1])
 		{
+			elem_pcl_m[e_id] = e_p_m;
+
 			// v_s
-			ElemNodeVM& en1_v_s = elem_node_vm_s[e_id * 3];
-			en1_v_s.vm = en1_vm_s;
-			en1_v_s.vmx = en1_vmx_s;
-			en1_v_s.vmy = en1_vmy_s;
-			ElemNodeVM& en2_v_s = elem_node_vm_s[e_id * 3 + 1];
-			en2_v_s.vm = en2_vm_s;
-			en2_v_s.vmx = en2_vmx_s;
-			en2_v_s.vmy = en2_vmy_s;
-			ElemNodeVM& en3_v_s = elem_node_vm_s[e_id * 3 + 2];
-			en3_v_s.vm = en3_vm_s;
-			en3_v_s.vmx = en3_vmx_s;
-			en3_v_s.vmy = en3_vmy_s;
-			
-			elem_pcl_m_s[e_id] = e_p_m_s;
-			e_n = 1.0 - e_n / e_p_vol;
-			elem_pcl_n[e_id] = e_n;
+			ElemNodeVM& en1_v_s = elem_node_vm[e_id * 3];
+			en1_v_s.vm = en1_vm;
+			en1_v_s.vmx = en1_vmx;
+			en1_v_s.vmy = en1_vmy;
+			ElemNodeVM& en2_v_s = elem_node_vm[e_id * 3 + 1];
+			en2_v_s.vm = en2_vm;
+			en2_v_s.vmx = en2_vmx;
+			en2_v_s.vmy = en2_vmy;
+			ElemNodeVM& en3_v_s = elem_node_vm[e_id * 3 + 2];
+			en3_v_s.vm = en3_vm;
+			en3_v_s.vmx = en3_vmx;
+			en3_v_s.vmy = en3_vmy;
 			
 			e_s11 /= e_p_vol;
 			e_s22 /= e_p_vol;
@@ -617,48 +604,47 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 
 			const DShapeFuncAB& e_dN = elem_N_ab[e_id];
 			// node 1
-			Force& en1_f_s = elem_node_force_s[e_id * 3];
-			en1_fx_s -= (e_dN.dN1_dx * e_s11 + e_dN.dN1_dy * e_s12) * e_p_vol;
-			en1_f_s.fx = en1_fx_s;
-			en1_fy_s -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * e_s22) * e_p_vol;
-			en1_f_s.fy = en1_fy_s;
+			Force& en1_f = elem_node_force[e_id * 3];
+			en1_fx -= (e_dN.dN1_dx * e_s11 + e_dN.dN1_dy * e_s12) * e_p_vol;
+			en1_f.fx = en1_fx;
+			en1_fy -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * e_s22) * e_p_vol;
+			en1_f.fy = en1_fy;
 			// node 2
-			Force& en2_f_s = elem_node_force_s[e_id * 3 + 1];
-			en2_fx_s -= (e_dN.dN2_dx * e_s11 + e_dN.dN2_dy * e_s12) * e_p_vol;
-			en2_f_s.fx = en2_fx_s;
-			en2_fy_s -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * e_s22) * e_p_vol;
-			en2_f_s.fy = en2_fy_s;
+			Force& en2_f = elem_node_force[e_id * 3 + 1];
+			en2_fx -= (e_dN.dN2_dx * e_s11 + e_dN.dN2_dy * e_s12) * e_p_vol;
+			en2_f.fx = en2_fx;
+			en2_fy -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * e_s22) * e_p_vol;
+			en2_f.fy = en2_fy;
 			// node 3
-			Force& en3_f_s = elem_node_force_s[e_id * 3 + 2];
-			en3_fx_s -= (e_dN.dN3_dx * e_s11 + e_dN.dN3_dy * e_s12) * e_p_vol;
-			en3_f_s.fx = en3_fx_s;
-			en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * e_s22) * e_p_vol;
-			en3_f_s.fy = en3_fy_s;
+			Force& en3_f = elem_node_force[e_id * 3 + 2];
+			en3_fx -= (e_dN.dN3_dx * e_s11 + e_dN.dN3_dy * e_s12) * e_p_vol;
+			en3_f.fx = en3_fx;
+			en3_fy -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * e_s22) * e_p_vol;
+			en3_f.fy = en3_fy;
 
 			e_id = pcl_in_elem0[p_id + 1];
 			assert(e_id < self.elem_num || e_id == SIZE_MAX);
 
-			e_p_m_s = 0.0;
-			e_n = 0.0;
+			e_p_m = 0.0;
 			e_p_vol = 0.0;
 			e_s11 = 0.0;
 			e_s22 = 0.0;
 			e_s12 = 0.0;
-			en1_vm_s = 0.0;
-			en1_vmx_s = 0.0;
-			en1_vmy_s = 0.0;
-			en2_vm_s = 0.0;
-			en2_vmx_s = 0.0;
-			en2_vmy_s = 0.0;
-			en3_vm_s = 0.0;
-			en3_vmx_s = 0.0;
-			en3_vmy_s = 0.0;
-			en1_fx_s = 0.0;
-			en1_fy_s = 0.0;
-			en2_fx_s = 0.0;
-			en2_fy_s = 0.0;
-			en3_fx_s = 0.0;
-			en3_fy_s = 0.0;
+			en1_vm = 0.0;
+			en1_vmx = 0.0;
+			en1_vmy = 0.0;
+			en2_vm = 0.0;
+			en2_vmx = 0.0;
+			en2_vmy = 0.0;
+			en3_vm = 0.0;
+			en3_vmx = 0.0;
+			en3_vmy = 0.0;
+			en1_fx = 0.0;
+			en1_fy = 0.0;
+			en2_fx = 0.0;
+			en2_fy = 0.0;
+			en3_fx = 0.0;
+			en3_fy = 0.0;
 		}
 	}
 	
@@ -667,17 +653,17 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 	size_t ve_id, n_id, bc_mask;
 	const size_t ve_id0 = thd.ve_id0;
 	const size_t ve_id1 = thd.ve_id1;
-	double n_vm_s = 0.0;
-	double n_vmx_s = 0.0;
-	double n_vmy_s = 0.0;
-	double n_am_s = 0.0;
+	double n_vm = 0.0;
+	double n_vmx = 0.0;
+	double n_vmy = 0.0;
+	double n_am = 0.0;
 	union
 	{
-		struct { double n_fx_s, n_fy_s; };
-		struct { size_t in_fx_s, in_fy_s; };
+		struct { double n_fx, n_fy; };
+		struct { size_t in_fx, in_fy; };
 	};
-	n_fx_s = 0.0;
-	n_fy_s = 0.0;
+	n_fx = 0.0;
+	n_fy = 0.0;
 	double f_ub = 0.0;
 	double e_kin = 0.0;
 	n_id = node_has_elem0[ve_id0];
@@ -688,49 +674,49 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 		assert(ne_id < self.elem_num * 3);
 		e_id = ne_id / 3;
 
-		ElemNodeVM& nvm_s = elem_node_vm_s[ne_id];
-		n_vm_s += nvm_s.vm;
-		n_vmx_s += nvm_s.vmx;
-		n_vmy_s += nvm_s.vmy;
+		ElemNodeVM& nvm = elem_node_vm[ne_id];
+		n_vm += nvm.vm;
+		n_vmx += nvm.vmx;
+		n_vmy += nvm.vmy;
 
-		n_am_s += elem_pcl_m_s[e_id];
-		const Force &nf_s = elem_node_force_s[ne_id];
-		n_fx_s += nf_s.fx;
-		n_fy_s += nf_s.fy;
+		n_am += elem_pcl_m[e_id];
+		const Force &nf_s = elem_node_force[ne_id];
+		n_fx += nf_s.fx;
+		n_fy += nf_s.fy;
 
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
 			// solid
-			n_am_s *= one_third;
-			node_am_s[n_id] = n_am_s;
-			Acceleration& n_a_s = node_a_s[n_id];
-			n_a_s.ax = n_fx_s / n_am_s;
-			n_a_s.ay = n_fy_s / n_am_s;
-			Velocity& n_v_s = node_v_s[n_id];
-			n_v_s.vx = n_vmx_s / n_vm_s + n_a_s.ax * dt;
-			n_v_s.vy = n_vmy_s / n_vm_s + n_a_s.ay * dt;
-			NodeHasVBC& n_has_vbc_s = node_has_vbc_s[n_id];
-			bc_mask = size_t(n_has_vbc_s.has_vx_bc) + SIZE_MAX;
-			n_a_s.iax &= bc_mask;
-			n_v_s.ivx &= bc_mask;
-			in_fx_s &= bc_mask;
-			bc_mask = size_t(n_has_vbc_s.has_vy_bc) + SIZE_MAX;
-			n_a_s.iay &= bc_mask;
-			n_v_s.ivy &= bc_mask;
-			in_fy_s &= bc_mask;
+			n_am *= one_third;
+			node_am[n_id] = n_am;
+			Acceleration& n_a = node_a[n_id];
+			n_a.ax = n_fx / n_am;
+			n_a.ay = n_fy / n_am;
+			Velocity& n_v = node_v[n_id];
+			n_v.vx = n_vmx / n_vm + n_a.ax * dt;
+			n_v.vy = n_vmy / n_vm + n_a.ay * dt;
+			NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
+			bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
+			n_a.iax &= bc_mask;
+			n_v.ivx &= bc_mask;
+			in_fx &= bc_mask;
+			bc_mask = size_t(n_has_vbc.has_vy_bc) + SIZE_MAX;
+			n_a.iay &= bc_mask;
+			n_v.ivy &= bc_mask;
+			in_fy &= bc_mask;
 
-			f_ub += n_fx_s * n_fx_s + n_fy_s * n_fy_s;
-			e_kin += n_am_s * (n_v_s.vx * n_v_s.vx + n_v_s.vy * n_v_s.vy);
+			f_ub += n_fx * n_fx + n_fy * n_fy;
+			e_kin += n_am * (n_v.vx * n_v.vx + n_v.vy * n_v.vy);
 						
 			n_id = node_has_elem0[ve_id + 1];
 			assert(n_id < self.node_num || n_id == SIZE_MAX);
 
-			n_am_s = 0.0;
-			n_fx_s = 0.0;
-			n_fy_s = 0.0;
-			n_vm_s = 0.0;
-			n_vmx_s = 0.0;
-			n_vmy_s = 0.0;
+			n_am = 0.0;
+			n_fx = 0.0;
+			n_fy = 0.0;
+			n_vm = 0.0;
+			n_vmx = 0.0;
+			n_vmy = 0.0;
 		}
 	}
 
@@ -784,7 +770,7 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 	{
 		for (p_id = p_id0; p_id < p_id1; ++p_id)
 		{
-			Velocity& p_v0 = pcl_v_s0[p_id];
+			Velocity& p_v0 = pcl_v0[p_id];
 			p_v0.vx = 0.0;
 			p_v0.vy = 0.0;
 		}
@@ -795,10 +781,10 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 		{
 			if (n_id != node_has_elem0[ve_id + 1])
 			{
-				Acceleration& n_a = node_a_s[n_id];
+				Acceleration& n_a = node_a[n_id];
 				n_a.ax = 0.0;
 				n_a.ay = 0.0;
-				Velocity& n_v = node_v_s[n_id];
+				Velocity& n_v = node_v[n_id];
 				n_v.vx = 0.0;
 				n_v.vy = 0.0;
 				n_id = node_has_elem0[ve_id + 1];
@@ -816,44 +802,44 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 	// cal element strain and "enhancement"
 	const size_t* my_valid_elem_id = thd.valid_elem_id;
 	const size_t my_valid_elem_num = thd.valid_elem_num;
-	double e_de_vol_s;
+	double e_de_vol;
 	for (ve_id = 0; ve_id < my_valid_elem_num; ++ve_id)
 	{
 		e_id = my_valid_elem_id[ve_id];
 		assert(e_id < self.elem_num);
 
 		const ElemNodeIndex& eni = elem_node_id[e_id];
-		const Velocity& n1_v_s = node_v_s[eni.n1];
-		const Velocity& n2_v_s = node_v_s[eni.n2];
-		const Velocity& n3_v_s = node_v_s[eni.n3];
+		const Velocity& n1_v = node_v[eni.n1];
+		const Velocity& n2_v = node_v[eni.n2];
+		const Velocity& n3_v = node_v[eni.n3];
 		const DShapeFuncAB& e_dN = elem_N_ab[e_id];
 		StrainInc& e_de = elem_de[e_id];
-		e_de.de11 = (e_dN.dN1_dx * n1_v_s.vx + e_dN.dN2_dx * n2_v_s.vx + e_dN.dN3_dx * n3_v_s.vx) * dt;
-		e_de.de22 = (e_dN.dN1_dy * n1_v_s.vy + e_dN.dN2_dy * n2_v_s.vy + e_dN.dN3_dy * n3_v_s.vy) * dt;
-		e_de.de12 = (e_dN.dN1_dx * n1_v_s.vy + e_dN.dN2_dx * n2_v_s.vy + e_dN.dN3_dx * n3_v_s.vy
-				   + e_dN.dN1_dy * n1_v_s.vx + e_dN.dN2_dy * n2_v_s.vx + e_dN.dN3_dy * n3_v_s.vx) * dt * 0.5;
-		e_de_vol_s = e_de.de11 + e_de.de22;
-		elem_m_de_vol_s[e_id] = elem_pcl_m_s[e_id] * e_de_vol_s;
-		e_de_vol_s *= one_third;
-		e_de.de11 -= e_de_vol_s;
-		e_de.de22 -= e_de_vol_s;
+		e_de.de11 = (e_dN.dN1_dx * n1_v.vx + e_dN.dN2_dx * n2_v.vx + e_dN.dN3_dx * n3_v.vx) * dt;
+		e_de.de22 = (e_dN.dN1_dy * n1_v.vy + e_dN.dN2_dy * n2_v.vy + e_dN.dN3_dy * n3_v.vy) * dt;
+		e_de.de12 = (e_dN.dN1_dx * n1_v.vy + e_dN.dN2_dx * n2_v.vy + e_dN.dN3_dx * n3_v.vy
+				   + e_dN.dN1_dy * n1_v.vx + e_dN.dN2_dy * n2_v.vx + e_dN.dN3_dy * n3_v.vx) * dt * 0.5;
+		e_de_vol = e_de.de11 + e_de.de22;
+		elem_m_de_vol[e_id] = elem_pcl_m[e_id] * e_de_vol;
+		e_de_vol *= one_third;
+		e_de.de11 -= e_de_vol;
+		e_de.de22 -= e_de_vol;
 	}
 
 #pragma omp barrier
-	double n_am_de_vol_s = 0.0;
+	double n_am_de_vol = 0.0;
 	n_id = node_has_elem0[ve_id0];
 	assert(n_id < self.node_num);
 	for (ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 	{
 		e_id = node_elem_pair0[ve_id] / 3;
 		assert(e_id < self.elem_num);
-		n_am_de_vol_s += elem_m_de_vol_s[e_id];
+		n_am_de_vol += elem_m_de_vol[e_id];
 		if (n_id != node_has_elem0[ve_id + 1])
 		{
-			node_de_vol_s[n_id] = n_am_de_vol_s * one_third / node_am_s[n_id];
+			node_de_vol[n_id] = n_am_de_vol * one_third / node_am[n_id];
 			n_id = node_has_elem0[ve_id + 1];
 			assert(n_id < self.node_num || n_id == SIZE_MAX);
-			n_am_de_vol_s = 0.0;
+			n_am_de_vol = 0.0;
 		}
 	}
 
@@ -874,28 +860,28 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 			assert(e_id < self.elem_num);
 
 			const ElemNodeIndex& eni = elem_node_id[e_id];
-			pn1_a_s = node_a_s + eni.n1;
-			pn2_a_s = node_a_s + eni.n2;
-			pn3_a_s = node_a_s + eni.n3;
-			pn1_v_s = node_v_s + eni.n1;
-			pn2_v_s = node_v_s + eni.n2;
-			pn3_v_s = node_v_s + eni.n3;
+			pn1_a_s = node_a + eni.n1;
+			pn2_a_s = node_a + eni.n2;
+			pn3_a_s = node_a + eni.n3;
+			pn1_v_s = node_v + eni.n1;
+			pn2_v_s = node_v + eni.n2;
+			pn3_v_s = node_v + eni.n3;
 
-			e_de_vol_s = (node_de_vol_s[eni.n1]
-						+ node_de_vol_s[eni.n2]
-						+ node_de_vol_s[eni.n3]) * one_third;
+			e_de_vol = (node_de_vol[eni.n1]
+					  + node_de_vol[eni.n2]
+					  + node_de_vol[eni.n3]) * one_third;
 
 			pe_de = elem_de + e_id;
-			e_de_vol_s *= one_third;
-			pe_de->de11 += e_de_vol_s;
-			pe_de->de22 += e_de_vol_s;
+			e_de_vol *= one_third;
+			pe_de->de11 += e_de_vol;
+			pe_de->de22 += e_de_vol;
 		}
 
 		// update velocity
 		ShapeFunc& p_N = pcl_N0[p_id];
-		Velocity& p_v_s0 = pcl_v_s0[p_id];
-		p_v_s0.vx += (p_N.N1 * pn1_a_s->ax + p_N.N2 * pn2_a_s->ax + p_N.N3 * pn3_a_s->ax) * dt;
-		p_v_s0.vy += (p_N.N1 * pn1_a_s->ay + p_N.N2 * pn2_a_s->ay + p_N.N3 * pn3_a_s->ay) * dt;
+		Velocity& p_v0 = pcl_v0[p_id];
+		p_v0.vx += (p_N.N1 * pn1_a_s->ax + p_N.N2 * pn2_a_s->ax + p_N.N3 * pn3_a_s->ax) * dt;
+		p_v0.vy += (p_N.N1 * pn1_a_s->ay + p_N.N2 * pn2_a_s->ay + p_N.N3 * pn3_a_s->ay) * dt;
 		
 		// update stress
 		ori_p_id = spva0.pcl_index[p_id];
@@ -919,8 +905,8 @@ int substep_func_omp_T2D_CHM_mt_Geo(
 	return 0;
 }
 
-void Step_T2D_CHM_mt_Geo::reorder(
-	Model_T2D_CHM_mt& md,
+void Step_T2D_ME_mt_Geo::reorder(
+	Model_T2D_ME_mt& md,
 	size_t valid_pcl_num,
 	const size_t* prev_pcl_ids)
 {
@@ -931,71 +917,53 @@ void Step_T2D_CHM_mt_Geo::reorder(
 
 	size_t* pcl_index = spva.pcl_index;
 	tmp_mem_size = sizeof(size_t) * valid_pcl_num;
-	size_t* pcl_index_tmp = (size_t*)tmp_mem.resize(tmp_mem_size);
+	size_t* pcl_index_tmp = (size_t *)tmp_mem.resize(tmp_mem_size);
 	memcpy(pcl_index_tmp, pcl_index, tmp_mem_size);
 	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
 		pcl_index[p_id] = pcl_index_tmp[prev_pcl_ids[p_id]];
 
-	double* pcl_n = spva.pcl_n;
+	double* pcl_density = spva.pcl_density;
 	tmp_mem_size = sizeof(double) * valid_pcl_num;
-	double* pcl_n_tmp = (double *)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_n_tmp, pcl_n, tmp_mem_size);
+	double* pcl_density_tmp = (double *)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_density_tmp, pcl_density, tmp_mem_size);
 	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
-		pcl_n[p_id] = pcl_n_tmp[prev_pcl_ids[p_id]];
+		pcl_density[p_id] = pcl_density_tmp[prev_pcl_ids[p_id]];
 
-	double* pcl_density_f = spva.pcl_density_f;
-	tmp_mem_size = sizeof(double) * valid_pcl_num;
-	double* pcl_density_f_tmp = (double*)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_density_f_tmp, pcl_density_f, tmp_mem_size);
-	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
-		pcl_density_f[p_id] = pcl_density_f_tmp[prev_pcl_ids[p_id]];
-
-	Velocity* pcl_v_s = spva.pcl_v_s;
+	Velocity* pcl_v = spva.pcl_v;
 	tmp_mem_size = sizeof(Velocity) * valid_pcl_num;
-	Velocity* pcl_v_s_tmp = (Velocity*)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_v_s_tmp, pcl_v_s, tmp_mem_size);
+	Velocity* pcl_v_tmp = (Velocity*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_v_tmp, pcl_v, tmp_mem_size);
 	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
 	{
-		Velocity& p_v = pcl_v_s[p_id];
-		Velocity& p_v_tmp = pcl_v_s_tmp[prev_pcl_ids[p_id]];
+		Velocity& p_v = pcl_v[p_id];
+		Velocity& p_v_tmp = pcl_v_tmp[prev_pcl_ids[p_id]];
 		p_v.vx = p_v_tmp.vx;
 		p_v.vy = p_v_tmp.vy;
 	}
 
-	Velocity* pcl_v_f = spva.pcl_v_f;
-	tmp_mem_size = sizeof(Velocity) * valid_pcl_num;
-	Velocity* pcl_v_f_tmp = (Velocity*)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_v_f_tmp, pcl_v_f, tmp_mem_size);
-	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
-	{
-		Velocity& p_v = pcl_v_f[p_id];
-		Velocity& p_v_tmp = pcl_v_f_tmp[prev_pcl_ids[p_id]];
-		p_v.vx = p_v_tmp.vx;
-		p_v.vy = p_v_tmp.vy;
-	}
-
-	Displacement* pcl_u_s = spva.pcl_u_s;
+	Displacement* pcl_disp = spva.pcl_disp;
 	tmp_mem_size = sizeof(Displacement) * valid_pcl_num;
-	Displacement* pcl_u_s_tmp = (Displacement*)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_u_s_tmp, pcl_u_s, tmp_mem_size);
+	Displacement* pcl_disp_tmp = (Displacement*)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_disp_tmp, pcl_disp, tmp_mem_size);
 	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
 	{
-		Displacement& p_u = pcl_u_s[p_id];
-		Displacement& p_u_tmp = pcl_u_s_tmp[prev_pcl_ids[p_id]];
+		Displacement& p_u = pcl_disp[p_id];
+		Displacement& p_u_tmp = pcl_disp_tmp[prev_pcl_ids[p_id]];
 		p_u.ux = p_u_tmp.ux;
 		p_u.uy = p_u_tmp.uy;
 	}
 
-	Displacement* pcl_u_f = spva.pcl_u_f;
-	tmp_mem_size = sizeof(Displacement) * valid_pcl_num;
-	Displacement* pcl_u_f_tmp = (Displacement*)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_u_f_tmp, pcl_u_f, tmp_mem_size);
+	ShapeFunc *pcl_N = spva.pcl_N;
+	tmp_mem_size = sizeof(ShapeFunc) * valid_pcl_num;
+	ShapeFunc* pcl_N_tmp = (ShapeFunc *)tmp_mem.resize(tmp_mem_size);
+	memcpy(pcl_N_tmp, pcl_N, tmp_mem_size);
 	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
 	{
-		Displacement& p_u = pcl_u_f[p_id];
-		Displacement& p_u_tmp = pcl_u_f_tmp[prev_pcl_ids[p_id]];
-		p_u.ux = p_u_tmp.ux;
-		p_u.uy = p_u_tmp.uy;
+		ShapeFunc& p_N = pcl_N[p_id];
+		ShapeFunc& p_N_tmp = pcl_N_tmp[prev_pcl_ids[p_id]];
+		p_N.N1 = p_N_tmp.N1;
+		p_N.N2 = p_N_tmp.N2;
+		p_N.N3 = p_N_tmp.N3;
 	}
 
 	Stress* pcl_stress = spva.pcl_stress;
@@ -1010,13 +978,6 @@ void Step_T2D_CHM_mt_Geo::reorder(
 		p_s.s22 = p_s_tmp.s22;
 		p_s.s12 = p_s_tmp.s12;
 	}
-
-	double* pcl_p = spva.pcl_p;
-	tmp_mem_size = sizeof(double) * valid_pcl_num;
-	double* pcl_p_tmp = (double*)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_p_tmp, pcl_p, tmp_mem_size);
-	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
-		pcl_p[p_id] = pcl_p_tmp[prev_pcl_ids[p_id]];
 
 	Strain* pcl_strain = spva.pcl_strain;
 	tmp_mem_size = sizeof(Strain) * valid_pcl_num;
@@ -1055,18 +1016,5 @@ void Step_T2D_CHM_mt_Geo::reorder(
 		p_e.e11 = p_e_tmp.e11;
 		p_e.e22 = p_e_tmp.e22;
 		p_e.e12 = p_e_tmp.e12;
-	}
-
-	ShapeFunc* pcl_N = spva.pcl_N;
-	tmp_mem_size = sizeof(ShapeFunc) * valid_pcl_num;
-	ShapeFunc* pcl_N_tmp = (ShapeFunc *)tmp_mem.resize(tmp_mem_size);
-	memcpy(pcl_N_tmp, pcl_N, tmp_mem_size);
-	for (size_t p_id = 0; p_id < valid_pcl_num; ++p_id)
-	{
-		ShapeFunc& p_N = pcl_N[p_id];
-		ShapeFunc& p_N_tmp = pcl_N_tmp[prev_pcl_ids[p_id]];
-		p_N.N1 = p_N_tmp.N1;
-		p_N.N2 = p_N_tmp.N2;
-		p_N.N3 = p_N_tmp.N3;
 	}
 }

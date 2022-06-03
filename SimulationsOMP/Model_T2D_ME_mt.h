@@ -21,6 +21,9 @@ class Model_T2D_ME_mt;
 class Step_T2D_ME_mt;
 int substep_func_omp_T2D_ME_mt(void* _self, size_t my_th_id,
 	double dt, double cur_time, size_t substp_id);
+class Step_T2D_ME_mt_Geo;
+int substep_func_omp_T2D_ME_mt_Geo(void* _self, size_t my_th_id,
+	double dt, double cur_time, size_t substp_id);
 class Step_T2D_ME_TBB;
 int cal_substep_func_T2D_ME_TBB(void* _self);
 namespace Step_T2D_ME_Task { class CalData; }
@@ -51,6 +54,10 @@ struct Model_T2D_ME_mt : public Model,
 	friend int substep_func_omp_T2D_ME_mt(void* _self,
 		size_t my_th_id, double dt, double cur_time, size_t substp_id);
 	
+	friend class Step_T2D_ME_mt_Geo;
+	friend int substep_func_omp_T2D_ME_mt_Geo(void* _self, size_t my_th_id,
+		double dt, double cur_time, size_t substp_id);
+
 	friend class Step_T2D_ME_TBB;
 	friend int cal_substep_func_T2D_ME_TBB(void* _self);
 	friend class Step_T2D_ME_Task::CalData;
