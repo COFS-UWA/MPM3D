@@ -15,13 +15,17 @@
 void test_t2d_chm_mt_pipe_embedment(int argc, char** argv)
 {
 	TriangleMesh tri_mesh;
-	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_pipe_conference_mesh2_half.h5");
+	//tri_mesh.load_mesh_from_hdf5("../../Asset/rect_pipe_conference_mesh2_half.h5");
+	tri_mesh.load_mesh_from_hdf5("../../Asset/rect_strip_footing_half.h5");
 	tri_mesh.init_search_grid(0.02, 0.02);
 
 	ParticleGenerator2D<TriangleMesh> pcl_generator;
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -3.5, 0.0), 0.03, 0.03);
-	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -5.0, -3.5), 0.03, 0.03);
-	pcl_generator.replace_with_pcls_in_grid_layout(Rect(0.0, 3.5, -3.5, 0.0), 0.01, 0.01);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -3.5, 0.0), 0.03, 0.03);
+	//pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 5.0, -5.0, -3.5), 0.03, 0.03);
+	//pcl_generator.replace_with_pcls_in_grid_layout(Rect(0.0, 3.5, -3.5, 0.0), 0.01, 0.01);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 9.0, -4.5, 0.0), 0.03, 0.03);
+	pcl_generator.generate_pcls_in_grid_layout(Rect(0.0, 9.0, -9.0, -4.5), 0.03, 0.03);
+	pcl_generator.replace_with_pcls_in_grid_layout(Rect(0.0, 4.5, -4.5, 0.0), 0.01, 0.01);
 	pcl_generator.adjust_pcl_size_to_fit_elems(tri_mesh);
 	
 	Model_T2D_CHM_mt model;
@@ -74,20 +78,20 @@ void test_t2d_chm_mt_pipe_embedment(int argc, char** argv)
 	IndexArray left_right_bc_pt_array(100);
 	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, 0.0);
 	model.init_fixed_vx_f_bc(left_right_bc_pt_array.get_num(), left_right_bc_pt_array.get_mem());
-	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, 5.0, false);
+	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, 9.0, false);
 	model.init_fixed_vx_s_bc(left_right_bc_pt_array.get_num(), left_right_bc_pt_array.get_mem());
 
 	IndexArray bottom_bc_pt_array(100);
-	find_2d_nodes_on_y_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, bottom_bc_pt_array, -5.0);
+	find_2d_nodes_on_y_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, bottom_bc_pt_array, -9.0);
 	model.init_fixed_vy_s_bc(bottom_bc_pt_array.get_num(), bottom_bc_pt_array.get_mem());
 	
 	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1200, 900);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_vx_s_bc(0.03);
-	////md_disp.set_pts_from_vy_s_bc(0.03);
+	//md_disp.set_pts_from_vy_s_bc(0.03);
 	////md_disp.set_pts_from_vx_f_bc(0.03);
-	//md_disp.set_pts_from_vy_f_bc(0.03);
+	////md_disp.set_pts_from_vy_f_bc(0.03);
 	////md_disp.set_pts_from_pcl_id(traction_pt_array.get_mem(), traction_pt_array.get_num(), 0.01);
 	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
 	//md_disp.start();
