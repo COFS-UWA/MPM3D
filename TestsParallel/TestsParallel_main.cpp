@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
 
-	test_t2d_chm_mt_geostatic(argc, argv);
+	//test_t2d_chm_mt_geostatic(argc, argv);
 	//test_t2d_chm_mt_geostatic_result(argc, argv);
 
 	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_pipe_conference_den_restart(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_den_result(argc, argv);
 
-	//test_t2d_chm_mt_pipe_conference_den_half_geo(argc, argv);
-	//test_t2d_chm_mt_pipe_conference_den_half(argc, argv);
-	//test_t2d_chm_mt_pipe_conference_den_half_result(argc, argv);
+	test_t2d_chm_mt_pipe_embedment(argc, argv);
+	//test_t2d_chm_mt_pipe_embedment_restart(argc, argv);
+	//test_t2d_chm_mt_pipe_embedment_result(argc, argv);
 
 	//test_t3d_me_mt_test_spudcan_model(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_model(argc, argv);

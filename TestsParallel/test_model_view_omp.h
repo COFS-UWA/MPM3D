@@ -39,7 +39,7 @@ void test_t2d_chm_mt_pipe_conference_result(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_restart_result(int argc, char** argv);
 
 void test_t2d_chm_mt_pipe_conference_den_result(int argc, char** argv);
-void test_t2d_chm_mt_pipe_conference_den_half_result(int argc, char** argv);
+void test_t2d_chm_mt_pipe_embedment_result(int argc, char** argv);
 
 void test_t3d_chm_mt_triaxial_compression_result(int argc, char** argv);
 
