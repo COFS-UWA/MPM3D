@@ -1,9 +1,9 @@
 import h5py as py
 import matplotlib.pyplot as plt
 
-hdf5_file = py.File("../Build/TestsParallel/t2d_chm_mt_pipe_conference1_rough_k1e7_k5e-13_v0.05.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t2d_chm_mt_pipe_embedment.h5", "r")
 
-th_grp = hdf5_file['TimeHistory']['penetration']
+th_grp = hdf5_file['TimeHistory']['geostatic']
 th_num = th_grp.attrs['output_num']
 
 rb_y = []
@@ -23,7 +23,7 @@ for th_id in range(th_num):
 
 hdf5_file.close()
 
-data_file = open("../Build/TestsParallel/t2d_chm_mt_pipe_conference1.csv", "w")
+data_file = open("../Build/TestsParallel/t2d_chm_mt_pipe_embedment.csv", "w")
 for i in range(len(rb_y)):
     data_file.write("%f, %f\n" % (rb_y[i], rb_fy[i]))
 data_file.close()

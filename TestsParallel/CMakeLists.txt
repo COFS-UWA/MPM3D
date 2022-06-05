@@ -31,6 +31,7 @@ add_executable(
 	#test_t2d_me_mt_pipe_conference.cpp
     test_t2d_me_mt_strip_footing_smaller.cpp
     test_t2d_me_mt_strip_footing.cpp
+	test_t2d_me_mt_geostatic.cpp
 	test_t2d_chm_mt_geostatic.cpp
     test_t2d_chm_mt_1d_consolidation.cpp
 	test_t2d_chm_mt_block_sliding.cpp
@@ -38,7 +39,7 @@ add_executable(
     test_t2d_chm_mt_pipe_conference.cpp
     test_t2d_chm_mt_pipe_conference_restart.cpp
     test_t2d_chm_mt_pipe_conference_den.cpp
-	test_t2d_chm_mt_pipe_conference_den_half.cpp
+	test_t2d_chm_mt_pipe_embedment.cpp
     test_t3d_me_s_1d_compression.cpp
     test_t3d_me_mt_1d_compression.cpp
     test_t3d_me_mt_cylinder_bcs.cpp

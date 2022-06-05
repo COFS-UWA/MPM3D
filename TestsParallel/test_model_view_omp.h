@@ -9,6 +9,7 @@ void test_t2d_me_mt_block_collision_result(int argc, char** argv);
 void test_t2d_me_mt_block_sliding_result(int argc, char** argv);
 void test_t2d_me_mt_strip_footing_smaller_result(int argc, char** argv);
 void test_t2d_me_mt_strip_footing_result(int argc, char** argv);
+void test_t2d_me_mt_geostatic_result(int argc, char** argv);
 
 void test_t3d_me_mt_1d_compression_result(int argc, char** argv);
 void test_t3d_me_s_1d_compression_result(int argc, char** argv);
@@ -38,7 +39,7 @@ void test_t2d_chm_mt_pipe_conference_result(int argc, char** argv);
 void test_t2d_chm_mt_pipe_conference_restart_result(int argc, char** argv);
 
 void test_t2d_chm_mt_pipe_conference_den_result(int argc, char** argv);
-void test_t2d_chm_mt_pipe_conference_den_half_result(int argc, char** argv);
+void test_t2d_chm_mt_pipe_embedment_result(int argc, char** argv);
 
 void test_t3d_chm_mt_triaxial_compression_result(int argc, char** argv);
 

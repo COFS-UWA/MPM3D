@@ -8,6 +8,7 @@
 #include "ModelData_T2D_CHM_mt.h"
 #include "Step_T2D_CHM_mt_Geo.h"
 #include "TimeHistory_T2D_CHM_mt_Geo_complete.h"
+#include "TimeHistory_T2D_CHM_mt_Geo_ratio.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T2D_CHM_mt.h"
 #include "test_simulations_omp.h"
@@ -96,6 +97,9 @@ void test_t2d_chm_mt_geostatic(int argc, char** argv)
 	out.set_interval_num(100);
 	out.set_output_init_state();
 	out.set_output_final_state();
+	TimeHistory_T2D_CHM_mt_Geo_ratio out2("out");
+	out2.set_res_file("t2d_chm_mt_geostatic_ratio.csv");
+	out2.set_interval_num(200);
 	TimeHistory_ConsoleProgressBar out_pb;
 	out_pb.set_interval_num(1000);
 
@@ -104,9 +108,10 @@ void test_t2d_chm_mt_geostatic(int argc, char** argv)
 	step.set_step_time(1.0);
 	//step.set_step_time(1.0e-5);
 	step.set_dtime(1.0e-5);
-	//step.set_thread_num(2);
+	step.set_thread_num(3);
 	step.add_time_history(out);
-	//step.add_time_history(out_pb);
+	step.add_time_history(out2);
+	step.add_time_history(out_pb);
 	step.solve();
 }
 
