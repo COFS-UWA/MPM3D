@@ -23,8 +23,8 @@ void test_mcc_get_Su()
 	const double(*Dep_mat)[6];
 	double dstrain[6];
 
-	//double ini_stress[6] = { -40361.43, -24267.31, -24267.31, 0.0, 0.0, 0.0 };
-	double ini_stress[6] = { -20000.0, -12025.0, -12025.0, 0.0, 0.0, 0.0 };
+	//double ini_stress[6] = { -200000.0, -150250.0, -150250.0, 0.0, 0.0, 0.0 };
+	double ini_stress[6] = { -20000.0, -15025.0, -15025.0, 0.0, 0.0, 0.0 };
 	MatModel::ModifiedCamClay mcc;
 	//mcc.set_param_OC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress, 39965.89);
 	//mcc.set_param_OC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress, 20030.8);

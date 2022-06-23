@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_pipe_conference_den_restart(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_den_result(argc, argv);
 
-	test_t2d_chm_mt_pipe_embedment(argc, argv);
+	//test_t2d_chm_mt_pipe_embedment(argc, argv);
 	//test_t2d_chm_mt_pipe_embedment_restart(argc, argv);
 	//test_t2d_chm_mt_pipe_embedment_result(argc, argv);
 
@@ -213,9 +213,9 @@ int main(int argc, char *argv[])
 	// element test simulation
 	//test_t3d_chm_tbb_cap_compression(argc, argv);
 	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
-
+	
 	// Time profiling
-	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
+	test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
 	// tbb version
 	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);

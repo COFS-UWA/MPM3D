@@ -15,6 +15,7 @@
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
 #include "RigidObject/StickyContact3D.h"
+#include "RigidObject/NonSeperateContact3D.h"
 
 class Model_T3D_ME_mt;
 class Step_T3D_ME_mt;
