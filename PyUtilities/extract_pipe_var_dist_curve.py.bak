@@ -5,11 +5,19 @@ import matplotlib.pyplot as plt
 from multiprocessing import Process, Array
 
 path_name = "../Build/TestsParallel/"
+<<<<<<< HEAD
 sim_name = "t2d_chm_mt_pipe_embedment_geo_smh_D2"
 var_name = "p"
 th_name = "geostatic"
 rb_name = "RigidCircle"
 th_id = 51
+=======
+sim_name = "t2d_chm_mt_pipe_embedment_geo_rou_r05"
+var_name = "p"
+th_name = "geostatic"
+rb_name = "RigidCircle"
+th_id = 101
+>>>>>>> c178849d03985d38515a239f15d47e84fcbe6db6
 proc_num = 2
 
 # (x0, y0, dx, dy)

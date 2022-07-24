@@ -282,6 +282,9 @@ public:
 	void init_fixed_vx_f_bc(size_t vx_bc_num, const size_t* vx_bcs);
 	void init_fixed_vy_f_bc(size_t vy_bc_num, const size_t* vy_bcs);
 
+	inline void set_Kf(double _Kf) noexcept { Kf = _Kf; }
+	inline void set_k(double _k) noexcept { k = _k; }
+
 protected:
 	// background grid for mesh
 	double grid_xl, grid_yl;

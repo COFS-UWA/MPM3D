@@ -188,9 +188,16 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//	shps = model.following_SandHypoplasticityStbWrapper(shps);
 	//}
 
-	model.init_rigid_cylinder(0.0, 0.0, 1.1, 2.0, footing_radius, 2000.0);
-	//model.init_rigid_cylinder(0.0, 0.0, 1.125, 2.25, 1.0, 2000.0);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.25);
+	//model.init_rigid_cylinder(0.0, 0.0, 1.0, 2.0, 1.0, 2000.0); // D = 2 m
+	//model.init_rigid_cylinder(0.0, 0.0, 1.0, 2.0, footing_radius, 2000.0); // D = 3 m
+	//model.set_rigid_cylinder_velocity(0.0, 0.0, -0.25);
+
+	//model.init_t3d_rigid_mesh(1.0, "../../Asset/weird_cylinder.h5",
+	//	0.0, 0.0, 2.5, -90.0, 0.0, 0.0, 0.2, 0.2, 0.2); // D = 2 m
+	model.init_t3d_rigid_mesh(1.0, "../../Asset/weird_cylinder.h5",
+		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.2, 0.2, 0.2); // D = 3 m
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
+	
 	model.set_contact_param(1.0e5 / (sml_pcl_size * sml_pcl_size),
 		1.0e5 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);
 
@@ -250,7 +257,7 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	//md_disp.set_pts_from_vx_bc(0.05);
 	//md_disp.set_pts_from_vy_bc(0.05);
 	//md_disp.set_pts_from_vz_bc(0.05);
-	//md_disp.set_pts_from_vec_bc(0.05);
+	md_disp.set_pts_from_vec_bc(0.05);
 	md_disp.start();
 }
 

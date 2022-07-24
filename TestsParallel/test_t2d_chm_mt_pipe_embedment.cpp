@@ -53,53 +53,61 @@ void test_t2d_chm_mt_pipe_embedment(int argc, char** argv)
 		//Model_T2D_CHM_mt::Stress &pcl_s = model.get_pcl_stress0()[p_id];
 		//pcl_s.s11 = ini_stress[0];
 		//pcl_s.s22 = ini_stress[1];
+		//pcl_s.s12 = 0.0;
 		mccs->set_param_NC(0.3, 0.044, 0.205, 23.5, 3.6677, ini_stress);
 		model.add_mat_model(p_id, *mccs, sizeof(MatModel::ModifiedCamClay));
 		mccs = model.following_ModifiedCamClay(mccs);
 	}
 
 	model.init_rigid_circle(0.0, 1.0, 1.0, 1.0);
-	model.set_rigid_circle_velocity(0.0, -0.2, 0.0); // -0.2
-	model.set_contact_param(1.0e5 / 0.02, 1.0e5 / 0.02, 0.0, 2.5e3, 2.0e3 / 0.02, 2.0e3 / 0.02);
+	model.set_rigid_circle_velocity(0.0, -0.5, 0.0); // -0.2
+	model.set_contact_param(1.0e5 / 0.02, 1.0e5 / 0.02, 0.0, 5.0e3, 2.0e3 / 0.02, 2.0e3 / 0.02);
+	//model.set_smooth_contact_between_spcl_and_rb();
 	//model.set_sticky_contact_between_spcl_and_circle();
-	//model.set_rough_contact_between_spcl_and_circle();
+	model.set_rough_contact_between_spcl_and_circle();
 
+	//MemoryUtils::ItemArray<double> pt_traction(100);
 	//IndexArray traction_pt_array(100);
 	//find_2d_pcls<Model_T2D_CHM_mt>(model, traction_pt_array, Rect(0.0, 4.5, -0.006, 0.0));
-	//find_2d_pcls<Model_T2D_CHM_mt>(model, traction_pt_array, Rect(4.5, 9.0, -0.016, 0.0), false);
-	//MemoryUtils::ItemArray<double> pt_traction(100);
-	//for (size_t p_id = 0; p_id < traction_pt_array.get_num(); p_id++)
+	//size_t traction_num_tmp = traction_pt_array.get_num();
+	//for (size_t p_id = 0; p_id < traction_num_tmp; p_id++)
 	//{
-	//	double pcl_t = -20.0e3 * sqrt(model.get_pcl_vol()[p_id]);
+	//	double pcl_t = -20.0e3 * 0.01;
+	//	pt_traction.add(&pcl_t);
+	//}
+	//find_2d_pcls<Model_T2D_CHM_mt>(model, traction_pt_array, Rect(4.5, 9.0, -0.016, 0.0), false);
+	//for (size_t p_id = traction_num_tmp; p_id < traction_pt_array.get_num(); p_id++)
+	//{
+	//	double pcl_t = -20.0e3 * 0.03;
 	//	pt_traction.add(&pcl_t);
 	//}
 	//model.init_tys(traction_pt_array.get_num(), traction_pt_array.get_mem(), pt_traction.get_mem());
 
+	constexpr double boundary_pos = 9.0;
 	IndexArray left_right_bc_pt_array(100);
 	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, 0.0);
 	model.init_fixed_vx_f_bc(left_right_bc_pt_array.get_num(), left_right_bc_pt_array.get_mem());
-	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, 9.0, false);
+	find_2d_nodes_on_x_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, left_right_bc_pt_array, boundary_pos, false);
 	model.init_fixed_vx_s_bc(left_right_bc_pt_array.get_num(), left_right_bc_pt_array.get_mem());
 
 	IndexArray bottom_bc_pt_array(100);
-	find_2d_nodes_on_y_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, bottom_bc_pt_array, -9.0);
+	find_2d_nodes_on_y_line<Model_T2D_CHM_mt, Model_T2D_CHM_mt::Position>(model, bottom_bc_pt_array, -boundary_pos);
 	model.init_fixed_vy_s_bc(bottom_bc_pt_array.get_num(), bottom_bc_pt_array.get_mem());
 	
-	QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
-	md_disp.set_win_size(1200, 900);
-	md_disp.set_model(model);
-	md_disp.set_display_range(-0.2, 1.6, -0.6, 0.5);
-	//md_disp.set_display_range(4.25, 5.75, -0.1, 0.1);
-	//md_disp.set_pts_from_vx_s_bc(0.03);
-	//md_disp.set_pts_from_vy_s_bc(0.03);
-	//md_disp.set_pts_from_vx_f_bc(0.03);
-	//md_disp.set_pts_from_vy_f_bc(0.03);
+	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
+	//md_disp.set_win_size(1200, 900);
+	//md_disp.set_model(model);
+	////md_disp.set_display_range(4.2, 4.8, -0.25, 0.25);
+	////md_disp.set_pts_from_vx_s_bc(0.03);
+	////md_disp.set_pts_from_vy_s_bc(0.03);
+	////md_disp.set_pts_from_vx_f_bc(0.03);
+	////md_disp.set_pts_from_vy_f_bc(0.03);
 	//md_disp.set_pts_from_pcl_id(traction_pt_array.get_mem(), traction_pt_array.get_num(), 0.004);
-	md_disp.start();
-	return;
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_chm_mt_pipe_embedment.h5");
+	res_file_hdf5.create("t2d_chm_mt_pipe_embedment_geo.h5");
 
 	ModelData_T2D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
@@ -107,7 +115,7 @@ void test_t2d_chm_mt_pipe_embedment(int argc, char** argv)
 	TimeHistory_T2D_CHM_mt_complete out("geostatic");
 	//TimeHistory_T2D_CHM_mt_Geo_complete out("geostatic");
 	out.set_res_file(res_file_hdf5);
-	out.set_interval_num(100);
+	out.set_interval_num(50);
 	out.set_output_init_state();
 	out.set_output_final_state();
 	TimeHistory_ConsoleProgressBar out_pb;
@@ -116,9 +124,9 @@ void test_t2d_chm_mt_pipe_embedment(int argc, char** argv)
 	Step_T2D_CHM_mt step("step1");
 	//Step_T2D_CHM_mt_Geo step("step1");
 	step.set_model(model);
-	step.set_step_time(2.5);
+	step.set_step_time(2.0); //2.0
 	step.set_dtime(1.0e-6);
-	step.set_thread_num(2);
+	step.set_thread_num(12);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -132,29 +140,31 @@ void test_t2d_chm_mt_pipe_embedment_restart(int argc, char** argv)
 	using Model_T2D_CHM_mt_hdf5_utilities::load_chm_mt_model_from_hdf5_file;
 	load_chm_mt_model_from_hdf5_file(
 		model, step,
-		"t2d_chm_mt_pipe_embedment.h5",
-		"penetration", 5);
+		"t2d_chm_mt_pipe_embedment_geo.h5",
+		"geostatic", 50);
 
+	model.set_Kf(1.0e7);
+
+	model.init_rigid_circle(0.0, 1.0, 1.0, 1.0);
+	model.set_rigid_circle_velocity(0.0, -0.5, 0.0); // -0.2
+	model.set_contact_param(1.0e5 / 0.02, 1.0e5 / 0.02, 0.0, 2.5e3, 1.0e4 / 0.02, 1.0e4 / 0.02);
+	//model.set_smooth_contact_between_spcl_and_rb();
+	//model.set_sticky_contact_between_spcl_and_circle();
+	model.set_rough_contact_between_spcl_and_circle();
+	
 	//QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
 	//md_disp.set_win_size(1200, 900);
 	//md_disp.set_model(model);
-	////md_disp.set_pts_from_vx_s_bc(0.03);
-	////md_disp.set_pts_from_vx_f_bc(0.03);
-	////md_disp.set_pts_from_vy_s_bc(0.03);
-	//md_disp.set_pts_from_vy_f_bc(0.03);
-	//// all
 	////md_disp.set_display_range(-3.6, 3.6, -5.1, 1.1);
-	//// left
-	////md_disp.set_display_range(-3.8, -2.2, -1.0, 1.0);
-	//// middle
-	//md_disp.set_display_range(-1.5, 1.5, -0.75, 0.25);
-	//// right
-	////md_disp.set_display_range(2.2, 3.8, -1.0, 1.0);
+	////md_disp.set_pts_from_vx_s_bc(0.03);
+	////md_disp.set_pts_from_vy_s_bc(0.03);
+	////md_disp.set_pts_from_vx_f_bc(0.03);
+	//md_disp.set_pts_from_vy_f_bc(0.03);
 	//md_disp.start();
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t2d_chm_mt_pipe_embedment2.h5");
+	res_file_hdf5.create("t2d_chm_mt_pipe_embedment.h5");
 
 	ModelData_T2D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
@@ -165,12 +175,12 @@ void test_t2d_chm_mt_pipe_embedment_restart(int argc, char** argv)
 	out.set_output_init_state();
 	out.set_output_final_state();
 	TimeHistory_ConsoleProgressBar out_pb;
+	out_pb.set_interval_num(2000);
 
 	step.set_model(model);
-	//step.set_step_time(5.0);
-	step.set_step_time(1.0e-5);
-	step.set_dtime(2.0e-6);
-	step.set_thread_num(20);
+	step.set_step_time(1.5);
+	step.set_dtime(1.0e-6);
+	step.set_thread_num(12);
 	step.add_time_history(out);
 	step.add_time_history(out_pb);
 	step.solve();
@@ -182,31 +192,24 @@ void test_t2d_chm_mt_pipe_embedment_restart(int argc, char** argv)
 void test_t2d_chm_mt_pipe_embedment_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_mt_pipe_embedment_geo_D2_smh.h5");
+	rf.open("t2d_chm_mt_pipe_embedment.h5");
 
-	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::SingleFrame);
-	//QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
-	//app.set_ani_time(5.0);
-	app.set_win_size(1700, 1000);
-	//app.set_display_range(-0.1, 5.0, -4.5, 0.6);
-	app.set_display_range(-0.1, 3.0, -2.5, 0.6);
-	//app.set_mono_color_pcl();
-	app.set_color_map_geometry(1.5f, 0.45f, 0.5f);
-	//app.set_png_name("t2d_chm_mt_pipe_conference2");
-	//app.set_gif_name("t2d_chm_mt_pipe_conference2");
+	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
+	app.set_ani_time(5.0);
+	app.set_win_size(1200, 950);
+	//app.set_display_range(-1.0, 5.0, -4.0, 1.0);
+	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	// s22
-	//app.set_res_file(rf, "geostatic", 0, Hdf5Field::s22);
-	//app.set_res_file(rf, "geostatic", Hdf5Field::s22);
-	//app.set_color_map_fld_range(-30000.0, 0.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::s22);
+	//app.set_color_map_fld_range(-40000.0, 0.0);
 	// p
-	//app.set_res_file(rf, "geostatic", 101, Hdf5Field::p);
-	//app.set_color_map_fld_range(0, 33000.0); // pore pressure
-	// mises strain
-	app.set_res_file(rf, "geostatic", 101, Hdf5Field::mises_strain_2d);
-	app.set_color_map_fld_range(0, 1.1); // pore pressure
-	//
+	app.set_res_file(rf, "penetration", Hdf5Field::p);
+	app.set_color_map_fld_range(0, 50000.0);
+	// mises_strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
-	//app.set_color_map_fld_range(0, 0.4); // mises strain
+	//app.set_color_map_fld_range(0, 0.1); // mises strain
 	//
+	//app.set_png_name("t2d_chm_mt_pipe_conference");
+	//app.set_gif_name("t2d_chm_mt_pipe_conference");
 	app.start();
 }
