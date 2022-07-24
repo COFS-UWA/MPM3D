@@ -529,6 +529,10 @@ public:
 	inline void set_frictional_contact_between_pcl_and_rect() noexcept { pcm = &fric_contact; }
 	inline void set_sticky_contact_between_pcl_and_rect() noexcept { pcm = &sticky_contact; }
 	inline ContactModel3D *get_contact_model() noexcept { return pcm; }
+	inline bool is_smooth_contact_between_pcl_and_rect() noexcept { return pcm = &smooth_contact; }
+	inline bool is_frictional_contact_between_pcl_and_rect() noexcept { return pcm = &fric_contact; }
+	inline bool is_sticky_contact_between_pcl_and_rect() noexcept { return pcm = &sticky_contact; }
+	inline bool is_rough_contact_between_pcl_and_rect() noexcept { return pcm = &rough_contact; }
 
 	inline void set_cylinder_vx_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vx_bc(ramp_up_time); }
 	inline void set_cylinder_vy_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vy_bc(ramp_up_time); }

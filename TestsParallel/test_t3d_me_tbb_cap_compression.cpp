@@ -112,11 +112,14 @@ void test_t3d_me_tbb_cap_compression_result(int argc, char** argv)
 	//app.set_view_dist_scale(1.1);
 	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
 	// s33
-	app.set_res_file(rf, "compression", Hdf5Field::s33);
-	app.set_color_map_fld_range(-200.0, 0.0);
+	//app.set_res_file(rf, "compression", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-200.0, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 30.0);
+	// shear strain
+	app.set_res_file(rf, "compression", Hdf5Field::mises_strain_3d);
+	app.set_color_map_fld_range(0.0, 0.1);
 	//
 	//app.set_png_name("t3d_me_tbb_cap_compression");
 	app.set_gif_name("t3d_me_tbb_cap_compression");

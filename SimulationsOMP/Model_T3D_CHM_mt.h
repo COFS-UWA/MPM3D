@@ -605,6 +605,12 @@ public:
 	inline void set_non_sep_contact_between_fpcl_and_rect() noexcept { pcm_f = &non_sep_contact_f; }
 	inline ContactModel3D *get_contact_model_s() noexcept { return pcm_s; }
 	inline ContactModel3D* get_contact_model_f() noexcept { return pcm_f; }
+	inline bool is_smooth_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
+	inline bool is_frictional_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
+	inline bool is_sticky_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
+	inline bool is_rough_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
+	inline bool is_smooth_contact_f() noexcept { return pcm_f == &smooth_contact_f; }
+	inline bool is_rough_contact_f() noexcept { return pcm_f == &rough_contact_f; }
 
 	inline void set_cylinder_vx_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vx_bc(ramp_up_time); }
 	inline void set_cylinder_vy_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vy_bc(ramp_up_time); }

@@ -651,6 +651,18 @@ int output_rigid_cylinder_to_hdf5_file(
 	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
 	rf.write_attribute(rc_grp_id, "shear_strength", md.shear_strength);
 
+	// contact model
+	if (md.is_smooth_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Smooth));
+	else if (md.is_frictional_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Frictional));
+	else if (md.is_sticky_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Sticky));
+	else if (md.is_rough_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Rough));
+	else
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Invalid));
+	
 	RigidObject_hdf5_utilities::output_rigid_cylinder_to_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
 
 	rf.close_group(rc_grp_id);
@@ -677,6 +689,26 @@ int load_rigid_cylinder_from_hdf5_file(
 	rf.read_attribute(rc_grp_id, "shear_strength", shear_strength);
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
+	unsigned int cont_type;
+	rf.read_attribute(rc_grp_id, "contact_s_type", cont_type);
+	switch (ContactType(cont_type))
+	{
+	case ContactType::Smooth:
+		md.set_smooth_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Frictional:
+		md.set_frictional_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Sticky:
+		md.set_sticky_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Rough:
+		md.set_rough_contact_between_pcl_and_rect();
+		break;
+	default:
+		break;
+	}
+	
 	RigidObject_hdf5_utilities::load_rigid_cylinder_from_hdf5_file(md.rigid_cylinder, rf, rc_grp_id);
 
 	md.rigid_cylinder_is_valid = true;
@@ -702,6 +734,18 @@ int output_rigid_cone_to_hdf5_file(
 	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
 	rf.write_attribute(rc_grp_id, "shear_strength", md.shear_strength);
 
+	// contact model
+	if (md.is_smooth_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Smooth));
+	else if (md.is_frictional_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Frictional));
+	else if (md.is_sticky_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Sticky));
+	else if (md.is_rough_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Rough));
+	else
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Invalid));
+	
 	RigidObject_hdf5_utilities::output_rigid_cone_to_hdf5_file(md.rigid_cone, rf, rc_grp_id);
 
 	rf.close_group(rc_grp_id);
@@ -728,6 +772,26 @@ int load_rigid_cone_from_hdf5_file(
 	rf.read_attribute(rc_grp_id, "shear_strength", shear_strength);
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
+	unsigned int cont_type;
+	rf.read_attribute(rc_grp_id, "contact_s_type", cont_type);
+	switch (ContactType(cont_type))
+	{
+	case ContactType::Smooth:
+		md.set_smooth_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Frictional:
+		md.set_frictional_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Sticky:
+		md.set_sticky_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Rough:
+		md.set_rough_contact_between_pcl_and_rect();
+		break;
+	default:
+		break;
+	}
+
 	RigidObject_hdf5_utilities::load_rigid_cone_from_hdf5_file(md.rigid_cone, rf, rc_grp_id);
 
 	md.rigid_cone_is_valid = true;
@@ -753,6 +817,18 @@ int output_rigid_cube_to_hdf5_file(
 	rf.write_attribute(rc_grp_id, "fric_ratio", md.fric_ratio);
 	rf.write_attribute(rc_grp_id, "shear_strength", md.shear_strength);
 
+	// contact model
+	if (md.is_smooth_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Smooth));
+	else if (md.is_frictional_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Frictional));
+	else if (md.is_sticky_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Sticky));
+	else if (md.is_rough_contact_between_pcl_and_rect())
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Rough));
+	else
+		rf.write_attribute(rc_grp_id, "contact_type", (unsigned int)(ContactType::Invalid));
+	
 	RigidObject_hdf5_utilities::output_rigid_cube_to_hdf5_file(md.rigid_cube, rf, rc_grp_id);
 
 	rf.close_group(rc_grp_id);
@@ -779,6 +855,26 @@ int load_rigid_cube_from_hdf5_file(
 	rf.read_attribute(rc_grp_id, "shear_strength", shear_strength);
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
+	unsigned int cont_type;
+	rf.read_attribute(rc_grp_id, "contact_s_type", cont_type);
+	switch (ContactType(cont_type))
+	{
+	case ContactType::Smooth:
+		md.set_smooth_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Frictional:
+		md.set_frictional_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Sticky:
+		md.set_sticky_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Rough:
+		md.set_rough_contact_between_pcl_and_rect();
+		break;
+	default:
+		break;
+	}
+	
 	RigidObject_hdf5_utilities::load_rigid_cube_from_hdf5_file(md.rigid_cube, rf, rc_grp_id);
 
 	md.rigid_cube_is_valid = true;
@@ -804,6 +900,18 @@ int output_t3d_rigid_mesh_to_hdf5_file(
 	rf.write_attribute(rm_grp_id, "fric_ratio", md.fric_ratio);
 	rf.write_attribute(rm_grp_id, "shear_strength", md.shear_strength);
 
+	// contact model
+	if (md.is_smooth_contact_between_pcl_and_rect())
+		rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Smooth));
+	else if (md.is_frictional_contact_between_pcl_and_rect())
+		rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Frictional));
+	else if (md.is_sticky_contact_between_pcl_and_rect())
+		rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Sticky));
+	else if (md.is_rough_contact_between_pcl_and_rect())
+		rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Rough));
+	else
+		rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Invalid));
+	
 	RigidObject_hdf5_utilities::output_rigid_object_by_3dmesh_to_hdf5_file(
 		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
 
@@ -848,7 +956,27 @@ int load_t3d_rigid_mesh_from_hdf5_file(
 	rf.read_attribute(rm_grp_id, "fric_ratio", fric_ratio);
 	rf.read_attribute(rm_grp_id, "shear_strength", shear_strength);
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
-
+	
+	unsigned int cont_type;
+	rf.read_attribute(rm_grp_id, "contact_s_type", cont_type);
+	switch (ContactType(cont_type))
+	{
+	case ContactType::Smooth:
+		md.set_smooth_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Frictional:
+		md.set_frictional_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Sticky:
+		md.set_sticky_contact_between_pcl_and_rect();
+		break;
+	case ContactType::Rough:
+		md.set_rough_contact_between_pcl_and_rect();
+		break;
+	default:
+		break;
+	}
+	
 	RigidObject_hdf5_utilities::load_rigid_object_by_3dmesh_from_hdf5_file(
 		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
 

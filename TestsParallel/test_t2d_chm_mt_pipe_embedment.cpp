@@ -88,6 +88,7 @@ void test_t2d_chm_mt_pipe_embedment(int argc, char** argv)
 	QtApp_Prep_T2D_CHM_mt md_disp(argc, argv);
 	md_disp.set_win_size(1200, 900);
 	md_disp.set_model(model);
+	md_disp.set_display_range(-0.2, 1.6, -0.6, 0.5);
 	//md_disp.set_display_range(4.25, 5.75, -0.1, 0.1);
 	//md_disp.set_pts_from_vx_s_bc(0.03);
 	//md_disp.set_pts_from_vy_s_bc(0.03);
@@ -181,22 +182,31 @@ void test_t2d_chm_mt_pipe_embedment_restart(int argc, char** argv)
 void test_t2d_chm_mt_pipe_embedment_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_mt_pipe_embedment_smh_D2.h5");
+	rf.open("t2d_chm_mt_pipe_embedment_geo_D2_smh.h5");
 
-	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
-	app.set_ani_time(5.0);
-	app.set_win_size(1200, 950);
-	app.set_display_range(-0.1, 3.0, -2.0, 0.6);
-	// s22
-	app.set_res_file(rf, "penetration", Hdf5Field::s22);
-	app.set_color_map_fld_range(-30000.0, 0.0);
-	// p
-	//app.set_res_file(rf, "penetration", Hdf5Field::p);
-	//app.set_color_map_fld_range(0, 20000.0); // pore pressure
-	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
-	//app.set_color_map_fld_range(0, 0.4); // mises strain
-	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
+	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::SingleFrame);
+	//QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
+	//app.set_ani_time(5.0);
+	app.set_win_size(1700, 1000);
+	//app.set_display_range(-0.1, 5.0, -4.5, 0.6);
+	app.set_display_range(-0.1, 3.0, -2.5, 0.6);
+	//app.set_mono_color_pcl();
+	app.set_color_map_geometry(1.5f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_mt_pipe_conference2");
 	//app.set_gif_name("t2d_chm_mt_pipe_conference2");
+	// s22
+	//app.set_res_file(rf, "geostatic", 0, Hdf5Field::s22);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::s22);
+	//app.set_color_map_fld_range(-30000.0, 0.0);
+	// p
+	//app.set_res_file(rf, "geostatic", 101, Hdf5Field::p);
+	//app.set_color_map_fld_range(0, 33000.0); // pore pressure
+	// mises strain
+	app.set_res_file(rf, "geostatic", 101, Hdf5Field::mises_strain_2d);
+	app.set_color_map_fld_range(0, 1.1); // pore pressure
+	//
+	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
+	//app.set_color_map_fld_range(0, 0.4); // mises strain
+	//
 	app.start();
 }
