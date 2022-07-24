@@ -273,7 +273,7 @@ void test_t3d_chm_mt_spudcan_cy_geostatic(int argc, char** argv)
 	step.set_step_time(1.0); // 1.0
 	//step.set_thread_num(5);
 	//step.set_step_time(5.0e-5);
-	step.set_dtime(1.0e-5);
+	step.set_dtime(3.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -299,22 +299,22 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 	model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and contact stiffness
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0); // -0.2
-	model.set_k(2.0e-8);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.2); // -0.2
+	model.set_k(7.0e-13);
 	//model.set_miu(684.0e-3);
 
-	// -130.0e3 - 3m, -250.0e3 - 15m, -500.0e3 - 40m
-	//model.set_cavitation(100.0, -101.3e3, 0.05, 0.0, 0.0, 10.0e3);
+	// -130.0e3 - 3m, -200.0e3 - 10m, -500.0e3 - 40m
+	model.set_cavitation(100.0, -800.0e3, 0.05, 0.0, 0.0, 10.0e3);
 
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(80.0f, -30.0f);
-	//md_disp.set_light_dir(70.0f, -25.0f);
+	//md_disp.set_view_dir(-150.0f, 10.0f);
+	//md_disp.set_light_dir(-130.0f, -15.0f);
 	//md_disp.set_display_bg_mesh(false);
-	//md_disp.set_view_dist_scale(1.1);
+	//md_disp.set_view_dist_scale(0.75);
 	////md_disp.set_pts_from_vx_s_bc(0.05);
 	////md_disp.set_pts_from_vy_s_bc(0.05);
 	////md_disp.set_pts_from_vz_s_bc(0.05);
@@ -347,10 +347,10 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(2.0); // 2.25
+	step.set_step_time(2.25); // 2.25
 	//step.set_thread_num(3);
 	//step.set_step_time(5.0e-5);
-	step.set_dtime(5.0e-6); // 5.0e-6
+	step.set_dtime(3.0e-6); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
