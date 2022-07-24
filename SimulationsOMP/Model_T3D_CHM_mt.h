@@ -596,9 +596,9 @@ public:
 		non_sep_contact_f.set_overlap_dist_off(dist_off);
 	}
 	inline void set_smooth_contact_between_spcl_and_rect() noexcept { pcm_s = &smooth_contact_s; }
-	inline void set_rough_contact_between_spcl_and_rect() noexcept { pcm_s = &rough_contact_s; }
 	inline void set_frictional_contact_between_spcl_and_rect() noexcept { pcm_s = &fric_contact_s; }
 	inline void set_sticky_contact_between_spcl_and_rect() noexcept { pcm_s = &sticky_contact_s; }
+	inline void set_rough_contact_between_spcl_and_rect() noexcept { pcm_s = &rough_contact_s; }
 	inline void set_non_sep_contact_between_spcl_and_rect() noexcept { pcm_s = &non_sep_contact_s; }
 	inline void set_smooth_contact_between_fpcl_and_rect() noexcept { pcm_f = &smooth_contact_f; }
 	inline void set_rough_contact_between_fpcl_and_rect() noexcept { pcm_f = &rough_contact_f; }
@@ -606,9 +606,9 @@ public:
 	inline ContactModel3D *get_contact_model_s() noexcept { return pcm_s; }
 	inline ContactModel3D* get_contact_model_f() noexcept { return pcm_f; }
 	inline bool is_smooth_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
-	inline bool is_frictional_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
-	inline bool is_sticky_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
-	inline bool is_rough_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
+	inline bool is_frictional_contact_s() noexcept { return pcm_s == &fric_contact_s; }
+	inline bool is_sticky_contact_s() noexcept { return pcm_s == &sticky_contact_s; }
+	inline bool is_rough_contact_s() noexcept { return pcm_s == &rough_contact_s; }
 	inline bool is_smooth_contact_f() noexcept { return pcm_f == &smooth_contact_f; }
 	inline bool is_rough_contact_f() noexcept { return pcm_f == &rough_contact_f; }
 

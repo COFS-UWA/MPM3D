@@ -5,8 +5,10 @@
 #include "Model_T3D_CHM_mt.h"
 #include "ModelData_T3D_CHM_mt.h"
 #include "Step_T3D_CHM_ud_mt_subiter.h"
+#include "Step_T3D_CHM_mt.h"
 #include "TimeHistory_T3D_CHM_ud_mt_subiter_complete.h"
 #include "TimeHistory_T3D_CHM_ud_mt_subiter_ratio.h"
+#include "TimeHistory_T3D_CHM_mt_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_mt_Div.h"
 #include "test_parallel_utils.h"
@@ -114,6 +116,8 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 #endif
 	model.set_contact_param(Kct, Kct, 0.1, 0.2, Kct / 10.0, Kct / 10.0);
 	//model.set_overlap_dist_off(overlap_dist_off);
+	model.set_frictional_contact_between_spcl_and_rect();
+	model.set_rough_contact_between_fpcl_and_rect();
 	//model.set_non_sep_contact_between_spcl_and_rect();
 	//model.set_non_sep_contact_between_fpcl_and_rect();
 
@@ -139,9 +143,9 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	//model.init_fixed_vz_f_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
 	//QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
-	////QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
+	////QtApp_Prep_T3D_CHM_mt_Div<BoxDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
-	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
 	//md_disp.set_win_size(1200, 950);
 	//md_disp.set_view_dir(15.0f, -10.0f);
@@ -176,15 +180,64 @@ void test_t3d_chm_mt_cap_compression(int argc, char **argv)
 	Step_T3D_CHM_ud_mt_subiter step("step1");
 	step.set_model(model);
 	step.set_thread_num(4);
-	step.set_step_time(1.0); // 1.0
+	//step.set_step_time(1.0); // 1.0
 	//step.set_mass_factor(0.1); // debug
-	//step.set_step_time(1.0e-4); // debug
+	step.set_step_time(1.0e-4); // debug
 	step.set_max_subiter_num(0); // debug
 	step.set_dtime(5.0e-6);
 	step.set_pdt(5.0e-6);
 	step.add_time_history(out_cpb);
 	step.add_time_history(out1);
 	step.add_time_history(out2);
+	step.solve();
+}
+
+void test_t3d_chm_mt_cap_compression_restart(int argc, char** argv)
+{
+	Model_T3D_CHM_mt model;
+	Step_T3D_CHM_mt step("step1");
+	//Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
+	//	model, "t3d_chm_mt_cap_compression.h5");
+	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
+		model, step, "t3d_chm_mt_cap_compression.h5", "compression", 1);
+
+	//model.clear_rigid_cylinder();
+
+	//QtApp_Prep_T3D_CHM_mt_Div<> md_disp(argc, argv);
+	////QtApp_Prep_T3D_CHM_mt_Div<TwoPlaneDivisionSet> md_disp(argc, argv);
+	////auto& div_set = md_disp.get_div_set();
+	////div_set.seta().set_by_normal_and_point(0.0, 1.0, 0.0, 3.5, 3.5, 0.0);
+	////div_set.setb().set_by_normal_and_point(1.0, 0.0, 0.0, 3.5, 3.5, 0.0);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(30.0f, 30.0f);
+	//md_disp.set_light_dir(30.0f, 30.0f);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_vx_bc(0.01);
+	//md_disp.set_pts_from_vy_bc(0.01);
+	////md_disp.set_pts_from_vz_bc(0.01);
+	//md_disp.start();
+	//return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_chm_mt_cap_compression_restart.h5");
+
+	ModelData_T3D_CHM_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T3D_CHM_mt_complete out1("compression");
+	out1.set_res_file(res_file_hdf5);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_interval_num(100);
+	TimeHistory_ConsoleProgressBar out_cpb;
+
+	step.set_model(model);
+	//step.set_step_time(0.5);
+	step.set_step_time(5.0e-5);
+	step.set_dtime(1.0e-5);
+	step.set_thread_num(6);
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
 	step.solve();
 }
 

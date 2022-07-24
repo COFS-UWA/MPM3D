@@ -690,7 +690,7 @@ int load_rigid_cylinder_from_hdf5_file(
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	unsigned int cont_type;
-	rf.read_attribute(rc_grp_id, "contact_s_type", cont_type);
+	rf.read_attribute(rc_grp_id, "contact_type", cont_type);
 	switch (ContactType(cont_type))
 	{
 	case ContactType::Smooth:
@@ -773,7 +773,7 @@ int load_rigid_cone_from_hdf5_file(
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	unsigned int cont_type;
-	rf.read_attribute(rc_grp_id, "contact_s_type", cont_type);
+	rf.read_attribute(rc_grp_id, "contact_type", cont_type);
 	switch (ContactType(cont_type))
 	{
 	case ContactType::Smooth:
@@ -856,7 +856,7 @@ int load_rigid_cube_from_hdf5_file(
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 
 	unsigned int cont_type;
-	rf.read_attribute(rc_grp_id, "contact_s_type", cont_type);
+	rf.read_attribute(rc_grp_id, "contact_type", cont_type);
 	switch (ContactType(cont_type))
 	{
 	case ContactType::Smooth:
@@ -958,7 +958,7 @@ int load_t3d_rigid_mesh_from_hdf5_file(
 	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
 	
 	unsigned int cont_type;
-	rf.read_attribute(rm_grp_id, "contact_s_type", cont_type);
+	rf.read_attribute(rm_grp_id, "contact_type", cont_type);
 	switch (ContactType(cont_type))
 	{
 	case ContactType::Smooth:

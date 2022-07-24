@@ -767,7 +767,7 @@ int output_rigid_cylinder_to_hdf5_file(
 	if (md.is_smooth_contact_f())
 		rf.write_attribute(rc_grp_id, "contact_f_type", (unsigned int)(ContactType::Smooth));
 	else if (md.is_rough_contact_f())
-		rf.write_attribute(rc_grp_id, "contact_f_type", (unsigned int)(ContactType::Sticky));
+		rf.write_attribute(rc_grp_id, "contact_f_type", (unsigned int)(ContactType::Rough));
 	else
 		rf.write_attribute(rc_grp_id, "contact_f_type", (unsigned int)(ContactType::Invalid));
 	
