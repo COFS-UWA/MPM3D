@@ -1126,6 +1126,8 @@ void Model_T3D_CHM_mt::alloc_contact_mem(size_t num)
 	sticky_contact_s.prev_contact_poses = prev_contact_poses_s;
 	sticky_contact_s.prev_contact_tan_forces = prev_contact_tan_forces_s;
 	sticky_contact_s.prev_contact_dists = prev_contact_dists_s;
+	non_sep_contact_s.contact_substep_ids = contact_substep_ids_s;
+	non_sep_contact_s.prev_contact_dists = prev_contact_dists_s;
 
 	smooth_contact_f.contact_substep_ids = contact_substep_ids_f;
 	smooth_contact_f.prev_contact_dists = prev_contact_dists_f;
@@ -1133,4 +1135,6 @@ void Model_T3D_CHM_mt::alloc_contact_mem(size_t num)
 	rough_contact_f.prev_contact_poses = prev_contact_poses_f;
 	rough_contact_f.prev_contact_tan_forces = prev_contact_tan_forces_f;
 	rough_contact_f.prev_contact_dists = prev_contact_dists_f;
+	non_sep_contact_f.contact_substep_ids = contact_substep_ids_f;
+	non_sep_contact_f.prev_contact_dists = prev_contact_dists_f;
 }

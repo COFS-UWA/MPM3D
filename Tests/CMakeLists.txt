@@ -22,7 +22,7 @@ add_executable(
     #test_solve_functions.cpp
     # material models
     #test_model_container.cpp
-    #test_mcc_get_Su.cpp
+    test_mcc_get_Su.cpp
     #test_mcc_compression.cpp
     #test_undrained_mcc.cpp
     # 2D

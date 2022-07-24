@@ -45,27 +45,27 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//	mms[pcl_id] = &le;
 	//}
 	// Mohr Coulomb
-	const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		mcs->set_param(ini_stress, 30.0, 0.0, 100.0, 10000.0, 0.3);
-		model.add_mat_model(pcl_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
-		mcs = model.following_MohrCoulombWrapper(mcs);
-	}
-	// Stb hypoplasticity
-	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
-	//MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	//const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	//MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	//{
-	//	MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
-	//	shp.set_param(
-	//		ini_stress, 0.55,
-	//		30.0, 1354.0e6, 0.34,
-	//		0.18, 1.27,
-	//		0.49, 0.76, 0.86);
-	//	mms[pcl_id] = &shp;
+	//	mcs->set_param(ini_stress, 30.0, 0.0, 100.0, 10000.0, 0.3);
+	//	model.add_mat_model(pcl_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
+	//	mcs = model.following_MohrCoulombWrapper(mcs);
 	//}
+	// Stb hypoplasticity
+	const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
+	MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
+		shp.set_param(
+			ini_stress, 0.527,
+			30.02299, 2.029e10, 0.2966,
+			0.441, 0.831, 0.956,
+			0.177, 0.04);
+		mms[pcl_id] = &shp;
+	}
 	// Stb hypoplasticity
 	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	//MatModel::SandHypoplasticityStbWrapper* shps = model.add_SandHypoplasticityStbWrapper(pcl_num);
@@ -85,8 +85,8 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
-	const double Kct = 100.0 / (0.025 * 0.025); 
-	//const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
+	//const double Kct = 100.0 / (0.025 * 0.025); 
+	const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
 	model.set_contact_param(Kct, Kct, 0.1, 0.2);
 
 	//model.init_rigid_cone(0.0, 0.5, 0.5, 0.34641, 0.3, 0.2);

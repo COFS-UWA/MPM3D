@@ -7,11 +7,15 @@
 namespace MatModel
 {
 	int sand_hypoplasticity_wrapper_integration_function(MaterialModel* _self, double dstrain[6]);
+	void sand_hypoplasticity_wrapper_store_to_function(const MaterialModel* _self, char* mat_model_mem);
+	void sand_hypoplasticity_wrapper_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem);
 
 	class SandHypoplasticityWrapper : public MaterialModel
 	{
 		friend int sand_hypoplasticity_wrapper_integration_function(MaterialModel* _self, double dstrain[6]);
-	
+		friend void sand_hypoplasticity_stb_wrapper_store_to_function(const MaterialModel* _self, char* mat_model_mem);
+		friend void sand_hypoplasticity_stb_wrapper_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem);
+
 	protected:
 		SandHypoplasticityGlobal glb;
 		SandHypoplasticity mat;
