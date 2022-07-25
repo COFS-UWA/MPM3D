@@ -3,7 +3,7 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_piezofoundation.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t3d_me_tbb_piezofoundation_sim_mat.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']
@@ -13,7 +13,7 @@ rb_fz = []
 is_init = False
 ini_z = 0.0
 for th_id in range(th_num):
-    rb_grp = th_grp['frame_%d' % th_id]['RigidCylinder']
+    rb_grp = th_grp['frame_%d' % th_id]['RigidObjectByT3DMesh'] #['RigidCylinder']
     cen_z = rb_grp.attrs['z']
     rf_z = rb_grp.attrs['fz_cont']
     if not is_init:
