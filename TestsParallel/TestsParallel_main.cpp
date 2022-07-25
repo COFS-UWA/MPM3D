@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cap_compression_result_div(argc, argv);
 
 	//test_t3d_chm_mt_cap_compression(argc, argv);
-	test_t3d_chm_mt_cap_compression_restart(argc, argv);
+	//test_t3d_chm_mt_cap_compression_restart(argc, argv);
 	//test_t3d_chm_mt_cap_compression_result(argc, argv);
 
 	//test_t3d_me_mt_block_sliding(argc, argv);
@@ -175,6 +175,10 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
+
+	test_t3d_me_mt_spudcan_cy_Hossain_2006_model(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_Hossain_2006_result(argc, argv);
 
 	//test_t3d_me_mt_cylinder_bcs(argc, argv);
 	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
