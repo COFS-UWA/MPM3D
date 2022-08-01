@@ -38,9 +38,15 @@ public:
 	}
 
 	inline void set_position(double _x, double _y, double _z) noexcept
-	{ x = _x; y = _y; z = _z; }
+	{
+		x_ori = _x; y_ori = _y; z_ori = _z;
+		ux = 0.0; uy = 0.0; uz = 0.0;
+		x = _x; y = _y; z = _z;
+	}
 	inline void set_pos_ang(double _x_ang, double _y_ang, double _z_ang) noexcept
-	{ x_ang = _x_ang; y_ang = _y_ang; z_ang = _z_ang; }
+	{
+		x_ang = _x_ang; y_ang = _y_ang; z_ang = _z_ang;
+	}
 	inline void set_velocity(double _vx, double _vy, double _vz) noexcept
 	{ vx = _vx; vy = _vy; vz = _vz; }
 	inline void set_v_ang(double _vx_ang, double _vy_ang, double _vz_ang) noexcept

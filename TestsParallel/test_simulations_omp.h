@@ -155,5 +155,6 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv);
 
 void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv);
+void test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(int argc, char** argv);
 
 #endif

@@ -985,6 +985,26 @@ int load_t3d_rigid_mesh_from_hdf5_file(
 	return 0;
 }
 
+int load_t3d_rigid_mesh_state_from_hdf5_file(
+	Model_T3D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t frame_grp_id)
+{
+	if (frame_grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(frame_grp_id, "RigidObjectByT3DMesh"))
+		return 0;
+
+	hid_t rm_grp_id = rf.open_group(frame_grp_id, "RigidObjectByT3DMesh");
+
+	RigidObject_hdf5_utilities::load_rigid_object_by_3dmesh_state_from_hdf5_file(
+		md.get_t3d_rigid_mesh(), rf, rm_grp_id);
+
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T3D_ME_mt &md,
@@ -1187,8 +1207,9 @@ int load_me_mt_model_from_hdf5_file(
 	// rigid object
 	load_rigid_cylinder_from_hdf5_file(md, rf, th_frame_id);
 	load_rigid_cube_from_hdf5_file(md, rf, th_frame_id);
-	load_rigid_cone_from_hdf5_file(md, rf, md_grp_id);
+	load_rigid_cone_from_hdf5_file(md, rf, th_frame_id);
 	load_t3d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
+	load_t3d_rigid_mesh_state_from_hdf5_file(md, rf, th_frame_id);
 
 	step.set_model(md);
 	step.is_first_step = false;

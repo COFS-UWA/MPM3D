@@ -388,8 +388,7 @@ namespace RigidObject_hdf5_utilities
 	int output_rigid_object_by_3dmesh_to_hdf5_file(
 		RigidObjectByT3DMesh& rb,
 		ResultFile_hdf5& rf,
-		hid_t rb_grp_id
-		)
+		hid_t rb_grp_id)
 	{
 		if (rb_grp_id < 0)
 			return -1;
@@ -741,9 +740,16 @@ namespace RigidObject_hdf5_utilities
 		rf.read_attribute(rb_grp_id, "vy_ang", rb_vy_ang);
 		rf.read_attribute(rb_grp_id, "vz_ang", rb_vz_ang);
 		rb.set_velocity(rb_vx_ang, rb_vy_ang, rb_vz_ang);
-		//Force3D cont_force;
-		//cont_force.fx;
-		//rb.set_cont_force();
+
+		Force3D cont_force;
+		rf.read_attribute(rb_grp_id, "fx_cont", cont_force.fx);
+		rf.read_attribute(rb_grp_id, "fy_cont", cont_force.fy);
+		rf.read_attribute(rb_grp_id, "fz_cont", cont_force.fz);
+		rf.read_attribute(rb_grp_id, "mx_cont", cont_force.mx);
+		rf.read_attribute(rb_grp_id, "my_cont", cont_force.my);
+		rf.read_attribute(rb_grp_id, "mz_cont", cont_force.mz);
+		rb.set_cont_force(cont_force);
+
 		return 0;
 	}
 }

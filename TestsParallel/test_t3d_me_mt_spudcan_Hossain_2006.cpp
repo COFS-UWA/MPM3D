@@ -178,9 +178,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv)
 
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0); // -0.2
 	
-	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
-	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
 	//md_disp.set_view_dir(-150.0f, 10.0f);
@@ -215,8 +213,61 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv)
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(1.0); // 3.0
-	step.set_dtime(2.0e-5); // 5.0e-6
+	step.set_step_time(1.0); // 2.25
+	step.set_dtime(5.0e-5); // 5.0e-6
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
+}
+
+void test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(int argc, char** argv)
+{
+	Model_T3D_ME_mt model;
+	Step_T3D_ME_TBB step("step2");
+	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
+		model, step, "t3d_me_mt_spudcan_cy.h5", "penetration", 101);
+
+	constexpr double footing_radius = 3.0;
+	constexpr double dense_elem_size = 0.125 * footing_radius;
+	constexpr double sml_pcl_size = dense_elem_size * 0.25;
+	constexpr double K_cont = 5.0e5 / (sml_pcl_size * sml_pcl_size); // 1.0e6
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
+	model.set_sticky_contact_between_pcl_and_rect();
+
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -1.0); // -0.2
+
+	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
+	md_disp.set_model(model);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(-150.0f, 10.0f);
+	md_disp.set_light_dir(-130.0f, -15.0f);
+	md_disp.set_display_bg_mesh(false);
+	md_disp.set_view_dist_scale(0.75);
+	md_disp.set_pts_from_vx_bc(0.05);
+	//md_disp.set_pts_from_vy_bc(0.05);
+	//md_disp.set_pts_from_vz_bc(0.05);
+	//md_disp.set_pts_from_vec_bc(0.05);
+	md_disp.start();
+	return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_me_mt_spudcan_cy2.h5");
+
+	ModelData_T3D_ME_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T3D_ME_TBB_complete out1("penetration");
+	out1.set_interval_num(100);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_res_file(res_file_hdf5);
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
+
+	step.set_model(model);
+	step.set_thread_num(31);
+	step.set_step_time(2.0); // 2.25
+	step.set_dtime(5.0e-5); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
