@@ -299,12 +299,12 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 	model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and contact stiffness
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.2); // -0.2
-	model.set_k(7.0e-13);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5); // -0.2
+	model.set_k(1.75e-12);
 	//model.set_miu(684.0e-3);
 
 	// -130.0e3 - 3m, -200.0e3 - 10m, -500.0e3 - 40m
-	model.set_cavitation(100.0, -800.0e3, 0.05, 0.0, 0.0, 10.0e3);
+	//model.set_cavitation(100.0, -800.0e3, 0.05, 0.0, 0.0, 10.0e3);
 
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -338,7 +338,7 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 #else
 	TimeHistory_T3D_CHM_ud_TBB_complete out1("penetration");
 #endif
-	out1.set_interval_num(100);
+	out1.set_interval_num(50);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
@@ -347,10 +347,10 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(2.25); // 2.25
+	step.set_step_time(0.9); // 2.25
 	//step.set_thread_num(3);
 	//step.set_step_time(5.0e-5);
-	step.set_dtime(3.0e-6); // 5.0e-6
+	step.set_dtime(5.0e-6); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
