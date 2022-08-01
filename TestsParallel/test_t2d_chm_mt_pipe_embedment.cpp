@@ -192,24 +192,24 @@ void test_t2d_chm_mt_pipe_embedment_restart(int argc, char** argv)
 void test_t2d_chm_mt_pipe_embedment_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_mt_pipe_embedment.h5");
+	rf.open("t2d_chm_mt_pipe_embedment_geo_D2_smh.h5");
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
-	app.set_ani_time(5.0);
-	app.set_win_size(1200, 950);
-	//app.set_display_range(-1.0, 5.0, -4.0, 1.0);
-	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
+	app.set_ani_time(10.0);
+	app.set_win_size(1600, 950);
+	app.set_display_range(-1.0, 4.5, -3.5, 1.0);
+	app.set_color_map_geometry(1.5f, 0.45f, 0.5f);
 	// s22
 	//app.set_res_file(rf, "penetration", Hdf5Field::s22);
 	//app.set_color_map_fld_range(-40000.0, 0.0);
 	// p
-	app.set_res_file(rf, "penetration", Hdf5Field::p);
-	app.set_color_map_fld_range(0, 50000.0);
+	app.set_res_file(rf, "geostatic", Hdf5Field::p);
+	app.set_color_map_fld_range(0, 33000.0);
 	// mises_strain
 	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_2d);
 	//app.set_color_map_fld_range(0, 0.1); // mises strain
 	//
-	//app.set_png_name("t2d_chm_mt_pipe_conference");
-	//app.set_gif_name("t2d_chm_mt_pipe_conference");
+	//app.set_png_name("t2d_chm_mt_pipe_embedment");
+	app.set_gif_name("t2d_chm_mt_pipe_embedment");
 	app.start();
 }
