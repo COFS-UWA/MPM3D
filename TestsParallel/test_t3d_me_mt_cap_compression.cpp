@@ -84,11 +84,11 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//}
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
-	const double Kct = 100.0 / (0.025 * 0.025); 
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.01);
+	const double Kct = 1000000.0 / (0.025 * 0.025);
 	//const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
 	model.set_contact_param(Kct, Kct, 0.1, 0.2);
-	model.set_rough_contact_between_pcl_and_rect();
+	//model.set_rough_contact_between_pcl_and_rect();
 
 	//model.init_rigid_cone(0.0, 0.5, 0.5, 0.34641, 0.3, 0.2);
 	//model.set_rigid_cone_velocity(0.0, 0.0, 0.0);
@@ -133,15 +133,15 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	TimeHistory_T3D_ME_mt_complete out1("compression");
 	//out1.set_output_init_state();
-	out1.set_interval_num(200);
+	out1.set_interval_num(100);
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_thread_num(4);
-	//step.set_step_time(0.5);
-	step.set_step_time(5.0e-4);
+	step.set_step_time(5.0);
+	//step.set_step_time(5.0e-4);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

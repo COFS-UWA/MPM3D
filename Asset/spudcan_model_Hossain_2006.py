@@ -5,13 +5,15 @@ from caeModules import *
 # model parameters
 # diameter = 3 m
 pt1 = (0.0, 0.0)
-pt2 = (0.675, 0.86)
-pt3 = (3.0, 1.4)
-pt4 = (3.0, 1.55)
-pt5 = (0.73, 2.09)
-pt6 = (0.73, 3.0)
-pt7 = (0.0, 3.0)
+pt2 = (0.3375, 0.43)
+pt3 = (1.5, 0.7)
+pt4 = (1.5, 0.775)
+pt5 = (0.365, 1.045)
+pt6 = (0.365, 4.5)
+pt7 = (0.0, 4.5)
+mesh_size = 0.1
 
+# Build model
 # top
 h1 = pt2[1]
 h2 = pt3[1]
@@ -73,7 +75,7 @@ cl_tmp = spudcan_prt.cells.getByBoundingBox( \
     zMin = -r2*1.01, zMax = r2*1.01)
 spudcan_prt.PartitionCellByPlanePointNormal(point = cpt4, normal = y_axis, cells = cl_tmp)
 
-spudcan_prt.seedPart(size=0.2, deviationFactor=0.1, minSizeFactor=0.1)
+spudcan_prt.seedPart(size = mesh_size, deviationFactor=0.1, minSizeFactor=0.1)
 cl_tmp = spudcan_prt.cells.getByBoundingBox( \
     xMin = -r2*1.01, xMax = r2*1.01, \
     yMin = -h5*0.01, yMax = h5*1.01, \
@@ -92,7 +94,7 @@ assembly = md.rootAssembly
 assembly.DatumCsysByDefault(CARTESIAN)
 assembly.Instance(name = 'Inst-1', part = spudcan_prt, dependent = ON)
 
-job = mdb.Job(name='spudcan_model_Hossain_2004', model='Model-1', description='', type=ANALYSIS, 
+job = mdb.Job(name='spudcan_model_Hossain_2006', model='Model-1', description='', type=ANALYSIS, 
     atTime=None, waitMinutes=0, waitHours=0, queue=None, memory=90, 
     memoryUnits=PERCENTAGE, getMemoryFromAnalysis=True, 
     explicitPrecision=SINGLE, nodalOutputPrecision=SINGLE, echoPrint=OFF, 
@@ -102,4 +104,4 @@ job = mdb.Job(name='spudcan_model_Hossain_2004', model='Model-1', description=''
     numCpus=1)
 job.writeInput(consistencyChecking=OFF)
 
-mdb.saveAs(pathName='./spudcan_model_Hossain_2004')
+mdb.saveAs(pathName='./spudcan_model_Hossain_2006')

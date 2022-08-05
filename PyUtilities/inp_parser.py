@@ -133,9 +133,9 @@ if __name__ == "__main__":
     # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter_cylinder_8D.h5")
     # nodes, elems = get_mesh_from_inp("../Asset/weird_cylinder.inp", "Part-1")
     # output_mesh_to_hdf5(nodes, elems, "../Asset/weird_cylinder.h5")
-    # nodes, elems = get_mesh_from_inp("../Asset/spudcan_model_Hossain_2004.inp", "Part-1")
-    # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_model_Hossain_2004.h5")
+    # nodes, elems = get_mesh_from_inp("../Asset/spudcan_model_Hossain_2006.inp", "Part-1")
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_model_Hossain_2006.h5")
     nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_quarter_Hossain_4D.inp", "Part-1")
-    move_mesh_in_z_direction(nodes, -30.0)
+    move_mesh_in_z_direction(nodes, -15.0)
     output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter_Hossain_4D.h5")
     

@@ -30,6 +30,7 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv);
 void test_t2d_me_mt_block_sliding(int argc, char** argv);
 void test_t2d_me_mt_block_collision(int argc, char** argv);
 void test_t2d_me_mt_geostatic(int argc, char** argv);
+void test_t2d_me_mt_column_collapse(int argc, char** argv);
 
 void test_t3d_me_mt_1d_compression(int argc, char** argv);
 void test_t3d_me_s_1d_compression(int argc, char** argv);
