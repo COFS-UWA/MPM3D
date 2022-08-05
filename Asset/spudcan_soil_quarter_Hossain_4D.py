@@ -4,19 +4,19 @@ from abaqusConstants import *
 from caeModules import *
 
 # input parameters
-footing_radius = 3.0
+footing_radius = 1.5
 cae_name = 'spudcan_soil_quarter_Hossain_4D'
 
 cy_radius = 8.0 * footing_radius
 cy_dense_radius = 3.0 * footing_radius
 cy_coarse_radius = 3.5 * footing_radius
-cy_top = 0.5 * footing_radius
+cy_top = 1.0 * footing_radius
 cy_depth = 10.0 * footing_radius
-cy_dense_depth = 4.5 * footing_radius
-cy_coarse_depth = 5.0 * footing_radius
+cy_dense_depth = 5.0 * footing_radius
+cy_coarse_depth = 5.5 * footing_radius
 
-dense_elem_size = 0.125 * footing_radius
-coarse_elem_size = 0.25 * footing_radius
+dense_elem_size = 0.16 * footing_radius
+coarse_elem_size = 0.3 * footing_radius
 
 # build cae model
 half_sqrt_2 = 0.5*math.sqrt(2.0)

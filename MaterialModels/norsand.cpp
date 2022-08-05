@@ -65,6 +65,16 @@ void Norsand_set_OC_param(
 	__Float_Type__ OCR)
 {}
 
+inline double sign_(double val)
+{
+	if (val == 0.0)
+		return 0.0;
+	else if (val > 0.0)
+		return 1.0;
+	else
+		return -1.0;
+}
+
 int32_t integrate_norsand(
 	const NorsandGlobal& glb_dat,
 	Norsand& mat_dat,
@@ -126,33 +136,45 @@ int32_t integrate_norsand(
 	{
 		// df_ds
 		const __Float_Type__ df_dp = -Mi * (__Float_Type__)log(-p / mat_dat.pi) / ffmat(3.0);
-		const __Float_Type__ inv_q = q > ffmat(1.0e-5) ? ffmat(1.0) / q : ffmat(0.0);
-		const __Float_Type__ df_ds11 = df_dp + ffmat(0.5) * (mat_dat.s11 + mat_dat.s11 - mat_dat.s22 - mat_dat.s33) * inv_q;
-		const __Float_Type__ df_ds22 = df_dp + ffmat(0.5) * (mat_dat.s22 + mat_dat.s22 - mat_dat.s33 - mat_dat.s11) * inv_q;
-		const __Float_Type__ df_ds33 = df_dp + ffmat(0.5) * (mat_dat.s33 + mat_dat.s33 - mat_dat.s11 - mat_dat.s22) * inv_q;
-		const __Float_Type__ df_ds12 = ffmat(3.0) * mat_dat.s12 * inv_q;
-		const __Float_Type__ df_ds23 = ffmat(3.0) * mat_dat.s23 * inv_q;
-		const __Float_Type__ df_ds31 = ffmat(3.0) * mat_dat.s31 * inv_q;
-		// dg_ds
 		const __Float_Type__ dg_dp = -(Mi * (-p) - q) / ffmat(3.0);
-		//const __Float_Type__ dg_dq = (-p);
-		const __Float_Type__ dg_dq = (-p);// q > ffmat(1.0e-5) ? (-p) : ffmat(0.0); // dg_dq = 0 when isotropic compression
-		const __Float_Type__ dg_ds11 = dg_dp + dg_dq * ffmat(0.5) * (mat_dat.s11 + mat_dat.s11 - mat_dat.s22 - mat_dat.s33) * inv_q;
-		const __Float_Type__ dg_ds22 = dg_dp + dg_dq * ffmat(0.5) * (mat_dat.s22 + mat_dat.s22 - mat_dat.s33 - mat_dat.s11) * inv_q;
-		const __Float_Type__ dg_ds33 = dg_dp + dg_dq * ffmat(0.5) * (mat_dat.s33 + mat_dat.s33 - mat_dat.s11 - mat_dat.s22) * inv_q;
-		const __Float_Type__ dg_ds12 = dg_dq * ffmat(3.0) * mat_dat.s12 * inv_q;
-		const __Float_Type__ dg_ds23 = dg_dq * ffmat(3.0) * mat_dat.s23 * inv_q;
-		const __Float_Type__ dg_ds31 = dg_dq * ffmat(3.0) * mat_dat.s31 * inv_q;
+		const __Float_Type__ dg_dq = (-p);
+		__Float_Type__ dq_ds11, dq_ds22, dq_ds33, dq_ds12, dq_ds23, dq_ds31;
+		if (q > ffmat(1.0e-5))
+		{
+			const __Float_Type__ inv_q = ffmat(1.0) / q;
+			dq_ds11 = ffmat(0.5) * (mat_dat.s11 + mat_dat.s11 - mat_dat.s22 - mat_dat.s33) * inv_q;
+			dq_ds22 = ffmat(0.5) * (mat_dat.s22 + mat_dat.s22 - mat_dat.s33 - mat_dat.s11) * inv_q;
+			dq_ds33 = ffmat(0.5) * (mat_dat.s33 + mat_dat.s33 - mat_dat.s11 - mat_dat.s22) * inv_q;
+			dq_ds12 = ffmat(3.0) * mat_dat.s12 * inv_q;
+			dq_ds23 = ffmat(3.0) * mat_dat.s23 * inv_q;
+			dq_ds31 = ffmat(3.0) * mat_dat.s31 * inv_q;
+		}
+		else
+		{
+			dq_ds11 = sign_(mat_dat.s11 + mat_dat.s11 - mat_dat.s22 - mat_dat.s33);
+			dq_ds22 = sign_(mat_dat.s22 + mat_dat.s22 - mat_dat.s33 - mat_dat.s11);
+			dq_ds33 = sign_(mat_dat.s33 + mat_dat.s33 - mat_dat.s11 - mat_dat.s22);
+			dq_ds12 = 1.732050808 * sign_(mat_dat.s12);
+			dq_ds23 = 1.732050808 * sign_(mat_dat.s23);
+			dq_ds31 = 1.732050808 * sign_(mat_dat.s31);
+		}
+		// df_ds
+		const __Float_Type__ df_ds11 = df_dp + dq_ds11;
+		const __Float_Type__ df_ds22 = df_dp + dq_ds22;
+		const __Float_Type__ df_ds33 = df_dp + dq_ds33;
+		const __Float_Type__ df_ds12 = dq_ds12;
+		const __Float_Type__ df_ds23 = dq_ds23;
+		const __Float_Type__ df_ds31 = dq_ds31;
+		// dg_ds
+		const __Float_Type__ dg_ds11 = dg_dp + dg_dq * dq_ds11;
+		const __Float_Type__ dg_ds22 = dg_dp + dg_dq * dq_ds22;
+		const __Float_Type__ dg_ds33 = dg_dp + dg_dq * dq_ds33;
+		const __Float_Type__ dg_ds12 = dg_dq * dq_ds12;
+		const __Float_Type__ dg_ds23 = dg_dq * dq_ds23;
+		const __Float_Type__ dg_ds31 = dg_dq * dq_ds31;
 		// A
 		state_param = mat_dat.e - glb_dat.gamma + glb_dat.lambda * (__Float_Type__)log(-p);
 		const __Float_Type__ pi_max = -p * (__Float_Type__)exp(-glb_dat.chi * state_param);
-		// prev way to cal A
-		//const __Float_Type__ dg_ds11_ds22 = dg_ds11 - dg_ds22;
-		//const __Float_Type__ dg_ds22_ds33 = dg_ds22 - dg_ds33;
-		//const __Float_Type__ dg_ds33_ds11 = dg_ds33 - dg_ds11;
-		//const __Float_Type__ A = glb_dat.H * Mi * (-p) / (Mi_tc * mat_dat.pi) * (pi_max - mat_dat.pi)
-		//	* (__Float_Type__)sqrt((dg_ds11_ds22 * dg_ds11_ds22 + dg_ds22_ds33 * dg_ds22_ds33 + dg_ds33_ds11 * dg_ds33_ds11) * ffmat(0.5)
-		//		+ (dg_ds12 * dg_ds12 + dg_ds23 * dg_ds23 + dg_ds31 * dg_ds31) * ffmat(3.0)) * ffmat(2.0) / ffmat(3.0);
 		const __Float_Type__ A = glb_dat.H * M_lode_coef * (pi_max - mat_dat.pi) * dg_dq;
 		const __Float_Type__ E_dg_ds[3] = {
 			lbd_2G * dg_ds11 + lbd * dg_ds22 + lbd * dg_ds33,
@@ -200,12 +222,5 @@ int32_t integrate_norsand(
 	}
 
 	// integration failure
-	mat_dat.s11 = ori_stress[0];
-	mat_dat.s22 = ori_stress[1];
-	mat_dat.s33 = ori_stress[2];
-	mat_dat.s12 = ori_stress[3];
-	mat_dat.s23 = ori_stress[4];
-	mat_dat.s31 = ori_stress[5];
-	mat_dat.e = ori_e;
 	return -1;
 }

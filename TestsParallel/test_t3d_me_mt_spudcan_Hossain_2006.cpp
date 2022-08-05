@@ -12,22 +12,22 @@
 
 void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 {
-	constexpr double footing_radius = 3.0;
+	constexpr double footing_radius = 1.5;
 
 	constexpr double cy_radius = 8.0 * footing_radius; // 6.0, 8.0
 	constexpr double cy_coarse_radius = 3.5 * footing_radius;
-	constexpr double cy_top = 0.5 * footing_radius;
+	constexpr double cy_top = 1.0 * footing_radius;
 	constexpr double cy_depth = 10.0 * footing_radius; // 7.0, 8.0
-	constexpr double cy_coarse_depth = 5.0 * footing_radius;
+	constexpr double cy_coarse_depth = 5.5 * footing_radius;
 	constexpr double cy_len = cy_top + cy_depth;
-	constexpr double dense_elem_size = 0.125 * footing_radius;
-	constexpr double coarse_elem_size = 0.25 * footing_radius;
-	constexpr double sml_pcl_size = dense_elem_size * 0.25;
-	constexpr double lgr_pcl_size = coarse_elem_size * 0.25;
+	constexpr double dense_elem_size = 0.16 * footing_radius;
+	constexpr double coarse_elem_size = 0.30 * footing_radius;
+	constexpr double sml_pcl_size = dense_elem_size * 0.2;
+	constexpr double lgr_pcl_size = coarse_elem_size * 0.2;
 
 	TetrahedronMesh teh_mesh;
 	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_quarter_Hossain_4D.h5");
-	teh_mesh.init_search_grid(0.2, 0.2, 0.2);
+	teh_mesh.init_search_grid(0.1, 0.1, 0.1);
 	std::cout << "node_num: " << teh_mesh.get_node_num() << "\n"
 			  << "elem_num: " << teh_mesh.get_elem_num() << "\n";
 
@@ -56,10 +56,10 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 		cy_depth - cy_coarse_depth,
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	//
-	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
-	constexpr double den_sat = 1900.0;
+	constexpr double den_sat = 1700.0;
 	Model_T3D_ME_mt model;
 	model.init_mesh(teh_mesh);
 	model.init_search_grid(teh_mesh);
@@ -81,10 +81,11 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 		pcl_s.s22 = K0 * pcl_s.s33;
 		pcl_s.s11 = pcl_s.s22;
 		ini_stress[2] = pcl_s.s33;
-		ini_stress[0] = pcl_s.s22;
-		ini_stress[1] = pcl_s.s11;
+		ini_stress[1] = pcl_s.s22;
+		ini_stress[0] = pcl_s.s11;
 		// 
-		const double su_clay = 10.0e3; // +5.0e3 * (-pcl_z);
+		mms[pcl_id] = tcs;
+		const double su_clay = 10.0e3 + 4.0e3 * (-pcl_z);
 		const double E_clay = 200.0 * su_clay;
 		tcs->set_param(E_clay, 0.47, su_clay, ini_stress);
 		mms[pcl_id] = tcs;
@@ -96,7 +97,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.25);
 	constexpr double K_cont = 1.0e7 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.36, 5.0);
-	model.set_rough_contact_between_pcl_and_rect();
+	model.set_smooth_contact_between_pcl_and_rect();
 
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);
@@ -145,14 +146,14 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(80.0f, 30.0f);
-	md_disp.set_light_dir(70.0f, 20.0f);
+	md_disp.set_view_dir(80.0f, 20.0f);
+	md_disp.set_light_dir(70.0f, 15.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.9);
-	//md_disp.set_pts_from_vx_bc(0.1);
-	//md_disp.set_pts_from_vy_bc(0.1);
-	//md_disp.set_pts_from_vz_bc(0.1);
-	md_disp.set_pts_from_vec_bc(0.1);
+	//md_disp.set_pts_from_vx_bc(0.04);
+	//md_disp.set_pts_from_vy_bc(0.04);
+	//md_disp.set_pts_from_vz_bc(0.04);
+	md_disp.set_pts_from_vec_bc(0.04);
 	md_disp.start();
 }
 
@@ -162,14 +163,14 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv)
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, "t3d_me_mt_spudcan_cy_model.h5");
 	
-	constexpr double footing_radius = 3.0;
-	constexpr double dense_elem_size = 0.125 * footing_radius;
-	constexpr double sml_pcl_size = dense_elem_size * 0.25;
-	constexpr double K_cont = 5.0e7 / (sml_pcl_size * sml_pcl_size); // 1.0e5
+	constexpr double footing_radius = 1.5;
+	constexpr double dense_elem_size = 0.16 * footing_radius;
+	constexpr double sml_pcl_size = dense_elem_size * 0.2;
+	constexpr double K_cont = 1.0e7 / (sml_pcl_size * sml_pcl_size); // 1.0e6
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
 	model.set_smooth_contact_between_pcl_and_rect();
 
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.25);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.25); // -0.2
 	
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
@@ -206,7 +207,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv)
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(6.0);
+	step.set_step_time(1.0);
 	step.set_dtime(5.0e-5); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -220,14 +221,13 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(int argc, char** argv)
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, step, "t3d_me_mt_spudcan_cy2.h5", "penetration", 101);
 
-	constexpr double footing_radius = 3.0;
-	constexpr double dense_elem_size = 0.125 * footing_radius;
-	constexpr double sml_pcl_size = dense_elem_size * 0.25;
-	constexpr double K_cont = 5.0e7 / (sml_pcl_size * sml_pcl_size); // 1.0e5
+	constexpr double footing_radius = 1.5;
+	constexpr double dense_elem_size = 0.16 * footing_radius;
+	constexpr double sml_pcl_size = dense_elem_size * 0.2;
+	constexpr double K_cont = 1.0e7 / (sml_pcl_size * sml_pcl_size); // 1.0e5
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
 	model.set_smooth_contact_between_pcl_and_rect();
-
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.25);
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);

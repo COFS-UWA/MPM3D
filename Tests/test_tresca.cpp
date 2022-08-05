@@ -58,16 +58,16 @@ namespace
 void test_tresca()
 {
 	double de11, de22, de33;
-	//AnalysisType tp = AnalysisType::Specified;
-	AnalysisType tp = AnalysisType::TriaxialDrained;
+	AnalysisType tp = AnalysisType::Specified;
+	//AnalysisType tp = AnalysisType::TriaxialDrained;
 	// tresca 1
-	//de11 = -0.05;
-	//de22 = 0.0;
-	//de33 = 0.0;
-	// tresca 2
-	de11 = 0.05;
+	de11 = -0.05;
 	de22 = 0.0;
 	de33 = 0.0;
+	// tresca 2
+	//de11 = 0.05;
+	//de22 = 0.0;
+	//de33 = 0.0;
 	// tresca 3
 	//de11 = 0.05;
 	//de22 = 0.0;
