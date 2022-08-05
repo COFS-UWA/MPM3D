@@ -339,7 +339,7 @@ namespace Step_T3D_CHM_TBB_Task
 
 	public:
 		ContactRigidBody(Step_T3D_CHM_TBB& _stp) : stp(_stp) {}
-		void init(double max_pcl_vol) noexcept;
+		void init(double max_pcl_vol, bool is_first_step) noexcept;
 		void update() noexcept;
 		inline bool has_rigid_cylinder() const noexcept { return prcy != nullptr; }
 		inline bool has_rigid_mesh() const noexcept { return prmesh != nullptr; }

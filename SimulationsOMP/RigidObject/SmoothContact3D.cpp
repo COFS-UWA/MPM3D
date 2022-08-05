@@ -16,9 +16,10 @@ void SmoothContact3D::cal_contact_force(
 	ParticleVariablesGetter& pv_getter,
 	Vector3D& cont_force)
 {
-	constexpr double K_damp_ratio = 0.02;
+	constexpr double K_damp_ratio = 0.2;
 	// normal force
-	double f_cont = Kn_cont * pcl_len * pcl_len * dist;
+	//double f_cont = Kn_cont * pcl_len * pcl_len * dist;
+	double f_cont = Kn_cont * pcl_len * pcl_len * dist * dist;
 	cont_force.x = f_cont * norm.x;
 	cont_force.y = f_cont * norm.y;
 	cont_force.z = f_cont * norm.z;
