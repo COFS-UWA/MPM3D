@@ -166,11 +166,11 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv)
 	constexpr double footing_radius = 1.5;
 	constexpr double dense_elem_size = 0.16 * footing_radius;
 	constexpr double sml_pcl_size = dense_elem_size * 0.2;
-	constexpr double K_cont = 1.0e7 / (sml_pcl_size * sml_pcl_size); // 1.0e6
+	constexpr double K_cont = 1.0e7 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
 	model.set_smooth_contact_between_pcl_and_rect();
 
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.25); // -0.2
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.3);
 	
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
@@ -207,7 +207,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv)
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(1.0);
+	step.set_step_time(2.0);
 	step.set_dtime(5.0e-5); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -224,10 +224,10 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(int argc, char** argv)
 	constexpr double footing_radius = 1.5;
 	constexpr double dense_elem_size = 0.16 * footing_radius;
 	constexpr double sml_pcl_size = dense_elem_size * 0.2;
-	constexpr double K_cont = 1.0e7 / (sml_pcl_size * sml_pcl_size); // 1.0e5
+	constexpr double K_cont = 1.0e7 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
 	model.set_smooth_contact_between_pcl_and_rect();
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.25);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.3);
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	//md_disp.set_model(model);
