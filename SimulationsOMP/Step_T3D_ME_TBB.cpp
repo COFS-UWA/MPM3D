@@ -123,7 +123,7 @@ int Step_T3D_ME_TBB::init_calculation()
 	valid_pcl_num = init_pcl_res.pcl_num;
 	
 	map_pcl_to_mesh.init();
-	cont_rigid_body.init(init_pcl_res.max_pcl_vol);
+	cont_rigid_body.init(init_pcl_res.max_pcl_vol, is_first_step);
 	update_a_and_v.init();
 	cal_elem_de.init();
 	cal_node_de.init();

@@ -784,7 +784,9 @@ namespace Step_T3D_ME_TBB_Task
 	}
 
 // ================== contact funct ================
-	void ContactRigidBody::init(double max_pcl_vol) noexcept
+	void ContactRigidBody::init(
+		double max_pcl_vol,
+		bool is_first_step) noexcept
 	{
 		Model_T3D_ME_mt& md = *stp.pmodel;
 		pcm = md.get_contact_model();
@@ -794,19 +796,22 @@ namespace Step_T3D_ME_TBB_Task
 		if (md.has_rigid_cylinder())
 		{
 			prcy = &md.get_rigid_cylinder();
-			prcy->reset_cont_force();
+			if (is_first_step)
+				prcy->reset_cont_force();
 		}
 		if (md.has_rigid_cube())
 		{
 			prcu = &md.get_rigid_cube();
-			prcu->reset_cont_force();
+			if (is_first_step)
+				prcu->reset_cont_force();
 		}
 		if (md.has_t3d_rigid_mesh())
 		{
 			prmesh = &md.get_t3d_rigid_mesh();
-			prmesh->reset_cont_force();
 			// set max dist for efficiency
 			prmesh->init_max_dist(0.5 * pow(max_pcl_vol, one_third) * 4.0);
+			if (is_first_step)
+				prmesh->reset_cont_force();
 		}
 		//
 		pcl_pos = stp.pcl_pos;
