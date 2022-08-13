@@ -2,9 +2,9 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
-file_name = "t3d_me_mt_spudcan_cy3"
+file_name = "t3d_me_mt_spudcan_cy"
 
-spudcan_diameter = 6.0
+spudcan_diameter = 3.0
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")

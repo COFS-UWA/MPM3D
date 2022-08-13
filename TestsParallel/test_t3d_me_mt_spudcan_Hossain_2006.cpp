@@ -85,7 +85,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 		ini_stress[0] = pcl_s.s11;
 		// 
 		mms[pcl_id] = tcs;
-		const double su_clay = 10.0e3 + 4.0e3 * (-pcl_z);
+		const double su_clay = 5.0e3 + 6.66667e3 * (-pcl_z);
 		const double E_clay = 200.0 * su_clay;
 		tcs->set_param(E_clay, 0.47, su_clay, ini_stress);
 		mms[pcl_id] = tcs;
@@ -207,7 +207,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv)
 	Step_T3D_ME_TBB step("step2");
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(2.0);
+	step.set_step_time(8.0);
 	step.set_dtime(5.0e-5); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -219,7 +219,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(int argc, char** argv)
 	Model_T3D_ME_mt model;
 	Step_T3D_ME_TBB step("step2");
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
-		model, step, "t3d_me_mt_spudcan_cy2.h5", "penetration", 101);
+		model, step, "t3d_me_mt_spudcan_cy.h5", "penetration", 101);
 
 	constexpr double footing_radius = 1.5;
 	constexpr double dense_elem_size = 0.16 * footing_radius;
@@ -244,7 +244,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(int argc, char** argv)
 	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
-	res_file_hdf5.create("t3d_me_mt_spudcan_cy3.h5");
+	res_file_hdf5.create("t3d_me_mt_spudcan_cy2.h5");
 
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
@@ -272,7 +272,7 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(int argc, char** argv)
 void test_t3d_me_mt_spudcan_cy_Hossain_2006_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_me_mt_spudcan_cy3.h5");
+	rf.open("t3d_me_mt_spudcan_cy.h5");
 
 	//QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.1, 0.0);
@@ -283,12 +283,12 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_result(int argc, char** argv)
 		QtApp_Posp_T3D_ME_mt_Div<PlaneDivisionSet>::Animation);
 	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.1, 0.0);
 	app.set_ani_time(10.0);
-	app.set_win_size(1600, 800);
+	app.set_win_size(1600, 900);
 	app.set_view_dir(-90.0f, 5.0f);
 	app.set_fog_coef(0.02f);
 	app.set_light_dir(-90.0f, 5.0f);
 	app.set_light_dist_scale(1.0f);
-	app.move_view_pos(0.0, 0.0, 8.0);
+	app.move_view_pos(0.0, 0.0, 4.0);
 	app.set_view_dist_scale(0.5f);
 	app.set_display_bg_mesh(false);
 	//app.set_update_rb_pos();
@@ -297,9 +297,9 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_result(int argc, char** argv)
 	app.set_color_map_geometry(3.5f, 0.4f, 0.45f);
 	// s33
 	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-200.0e3, 0.0);
+	app.set_color_map_fld_range(-100.0e3, 0.0);
 	//
-	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
+	app.set_color_map_geometry(1.5f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_me_mt_spudcan_cy");
 	app.set_gif_name("t3d_me_mt_spudcan_cy");
 	app.start();

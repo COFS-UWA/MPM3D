@@ -161,7 +161,7 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.2);
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.36, 5.0, K_cont/50.0, K_cont/50.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
@@ -300,7 +300,7 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 
 	// modified velocity and contact stiffness
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5); // -0.2
-	model.set_k(1.75e-12);
+	model.set_k(9.5e-8);
 	//model.set_miu(684.0e-3);
 
 	// -130.0e3 - 3m, -200.0e3 - 10m, -500.0e3 - 40m
@@ -347,7 +347,7 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(0.9); // 2.25
+	step.set_step_time(3.0);
 	//step.set_thread_num(3);
 	//step.set_step_time(5.0e-5);
 	step.set_dtime(5.0e-6); // 5.0e-6
@@ -396,8 +396,7 @@ void test_t3d_chm_mt_spudcan_cy_geo_result(int argc, char** argv)
 void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t3d_chm_mt_spudcan_cy_vstaud.h5");
-	rf.open("E:\\t3d_chm_mt_spudcan_cy_vstapd1_v0.1.h5");
+	rf.open("t3d_chm_mt_spudcan_cy.h5");
 
 	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.set_res_file(rf, "penetration", 100, Hdf5Field::s33);
@@ -440,7 +439,7 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 1.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	app.set_png_name("t3d_chm_mt_spudcan_cy");
+	//app.set_png_name("t3d_chm_mt_spudcan_cy");
 	//app.set_gif_name("t3d_chm_mt_spudcan_cy");
 	app.start();
 }
