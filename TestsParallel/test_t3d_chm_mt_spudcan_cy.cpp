@@ -226,6 +226,8 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	//md_disp.set_pts_from_vx_bc_f(0.04);
 	//md_disp.set_pts_from_vy_bc_f(0.04);
 	//md_disp.set_pts_from_vz_bc_f(0.04);
+	//size_t p_id = 53119;
+	//md_disp.set_pts_from_pcl_id(&p_id, 1, 0.04);
 	md_disp.start();
 }
 
@@ -347,10 +349,75 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(3.0);
-	//step.set_thread_num(3);
+	step.set_step_time(1.5);
+	step.set_dtime(3.0e-6); // 5.0e-6
+	step.add_time_history(out1);
+	step.add_time_history(out_cpb);
+	step.solve();
+}
+
+void test_t3d_chm_mt_spudcan_cy_restart(int argc, char** argv)
+{
+	Model_T3D_CHM_mt model;
+	Step_T3D_CHM_TBB step("step2");
+	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
+		model, step, "t3d_chm_mt_spudcan_cy.h5", "penetration", 51);
+
+	constexpr double footing_radius = 1.5;
+	constexpr double dense_elem_size = 0.125 * footing_radius;
+	constexpr double sml_pcl_size = dense_elem_size * 0.25;
+	constexpr double K_cont = 5.0e5 / (sml_pcl_size * sml_pcl_size); // 1.0e6
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont / 50.0, K_cont / 50.0);
+	model.set_frictional_contact_between_spcl_and_rect();
+
+	// modified velocity and contact stiffness
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5); // -0.2
+	model.set_k(9.5e-8);
+	//model.set_miu(684.0e-3);
+
+	// -130.0e3 - 3m, -200.0e3 - 10m, -500.0e3 - 40m
+	//model.set_cavitation(100.0, -800.0e3, 0.05, 0.0, 0.0, 10.0e3);
+
+	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
+	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//md_disp.set_model(model);
+	//md_disp.set_win_size(1200, 950);
+	//md_disp.set_view_dir(-150.0f, 10.0f);
+	//md_disp.set_light_dir(-130.0f, -15.0f);
+	//md_disp.set_display_bg_mesh(false);
+	//md_disp.set_view_dist_scale(0.75);
+	////md_disp.set_pts_from_vx_s_bc(0.05);
+	////md_disp.set_pts_from_vy_s_bc(0.05);
+	////md_disp.set_pts_from_vz_s_bc(0.05);
+	////md_disp.set_pts_from_vec_s_bc(0.05);
+	//md_disp.set_pts_from_vx_f_bc(0.05);
+	//md_disp.set_pts_from_vy_f_bc(0.05);
+	//md_disp.set_pts_from_vz_f_bc(0.05);
+	//md_disp.set_pts_from_vec_f_bc(0.05);
+	//md_disp.start();
+	//return;
+
+	ResultFile_hdf5 res_file_hdf5;
+	res_file_hdf5.create("t3d_chm_mt_spudcan_cy2.h5");
+
+	ModelData_T3D_CHM_mt md;
+	md.output_model(model, res_file_hdf5);
+
+	TimeHistory_T3D_CHM_TBB_complete out1("penetration");
+	out1.set_interval_num(50);
+	out1.set_output_init_state();
+	out1.set_output_final_state();
+	out1.set_res_file(res_file_hdf5);
+	TimeHistory_ConsoleProgressBar out_cpb;
+	out_cpb.set_interval_num(2000);
+
+	step.set_model(model);
+	step.set_thread_num(31);
+	//step.set_thread_num(1);
+	step.set_step_time(1.5);
 	//step.set_step_time(5.0e-5);
-	step.set_dtime(5.0e-6); // 5.0e-6
+	step.set_dtime(3.0e-6); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -399,29 +466,29 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 	rf.open("t3d_chm_mt_spudcan_cy.h5");
 
 	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
-	//app.set_res_file(rf, "penetration", 100, Hdf5Field::s33);
+	//app.set_res_file(rf, "penetration", 38, Hdf5Field::s33);
 	//app.set_res_file(rf, "penetration", 50, Hdf5Field::max_shear_stress);
 	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
 	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
 	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.1, 0.0);
-	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
 	app.set_win_size(1600, 800);
 	app.set_view_dir(-90.0f, 5.0f);
 	app.set_fog_coef(0.02f);
 	app.set_light_dir(-90.0f, 5.0f);
 	app.set_light_dist_scale(1.0f);
-	//app.move_view_pos(0.0, 0.0, 3.0);
-	app.set_view_dist_scale(0.7f);
+	app.move_view_pos(0.0, -13.0, 6.0);
+	app.set_view_dist_scale(0.02f); // 0.7
 	app.set_display_bg_mesh(false);
 	app.set_update_rb_pos();
 	//app.set_bg_color(QVector3D(1.0, 1.0, 1.0));
 	//app.set_color_map_char_color(0.0, 0.0, 0.0);
 	app.set_color_map_geometry(1.8f, 0.4f, 0.45f);
+	app.set_display_bg_mesh();
 	// s33
 	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-5.0e6, 0.0);
+	app.set_color_map_fld_range(-5.0e5, 0.0); // -5.0e6
 	// p
 	//app.set_res_file(rf, "penetration", Hdf5Field::p);
 	//app.set_color_map_fld_range(-5.0e5, 5.0e5);
@@ -440,6 +507,6 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_chm_mt_spudcan_cy");
-	//app.set_gif_name("t3d_chm_mt_spudcan_cy");
+	app.set_gif_name("t3d_chm_mt_spudcan_cy");
 	app.start();
 }

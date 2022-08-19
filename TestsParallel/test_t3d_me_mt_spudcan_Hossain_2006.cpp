@@ -146,14 +146,14 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 	QtApp_Prep_T3D_ME_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(80.0f, 20.0f);
-	md_disp.set_light_dir(70.0f, 15.0f);
+	md_disp.set_view_dir(-80.0f, 20.0f);
+	md_disp.set_light_dir(-70.0f, 15.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.9);
 	//md_disp.set_pts_from_vx_bc(0.04);
 	//md_disp.set_pts_from_vy_bc(0.04);
 	//md_disp.set_pts_from_vz_bc(0.04);
-	md_disp.set_pts_from_vec_bc(0.04);
+	//md_disp.set_pts_from_vec_bc(0.04);
 	md_disp.start();
 }
 
