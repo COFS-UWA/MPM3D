@@ -13,7 +13,11 @@ QtSceneFromModel_T2D_ME_mt::QtSceneFromModel_T2D_ME_mt(
 	display_rigid_circle(true), rc_obj(_gl),
 	display_rigid_rect(true), rr_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
-	bg_color(0.2f, 0.3f, 0.3f) {}
+	bg_color(0.2f, 0.3f, 0.3f),
+	rb_color(0.5176f, 0.4392, 1.0f), // light_slate_blue
+	mesh_color(0.5f, 0.5f, 0.5f), // gray
+	pcl_color(1.0f, 0.8941f, 0.7098f) // moccasin
+{}
 
 QtSceneFromModel_T2D_ME_mt::~QtSceneFromModel_T2D_ME_mt() {}
 
@@ -47,23 +51,19 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 	// shader_plain2D
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_plain2D.vert"
-		);
+		"../../Asset/shader_plain2D.vert");
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_plain2D.frag"
-		);
+		"../../Asset/shader_plain2D.frag");
 	shader_plain2D.link();
 
 	// shader_circles
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_circles.vert"
-		);
+		"../../Asset/shader_circles.vert");
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_circles.frag"
-		);
+		"../../Asset/shader_circles.frag");
 	shader_circles.link();
 
 	// get bounding box
@@ -94,8 +94,7 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 	// viewport
 	set_viewport(wd, ht, 
 		display_bbox.xu - display_bbox.xl,
-		display_bbox.yu - display_bbox.yl
-		);
+		display_bbox.yu - display_bbox.yl);
 
 	// view matrix
 	view_mat.setToIdentity();
@@ -104,33 +103,28 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 		display_bbox.xu,
 		display_bbox.yl,
 		display_bbox.yu,
-		-1.0f, 1.0f
-		);
+		-1.0f, 1.0f);
 	shader_plain2D.bind();
 	shader_plain2D.setUniformValue("view_mat", view_mat);
 	shader_circles.bind();
 	shader_circles.setUniformValue("view_mat", view_mat);
 
 	// init bg_mesh
-	QVector3D gray(0.5f, 0.5f, 0.5f);
 	bg_mesh_obj.init_from_elements(
 		model->get_node_pos(),
 		model->get_node_num(),
 		model->get_elem_node_index(),
 		model->get_elem_num(),
-		gray
-		);
+		mesh_color);
 
 	// init pcls
-	QVector3D moccasin(1.0f, 0.8941f, 0.7098f);
 	pcls_obj.init(
 		model->get_pcl_pos(),
 		model->get_pcl_m(),
 		model->get_pcl_density0(),
 		model->get_pcl_num(),
-		moccasin,
-		0.5f
-		);
+		pcl_color,
+		0.5f);
 
 	// init rigid circle
 	//if (model->rigid_circle_is_valid())
@@ -140,13 +134,12 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 	//		rc.get_x(),
 	//		rc.get_y(),
 	//		rc.get_radius(),
-	//		light_slate_blue,
+	//		pcl_color,
 	//		3.0f
 	//		);
 	//}
 
 	// init rigid rect
-	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 	if (model->has_rigid_rect())
 	{
 		RigidRect& rr = model->get_rigid_rect();
@@ -156,9 +149,8 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 			rr.get_ang(),
 			rr.get_hx(),
 			rr.get_hy(),
-			light_slate_blue,
-			3.0f
-			);
+			rb_color,
+			3.0f);
 	}
 
 	// init pts
@@ -200,8 +192,7 @@ void QtSceneFromModel_T2D_ME_mt::resize(int wd, int ht)
 {
 	set_viewport(wd, ht,
 		display_bbox.xu - display_bbox.xl,
-		display_bbox.yu - display_bbox.yl
-		);
+		display_bbox.yu - display_bbox.yl);
 }
 
 int QtSceneFromModel_T2D_ME_mt::set_pts_from_pcl_id(

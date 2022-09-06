@@ -91,8 +91,19 @@ public:
 	{ scene.set_color_map_fld_range(min, max); }
 	inline void set_color_map_geometry(float xpos, float ypos, float ht)
 	{ scene.set_color_map_geometry(xpos, ypos, ht); }
+	inline void set_color_map_char_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_color_map_color(r, g, b); }
+
 	inline void set_mono_color_pcl(bool _op = true)
 	{ scene.set_mono_color_pcl(_op); }
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_bg_color(r, g, b); }
+	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_pcl_color(r, g, b); }
+	inline void set_mesh_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_mesh_color(r, g, b); }
+	inline void set_rb_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_rb_color(r, g, b); }
 
 	inline void set_png_name(const char* name)
 	{

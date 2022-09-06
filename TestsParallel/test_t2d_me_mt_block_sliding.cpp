@@ -60,13 +60,17 @@ void test_t2d_me_mt_block_sliding(int argc, char** argv)
 	model.init_fixed_vx_bc(node_num, all_n_array.get_mem());
 	model.init_fixed_vy_bc(node_num, all_n_array.get_mem());
 
-	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(900, 900);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(1500, 900);
+	md_disp.set_model(model);
+	md_disp.set_bg_color(1.0, 1.0, 1.0);
+	md_disp.set_mesh_color(0.75, 0.75, 0.75);
+	md_disp.set_pcl_color(0.26667, 0.44706, 0.76863);
+	md_disp.set_rb_color(0.92941, 0.49, 0.19216);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_block_sliding.h5");

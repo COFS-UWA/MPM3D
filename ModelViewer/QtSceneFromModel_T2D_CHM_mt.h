@@ -53,6 +53,8 @@ protected:
 
 	QVector3D bg_color;
 	QVector3D pcl_color;
+	QVector3D rb_color;
+	QVector3D mesh_color;
 
 public:
 	typedef Model_T2D_CHM_mt::ElemNodeIndex ElemNodeIndex;
@@ -77,6 +79,18 @@ public:
 	{ bg_color[0] = r; bg_color[1] = g; bg_color[2] = b; }
 	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
 	{ pcl_color[0] = r; pcl_color[1] = g; pcl_color[2] = b; }
+	inline void set_rb_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		rb_color[0] = r;
+		rb_color[1] = g;
+		rb_color[2] = b;
+	}
+	inline void set_mesh_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		mesh_color[0] = r;
+		mesh_color[1] = g;
+		mesh_color[2] = b;
+	}
 
 	inline void set_model(Model_T2D_CHM_mt& _model) { model = &_model; }
 	int set_pts_from_pcl_id(size_t* ids, size_t id_num, float radius);

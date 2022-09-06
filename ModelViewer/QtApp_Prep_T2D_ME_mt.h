@@ -64,6 +64,15 @@ public:
 	inline void set_display_pts(bool op = true)
 	{ scene.set_display_pts(op); }
 
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_bg_color(r, g, b); }
+	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_pcl_color(r, g, b); }
+	inline void set_mesh_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_mesh_color(r, g, b); }
+	inline void set_rb_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_rb_color(r, g, b); }
+	
 	inline void set_model(Model_T2D_ME_mt& model) { scene.set_model(model); }
 	
 	inline int set_pts_from_pcl_id(size_t* ids, size_t id_num, float radius)

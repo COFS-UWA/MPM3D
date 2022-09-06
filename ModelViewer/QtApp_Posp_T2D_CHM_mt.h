@@ -76,11 +76,8 @@ public:
 
 	inline void set_display_whole_model()
 	{ scene.set_display_whole_model(); }
-	inline void set_display_range(double xl, double xu,
-								  double yl, double yu)
+	inline void set_display_range(double xl, double xu, double yl, double yu)
 	{ scene.set_display_range(xl, xu, yl, yu); }
-	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b) { scene.set_bg_color(r, g, b); }
-	inline void set_char_color(GLfloat r, GLfloat g, GLfloat b) { scene.set_char_color(r, g, b); }
 	inline void set_display_bg_mesh(bool op = true)
 	{ scene.set_display_bg_mesh(op); }
 	inline void set_display_pcls(bool op = true)
@@ -92,8 +89,20 @@ public:
 	{ scene.set_color_map_fld_range(min, max); }
 	inline void set_color_map_geometry(float xpos, float ypos, float ht)
 	{ scene.set_color_map_geometry(xpos, ypos, ht); }
+	inline void set_color_map_char_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_char_color(r, g, b); }
+	inline void set_char_color(GLfloat r, GLfloat g, GLfloat b) { scene.set_char_color(r, g, b); }
+	
 	inline void set_mono_color_pcl(bool _op = true) noexcept
 	{ scene.set_mono_color_pcl(_op); }
+	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_pcl_color(r, g, b); }
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b) { scene.set_bg_color(r, g, b); }
+	inline void set_mesh_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_mesh_color(r, g, b); }
+	inline void set_rb_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_rb_color(r, g, b); }
+
 
 	inline void set_png_name(const char* name)
 	{
