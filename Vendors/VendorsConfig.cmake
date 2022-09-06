@@ -14,7 +14,7 @@ find_package(hdf5 CONFIG REQUIRED)
 find_package(freetype CONFIG REQUIRED)
 
 # Qt
-set(Qt5_DIR $ENV{Qt5_ROOT}/5.15.0/msvc2019_64/lib/cmake/Qt5)
+set(Qt5_DIR $ENV{Qt5_ROOT}/5.15.2/msvc2019_64/lib/cmake/Qt5)
 find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL)
 
 # Vendors

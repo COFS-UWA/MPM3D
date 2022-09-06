@@ -6,13 +6,13 @@ from multiprocessing import Process, Array
 
 path_name = "E:/"
 #path_name = "../Build/TestsParallel/"
-sim_name = "t3d_chm_mt_spudcan_cy_vstaud"
+sim_name = "t3d_chm_mt_spudcan_cy_ucav-130_V2000"
 var_name = "p"
-model_var_r0 = 0.2
-model_var_z0 = -0.3
+model_var_r0 = 0.1
+model_var_z0 = -0.2
 model_var_dr = 0.2
 model_var_dz = 0.2
-proc_num = 3
+proc_num = 4
 
 # time history name
 th_name = "penetration"

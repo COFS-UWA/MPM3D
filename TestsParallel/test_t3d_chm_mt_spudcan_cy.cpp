@@ -396,47 +396,56 @@ void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
 	//rf.open("t3d_chm_mt_spudcan_cy_vstaud.h5");
-	rf.open("E:\\t3d_chm_mt_spudcan_cy_vstapd1_v0.1.h5");
+	rf.open("E:\\t3d_chm_mt_spudcan_cy_vstaud.h5");
 
-	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
+	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.set_res_file(rf, "penetration", 100, Hdf5Field::p);
-	app.set_res_file(rf, "penetration", 100, Hdf5Field::s33);
-	////app.set_res_file(rf, "penetration", 50, Hdf5Field::max_shear_stress);
-	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
-	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
-	//	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
+	//app.set_res_file(rf, "penetration", 100, Hdf5Field::s33);
+	//app.set_res_file(rf, "penetration", 100, Hdf5Field::mat_e);
+	//app.set_res_file(rf, "penetration", 50, Hdf5Field::is_cavitated);
+	//app.set_res_file(rf, "penetration", 100, Hdf5Field::mises_strain_3d);
+	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
+		QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
 	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.1, 0.0);
-	////QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
-	app.set_win_size(1600, 800);
+	app.set_win_size(1800, 800);
 	app.set_view_dir(-90.0f, 5.0f);
 	app.set_fog_coef(0.02f);
 	app.set_light_dir(-90.0f, 5.0f);
 	app.set_light_dist_scale(1.0f);
-	app.move_view_pos(0.0, 0.0, -0.5);
-	app.set_view_dist_scale(0.75f);
+	// pore pressure and s33
+	app.move_view_pos(0.0, 0.0, 1.5);
+	app.set_view_dist_scale(0.6f);
+	// void ratio
+	//app.move_view_pos(0.0, 0.0, 2.5);
+	//app.set_view_dist_scale(0.55f);
+	// Kf ratio
+	//app.move_view_pos(0.0, -2.5, 4.0);
+	//app.set_view_dist_scale(0.4f);
+	//
 	app.set_display_bg_mesh(false);
 	app.set_update_rb_pos();
 	//app.set_bg_color(QVector3D(1.0, 1.0, 1.0));
 	//app.set_color_map_char_color(0.0, 0.0, 0.0);
-	app.set_color_map_geometry(1.8f, 0.4f, 0.45f);
+	app.set_color_map_geometry(2.05f, 0.4f, 0.45f);
+	//app.set_png_name("t3d_me_mt_spudcan");
+	app.set_gif_name("t3d_me_mt_spudcan");
+	// p
+	app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_color_map_fld_range(-195.0e3, 80.0e3); // u_cav = -130
+	app.set_color_map_fld_range(-9.0e5, 2.0e5); // no cav
 	// s33
 	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-1.0e6, 0.0);
-	// p
-	//app.set_res_file(rf, "penetration", Hdf5Field::p);
-	//app.set_color_map_fld_range(-1.0e5, 1.0e5); // -1.0e5, 1.0e5
+	//app.set_color_map_fld_range(-2.2e6, 0.0);
 	// e
 	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
-	//app.set_color_map_fld_range(0.5, 0.65);
-	// shear stress
+	//app.set_color_map_fld_range(0.5, 0.775);
+	// is_cavitated
 	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
-	//app.set_color_map_fld_range(0.0, 5000.0);
-	// plastic mises strain
-	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.35);
-	//
-	app.set_png_name("t3d_chm_mt_spudcan");
-	//app.set_gif_name("t3d_chm_mt_spudcan");
+	//app.set_color_map_fld_range(0.0, 1.1);
+	// mises strain
+	//app.set_res_file(rf, "penetration", Hdf5Field::mises_strain_3d);
+	//app.set_color_map_fld_range(0.0, 0.2);
+
 	app.start();
 }

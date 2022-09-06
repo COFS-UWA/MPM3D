@@ -53,7 +53,9 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(model.get_pcl_num());
 	for (size_t p_id = 0; p_id < model.get_pcl_num(); ++p_id)
 	{
-		const double depth = model.get_pcl_pos()[p_id].y;
+		double depth = model.get_pcl_pos()[p_id].y;
+		if (depth > -0.2)
+			depth = -0.2;
 		mc_stress[1] = depth * 9.81 * density;
 		mc_stress[0] = mc_stress[1] * 0.5; // 30.0
 		mc_stress[2] = mc_stress[0];
@@ -118,39 +120,34 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 void test_t2d_me_mt_strip_footing_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_me_mt_strip_footing.h5");
+	rf.open("D:\\CalRes\\t2d_me_mt_strip_footing_rou_w2.h5");
 
-	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
-	app.set_win_size(1400, 1000);
-	app.set_ani_time(10.0);
+	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
+	//app.set_win_size(1400, 1000);
+	//app.set_ani_time(10.0);
 	//app.set_display_range(0.0, 2.0, -3.5, 0.3);
-	app.set_color_map_geometry(1.05, 0.3f, 0.5f);
-	// s22
-	//app.set_res_file(rf, "loading", Hdf5Field::s22);
-	//app.set_color_map_fld_range(-1.0e5, 0.0);
-	// mat s22
-	app.set_res_file(rf, "loading", Hdf5Field::mat_s22);
-	app.set_color_map_fld_range(-1.0e5, 0.0);
-	// pe
+	//app.set_color_map_geometry(1.05, 0.3f, 0.5f);
+	//// s22
+	////app.set_res_file(rf, "loading", Hdf5Field::s22);
+	////app.set_color_map_fld_range(-1.0e5, 0.0);
+	//// mat s22
+	////app.set_res_file(rf, "loading", Hdf5Field::mat_s22);
+	////app.set_color_map_fld_range(-1.0e5, 0.0);
+	//// pe
 	//app.set_res_file(rf, "loading", Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.05);
-	//
-	//app.set_gif_name("t2d_me_mt_strip_footing");
+	//app.set_color_map_fld_range(0.0, 0.5);
+	////
+	////app.set_gif_name("t2d_me_mt_strip_footing");
 
-	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
-	//app.set_win_size(2000, 900);
-	////app.set_display_range(0.0, 4.0, -3.5, 0.3);
-	////app.set_color_map_geometry(1.6, 0.3f, 0.5f);
-	////app.set_res_file(rf, "loading", 86, Hdf5Field::s22);
-	////app.set_color_map_fld_range(-25.7e3, 0.0);
-	////
-	//app.set_display_range(0.0, 2.2, -1.5, 0.3);
-	//app.set_color_map_geometry(1.75f, 0.3f, 0.5f);
-	//app.set_res_file(rf, "loading", 86, Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.05);
-	////
-	////app.set_res_file(rf, "loading", Hdf5Field::vx);
-	////app.set_color_map_fld_range(-0.003, 0.003);
+	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
+	app.set_win_size(1900, 900);
+	app.set_display_range(-1.05, 4.5, -3.5, 0.5);
+	app.set_color_map_geometry(1.8f, 0.3f, 0.5f);
+	app.set_res_file(rf, "loading", 100, Hdf5Field::plastic_mises_strain_2d);
+	app.set_color_map_fld_range(0.0, 0.55);
+	//
+	//app.set_res_file(rf, "loading", Hdf5Field::vx);
+	//app.set_color_map_fld_range(-0.003, 0.003);
 
 	////app.set_png_name("t2d_me_mt_strip_footing");
 
