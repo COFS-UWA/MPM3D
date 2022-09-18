@@ -52,6 +52,17 @@ public:
 	inline void set_v_ang(double _vx_ang, double _vy_ang, double _vz_ang) noexcept
 	{ vx_ang = _vx_ang; vy_ang = _vy_ang; vz_ang = _vz_ang; }
 
+	inline void set_ext_force(const Force3D& cf) noexcept
+	{
+		fx_ext = cf.fx; fy_ext = cf.fy; fz_ext = cf.fz;
+		mx_cont = cf.mx; my_cont = cf.my; mz_cont = cf.mz;
+	}
+	inline void set_ext_force(double fx, double fy, double fz) noexcept
+	{
+		fx_ext = fx; fy_ext = fy; fz_ext = fz;
+		mx_cont = 0.0; my_cont = 0.0; mz_cont = 0.0;
+	}
+
 	inline void set_cont_force(const Force3D& cf) noexcept
 	{
 		fx_cont = cf.fx; fy_cont = cf.fy; fz_cont = cf.fz;

@@ -93,19 +93,19 @@ struct Vector2D
 	{ return x * e2_x + y * e2_y; }
 
 	template <typename Point2D>
-	inline Vector2D& add(Point2D& p) noexcept
+	inline Vector2D& add(const Point2D& p) noexcept
 	{ x += p.x; y += p.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& add(Point2D& p1, Point2D& p2) noexcept
+	inline Vector2D& add(const Point2D& p1, const Point2D& p2) noexcept
 	{ x = p1.x + p2.x; y = p1.y + p2.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& substract(Point2D& p) noexcept
+	inline Vector2D& substract(const Point2D& p) noexcept
 	{ x -= p.x; y -= p.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& substract(Point2D& p1, Point2D& p2) noexcept
+	inline Vector2D& substract(const Point2D& p1, const Point2D& p2) noexcept
 	{ x = p1.x - p2.x; y = p1.y - p2.y; return *this; }
 	template <typename Point2D>
-	inline double dot(Point2D& p2) const noexcept
+	inline double dot(const Point2D& p2) const noexcept
 	{ return x * p2.x + y * p2.y; }
 };
 

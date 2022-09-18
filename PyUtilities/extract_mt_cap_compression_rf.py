@@ -12,7 +12,11 @@ rb_fz = []
 is_init = False
 ini_z = 0.0
 for th_id in range(th_num):
-    rb_grp = th_grp['frame_%d' % th_id]['RigidCylinder']
+    rb_grp = None
+    if 'RigidCylinder' in th_grp['frame_%d' % th_id].keys():
+        rb_grp = th_grp['frame_%d' % th_id]['RigidCylinder']
+    else:
+        rb_grp = th_grp['frame_%d' % th_id]['RigidObjectByT3DMesh']
     cen_z = rb_grp.attrs['z']
     rf_z = rb_grp.attrs['fz_cont']
     if not is_init:

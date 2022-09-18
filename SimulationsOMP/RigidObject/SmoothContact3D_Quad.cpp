@@ -1,12 +1,12 @@
 #include "SimulationsOMP_pcp.h"
 
-#include "SmoothContact3D.h"
+#include "SmoothContact3D_Quad.h"
 
-SmoothContact3D::SmoothContact3D() : Kn_cont(0.0) {}
+SmoothContact3D_Quad::SmoothContact3D_Quad() : Kn_cont(0.0) {}
 
-SmoothContact3D::~SmoothContact3D() {}
+SmoothContact3D_Quad::~SmoothContact3D_Quad() {}
 
-void SmoothContact3D::cal_contact_force(
+void SmoothContact3D_Quad::cal_contact_force(
 	size_t substp_id,
 	size_t ori_pcl_id,
 	double dist,
@@ -16,11 +16,9 @@ void SmoothContact3D::cal_contact_force(
 	ParticleVariablesGetter& pv_getter,
 	Vector3D& cont_force)
 {
-	constexpr double K_damp_ratio = 0.02;
-	//constexpr double K_damp_ratio = 0.1;
+	constexpr double K_damp_ratio = 0.1;
 	// normal force
-	double f_cont = Kn_cont * pcl_len * pcl_len * dist;
-	//double f_cont = Kn_cont * dist * dist * dist * pcl_len * pcl_len;
+	double f_cont = Kn_cont * dist * dist * pcl_len * pcl_len;
 	cont_force.x = f_cont * norm.x;
 	cont_force.y = f_cont * norm.y;
 	cont_force.z = f_cont * norm.z;

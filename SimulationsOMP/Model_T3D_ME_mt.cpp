@@ -466,8 +466,7 @@ void Model_T3D_ME_mt::alloc_pcls(size_t num)
 
 void Model_T3D_ME_mt::alloc_pcls(
 	size_t num,
-	size_t ori_num
-	)
+	size_t ori_num)
 {
 	clear_pcls();
 
@@ -631,8 +630,7 @@ int Model_T3D_ME_mt::init_pcls(
 void Model_T3D_ME_mt::init_bfxs(
 	size_t bf_num,
 	const size_t* bf_pcls,
-	const double* bfs
-	)
+	const double* bfs)
 {
 	if (pcl_mem_raw && ori_pcl_num)
 	{
@@ -659,8 +657,7 @@ void Model_T3D_ME_mt::init_bfxs(
 void Model_T3D_ME_mt::init_bfys(
 	size_t bf_num,
 	const size_t* bf_pcls,
-	const double* bfs
-	)
+	const double* bfs)
 {
 	if (pcl_mem_raw && ori_pcl_num)
 	{
@@ -687,8 +684,7 @@ void Model_T3D_ME_mt::init_bfys(
 void Model_T3D_ME_mt::init_bfzs(
 	size_t bf_num,
 	const size_t* bf_pcls,
-	const double* bfs
-	)
+	const double* bfs)
 {
 	if (pcl_mem_raw && ori_pcl_num)
 	{
@@ -715,8 +711,7 @@ void Model_T3D_ME_mt::init_bfzs(
 void Model_T3D_ME_mt::init_txs(
 	size_t t_num,
 	const size_t* t_pcls,
-	const double* ts
-	)
+	const double* ts)
 {
 	if (pcl_mem_raw && ori_pcl_num)
 	{
@@ -743,8 +738,7 @@ void Model_T3D_ME_mt::init_txs(
 void Model_T3D_ME_mt::init_tys(
 	size_t t_num,
 	const size_t* t_pcls,
-	const double* ts
-	)
+	const double* ts)
 {
 	if (pcl_mem_raw && ori_pcl_num)
 	{
@@ -770,8 +764,7 @@ void Model_T3D_ME_mt::init_tys(
 void Model_T3D_ME_mt::init_tzs(
 	size_t t_num,
 	const size_t* t_pcls,
-	const double* ts
-	)
+	const double* ts)
 {
 	if (pcl_mem_raw && ori_pcl_num)
 	{
@@ -796,8 +789,7 @@ void Model_T3D_ME_mt::init_tzs(
 
 void Model_T3D_ME_mt::init_fixed_vx_bc(
 	size_t bc_num,
-	const size_t* bcs
-	)
+	const size_t* bcs)
 {
 	for (size_t bc_id = 0; bc_id < bc_num; ++bc_id)
 	{
@@ -808,8 +800,7 @@ void Model_T3D_ME_mt::init_fixed_vx_bc(
 
 void Model_T3D_ME_mt::init_fixed_vy_bc(
 	size_t bc_num,
-	const size_t* bcs
-	)
+	const size_t* bcs)
 {
 	for (size_t bc_id = 0; bc_id < bc_num; ++bc_id)
 	{
@@ -820,8 +811,7 @@ void Model_T3D_ME_mt::init_fixed_vy_bc(
 
 void Model_T3D_ME_mt::init_fixed_vz_bc(
 	size_t bc_num,
-	const size_t* bcs
-)
+	const size_t* bcs)
 {
 	for (size_t bc_id = 0; bc_id < bc_num; ++bc_id)
 	{
@@ -876,6 +866,9 @@ void Model_T3D_ME_mt::alloc_contact_mem(size_t num)
 	// smooth contact
 	smooth_contact.contact_substep_ids = contact_substep_ids;
 	smooth_contact.prev_contact_dists = prev_contact_dists;
+	// smooth contact quad
+	smh_contact_quad.contact_substep_ids = contact_substep_ids;
+	smh_contact_quad.prev_contact_dists = prev_contact_dists;
 	// rough contact
 	rough_contact.contact_substep_ids = contact_substep_ids;
 	rough_contact.prev_contact_poses = prev_contact_poses;

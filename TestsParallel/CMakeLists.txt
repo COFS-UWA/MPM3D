@@ -49,6 +49,7 @@ add_executable(
     test_t3d_me_mt_cap_compression.cpp
     test_t3d_me_mt_triaxial_compression.cpp
     test_t3d_me_mt_block_sliding.cpp
+    test_t3d_me_mt_weird_block_sliding.cpp
     test_t3d_me_mt_test_rigid_mesh.cpp
 	test_t3d_me_mt_cylinder_foundation.cpp
     test_t3d_me_mt_cylinder_foundation_den.cpp

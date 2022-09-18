@@ -9,10 +9,12 @@ target_sources(
     RoughContact2D.h RoughContact2D.cpp
     Force2D.h
     RigidCircle.h RigidCircle.cpp
+    RigidMeshT2D.h RigidMeshT2D.cpp
     # 3D contact
     ContactModel3D.h ContactModel3D.cpp
     NoContact3D.h NoContact3D.cpp
     SmoothContact3D.h SmoothContact3D.cpp
+    SmoothContact3D_Quad.h SmoothContact3D_Quad.cpp
     RoughContact3D.h RoughContact3D.cpp
     FrictionalContact3D.h FrictionalContact3D.cpp
     StickyContact3D.h StickyContact3D.cpp
@@ -21,6 +23,7 @@ target_sources(
     RigidCube.h RigidCube.cpp
     RigidCylinder.h RigidCylinder.cpp
     RigidCone.h RigidCone.cpp
+    #
     RigidObjectMotion3D.h RigidObjectMotion3D.cpp
     RigidMeshT3D.h RigidMeshT3D.cpp
     RigidObjectByT3DMesh.h RigidObjectByT3DMesh.cpp
