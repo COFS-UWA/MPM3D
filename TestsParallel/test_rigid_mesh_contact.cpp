@@ -1,5 +1,6 @@
 #include "TestsParallel_pcp.h"
 
+#include "RigidObject/RigidMeshT2D.h"
 #include "RigidObject/RigidMeshT3D.h"
 #include "Model_T3D_ME_mt.h"
 
@@ -76,4 +77,26 @@ void test_rigid_mesh_contact2(int argc, char** argv)
 	std::cout << rb_moi[0] << ", " << rb_moi[3] << ", " << rb_moi[5] << ",\n"
 		<< rb_moi[3] << ", " << rb_moi[1] << ", " << rb_moi[4] << ",\n"
 		<< rb_moi[5] << ", " << rb_moi[4] << ", " << rb_moi[2] << ",\n";
+}
+
+void test_rigid_mesh_contact_2d(int argc, char** argv)
+{
+	TriangleMesh tri_mh;
+	tri_mh.load_mesh_from_hdf5("../../Asset/rect_mesh_1by4.h5");
+
+	RigidMeshT2D rb;
+	rb.init_from_mesh(tri_mh, 0.3, 0.3);
+
+	//rb.init_max_dist();
+
+	Point2D pt;
+	double pt_r, dist;
+	Vector2D norm;
+
+	pt.x = 0.5;
+	pt.y = -0.5;
+	pt_r = 0.3;
+	bool res = rb.detect_collision_with_point(pt, pt_r, dist, norm);
+
+	std::cout << res << "\ndist: " << dist << "\nnorm: " << norm.x << ", " << norm.y << std::endl;
 }

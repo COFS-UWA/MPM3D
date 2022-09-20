@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 	//test_rigid_cone(argc, argv);
 	//test_rigid_mesh_contact(argc, argv);
 	//test_rigid_mesh_contact2(argc, argv);
+	test_rigid_mesh_contact_2d(argc, argv);
 	//test_contact_model_3d(argc, argv);
 	
 	//test_t3d_me_mt_cap_compression(argc, argv);
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_result(argc, argv);
 
-	test_t3d_me_mt_spudcan_cy_model(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_model(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_geostatic(argc, argv);
 	//test_t3d_me_mt_spudcan_cy(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_geo_result(argc, argv);
