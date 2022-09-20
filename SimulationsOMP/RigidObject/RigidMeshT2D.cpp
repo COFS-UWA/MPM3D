@@ -1,6 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
 #include <float.h>
+#include <iostream>
 
 #include "SearchGrid2DLine.hpp"
 #include "SearchGrid2DTriangle.hpp"
@@ -102,6 +103,18 @@ int RigidMeshT2D::init_from_mesh(TriangleMesh& tmesh, double ghx, double ghy)
 	edge_grid.clear(); // release memory
 	edge_extractor.clear();
 
+	for (size_t y_id = 0; y_id < grid.y_num; y_id++)
+	{
+		for (size_t x_id = 0; x_id < grid.x_num; x_id++)
+		{
+			if (grid_pos_type[x_id + y_id * grid.x_num] == GridPosType::AtBoundary)
+				std::cout << "#";
+			else
+				std::cout << "@";
+		}
+		std::cout << "\n";
+	}
+
 	return 0;
 }
 
@@ -157,7 +170,7 @@ void RigidMeshT2D::init_max_dist(double _dist) noexcept
 				n3_dist <= -_dist && n4_dist <= -_dist)
 				*cur_g_pos = GridPosType::FarOutside;
 			else if (n1_dist >= _dist && n2_dist >= _dist &&
-						n3_dist >= _dist && n4_dist >= _dist)
+					 n3_dist >= _dist && n4_dist >= _dist)
 				*cur_g_pos = GridPosType::FarInside;
 			++cur_g_pos;
 		}

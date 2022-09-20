@@ -231,11 +231,15 @@ void test_t3d_me_mt_spudcan_cy(int argc, char** argv)
 	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(
 		model, step, "t3d_me_mt_spudcan_cy_geo.h5", "geostatic", 11);
 
-	constexpr double footing_radius = 1.5;
-	constexpr double dense_elem_size = 0.125 * footing_radius;
-	constexpr double sml_pcl_size = dense_elem_size * 0.25;
-	constexpr double K_cont = 5.0e6 / (sml_pcl_size * sml_pcl_size);
-	model.set_contact_param(K_cont, K_cont, 0.3640, 5.0);
+	// set tension cut-off surface
+	const size_t pcl_num = model.get_pcl_num();
+	MatModel::MaterialModel** mms = model.get_mat_models();
+	for (size_t p_id = 0; p_id < pcl_num; p_id++)
+		((MatModel::NorsandWrapper *)mms[p_id])->set_min_prin_s(1000.0);
+
+	// contact
+	constexpr double K_cont = 3.0e9;
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and permeability

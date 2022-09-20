@@ -81,9 +81,7 @@ public:
 		n2_m.x = n2.x - box_xc;
 		n2_m.y = n2.y - box_yc;
 		// if there is one seperating axis, there is no collision
-		if (is_seperating_axis(axes, n1_m, n2_m))
-			return false;
-		return true;
+		return !is_seperating_axis(axes, n1_m, n2_m);
 	}
 
 	inline const Point2D& get_n1() const noexcept { return n1; }
