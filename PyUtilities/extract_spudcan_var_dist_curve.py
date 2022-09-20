@@ -4,13 +4,13 @@ import h5py as py
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Array
 
-path_name = "D:/"
-#path_name = "../Build/TestsParallel/"
-sim_name = "t3d_chm_mt_spudcan_cy_vstad"
-var_name = "s33"
+#path_name = "D:/"
+path_name = "../Build/TestsParallel/"
+sim_name = "t3d_chm_mt_spudcan_cy_vdynud2"
+var_name = "p"
 th_name = "penetration"
 rb_name = "RigidObjectByT3DMesh"
-th_id = 67
+th_id = 51
 proc_num = 8
 
 # (r0, z0, dr, dz)

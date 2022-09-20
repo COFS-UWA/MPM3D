@@ -26,10 +26,10 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 {
 	constexpr double footing_radius = 1.5;
 
-	constexpr double cy_radius = 8.0 * footing_radius; // 6.0, 8.0
+	constexpr double cy_radius = 6.0 * footing_radius; // 6.0, 8.0
 	constexpr double cy_coarse_radius = 3.5 * footing_radius;
 	constexpr double cy_top = 0.5 * footing_radius;
-	constexpr double cy_depth = 8.0 * footing_radius; // 7.0, 8.0
+	constexpr double cy_depth = 7.0 * footing_radius; // 7.0, 8.0
 	constexpr double cy_coarse_depth = 4.0 * footing_radius;
 	constexpr double cy_len = cy_top + cy_depth;
 	constexpr double dense_elem_size = 0.125 * footing_radius;
@@ -38,7 +38,8 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	constexpr double lgr_pcl_size = coarse_elem_size * 0.25;
 
 	TetrahedronMesh teh_mesh;
-	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_quarter_cylinder_8D.h5");
+	// spudcan_soil_quarter_cylinder_8D
+	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_quarter_cylinder.h5");
 	teh_mesh.init_search_grid(0.2, 0.2, 0.2);
 	std::cout << "node_num: " << teh_mesh.get_node_num() << "\n"
 			  << "elem_num: " << teh_mesh.get_elem_num() << "\n";
@@ -161,8 +162,8 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.2);
-	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.4);
+	constexpr double K_cont = 5.0e5 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.36, 5.0, K_cont/50.0, K_cont/50.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
 
@@ -215,12 +216,12 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-80.0f, 30.0f);
-	md_disp.set_light_dir(-70.0f, 20.0f);
+	md_disp.set_view_dir(-80.0f, -30.0f);
+	md_disp.set_light_dir(-70.0f, -20.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.8);
 	//md_disp.set_pts_from_vx_bc_s(0.04);
-	//md_disp.set_pts_from_vy_bc_s(0.04);
+	md_disp.set_pts_from_vy_bc_s(0.04);
 	//md_disp.set_pts_from_vz_bc_s(0.04);
 	//md_disp.set_pts_from_vec_bc_s(0.04);
 	//md_disp.set_pts_from_vx_bc_f(0.04);
@@ -301,30 +302,30 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 	model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and contact stiffness
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5); // -0.2
-	model.set_k(9.5e-8);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.2); // -0.2
+	model.set_k(7.0e-13);
 	//model.set_miu(684.0e-3);
 
 	// -130.0e3 - 3m, -200.0e3 - 10m, -500.0e3 - 40m
-	//model.set_cavitation(100.0, -800.0e3, 0.05, 0.0, 0.0, 10.0e3);
+	model.set_cavitation(100.0, -500.0e3, 0.05, 0.0, 0.0, 10.0e3);
 
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//md_disp.set_model(model);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(-150.0f, 10.0f);
-	//md_disp.set_light_dir(-130.0f, -15.0f);
+	//md_disp.set_view_dir(80.0f, -30.0f); // -130
+	//md_disp.set_light_dir(70.0f, -20.0f); // -110
 	//md_disp.set_display_bg_mesh(false);
 	//md_disp.set_view_dist_scale(0.75);
 	////md_disp.set_pts_from_vx_s_bc(0.05);
 	////md_disp.set_pts_from_vy_s_bc(0.05);
 	////md_disp.set_pts_from_vz_s_bc(0.05);
-	////md_disp.set_pts_from_vec_s_bc(0.05);
-	//md_disp.set_pts_from_vx_f_bc(0.05);
-	//md_disp.set_pts_from_vy_f_bc(0.05);
-	//md_disp.set_pts_from_vz_f_bc(0.05);
-	//md_disp.set_pts_from_vec_f_bc(0.05);
+	//md_disp.set_pts_from_vec_s_bc(0.05);
+	////md_disp.set_pts_from_vx_f_bc(0.05);
+	////md_disp.set_pts_from_vy_f_bc(0.05);
+	////md_disp.set_pts_from_vz_f_bc(0.05);
+	////md_disp.set_pts_from_vec_f_bc(0.05);
 	//md_disp.start();
 	//return;
 
@@ -349,7 +350,7 @@ void test_t3d_chm_mt_spudcan_cy(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(31);
-	step.set_step_time(1.5);
+	step.set_step_time(2.25);
 	step.set_dtime(3.0e-6); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
