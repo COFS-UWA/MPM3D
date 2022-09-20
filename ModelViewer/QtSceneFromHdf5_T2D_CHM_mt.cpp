@@ -210,13 +210,12 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	rf.read_dataset(bg_mesh_id, "ElementData", elem_num, elems_data, elem_dt_id);
 	H5Tclose(elem_dt_id);
 	// init bg_mesh buffer
-	QVector3D gray(0.5f, 0.5f, 0.5f);
 	res = bg_mesh_obj.init_from_elements(
 		nodes_data,
 		node_num,
 		elems_data,
 		elem_num,
-		gray);
+		mesh_color);
 	// get bounding box
 	if (display_whole_model)
 	{
@@ -303,12 +302,11 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	{
 		has_rc_obj = true;
 		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidCircle");
-		QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 		double rr_x, rr_y, rr_r;
 		rf.read_attribute(rb_grp_id, "x", rr_x);
 		rf.read_attribute(rb_grp_id, "y", rr_y);
 		rf.read_attribute(rb_grp_id, "radius", rr_r);
-		rc_obj.init(rr_x, rr_y, rr_r, light_slate_blue, 3.0f);
+		rc_obj.init(rr_x, rr_y, rr_r, rb_color, 3.0f);
 		rf.close_group(rb_grp_id);
 		bbox.envelop(Rect(rr_x - rr_r, rr_x + rr_r,
 						  rr_y - rr_r, rr_y + rr_r));
@@ -317,14 +315,13 @@ int QtSceneFromHdf5_T2D_CHM_mt::init_scene(int wd, int ht, size_t frame_id)
 	{
 		has_rr_obj = true;
 		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidRect");
-		QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 		double rr_x, rr_y, rr_ang, rr_hx, rr_hy;
 		rf.read_attribute(rb_grp_id, "x", rr_x);
 		rf.read_attribute(rb_grp_id, "y", rr_y);
 		rf.read_attribute(rb_grp_id, "angle", rr_ang);
 		rf.read_attribute(rb_grp_id, "hx", rr_hx);
 		rf.read_attribute(rb_grp_id, "hy", rr_hy);
-		rr_obj.init(rr_x, rr_y, rr_ang, rr_hx, rr_hy, light_slate_blue, 3.0f);
+		rr_obj.init(rr_x, rr_y, rr_ang, rr_hx, rr_hy, rb_color, 3.0f);
 		rf.close_group(rb_grp_id);
 		bbox.envelop(Rect(
 			rr_x - rr_hx * 0.5,

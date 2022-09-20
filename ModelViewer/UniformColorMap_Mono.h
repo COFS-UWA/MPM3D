@@ -3,14 +3,11 @@
 
 #include "UniformColorMap.h"
 
-// The style of this color map is obtained from abaqus 
 class UniformColorMap_Mono : public UniformColorMap
 {
 public:
 	UniformColorMap_Mono();
-	~UniformColorMap_Mono();
-
-protected:
+	~UniformColorMap_Mono();	
 	void set_color(float r, float g, float b);
 };
 

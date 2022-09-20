@@ -67,9 +67,13 @@ void test_rigid_mesh_contact2(int argc, char** argv)
 	pt_r = 0.3;
 	rb.detect_collision_with_point(
 		pt.x, pt.y, pt.z, pt_r, dist, norm, ct_pos);
-	std::cout << "dist: " << dist
-		<< ", norm: (" << norm.x
-		<< ", " << norm.y
-		<< ", " << norm.z << ")\n";
+	//std::cout << "dist: " << dist
+	//	<< ", norm: (" << norm.x
+	//	<< ", " << norm.y
+	//	<< ", " << norm.z << ")\n";
 
+	const double* rb_moi = rb.get_moi();
+	std::cout << rb_moi[0] << ", " << rb_moi[3] << ", " << rb_moi[5] << ",\n"
+		<< rb_moi[3] << ", " << rb_moi[1] << ", " << rb_moi[4] << ",\n"
+		<< rb_moi[5] << ", " << rb_moi[4] << ", " << rb_moi[2] << ",\n";
 }

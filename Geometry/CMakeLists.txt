@@ -19,13 +19,16 @@ add_library(
     SearchingGrid2D.hpp
     PDSBgGrid2D.hpp
     TriangleMesh.h TriangleMesh.cpp
+    ExtractEdgeFromT2DMesh.h ExtractEdgeFromT2DMesh.cpp
+    Grid2D.hpp
+    SearchGrid2DLine.hpp
+    SearchGrid2DTriangle.hpp
     #RandomPointQueue.h RandomPointQueue.cpp
     ParticleGenerator2D.hpp
     # 3D geometry
     TetrahedronUtils.h
     TetrahedronMeshTemplate.hpp
-    TetrahedronMesh.h
-    TetrahedronMesh.cpp
+    TetrahedronMesh.h TetrahedronMesh.cpp
     SearchingGrid3D.hpp
     ParticleGenerator3D.hpp
     DetectCollisionSAT.hpp

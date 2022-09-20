@@ -28,6 +28,7 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv);
 void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv);
 void test_t2d_me_mt_strip_footing(int argc, char** argv);
 void test_t2d_me_mt_block_sliding(int argc, char** argv);
+void test_t3d_me_mt_weird_block_sliding(int argc, char** argv);
 void test_t2d_me_mt_block_collision(int argc, char** argv);
 void test_t2d_me_mt_geostatic(int argc, char** argv);
 void test_t2d_me_mt_column_collapse(int argc, char** argv);
@@ -154,6 +155,10 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_geostatic(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_restart(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_HV(int argc, char** argv);
 
 void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv);

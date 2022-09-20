@@ -103,14 +103,18 @@ void test_t2d_me_mt_strip_footing(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, -9.0);
 	model.init_fixed_vy_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
-	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(1500, 950);
-	//md_disp.set_model(model);
-	////md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
+	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(1500, 950);
+	md_disp.set_model(model);
+	md_disp.set_bg_color(1.0, 1.0, 1.0);
+	md_disp.set_mesh_color(0.75, 0.75, 0.75);
+	md_disp.set_pcl_color(0.26667, 0.44706, 0.76863);
+	md_disp.set_rb_color(0.92941, 0.49, 0.19216);
+	//md_disp.set_display_range(-1.0, 1.0, -1.5, -0.5);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.02);
 	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.02);
-	//md_disp.start();
-	//return;
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_strip_footing.h5");

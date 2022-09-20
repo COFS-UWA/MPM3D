@@ -16,6 +16,8 @@ QtSceneFromHdf5_T2D_ME_mt::QtSceneFromHdf5_T2D_ME_mt(
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f),
+	rb_color(0.5176f, 0.4392f, 1.0f), // light_slate_blue
+	mesh_color(0.5f, 0.5f, 0.5f), // gray
 	pcl_is_mono_color(false) {}
 
 QtSceneFromHdf5_T2D_ME_mt::~QtSceneFromHdf5_T2D_ME_mt()
@@ -211,14 +213,12 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	rf.read_dataset(bg_mesh_id, "ElementData", elem_num, elems_data, elem_dt_id);
 	H5Tclose(elem_dt_id);
 	// init bg_mesh buffer
-	QVector3D gray(0.5f, 0.5f, 0.5f);
 	res = bg_mesh_obj.init_from_elements(
 		nodes_data,
 		node_num,
 		elems_data,
 		elem_num,
-		gray
-		);
+		mesh_color);
 	// get bounding box
 	if (display_whole_model)
 	{
@@ -272,8 +272,7 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		pcl_y_data,
 		pcl_vol_data,
 		pcl_fld_data,
-		0.5
-	);
+		0.5);
 	
 	// color map texture
 	size_t color_map_texture_size;
@@ -303,7 +302,6 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	char frame_name[50];
 	snprintf(frame_name, 50, "frame_%zu", frame_id);
 	hid_t frame_grp_id = rf.open_group(th_id, frame_name);
-	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 	Rect rb_bbox;
 	// rigid rect
 	if (rf.has_group(frame_grp_id, "RigidRect"))
@@ -316,7 +314,7 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		rf.read_attribute(rb_grp_id, "x", rr_x);
 		rf.read_attribute(rb_grp_id, "y", rr_y);
 		rf.read_attribute(rb_grp_id, "angle", rr_ang);
-		rr_obj.init(rr_x, rr_y, rr_ang, rr_hx, rr_hy, light_slate_blue, 3.0f);
+		rr_obj.init(rr_x, rr_y, rr_ang, rr_hx, rr_hy, rb_color, 3.0f);
 		rf.close_group(rb_grp_id);
 		double cos_ang = cos(rr_ang);
 		double sin_ang = sin(rr_ang);
@@ -341,8 +339,7 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 			color_map,
 			field_name.c_str(),
 			"%8.3e",
-			"../../Asset/times_new_roman.ttf"
-			);
+			"../../Asset/times_new_roman.ttf");
 	}
 
 	// viewport
@@ -359,34 +356,28 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	// shader_plain2D
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_plain2D.vert"
-	);
+		"../../Asset/shader_plain2D.vert");
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_plain2D.frag"
-	);
+		"../../Asset/shader_plain2D.frag");
 	shader_plain2D.link();
 
 	// shader_circles
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_circles.vert"
-		);
+		"../../Asset/shader_circles.vert");
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_circles.frag"
-		);
+		"../../Asset/shader_circles.frag");
 	shader_circles.link();
 
 	// shader for displaying character
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_char.vert"
-	);
+		"../../Asset/shader_char.vert");
 	shader_char.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_char.frag"
-	);
+		"../../Asset/shader_char.frag");
 	shader_char.link();
 
 	// view matrix
@@ -397,8 +388,7 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		GLfloat(bbox.xu),
 		GLfloat(bbox.yl),
 		GLfloat(bbox.yu),
-		-1.0f, 1.0f
-		);
+		-1.0f, 1.0f);
 	// hud view matrix
 	hud_view_mat.setToIdentity();
 	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);

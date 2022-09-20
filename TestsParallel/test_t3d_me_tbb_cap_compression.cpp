@@ -106,20 +106,20 @@ void test_t3d_me_tbb_cap_compression_result(int argc, char** argv)
 	//app.set_res_file(rf, "compression", 2, Hdf5Field::max_shear_stress);
 	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
 	app.set_win_size(1200, 950);
-	app.set_ani_time(5.0);
+	app.set_ani_time(7.5);
 	app.set_view_dir(30.0f, 0.0f);
 	app.set_light_dir(30.0f, 20.0f);
 	//app.set_view_dist_scale(1.1);
 	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
 	// s33
-	//app.set_res_file(rf, "compression", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-200.0, 0.0);
+	app.set_res_file(rf, "compression", Hdf5Field::s33);
+	app.set_color_map_fld_range(-66.0, 0.0);
 	// shear stress
 	//app.set_res_file(rf, "compression", Hdf5Field::max_shear_stress);
 	//app.set_color_map_fld_range(0.0, 30.0);
 	// shear strain
-	app.set_res_file(rf, "compression", Hdf5Field::mises_strain_3d);
-	app.set_color_map_fld_range(0.0, 0.1);
+	//app.set_res_file(rf, "compression", Hdf5Field::mises_strain_3d);
+	//app.set_color_map_fld_range(0.0, 0.1);
 	//
 	//app.set_png_name("t3d_me_tbb_cap_compression");
 	app.set_gif_name("t3d_me_tbb_cap_compression");

@@ -8,6 +8,7 @@
 #include "GeometryUtils.h"
 #include "TetrahedronUtils.h"
 #include "TetrahedronMeshTemplate.hpp"
+#include "DetectCollisionSAT.hpp"
 
 // Usage:
 // 1. init_mesh
@@ -34,6 +35,9 @@ namespace RigidTetrahedronMesh_Internal
 		size_t id;
 		size_t n1, n2, n3;
 		PointToTriangleDistance pt_tri_dist;
+
+		Face() {}
+		~Face() {}
 	};
 
 	typedef TetrahedronMeshTemplate<Node, Element, Edge> ParentTehClass;
@@ -526,7 +530,8 @@ protected: // background grid
 	}
 	bool detect_teh_aabb_collision(Cube &box);
 
-	TriangleAABBCollisionSAT tri_aabb_collision;
+	//TriangleAABBCollisionSAT tri_aabb_collision;
+	Detect3DTriangleAABBCollisionSAT tri_aabb_collision;
 	void init_tri_aabb_collision(Face& f)
 	{
 		Node& n1 = nodes[f.n1];

@@ -68,6 +68,10 @@ public:
 	{ scene.set_bg_color(r, g, b); }
 	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
 	{ scene.set_pcl_color(r, g, b); }
+	inline void set_mesh_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_mesh_color(r, g, b); }
+	inline void set_rb_color(GLfloat r, GLfloat g, GLfloat b)
+	{ scene.set_rb_color(r, g, b); }
 
 	inline void set_model(Model_T2D_CHM_mt& model) { scene.set_model(model); }
 	

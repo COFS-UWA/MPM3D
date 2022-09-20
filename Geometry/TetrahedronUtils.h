@@ -10,8 +10,7 @@ inline void get_tetrahedron_bounding_box(
 	const Point3D& n2,
 	const Point3D& n3,
 	const Point3D& n4,
-	Cube &bbox
-	) noexcept
+	Cube &bbox) noexcept
 {
 	bbox.xl = n1.x;
 	if (bbox.xl > n2.x)
@@ -101,8 +100,7 @@ inline double cal_tetrahedron_vol(
 	const Node3D& n1,
 	const Node3D& n2,
 	const Node3D& n3,
-	const Point3D& p4
-	) noexcept
+	const Point3D& p4) noexcept
 {
 	double v21_x, v21_y, v21_z;
 	double v31_x, v31_y, v31_z;
@@ -366,110 +364,108 @@ public:
 	inline const Point3D& get_n4() const noexcept { return n4; }
 };
 
-struct TriangleAABBCollisionSAT
-{
-protected:
-	double hx, hy, hz;
-	Point3D n1, n2, n3;
-	// 1 face normal + 3 * 3 edge cross product
-	Vector3D axes[10];
-
-	inline bool is_seperating_axis(
-		Vector3D& axis,
-		Point3D& p1,
-		Point3D& p2,
-		Point3D& p3
-		)
-	{
-#define Norm_Tol 1.0e-6
-		if (axis.norm() < Norm_Tol)
-			return false;
-		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z)) * (1.0 + Norm_Tol);
-		double p1_proj = p1.x * axis.x + p1.y * axis.y + p1.z * axis.z;
-		double p2_proj = p2.x * axis.x + p2.y * axis.y + p2.z * axis.z;
-		double p3_proj = p3.x * axis.x + p3.y * axis.y + p3.z * axis.z;
-		return ((p1_proj >  box_range && p2_proj >  box_range && p3_proj >  box_range) ||
-				(p1_proj < -box_range && p2_proj < -box_range && p3_proj < -box_range));
-#undef Norm_Tol
-	}
-
-public:
-	template <typename Node3D>
-	void init_triangle(
-		Node3D& _n1,
-		Node3D& _n2,
-		Node3D& _n3
-		)
-	{
-		n1.x = _n1.x;
-		n1.y = _n1.y;
-		n1.z = _n1.z;
-		n2.x = _n2.x;
-		n2.y = _n2.y;
-		n2.z = _n2.z;
-		n3.x = _n3.x;
-		n3.y = _n3.y;
-		n3.z = _n3.z;
-		double e12_x = n1.x - n2.x;
-		double e12_y = n1.y - n2.y;
-		double e12_z = n1.z - n2.z;
-		double e13_x = n1.x - n3.x;
-		double e13_y = n1.y - n3.y;
-		double e13_z = n1.z - n3.z;
-		double e23_x = n2.x - n3.x;
-		double e23_y = n2.y - n3.y;
-		double e23_z = n2.z - n3.z;
-		// 1 face normal
-		axes[0].cross(e13_x, e13_y, e13_z, e12_x, e12_y, e12_z);
-		// 3 * 3 edge cross product
-		axes[1].cross(1.0, 0.0, 0.0, e12_x, e12_y, e12_z);
-		axes[2].cross(0.0, 1.0, 0.0, e12_x, e12_y, e12_z);
-		axes[3].cross(0.0, 0.0, 1.0, e12_x, e12_y, e12_z);
-		axes[4].cross(1.0, 0.0, 0.0, e13_x, e13_y, e13_z);
-		axes[5].cross(0.0, 1.0, 0.0, e13_x, e13_y, e13_z);
-		axes[6].cross(0.0, 0.0, 1.0, e13_x, e13_y, e13_z);
-		axes[7].cross(1.0, 0.0, 0.0, e23_x, e23_y, e23_z);
-		axes[8].cross(0.0, 1.0, 0.0, e23_x, e23_y, e23_z);
-		axes[9].cross(0.0, 0.0, 1.0, e23_x, e23_y, e23_z);
-	}
-
-	bool detect_collision_with_cube(Cube& cube)
-	{
-		hx = cube.xu - cube.xl;
-		hy = cube.yu - cube.yl;
-		hz = cube.zu - cube.zl;
-		double box_xc = (cube.xl + cube.xu) * 0.5;
-		double box_yc = (cube.yl + cube.yu) * 0.5;
-		double box_zc = (cube.zl + cube.zu) * 0.5;
-		Point3D n1_m, n2_m, n3_m;
-		n1_m.x = n1.x - box_xc;
-		n1_m.y = n1.y - box_yc;
-		n1_m.z = n1.z - box_zc;
-		n2_m.x = n2.x - box_xc;
-		n2_m.y = n2.y - box_yc;
-		n2_m.z = n2.z - box_zc;
-		n3_m.x = n3.x - box_xc;
-		n3_m.y = n3.y - box_yc;
-		n3_m.z = n3.z - box_zc;
-		// if there is one seperating axis, there is no collision
-		if (is_seperating_axis(axes[0], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[1], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[2], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[3], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[4], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[5], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[6], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[7], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[8], n1_m, n2_m, n3_m) ||
-			is_seperating_axis(axes[9], n1_m, n2_m, n3_m))
-			return false;
-		return true;
-	}
-
-	inline const Point3D& get_n1() const noexcept { return n1; }
-	inline const Point3D& get_n2() const noexcept { return n2; }
-	inline const Point3D& get_n3() const noexcept { return n3; }
-};
+//struct TriangleAABBCollisionSAT
+//{
+//protected:
+//	double hx, hy, hz;
+//	Point3D n1, n2, n3;
+//	// 1 face normal + 3 * 3 edge cross product
+//	Vector3D axes[10];
+//
+//	inline bool is_seperating_axis(
+//		Vector3D& axis,
+//		Point3D& p1,
+//		Point3D& p2,
+//		Point3D& p3)
+//	{
+//#define Norm_Tol 1.0e-6
+//		if (axis.norm() < Norm_Tol)
+//			return false;
+//		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y) + hz * abs(axis.z)) * (1.0 + Norm_Tol);
+//		double p1_proj = p1.x * axis.x + p1.y * axis.y + p1.z * axis.z;
+//		double p2_proj = p2.x * axis.x + p2.y * axis.y + p2.z * axis.z;
+//		double p3_proj = p3.x * axis.x + p3.y * axis.y + p3.z * axis.z;
+//		return ((p1_proj >  box_range && p2_proj >  box_range && p3_proj >  box_range) ||
+//				(p1_proj < -box_range && p2_proj < -box_range && p3_proj < -box_range));
+//#undef Norm_Tol
+//	}
+//
+//public:
+//	template <typename Node3D>
+//	void init_triangle(
+//		Node3D& _n1,
+//		Node3D& _n2,
+//		Node3D& _n3)
+//	{
+//		n1.x = _n1.x;
+//		n1.y = _n1.y;
+//		n1.z = _n1.z;
+//		n2.x = _n2.x;
+//		n2.y = _n2.y;
+//		n2.z = _n2.z;
+//		n3.x = _n3.x;
+//		n3.y = _n3.y;
+//		n3.z = _n3.z;
+//		double e12_x = n1.x - n2.x;
+//		double e12_y = n1.y - n2.y;
+//		double e12_z = n1.z - n2.z;
+//		double e13_x = n1.x - n3.x;
+//		double e13_y = n1.y - n3.y;
+//		double e13_z = n1.z - n3.z;
+//		double e23_x = n2.x - n3.x;
+//		double e23_y = n2.y - n3.y;
+//		double e23_z = n2.z - n3.z;
+//		// 1 face normal
+//		axes[0].cross(e13_x, e13_y, e13_z, e12_x, e12_y, e12_z);
+//		// 3 * 3 edge cross product
+//		axes[1].cross(1.0, 0.0, 0.0, e12_x, e12_y, e12_z);
+//		axes[2].cross(0.0, 1.0, 0.0, e12_x, e12_y, e12_z);
+//		axes[3].cross(0.0, 0.0, 1.0, e12_x, e12_y, e12_z);
+//		axes[4].cross(1.0, 0.0, 0.0, e13_x, e13_y, e13_z);
+//		axes[5].cross(0.0, 1.0, 0.0, e13_x, e13_y, e13_z);
+//		axes[6].cross(0.0, 0.0, 1.0, e13_x, e13_y, e13_z);
+//		axes[7].cross(1.0, 0.0, 0.0, e23_x, e23_y, e23_z);
+//		axes[8].cross(0.0, 1.0, 0.0, e23_x, e23_y, e23_z);
+//		axes[9].cross(0.0, 0.0, 1.0, e23_x, e23_y, e23_z);
+//	}
+//
+//	bool detect_collision_with_cube(Cube& cube)
+//	{
+//		hx = cube.xu - cube.xl;
+//		hy = cube.yu - cube.yl;
+//		hz = cube.zu - cube.zl;
+//		double box_xc = (cube.xl + cube.xu) * 0.5;
+//		double box_yc = (cube.yl + cube.yu) * 0.5;
+//		double box_zc = (cube.zl + cube.zu) * 0.5;
+//		Point3D n1_m, n2_m, n3_m;
+//		n1_m.x = n1.x - box_xc;
+//		n1_m.y = n1.y - box_yc;
+//		n1_m.z = n1.z - box_zc;
+//		n2_m.x = n2.x - box_xc;
+//		n2_m.y = n2.y - box_yc;
+//		n2_m.z = n2.z - box_zc;
+//		n3_m.x = n3.x - box_xc;
+//		n3_m.y = n3.y - box_yc;
+//		n3_m.z = n3.z - box_zc;
+//		// if there is one seperating axis, there is no collision
+//		if (is_seperating_axis(axes[0], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[1], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[2], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[3], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[4], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[5], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[6], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[7], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[8], n1_m, n2_m, n3_m) ||
+//			is_seperating_axis(axes[9], n1_m, n2_m, n3_m))
+//			return false;
+//		return true;
+//	}
+//
+//	inline const Point3D& get_n1() const noexcept { return n1; }
+//	inline const Point3D& get_n2() const noexcept { return n2; }
+//	inline const Point3D& get_n3() const noexcept { return n3; }
+//};
 
 // Triangle must not be deteriorated
 struct PointToTriangleDistance
@@ -492,15 +488,14 @@ struct PointToTriangleDistance
 	};
 	double a1, a2, a3;
 
-	inline PointToTriangleDistance() {}
+	PointToTriangleDistance() {}
 	~PointToTriangleDistance() {}
 
 	template <typename Node3D>
 	void init_triangle(
 		Node3D& _n1,
 		Node3D& _n2,
-		Node3D& _n3
-		) noexcept
+		Node3D& _n3) noexcept
 	{
 		n1.x = _n1.x;
 		n1.y = _n1.y;
@@ -553,8 +548,7 @@ struct PointToTriangleDistance
 
 	unsigned char cal_distance_to_point(
 		const Point3D& p,
-		double& dist
-		) const noexcept
+		double& dist) const noexcept
 	{
 		Vector3D pj1, pj2, pj3, tmp1;
 		tmp1.substract<Point3D>(p, n1);
@@ -699,11 +693,9 @@ struct PointToTriangleDistance
 	}
 };
 
+// Tonon, 2004, Explict exact formulas for the 3-D tetrahedron inertia tersor in terms of its vertex coordinates
 template <typename Point3D>
 inline void cal_tetrahedron_moi(
-	double xc,
-	double yc,
-	double zc,
 	Point3D &p1,
 	Point3D &p2,
 	Point3D &p3, 
@@ -727,17 +719,17 @@ inline void cal_tetrahedron_moi(
 		+ p3.x * p3.x + p1.x * p4.x + p2.x * p4.x + p3.x * p4.x + p4.x * p4.x
 		+ p1.y * p1.y + p1.y * p2.y + p2.y * p2.y + p1.y * p3.y + p2.y * p3.y
 		+ p3.y * p3.y + p1.y * p4.y + p2.y * p4.y + p3.y * p4.y + p4.y * p4.y);
-	moi_mat[3] = -vol / 20.0 *
+	moi_mat[4] = -vol / 20.0 *
 		 (2.0 * p1.y * p1.z + p2.y * p1.z + p3.y * p1.z + p4.y * p1.z + p1.y * p2.z
 		+ 2.0 * p2.y * p2.z + p3.y * p2.z + p4.y * p2.z + p1.y * p3.z + p2.y * p3.z
 		+ 2.0 * p3.y * p3.z + p4.y * p3.z + p1.y * p4.z + p2.y * p4.z + p3.y * p4.z
 		+ 2.0 * p4.y * p4.z);
-	moi_mat[4] = -vol / 20.0 *
+	moi_mat[5] = -vol / 20.0 *
 		 (2.0 * p1.x * p1.z + p2.x * p1.z + p3.x * p1.z + p4.x * p1.z + p1.x * p2.z
 		+ 2.0 * p2.x * p2.z + p3.x * p2.z + p4.x * p2.z + p1.x * p3.z + p2.x * p3.z
 		+ 2.0 * p3.x * p3.z + p4.x * p3.z + p1.x * p4.z + p2.x * p4.z + p3.x * p4.z
 		+ 2.0 * p4.x * p4.z);
-	moi_mat[5] = -vol / 20.0 *
+	moi_mat[3] = -vol / 20.0 *
 		 (2.0 * p1.x * p1.y + p2.x * p1.y + p3.x * p1.y + p4.x * p1.y + p1.x * p2.y
 		+ 2.0 * p2.x * p2.y + p3.x * p2.y + p4.x * p2.y + p1.x * p3.y + p2.x * p3.y
 		+ 2.0 * p3.x * p3.y + p4.x * p3.y + p1.x * p4.y + p2.x * p4.y + p3.x * p4.y

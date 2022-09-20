@@ -123,8 +123,8 @@ void cal_sym_mat_eigen(const __Float_Type__ mat_va[6], __Float_Type__ ev[3])
 		else
 			phi = (__Float_Type__)acos(detb) / ffmat(3.0);
 		ev[0] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi);
-		ev[1] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi + ffmat(2.0) * PI / ffmat(3.0));
-		ev[2] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi + ffmat(4.0) * PI / ffmat(3.0));
+		ev[1] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi + ffmat(2.0) / ffmat(3.0) * PI );
+		ev[2] = p + ffmat(2.0) * q * (__Float_Type__)cos(phi + ffmat(4.0) / ffmat(3.0) * PI);
 	}
 
 	// sort eigenvalues
@@ -318,4 +318,43 @@ void cal_sym_mat_eigen(
 			}
 		}
 	}
+}
+
+void rotate_sym_mat_to_eigen_mat(
+	const __Float_Type__ mat[6],
+	const __Float_Type__ evecs[3][3],
+	__Float_Type__ evs[3])
+{
+	const double tmp[3][3] = {
+		mat[0] * evecs[0][0] + mat[3] * evecs[1][0] + mat[5] * evecs[2][0], // 00
+		mat[0] * evecs[0][1] + mat[3] * evecs[1][1] + mat[5] * evecs[2][1], // 01
+		mat[0] * evecs[0][2] + mat[3] * evecs[1][2] + mat[5] * evecs[2][2], // 02
+		mat[3] * evecs[0][0] + mat[1] * evecs[1][0] + mat[4] * evecs[2][0], // 10
+		mat[3] * evecs[0][1] + mat[1] * evecs[1][1] + mat[4] * evecs[2][1], // 11
+		mat[3] * evecs[0][2] + mat[1] * evecs[1][2] + mat[4] * evecs[2][2], // 12
+		mat[5] * evecs[0][0] + mat[4] * evecs[1][0] + mat[2] * evecs[2][0], // 20
+		mat[5] * evecs[0][1] + mat[4] * evecs[1][1] + mat[2] * evecs[2][1], // 21
+		mat[5] * evecs[0][2] + mat[4] * evecs[1][2] + mat[2] * evecs[2][2]  // 22
+	};
+	evs[0] = evecs[0][0] * tmp[0][0] + evecs[1][0] * tmp[1][0] + evecs[2][0] * tmp[2][0];
+	evs[1] = evecs[0][1] * tmp[0][1] + evecs[1][1] * tmp[1][1] + evecs[2][1] * tmp[2][1];
+	evs[2] = evecs[0][2] * tmp[0][2] + evecs[1][2] * tmp[1][2] + evecs[2][2] * tmp[2][2];
+}
+
+void rotate_eigen_mat_to_sym_mat(
+	const __Float_Type__ evs[3],
+	const __Float_Type__ evecs[3][3],
+	__Float_Type__ mat[6])
+{
+	const double tmp[3][3] = {
+		evs[0] * evecs[0][0], evs[0] * evecs[1][0], evs[0] * evecs[2][0],
+		evs[1] * evecs[0][1], evs[1] * evecs[1][1], evs[1] * evecs[2][1],
+		evs[2] * evecs[0][2], evs[2] * evecs[1][2], evs[2] * evecs[2][2]
+	};
+	mat[0] = evecs[0][0] * tmp[0][0] + evecs[0][1] * tmp[1][0] + evecs[0][2] * tmp[2][0];
+	mat[1] = evecs[1][0] * tmp[0][1] + evecs[1][1] * tmp[1][1] + evecs[1][2] * tmp[2][1];
+	mat[2] = evecs[2][0] * tmp[0][2] + evecs[2][1] * tmp[1][2] + evecs[2][2] * tmp[2][2];
+	mat[3] = evecs[0][0] * tmp[0][1] + evecs[0][1] * tmp[1][1] + evecs[0][2] * tmp[2][1];
+	mat[4] = evecs[1][0] * tmp[0][2] + evecs[1][1] * tmp[1][2] + evecs[1][2] * tmp[2][2];
+	mat[5] = evecs[0][0] * tmp[0][2] + evecs[0][1] * tmp[1][2] + evecs[0][2] * tmp[2][2];
 }

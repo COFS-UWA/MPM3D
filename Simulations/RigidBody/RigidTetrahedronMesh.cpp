@@ -169,7 +169,7 @@ void RigidTetrahedronMesh::cal_m_and_moi()
 		Node& n2 = nodes[e.n2];
 		Node& n3 = nodes[e.n3];
 		Node& n4 = nodes[e.n4];
-		cal_tetrahedron_moi(0.0, 0.0, 0.0, n1, n2, n3, n4, e.vol, e_moi_mat);
+		cal_tetrahedron_moi(n1, n2, n3, n4, e.vol, e_moi_mat);
 		moi_mat(0, 0) += density * e_moi_mat[0];
 		moi_mat(1, 1) += density * e_moi_mat[1];
 		moi_mat(2, 2) += density * e_moi_mat[2];
@@ -373,12 +373,12 @@ bool RigidTetrahedronMesh::detect_tri_aabb_collision(Cube& box)
 {
 	// whether tetrahedron nodes locate in box
 	// efficient when tetrahedron is much smaller than grid
-	if (box.is_in_box(tri_aabb_collision.get_n1()) ||
-		box.is_in_box(tri_aabb_collision.get_n2()) ||
-		box.is_in_box(tri_aabb_collision.get_n3()))
+	if (box.is_in_box(tri_aabb_collision.get_tri_n1()) ||
+		box.is_in_box(tri_aabb_collision.get_tri_n2()) ||
+		box.is_in_box(tri_aabb_collision.get_tri_n3()))
 		return true;
 	
-	return tri_aabb_collision.detect_collision_with_cube(box);
+	return tri_aabb_collision.detect(box); // .detect_collision_with_cube(box);
 }
 
 void RigidTetrahedronMesh::set_dist_max(double _dist_max)

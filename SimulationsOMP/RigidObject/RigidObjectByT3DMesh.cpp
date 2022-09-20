@@ -53,8 +53,7 @@ int RigidObjectByT3DMesh::init(
 		auto &n2 = nodes[e.n2];
 		auto &n3 = nodes[e.n3];
 		auto &n4 = nodes[e.n4];
-		cal_tetrahedron_moi(0.0, 0.0, 0.0,
-			n1, n2, n3, n4, e.vol, elem_moi_data);
+		cal_tetrahedron_moi(n1, n2, n3, n4, e.vol, elem_moi_data);
 		moi_data[0] += density * elem_moi_data[0];
 		moi_data[1] += density * elem_moi_data[1];
 		moi_data[2] += density * elem_moi_data[2];

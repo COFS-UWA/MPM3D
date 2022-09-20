@@ -14,7 +14,10 @@ QtSceneFromModel_T2D_CHM_mt::QtSceneFromModel_T2D_CHM_mt(
 	display_rigid_rect(true), rr_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f),
-	pcl_color(1.0f, 0.8941f, 0.7098f) {}
+	rb_color(0.5176f, 0.4392, 1.0f), // light_slate_blue
+	mesh_color(0.5f, 0.5f, 0.5f), // gray
+	pcl_color(1.0f, 0.8941f, 0.7098f) // moccasin
+{}
 
 QtSceneFromModel_T2D_CHM_mt::~QtSceneFromModel_T2D_CHM_mt() {}
 
@@ -48,23 +51,19 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 	// shader_plain2D
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_plain2D.vert"
-		);
+		"../../Asset/shader_plain2D.vert");
 	shader_plain2D.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_plain2D.frag"
-		);
+		"../../Asset/shader_plain2D.frag");
 	shader_plain2D.link();
 
 	// shader_circles
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
-		"../../Asset/shader_circles.vert"
-		);
+		"../../Asset/shader_circles.vert");
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Fragment,
-		"../../Asset/shader_circles.frag"
-		);
+		"../../Asset/shader_circles.frag");
 	shader_circles.link();
 
 	// get bounding box
@@ -111,13 +110,12 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 	shader_circles.setUniformValue("view_mat", view_mat);
 
 	// init bg_mesh
-	QVector3D gray(0.5f, 0.5f, 0.5f);
 	bg_mesh_obj.init_from_elements(
 		model->get_node_pos(),
 		model->get_node_num(),
 		model->get_elem_node_index(),
 		model->get_elem_num(),
-		gray);
+		mesh_color);
 
 	// init pcls
 	auto *pcl_index = model->get_pcl_index0();
@@ -139,7 +137,6 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 	::operator delete ((void *)pcl_pos1);
 
 	// init rigid bodies
-	QVector3D light_slate_blue(0.5176f, 0.4392, 1.0f);
 	if (model->has_rigid_circle())
 	{
 		auto &rc = model->get_rigid_circle();
@@ -147,7 +144,7 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 			rc.get_x(),
 			rc.get_y(),
 			rc.get_radius(),
-			light_slate_blue,
+			rb_color,
 			3.0f);
 	}
 	if (model->has_rigid_rect())
@@ -156,7 +153,7 @@ int QtSceneFromModel_T2D_CHM_mt::initialize(int wd, int ht)
 		rr_obj.init(
 			rr.get_x(), rr.get_y(), rr.get_ang(), 
 			rr.get_hx(), rr.get_hy(),
-			light_slate_blue,
+			rb_color,
 			3.0f);
 	}
 

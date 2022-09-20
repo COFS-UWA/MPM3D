@@ -74,6 +74,9 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_block_sliding(argc, argv);
 	//test_t3d_me_mt_block_sliding_result(argc, argv);
 
+	//test_t3d_me_mt_weird_block_sliding(argc, argv);
+	//test_t3d_me_mt_weird_block_sliding_result(argc, argv);
+
 	//test_t3d_rigid_mesh(argc, argv);
 	//test_t3d_me_mt_test_rigid_mesh(argc, argv);
 	//test_t3d_me_mt_test_rigid_mesh_result(argc, argv);
@@ -167,9 +170,9 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_result(argc, argv);
 
-	test_t3d_me_mt_spudcan_cy_model(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_model(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_geostatic(argc, argv);
-	//test_t3d_me_mt_spudcan_cy(argc, argv);
+	test_t3d_me_mt_spudcan_cy(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_geo_result(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_result(argc, argv);
 
@@ -179,6 +182,12 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_restart(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
+
+	//test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_HV(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_HV_geo_result(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_HV_result(argc, argv);
 
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_model(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
