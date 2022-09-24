@@ -104,7 +104,7 @@ struct Vector3D
 		x = p1.x - p2.x; y = p1.y - p2.y; z = p1.z - p2.z; return *this;
 	}
 	template <typename Point3D>
-	inline double dot(const Point3D& p2)
+	inline double dot(const Point3D& p2) const
 	{
 		return x * p2.x + y * p2.y + z * p2.z;
 	}

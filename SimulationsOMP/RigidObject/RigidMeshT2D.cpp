@@ -103,17 +103,17 @@ int RigidMeshT2D::init_from_mesh(TriangleMesh& tmesh, double ghx, double ghy)
 	edge_grid.clear(); // release memory
 	edge_extractor.clear();
 
-	for (size_t y_id = 0; y_id < grid.y_num; y_id++)
-	{
-		for (size_t x_id = 0; x_id < grid.x_num; x_id++)
-		{
-			if (grid_pos_type[x_id + y_id * grid.x_num] == GridPosType::AtBoundary)
-				std::cout << "#";
-			else
-				std::cout << "@";
-		}
-		std::cout << "\n";
-	}
+	//for (size_t y_id = 0; y_id < grid.y_num; y_id++)
+	//{
+	//	for (size_t x_id = 0; x_id < grid.x_num; x_id++)
+	//	{
+	//		if (grid_pos_type[x_id + y_id * grid.x_num] == GridPosType::AtBoundary)
+	//			std::cout << "#";
+	//		else
+	//			std::cout << "@";
+	//	}
+	//	std::cout << "\n";
+	//}
 
 	return 0;
 }
@@ -219,9 +219,8 @@ bool RigidMeshT2D::detect_collision_with_point(
 	// cal normal
 	if (closest_edge.edge_id != SIZE_MAX)
 	{
-		pt_ln_dist[closest_edge.edge_id].cal_normal_to_point(
-			pt, closest_edge.normal_type, norm);
-		if (closest_edge.distance >= 0.0) // inside object
+		pt_ln_dist[closest_edge.edge_id].cal_normal_to_point(pt, closest_edge.normal_type, norm);
+		if (closest_edge.distance > 0.0) // inside object
 			norm.reverse();
 		dist = closest_edge.distance + p_r;
 		return dist >= 0.0;

@@ -68,8 +68,7 @@ template <typename Node, typename Edge>
 int QtTriangleMeshGLObject::init_from_edges(
 	Node* nodes, size_t node_num,
 	Edge* edges, size_t edge_num,
-	QVector3D &c
-	)
+	QVector3D &c)
 {
 	if (!nodes || !node_num ||
 		!edges || !edge_num)

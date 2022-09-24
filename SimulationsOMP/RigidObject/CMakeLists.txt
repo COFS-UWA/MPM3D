@@ -9,7 +9,9 @@ target_sources(
     RoughContact2D.h RoughContact2D.cpp
     Force2D.h
     RigidCircle.h RigidCircle.cpp
+    RigidObjectMotion2D.h RigidObjectMotion2D.cpp
     RigidMeshT2D.h RigidMeshT2D.cpp
+    RigidObjectByT2DMesh.h RigidObjectByT2DMesh.cpp
     # 3D contact
     ContactModel3D.h ContactModel3D.cpp
     NoContact3D.h NoContact3D.cpp

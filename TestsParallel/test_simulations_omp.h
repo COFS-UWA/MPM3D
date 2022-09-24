@@ -9,6 +9,7 @@ void test_rigid_mesh_contact(int argc, char** argv);
 void test_rigid_mesh_contact2(int argc, char** argv);
 void test_rigid_mesh_contact_2d(int argc, char** argv);
 void test_contact_model_3d(int argc, char** argv);
+void test_stress_rotate();
 
 void test_mohr_coulomb();
 void test_sand_hypoplasticity_integration();

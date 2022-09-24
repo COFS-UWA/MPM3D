@@ -300,8 +300,7 @@ namespace RigidObject_hdf5_utilities
 	int output_rigid_cube_to_hdf5_file(
 		RigidCube& rc,
 		ResultFile_hdf5& rf,
-		hid_t rc_grp_id
-		)
+		hid_t rc_grp_id)
 	{
 		if (rc_grp_id < 0)
 			return -1;
@@ -342,8 +341,7 @@ namespace RigidObject_hdf5_utilities
 	int load_rigid_cube_from_hdf5_file(
 		RigidCube& rc,
 		ResultFile_hdf5& rf,
-		hid_t rc_grp_id
-		)
+		hid_t rc_grp_id)
 	{
 		if (rc_grp_id < 0)
 			return -1;
@@ -385,6 +383,276 @@ namespace RigidObject_hdf5_utilities
 		return 0;
 	}
 
+	int output_rigid_object_by_2dmesh_to_hdf5_file(
+		RigidObjectByT2DMesh& rb,
+		ResultFile_hdf5& rf,
+		hid_t rb_grp_id)
+	{
+		if (rb_grp_id < 0)
+			return -1;
+
+		rf.write_attribute(rb_grp_id, "density", rb.get_density());
+
+		// rigid object motion
+		rf.write_attribute(rb_grp_id, "m", rb.get_m());
+		rf.write_attribute(rb_grp_id, "moi", rb.get_moi());
+		rf.write_attribute(rb_grp_id, "inv_moi", rb.get_inv_moi());
+		rf.write_attribute(rb_grp_id, "T_mat", 4, rb.get_T_mat());
+		const Vector2D& a = rb.get_a();
+		rf.write_attribute(rb_grp_id, "ax", a.x);
+		rf.write_attribute(rb_grp_id, "ay", a.y);
+		const double a_ang = rb.get_a_ang();
+		rf.write_attribute(rb_grp_id, "a_ang", a_ang);
+		const Vector2D& v = rb.get_v();
+		rf.write_attribute(rb_grp_id, "vx", v.x);
+		rf.write_attribute(rb_grp_id, "vy", v.y);
+		const double v_ang = rb.get_v_ang();
+		rf.write_attribute(rb_grp_id, "vx_ang", v_ang);
+		const Point2D& pos = rb.get_pos();
+		rf.write_attribute(rb_grp_id, "x", pos.x);
+		rf.write_attribute(rb_grp_id, "y", pos.y);
+		const double pos_ang = rb.get_pos_ang();
+		rf.write_attribute(rb_grp_id, "ang", pos_ang);
+		const Force2D& cf = rb.get_force_contact();
+		rf.write_attribute(rb_grp_id, "fx_cont", cf.fx);
+		rf.write_attribute(rb_grp_id, "fy_cont", cf.fy);
+		rf.write_attribute(rb_grp_id, "m_cont", cf.m);
+		const Force2D& ef = rb.get_force_ext();
+		rf.write_attribute(rb_grp_id, "fx_ext", ef.fx);
+		rf.write_attribute(rb_grp_id, "fy_ext", ef.fy);
+		rf.write_attribute(rb_grp_id, "m_ext", ef.m);
+		if (rb.has_ax_bc())
+			rf.write_attribute(rb_grp_id, "ax_bc", rb.get_ax_bc());
+		if (rb.has_ay_bc())
+			rf.write_attribute(rb_grp_id, "ay_bc", rb.get_ay_bc());
+		if (rb.has_a_ang_bc())
+			rf.write_attribute(rb_grp_id, "a_ang_bc", rb.get_a_ang_bc());
+		if (rb.has_vx_bc())
+			rf.write_attribute(rb_grp_id, "vx_bc", rb.get_vx_bc());
+		if (rb.has_vy_bc())
+			rf.write_attribute(rb_grp_id, "vy_bc", rb.get_vy_bc());
+		if (rb.has_v_ang_bc())
+			rf.write_attribute(rb_grp_id, "v_ang_bc", rb.get_v_ang_bc());
+
+		// rigid mesh
+		rf.write_attribute(rb_grp_id, "grid_xl", rb.get_grid_xl());
+		rf.write_attribute(rb_grp_id, "grid_yl", rb.get_grid_yl());
+		rf.write_attribute(rb_grp_id, "grid_hx", rb.get_grid_hx());
+		rf.write_attribute(rb_grp_id, "grid_hy", rb.get_grid_hy());
+		rf.write_attribute(rb_grp_id, "grid_x_num", rb.get_grid_x_num());
+		rf.write_attribute(rb_grp_id, "grid_y_num", rb.get_grid_y_num());
+		rf.write_attribute(rb_grp_id, "edge_grid_list_len", rb.get_edge_in_grid_list_len());
+		rf.write_attribute(rb_grp_id, "edge_num", rb.get_edge_num());
+
+		rf.write_dataset(rb_grp_id,
+			"grid_pos_type",
+			rb.get_grid_num(),
+			(const unsigned char*)rb.get_grid_pos_type());
+		rf.write_dataset(rb_grp_id,
+			"edge_in_grid_range",
+			rb.get_grid_num() + 1,
+			(unsigned long long*)rb.get_edge_in_grid_range());
+		rf.write_dataset(rb_grp_id,
+			"edge_in_grid_list",
+			rb.get_edge_in_grid_list_len(),
+			(unsigned long long*)rb.get_edge_in_grid_list());
+
+		hid_t pt2ln_dt = get_pt_to_ln_dist_dt_id();
+		rf.write_dataset(rb_grp_id,
+			"pt_ln_dist",
+			rb.get_edge_num(),
+			rb.get_pt_ln_dist(),
+			pt2ln_dt
+		);
+		H5Tclose(pt2ln_dt);
+
+		return 0;
+	}
+
+	int output_rigid_object_by_2dmesh_state_to_hdf5_file(
+		RigidObjectByT2DMesh& rb,
+		ResultFile_hdf5& rf,
+		hid_t rb_grp_id)
+	{
+		if (rb_grp_id < 0)
+			return -1;
+
+		const Vector2D& a = rb.get_a();
+		rf.write_attribute(rb_grp_id, "ax", a.x);
+		rf.write_attribute(rb_grp_id, "ay", a.y);
+		const double a_ang = rb.get_a_ang();
+		rf.write_attribute(rb_grp_id, "a_ang", a_ang);
+		const Vector2D& v = rb.get_v();
+		rf.write_attribute(rb_grp_id, "vx", v.x);
+		rf.write_attribute(rb_grp_id, "vy", v.y);
+		const double v_ang = rb.get_v_ang();
+		rf.write_attribute(rb_grp_id, "v_ang", v_ang);
+		const Point2D& pos = rb.get_pos();
+		rf.write_attribute(rb_grp_id, "x", pos.x);
+		rf.write_attribute(rb_grp_id, "y", pos.y);
+		const double pos_ang = rb.get_pos_ang();
+		rf.write_attribute(rb_grp_id, "ang", pos_ang);
+		const Force2D& cf = rb.get_force_contact();
+		rf.write_attribute(rb_grp_id, "fx_cont", cf.fx);
+		rf.write_attribute(rb_grp_id, "fy_cont", cf.fy);
+		rf.write_attribute(rb_grp_id, "m_cont", cf.m);
+		return 0;
+	}
+
+	int load_rigid_object_by_2dmesh_from_hdf5_file(
+		RigidObjectByT2DMesh& rb,
+		ResultFile_hdf5& rf,
+		hid_t rb_grp_id)
+	{
+		// rigid object motion
+		double density, m, moi, inv_moi, T_mat[4];
+		rf.read_attribute(rb_grp_id, "density", density);
+		rf.read_attribute(rb_grp_id, "m", m);
+		rf.read_attribute(rb_grp_id, "moi", moi);
+		rf.read_attribute(rb_grp_id, "inv_moi", inv_moi);
+		rf.read_attribute(rb_grp_id, "T_mat", 4, T_mat);
+
+		Vector2D acc;
+		double acc_ang;
+		rf.read_attribute(rb_grp_id, "ax", acc.x);
+		rf.read_attribute(rb_grp_id, "ay", acc.y);
+		rf.read_attribute(rb_grp_id, "a_ang", acc_ang);
+		Vector2D vec;
+		double vec_ang;
+		rf.read_attribute(rb_grp_id, "vx", vec.x);
+		rf.read_attribute(rb_grp_id, "vy", vec.y);
+		rf.read_attribute(rb_grp_id, "v_ang", vec_ang);
+		Point2D pos;
+		double pos_ang;
+		rf.read_attribute(rb_grp_id, "x", pos.x);
+		rf.read_attribute(rb_grp_id, "y", pos.y);
+		rf.read_attribute(rb_grp_id, "ang", pos_ang);
+		Force2D force_cont, force_ext;
+		rf.read_attribute(rb_grp_id, "fx_cont", force_cont.fx);
+		rf.read_attribute(rb_grp_id, "fy_cont", force_cont.fy);
+		rf.read_attribute(rb_grp_id, "m_cont", force_cont.m);
+		rf.read_attribute(rb_grp_id, "fx_ext", force_ext.fx);
+		rf.read_attribute(rb_grp_id, "fy_ext", force_ext.fy);
+		rf.read_attribute(rb_grp_id, "m_ext", force_ext.m);
+		double bc_value;
+		if (rf.has_attribute(rb_grp_id, "ax_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "ax_bc", bc_value);
+			rb.set_ax_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "ay_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "ay_bc", bc_value);
+			rb.set_ay_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "a_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "a_ang_bc", bc_value);
+			rb.set_a_ang_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vx_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vx_bc", bc_value);
+			rb.set_vx_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "vy_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "vy_bc", bc_value);
+			rb.set_vy_bc(bc_value);
+		}
+		if (rf.has_attribute(rb_grp_id, "v_ang_bc"))
+		{
+			rf.read_attribute(rb_grp_id, "v_ang_bc", bc_value);
+			rb.set_v_ang_bc(bc_value);
+		}
+
+		// rigid mesh
+		double grid_xl, grid_yl;
+		double grid_xu, grid_yu;
+		double grid_hx, grid_hy;
+		unsigned long long grid_x_num, grid_y_num;
+		unsigned long long edge_in_grid_list_len, edge_num;
+		rf.read_attribute(rb_grp_id, "grid_xl", grid_xl);
+		rf.read_attribute(rb_grp_id, "grid_yl", grid_yl);
+		rf.read_attribute(rb_grp_id, "grid_hx", grid_hx);
+		rf.read_attribute(rb_grp_id, "grid_hy", grid_hy);
+		rf.read_attribute(rb_grp_id, "grid_x_num", grid_x_num);
+		rf.read_attribute(rb_grp_id, "grid_y_num", grid_y_num);
+		rf.read_attribute(rb_grp_id, "edge_grid_list_len", edge_in_grid_list_len);
+		rf.read_attribute(rb_grp_id, "edge_num", edge_num);
+
+		unsigned char* grid_pos_type;
+		unsigned long long* edge_in_grid_range;
+		unsigned long long* edge_in_grid_list;
+		PointToLineDistance* pt_ln_dist;
+		rb.init_from_hdf5_res_file(
+			density, m, moi, inv_moi, T_mat,
+			acc, acc_ang, vec, vec_ang, pos, pos_ang,
+			force_cont, force_ext,
+			grid_xl, grid_yl,
+			grid_hx, grid_hy,
+			grid_x_num, grid_y_num,
+			edge_in_grid_list_len, edge_num,
+			grid_pos_type, edge_in_grid_range,
+			edge_in_grid_list, pt_ln_dist);
+		size_t grid_num = grid_x_num * grid_y_num;
+		rf.read_dataset(
+			rb_grp_id,
+			"grid_pos_type",
+			grid_num,
+			grid_pos_type);
+		rf.read_dataset(
+			rb_grp_id,
+			"edge_in_grid_range",
+			grid_num + 1,
+			edge_in_grid_range);
+		rf.read_dataset(
+			rb_grp_id,
+			"edge_in_grid_list",
+			edge_in_grid_list_len,
+			edge_in_grid_list);
+
+		hid_t pt2ln_dt = get_pt_to_ln_dist_dt_id();
+		rf.read_dataset(
+			rb_grp_id,
+			"pt_ln_dist",
+			edge_num,
+			pt_ln_dist,
+			pt2ln_dt);
+		H5Tclose(pt2ln_dt);
+
+		return 0;
+	}
+
+	int load_rigid_object_by_2dmesh_state_from_hdf5_file(
+		RigidObjectByT2DMesh& rb,
+		ResultFile_hdf5& rf, 
+		hid_t rb_grp_id)
+	{
+		double rb_x, rb_y, rb_ang;
+		double rb_vx, rb_vy, rb_v_ang;
+		//double rb_x_ang, rb_y_ang, rb_z_ang;
+		rf.read_attribute(rb_grp_id, "x", rb_x);
+		rf.read_attribute(rb_grp_id, "y", rb_y);
+		rb.set_position(rb_x, rb_y);
+
+		rf.read_attribute(rb_grp_id, "ang", rb_ang);
+		rb.set_pos_ang(rb_ang);
+
+		rf.read_attribute(rb_grp_id, "vx", rb_vx);
+		rf.read_attribute(rb_grp_id, "vy", rb_vy);
+		rf.read_attribute(rb_grp_id, "v_ang", rb_v_ang);
+		rb.set_velocity(rb_vx, rb_vy, rb_v_ang);
+
+		Force2D cont_force;
+		rf.read_attribute(rb_grp_id, "fx_cont", cont_force.fx);
+		rf.read_attribute(rb_grp_id, "fy_cont", cont_force.fy);
+		rf.read_attribute(rb_grp_id, "m_cont", cont_force.m);
+		rb.set_cont_force(cont_force);
+
+		return 0;
+	}
+
 	int output_rigid_object_by_3dmesh_to_hdf5_file(
 		RigidObjectByT3DMesh& rb,
 		ResultFile_hdf5& rf,
@@ -392,7 +660,7 @@ namespace RigidObject_hdf5_utilities
 	{
 		if (rb_grp_id < 0)
 			return -1;
-		
+
 		rf.write_attribute(rb_grp_id, "density", rb.get_density());
 
 		// rigid object motion
@@ -416,7 +684,7 @@ namespace RigidObject_hdf5_utilities
 		rf.write_attribute(rb_grp_id, "vx_ang", v_ang.x);
 		rf.write_attribute(rb_grp_id, "vy_ang", v_ang.y);
 		rf.write_attribute(rb_grp_id, "vz_ang", v_ang.z);
-		const Point3D &pos = rb.get_pos();
+		const Point3D& pos = rb.get_pos();
 		rf.write_attribute(rb_grp_id, "x", pos.x);
 		rf.write_attribute(rb_grp_id, "y", pos.y);
 		rf.write_attribute(rb_grp_id, "z", pos.z);
@@ -479,7 +747,7 @@ namespace RigidObject_hdf5_utilities
 		rf.write_dataset(rb_grp_id,
 			"grid_pos_type",
 			rb.get_grid_num(),
-			(const unsigned char *)rb.get_grid_pos_type());
+			(const unsigned char*)rb.get_grid_pos_type());
 		rf.write_dataset(rb_grp_id,
 			"face_in_grid_range",
 			rb.get_grid_num() + 1,
@@ -488,14 +756,14 @@ namespace RigidObject_hdf5_utilities
 			"face_in_grid_list",
 			rb.get_face_in_grid_list_len(),
 			(unsigned long long*)rb.get_face_in_grid_list());
-		
+
 		hid_t pt2tri_dt = get_pt_to_tri_dist_dt_id();
 		rf.write_dataset(rb_grp_id,
 			"pt_tri_dist",
 			rb.get_face_num(),
 			rb.get_pt_tri_dist(),
 			pt2tri_dt
-			);
+		);
 		H5Tclose(pt2tri_dt);
 
 		return 0;
@@ -542,7 +810,7 @@ namespace RigidObject_hdf5_utilities
 		rf.write_attribute(rb_grp_id, "mz_cont", cf.mz);
 		return 0;
 	}
-	
+
 	int load_rigid_object_by_3dmesh_from_hdf5_file(RigidObjectByT3DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id)
 	{
 		// rigid object motion

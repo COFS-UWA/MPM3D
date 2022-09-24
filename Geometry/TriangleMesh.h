@@ -52,12 +52,13 @@ public:
 
 	int init_search_grid(double _hx, double _hy);
 
+	void rotate_mesh(double dang) noexcept;
+	void translate_mesh(double dx, double dy) noexcept;
+
 	// search using background grid
 	template <typename Point2D>
 	inline Element* find_in_which_element(Point2D& pt)
-	{
-		return search_bg_grid.find_in_which_element<Point2D>(pt);
-	}
+	{ return search_bg_grid.find_in_which_element<Point2D>(pt); }
 
 protected:
 	SearchingGrid2D<TriangleMesh> search_bg_grid;

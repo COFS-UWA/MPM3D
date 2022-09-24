@@ -511,7 +511,7 @@ struct PointToTriangleDistance
 		// line 1 at x axis
 		ix1.substract<Point3D>(n2, n1);
 		a1 = ix1.norm();
-		ix1.scale(1.0 / a1);
+		ix1.normalize();// .scale(1.0 / a1);
 		tmp1.substract<Point3D>(n3, n1);
 		coef_tmp = tmp1.dot(ix1);
 		tmp2.x = coef_tmp * ix1.x;
@@ -523,7 +523,7 @@ struct PointToTriangleDistance
 		// line 2 at x axis
 		ix2.substract<Point3D>(n3, n2);
 		a2 = ix2.norm();
-		ix2.scale(1.0 / a2);
+		ix2.normalize();//.scale(1.0 / a2);
 		tmp1.substract<Point3D>(n1, n2);
 		coef_tmp = tmp1.dot(ix2);
 		tmp2.x = coef_tmp * ix2.x;
@@ -535,7 +535,7 @@ struct PointToTriangleDistance
 		// line 3 at x axis
 		ix3.substract<Point3D>(n1, n3);
 		a3 = ix3.norm();
-		ix3.scale(1.0 / a3);
+		ix3.normalize();//.scale(1.0 / a3);
 		tmp1.substract<Point3D>(n2, n3);
 		coef_tmp = tmp1.dot(ix3);
 		tmp2.x = coef_tmp * ix3.x;
@@ -592,29 +592,25 @@ struct PointToTriangleDistance
 			return 3;
 		}
 
-		//double dist1;
-		if (pj1.y < 0.0 && pj1.x > a1 || pj2.y < 0.0 && pj2.x < 0.0)
+		if (pj3.y < 0.0 && pj3.x > a3 || pj1.y < 0.0 && pj1.x < 0.0)
 		{
-			//dist1 = sqrt((pj1.x - a1) * (pj1.x - a1) + pj1.y * pj1.y + pj1.z * pj1.z);
-			dist = sqrt(pj2.x * pj2.x + pj2.y * pj2.y + pj1.z * pj1.z);
+			dist = sqrt(pj1.x * pj1.x + pj1.y * pj1.y + pj1.z * pj1.z);
 			if (pj1.z < 0)
 				dist = -dist;
 			return 4;
 		}
 
-		if (pj2.y < 0.0 && pj2.x > a2 || pj3.y < 0.0 && pj3.x < 0.0)
+		if (pj1.y < 0.0 && pj1.x > a1 || pj2.y < 0.0 && pj2.x < 0.0)
 		{
-			//dist1 = sqrt((pj2.x - a2) * (pj2.x - a2) + pj2.y * pj2.y + pj1.z * pj1.z);
-			dist = sqrt(pj3.x * pj3.x + pj3.y * pj3.y + pj1.z * pj1.z);
+			dist = sqrt(pj2.x * pj2.x + pj2.y * pj2.y + pj1.z * pj1.z);
 			if (pj1.z < 0)
 				dist = -dist;
 			return 5;
 		}
 
-		if (pj3.y < 0.0 && pj3.x > a3 || pj1.y < 0.0 && pj1.x < 0.0)
+		if (pj2.y < 0.0 && pj2.x > a2 || pj3.y < 0.0 && pj3.x < 0.0)
 		{
-			//dist1 = sqrt((pj3.x - a3) * (pj3.x - a3) + pj3.y * pj3.y + pj1.z * pj1.z);
-			dist = sqrt(pj1.x * pj1.x + pj1.y * pj1.y + pj1.z * pj1.z);
+			dist = sqrt(pj3.x * pj3.x + pj3.y * pj3.y + pj1.z * pj1.z);
 			if (pj1.z < 0)
 				dist = -dist;
 			return 6;
@@ -630,64 +626,73 @@ struct PointToTriangleDistance
 		Vector3D& normal
 		) const noexcept
 	{
+		// get normal direction
 		Vector3D v1, v2, tmp1;
 		double coef;
 		switch (norm_type)
 		{
 		case 0:
-			v1.substract(n2, n1);
-			v2.substract(n3, n1);
-			normal.cross(v1, v2);
-			normal.normalize();
+			normal.x = iz1.x;
+			normal.y = iz1.y;
+			normal.z = iz1.z;
 			tmp1.substract<Point3D>(pt, n1);
 			coef = T1[2][0] * tmp1.x + T1[2][1] * tmp1.y + T1[2][2] * tmp1.z;
 			if (coef < 0.0)
 				normal.reverse();
 			return;
 		case 1:
-			v1.substract(n2, n1);
-			v1.normalize();
+			//v1.substract(n2, n1);
+			//v1.normalize();
 			v2.substract(pt, n1);
-			coef = v1.dot(v2);
+			coef = ix1.dot(v2);
+			v1.x = ix1.x;
+			v1.y = ix1.y;
+			v1.z = ix1.z;
 			normal.substract(v2, v1.scale(coef));
 			break;
 		case 2:
-			v1.substract(n3, n2);
-			v1.normalize();
+			//v1.substract(n3, n2);
+			//v1.normalize();
 			v2.substract(pt, n2);
-			coef = v1.dot(v2);
+			coef = ix2.dot(v2);
+			v1.x = ix2.x;
+			v1.y = ix2.y;
+			v1.z = ix2.z;
 			normal.substract(v2, v1.scale(coef));
 			break;
 		case 3:
-			v1.substract(n1, n3);
-			v1.normalize();
+			//v1.substract(n1, n3);
+			//v1.normalize();
 			v2.substract(pt, n3);
-			coef = v1.dot(v2);
-			v1.scale(coef);
-			normal.substract(v2, v1);
+			coef = ix3.dot(v2);
+			v1.x = ix3.x;
+			v1.y = ix3.y;
+			v1.z = ix3.z;
+			normal.substract(v2, v1.scale(coef));
 			break;
 		case 4:
-			normal.substract(pt, n2);
+			normal.substract(pt, n1);
 			break;
 		case 5:
-			normal.substract(pt, n3);
+			normal.substract(pt, n2);
 			break;
 		case 6:
-			normal.substract(pt, n1);
+			normal.substract(pt, n3);
 			break;
 		default:
 			assert(0);
 			return;
 		}
+
+		// normalization
 		double norm = normal.norm();
 		if (norm != 0.0)
 			normal.scale(1.0 / norm);
 		else
 		{
-			v1.substract(n2, n1);
-			v2.substract(n3, n1);
-			normal.cross(v1, v2);
-			normal.normalize();
+			normal.x = -iz1.x;
+			normal.y = -iz1.y;
+			normal.z = -iz1.z;
 		}
 		return;
 	}

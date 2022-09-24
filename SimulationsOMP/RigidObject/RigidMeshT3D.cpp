@@ -236,9 +236,8 @@ bool RigidMeshT3D::detect_collision_with_point(
 	// cal normal
 	if (closest_face.face_id != SIZE_MAX)
 	{
-		pt_tri_dist[closest_face.face_id].cal_normal_to_point(
-			pt, closest_face.normal_type, norm);
-		if (closest_face.distance >= 0.0) // inside object
+		pt_tri_dist[closest_face.face_id].cal_normal_to_point(pt, closest_face.normal_type, norm);
+		if (closest_face.distance > 0.0) // point is inside object
 			norm.reverse();
 		dist = closest_face.distance + p_r;
 		return dist >= 0.0;

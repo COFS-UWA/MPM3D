@@ -124,10 +124,10 @@ void RigidObjectByT3DMesh::init_from_hdf5_res_file(
 	inv_moi[2] = _inv_moi[2]; inv_moi[3] = _inv_moi[3];
 	inv_moi[4] = _inv_moi[4]; inv_moi[5] = _inv_moi[5];
 	T_mat_data[0] = _T_mat[0]; T_mat_data[1] = _T_mat[1];
-	T_mat_data[1] = _T_mat[1]; T_mat_data[2] = _T_mat[2];
-	T_mat_data[3] = _T_mat[3]; T_mat_data[4] = _T_mat[4];
-	T_mat_data[5] = _T_mat[5]; T_mat_data[6] = _T_mat[6];
-	T_mat_data[7] = _T_mat[7]; T_mat_data[8] = _T_mat[8];
+	T_mat_data[2] = _T_mat[2]; T_mat_data[3] = _T_mat[3];
+	T_mat_data[4] = _T_mat[4]; T_mat_data[5] = _T_mat[5];
+	T_mat_data[6] = _T_mat[6]; T_mat_data[7] = _T_mat[7];
+	T_mat_data[8] = _T_mat[8];
 	ax = acc.x; ay = acc.y; az = acc.z;
 	ax_ang = acc_ang.x; ay_ang = acc_ang.y; az_ang = acc_ang.z;
 	vx = vec.x; vy = vec.y; vz = vec.z;

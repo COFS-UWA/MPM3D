@@ -61,7 +61,8 @@ int main(int argc, char *argv[])
 	//test_rigid_mesh_contact2(argc, argv);
 	test_rigid_mesh_contact_2d(argc, argv);
 	//test_contact_model_3d(argc, argv);
-	
+	//test_stress_rotate();
+
 	//test_t3d_me_mt_cap_compression(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart2(argc, argv);
@@ -135,7 +136,6 @@ int main(int argc, char *argv[])
 	//test_sand_hypoplasticity_triaxial();
 	//test_triaxial_secant();
 	//test_sand_hypoplasticity_wrapper();
-	
 	//test_mohr_coulomb();
 
 	//test_t3d_me_mt_triaxial_compression(argc, argv);

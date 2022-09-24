@@ -138,6 +138,35 @@ inline void cal_strain(
 	stress[5] = stress_cor[5];
 }
 
+inline void integration_failure(
+	const __Float_Type__ ori_stress[6],
+	const __Float_Type__ ori_e,
+	const __Float_Type__ dstrain[6],
+	Norsand& mat_dat,
+	__Float_Type__ destrain[6],
+	__Float_Type__ dpstrain[6])
+{
+	mat_dat.s11 = ori_stress[0];
+	mat_dat.s22 = ori_stress[1];
+	mat_dat.s33 = ori_stress[2];
+	mat_dat.s12 = ori_stress[3];
+	mat_dat.s23 = ori_stress[4];
+	mat_dat.s31 = ori_stress[5];
+	mat_dat.e = ori_e;
+	destrain[0] = ffmat(0.0);
+	destrain[1] = ffmat(0.0);
+	destrain[2] = ffmat(0.0);
+	destrain[3] = ffmat(0.0);
+	destrain[4] = ffmat(0.0);
+	destrain[5] = ffmat(0.0);
+	dpstrain[0] = dstrain[0];
+	dpstrain[1] = dstrain[1];
+	dpstrain[2] = dstrain[2];
+	dpstrain[3] = dstrain[3];
+	dpstrain[4] = dstrain[4];
+	dpstrain[5] = dstrain[5];
+}
+
 int32_t integrate_norsand(
 	const NorsandGlobal& glb_dat,
 	Norsand& mat_dat,
@@ -179,11 +208,9 @@ int32_t integrate_norsand(
 	p_tmp = (mat_dat.s11 + mat_dat.s22 + mat_dat.s33) / ffmat(3.0);
 	if (p_tmp > -glb_dat.min_prin_s)
 		p_tmp = -glb_dat.min_prin_s;
-	const __Float_Type__ I1 = -p_tmp;
-	const __Float_Type__ G = ffmat(2.0) * glb_dat.Ig * I1; // 2G
+	const __Float_Type__ G = ffmat(2.0) * glb_dat.Ig * (-p_tmp); // 2G
 	const __Float_Type__ lbd = G * glb_dat.niu / (ffmat(1.0) - glb_dat.niu - glb_dat.niu);
 	const __Float_Type__ lbd_2G = lbd + G;
-	const __Float_Type__ K = (ffmat(1.0) + glb_dat.niu) * G / (ffmat(3.0) * (ffmat(1.0) - glb_dat.niu - glb_dat.niu)); // bulk modulus
 	mat_dat.s11 += lbd_2G * dstrain[0] + lbd * dstrain[1] + lbd * dstrain[2];
 	mat_dat.s22 += lbd * dstrain[0] + lbd_2G * dstrain[1] + lbd * dstrain[2];
 	mat_dat.s33 += lbd * dstrain[0] + lbd * dstrain[1] + lbd_2G * dstrain[2];
@@ -318,27 +345,7 @@ int32_t integrate_norsand(
 				return iter_id + 1;
 		}
 
-		// integration failure
-		// not likely
-		destrain[0] = ffmat(0.0);
-		destrain[1] = ffmat(0.0);
-		destrain[2] = ffmat(0.0);
-		destrain[3] = ffmat(0.0);
-		destrain[4] = ffmat(0.0);
-		destrain[5] = ffmat(0.0);
-		dpstrain[0] = dstrain[0];
-		dpstrain[1] = dstrain[1];
-		dpstrain[2] = dstrain[2];
-		dpstrain[3] = dstrain[3];
-		dpstrain[4] = dstrain[4];
-		dpstrain[5] = dstrain[5];
-		mat_dat.s11 = ori_stress[0];
-		mat_dat.s22 = ori_stress[1];
-		mat_dat.s33 = ori_stress[2];
-		mat_dat.s12 = ori_stress[3];
-		mat_dat.s23 = ori_stress[4];
-		mat_dat.s31 = ori_stress[5];
-		mat_dat.e = ori_e;
+		integration_failure(ori_stress, ori_e, dstrain, mat_dat, destrain, dpstrain);
 		return -1;
 	}
 	
@@ -413,25 +420,6 @@ int32_t integrate_norsand(
 		}
 	}
 
-	// integration failure
-	destrain[0] = ffmat(0.0);
-	destrain[1] = ffmat(0.0);
-	destrain[2] = ffmat(0.0);
-	destrain[3] = ffmat(0.0);
-	destrain[4] = ffmat(0.0);
-	destrain[5] = ffmat(0.0);
-	dpstrain[0] = dstrain[0];
-	dpstrain[1] = dstrain[1];
-	dpstrain[2] = dstrain[2];
-	dpstrain[3] = dstrain[3];
-	dpstrain[4] = dstrain[4];
-	dpstrain[5] = dstrain[5];
-	mat_dat.s11 = ori_stress[0];
-	mat_dat.s22 = ori_stress[1];
-	mat_dat.s33 = ori_stress[2];
-	mat_dat.s12 = ori_stress[3];
-	mat_dat.s23 = ori_stress[4];
-	mat_dat.s31 = ori_stress[5];
-	mat_dat.e = ori_e;
+	integration_failure(ori_stress, ori_e, dstrain, mat_dat, destrain, dpstrain);
 	return -1;
 }
