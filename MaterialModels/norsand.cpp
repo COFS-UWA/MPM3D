@@ -218,6 +218,10 @@ int32_t integrate_norsand(
 	mat_dat.s23 += G * dstrain[4];
 	mat_dat.s31 += G * dstrain[5];
 	mat_dat.e += (ffmat(1.0) + mat_dat.e) * (dstrain[0] + dstrain[1] + dstrain[2]);
+	if (mat_dat.e > 0.53) // m_min
+		mat_dat.e = 0.53;
+	if (mat_dat.e < 0.83)
+		mat_dat.e = 0.83;
 	destrain[0] = dstrain[0];
 	destrain[1] = dstrain[1];
 	destrain[2] = dstrain[2];

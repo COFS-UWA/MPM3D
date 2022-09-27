@@ -44,7 +44,7 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		0.0, 0.0, -cy_coarse_depth,
 		0.0, 0.0, 1.0,
 		0.0, cy_coarse_radius,
-		-90.0, 90.0,
+		-180.0, 0.0,
 		cy_coarse_depth,
 		sml_pcl_size, sml_pcl_size, sml_pcl_size);
 	// coarse area
@@ -52,18 +52,18 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		0.0, 0.0, -cy_coarse_depth,
 		0.0, 0.0, 1.0,
 		cy_coarse_radius, cy_radius,
-		-90.0, 90.0,
+		-180.0, 0.0,
 		cy_coarse_depth,
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	pcl_generator.generate_pcls_in_cylinder(
 		0.0, 0.0, -cy_depth,
 		0.0, 0.0, 1.0,
 		0.0, cy_radius,
-		-90.0, 90.0,
+		-180.0, 0.0,
 		cy_depth - cy_coarse_depth,
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	//
-	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
 	constexpr double e0 = 0.55;
@@ -110,14 +110,13 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		ns->set_param(
 			ini_stress, e0, 
 			fric_ang, gamma, lambda,
-			N, chi, H,
-			Ig, niu);
+			N, chi, H, Ig, niu);
 		ns = model.following_NorsandWrapper(ns);
 	}
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
-		0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
+		0.0, 0.0, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+	model.set_t3d_rigid_mesh_velocity(0.0, -0.8, -0.2);
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.36, 5.0, K_cont/50.0, K_cont/50.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
@@ -134,16 +133,16 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	model.init_bfz_ss(pcl_num, bfz_pcl_array.get_mem(), bfz_array.get_mem());
 	
 	// x face bcs
-	//IndexArray vx_bc_pt_array(500);
-	//find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
-	//model.init_fixed_vx_s_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
-	//model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
+	IndexArray vx_bc_pt_array(500);
+	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
+	model.init_fixed_vx_s_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
+	model.init_fixed_vx_f_bc(vx_bc_pt_array.get_num(), vx_bc_pt_array.get_mem());
 
 	// y face bcs
-	IndexArray vy_bc_pt_array(500);
-	find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
-	model.init_fixed_vy_s_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
-	model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
+	//IndexArray vy_bc_pt_array(500);
+	//find_3d_nodes_on_y_plane(model, vy_bc_pt_array, 0.0);
+	//model.init_fixed_vy_s_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
+	//model.init_fixed_vy_f_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
 	// arc bcs
 	IndexArray arc_bc_pt_array(1000);
@@ -171,12 +170,12 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-80.0f, 30.0f);
-	md_disp.set_light_dir(-70.0f, 20.0f);
+	md_disp.set_view_dir(0.0f, 5.0f);
+	md_disp.set_light_dir(10.0f, -5.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.8);
-	//md_disp.set_pts_from_vx_bc_s(0.04);
-	md_disp.set_pts_from_vy_bc_s(0.04);
+	md_disp.set_pts_from_vx_bc_s(0.04);
+	//md_disp.set_pts_from_vy_bc_s(0.04);
 	//md_disp.set_pts_from_vz_bc_s(0.04);
 	//md_disp.set_pts_from_vec_bc_s(0.04);
 	//md_disp.set_pts_from_vx_bc_f(0.04);
@@ -191,6 +190,22 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 		model, "t3d_chm_mt_spudcan_cy_HV_model.h5");
 
+	// set tension cut-off surface
+	const size_t pcl_num = model.get_pcl_num();
+	MatModel::MaterialModel** mms = model.get_mat_models();
+	for (size_t p_id = 0; p_id < pcl_num; p_id++)
+		((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(1000.0);
+
+	// contact
+	constexpr double K_cont = 3.0e9;
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont/50.0, K_cont/50.0);
+	//model.set_frictional_contact_between_spcl_and_rect();
+
+	// modified velocity and permeability
+	model.set_t3d_rigid_mesh_velocity(0.0, -0.8, -0.2);
+
+	model.set_k(1.0e-11);
+	
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -215,21 +230,23 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_CHM_mt_Geo_complete out1("geostatic");
-	out1.set_interval_num(10);
+	TimeHistory_T3D_CHM_mt_complete out1("geostatic");
+	//TimeHistory_T3D_CHM_mt_Geo_complete out1("geostatic");
+	out1.set_interval_num(50);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(2000);
 
-	Step_T3D_CHM_mt_Geo step("step1");
+	Step_T3D_CHM_mt step("step1");
+	//Step_T3D_CHM_mt_Geo step("step1");
 	step.set_model(model);
-	step.set_thread_num(22);
-	step.set_step_time(1.0); // 1.0
+	step.set_thread_num(30);
+	step.set_step_time(1.0);
 	//step.set_thread_num(5);
 	//step.set_step_time(5.0e-5);
-	step.set_dtime(3.0e-5);
+	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
