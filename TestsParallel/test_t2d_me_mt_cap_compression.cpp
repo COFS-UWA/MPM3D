@@ -58,13 +58,13 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, 0.0);
 	model.init_fixed_vy_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
-	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	//md_disp.set_win_size(600, 950);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	md_disp.set_win_size(600, 950);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_cap_compression.h5");
@@ -109,7 +109,7 @@ void test_t2d_me_mt_cap_compression_result(int argc, char** argv)
 	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	app.set_color_map_char_color(0.0, 0.0, 0.0);
 	//app.set_png_name("t2d_me_mt_cap_compression");
-	//app.set_gif_name("t2d_me_mt_cap_compression");
+	app.set_gif_name("t2d_me_mt_cap_compression");
 	app.start();
 
 	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
