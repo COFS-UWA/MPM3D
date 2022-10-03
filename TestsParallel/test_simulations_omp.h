@@ -157,6 +157,7 @@ void test_t3d_me_mt_spudcan_cy(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_geostatic(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_restart(int argc, char** argv);
 
 void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv);

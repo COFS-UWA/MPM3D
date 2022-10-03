@@ -206,8 +206,8 @@ int32_t integrate_norsand(
 	
 	// non-linear elasticity
 	p_tmp = (mat_dat.s11 + mat_dat.s22 + mat_dat.s33) / ffmat(3.0);
-	if (p_tmp > -glb_dat.min_prin_s)
-		p_tmp = -glb_dat.min_prin_s;
+	if (p_tmp > -abs(glb_dat.min_prin_s))
+		p_tmp = -abs(glb_dat.min_prin_s);
 	const __Float_Type__ G = ffmat(2.0) * glb_dat.Ig * (-p_tmp); // 2G
 	const __Float_Type__ lbd = G * glb_dat.niu / (ffmat(1.0) - glb_dat.niu - glb_dat.niu);
 	const __Float_Type__ lbd_2G = lbd + G;
@@ -218,10 +218,10 @@ int32_t integrate_norsand(
 	mat_dat.s23 += G * dstrain[4];
 	mat_dat.s31 += G * dstrain[5];
 	mat_dat.e += (ffmat(1.0) + mat_dat.e) * (dstrain[0] + dstrain[1] + dstrain[2]);
-	if (mat_dat.e > 0.53) // m_min
-		mat_dat.e = 0.53;
-	if (mat_dat.e < 0.83)
-		mat_dat.e = 0.83;
+	if (mat_dat.e < 0.505) // e_min
+		mat_dat.e = 0.505;
+	if (mat_dat.e > 0.784) // e_max
+		mat_dat.e = 0.784;
 	destrain[0] = dstrain[0];
 	destrain[1] = dstrain[1];
 	destrain[2] = dstrain[2];
@@ -258,12 +258,9 @@ int32_t integrate_norsand(
 				// df_ds
 				df_dp = p + mat_dat.pi * ffmat(2.71828182845904);
 				df_dq = q;
-				const __Float_Type__ df_ds_len = (__Float_Type__)sqrt(df_dp * df_dp + df_dq * df_dq);
-				// f
-				f = q + Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
-				// df_ds
-				df_dp *= f / df_ds_len;
-				df_dq *= f / df_ds_len;
+				const __Float_Type__ df_ds_len2 = df_dp * df_dp + df_dq * df_dq;
+				df_dp *= f / df_ds_len2;
+				df_dq *= f / df_ds_len2;
 				cal_dq_ds(q, mat_dat.stress, dq_ds);
 				df_ds11 = df_dp / ffmat(3.0) + df_dq * dq_ds11;
 				df_ds22 = df_dp / ffmat(3.0) + df_dq * dq_ds22;
@@ -340,8 +337,10 @@ int32_t integrate_norsand(
 			dpstrain[5] += dep_cor[5];
 			// image stress
 			mat_dat.pi += A * dl;
-			if (mat_dat.pi < glb_dat.min_prin_s)
-				mat_dat.pi = glb_dat.min_prin_s;
+			if (mat_dat.pi < abs(glb_dat.min_prin_s))
+				mat_dat.pi = abs(glb_dat.min_prin_s);
+			//if (mat_dat.pi < pi_min)
+			//	mat_dat.pi = pi_min;
 
 			cal_p_q(mat_dat.stress, invars);
 			f = q + Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
@@ -371,6 +370,9 @@ int32_t integrate_norsand(
 	f = q + Mi * p * (ffmat(1.0) - (__Float_Type__)log(-p / mat_dat.pi));
 	if (f < ffmat(0.0)) // converge
 	{
+		mat_dat.pi = -p / (__Float_Type__)exp(ffmat(1.0) + q / (Mi * p));
+		if (mat_dat.pi < abs(glb_dat.min_prin_s))
+			mat_dat.pi = abs(glb_dat.min_prin_s);
 		rotate_eigen_mat_to_sym_mat(prin_s, prin_vecs, s_corrected);
 		cal_strain(dstrain, s_corrected, G, glb_dat.niu, destrain, dpstrain, mat_dat.stress);
 		return 0;

@@ -17,6 +17,8 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
+#define min_prin_stress 5000.0
+
 void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 {
 	constexpr double footing_radius = 1.5;
@@ -63,7 +65,7 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		cy_depth - cy_coarse_depth,
 		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	//
-	//pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
+	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
 	
 	constexpr double e0 = 0.55;
@@ -86,7 +88,7 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	const double K0 = 1.0 - sin(fric_ang / 180.0 * 3.14159265359);
 	double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	// Norsand
-	constexpr double gamma = 0.875;
+	constexpr double gamma = 0.67; // 0.875
 	constexpr double lambda = 0.0058;
 	constexpr double N = 0.3;
 	constexpr double chi = 2.5;
@@ -104,19 +106,20 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		pcl_s.s11 = pcl_s.s22;
 		if (pcl_z > stress_depth_limit) // shallow depth
 			pcl_z = stress_depth_limit;
-		ini_stress[2] = pcl_z * 9.81 * den_float;
-		ini_stress[0] = K0 * ini_stress[2];
-		ini_stress[1] = ini_stress[0];
+		ini_stress[2] = pcl_s.s33 < -min_prin_stress ? pcl_s.s33 : -min_prin_stress;
+		ini_stress[1] = pcl_s.s22 < -min_prin_stress ? pcl_s.s22 : -min_prin_stress;
+		ini_stress[0] = pcl_s.s11 < -min_prin_stress ? pcl_s.s11 : -min_prin_stress;
 		ns->set_param(
 			ini_stress, e0, 
 			fric_ang, gamma, lambda,
 			N, chi, H, Ig, niu);
+		ns->set_min_prin_s(min_prin_stress);
 		ns = model.following_NorsandWrapper(ns);
 	}
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, 0.0, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, -0.8, -0.2);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.36, 5.0, K_cont/50.0, K_cont/50.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
@@ -194,15 +197,15 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	for (size_t p_id = 0; p_id < pcl_num; p_id++)
-		((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(1000.0);
+		((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(min_prin_stress);
 
 	// contact
-	constexpr double K_cont = 3.0e9;
+	constexpr double K_cont = 5.0e8;
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont/50.0, K_cont/50.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and permeability
-	model.set_t3d_rigid_mesh_velocity(0.0, -0.8, -0.2);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
 
 	model.set_k(1.0e-11);
 	
@@ -244,15 +247,13 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	step.set_model(model);
 	step.set_thread_num(30);
 	step.set_step_time(1.0);
-	//step.set_thread_num(5);
-	//step.set_step_time(5.0e-5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
 }
 
-void test_t3d_chm_mt_spudcan_HV_cy(int argc, char** argv)
+void test_t3d_chm_mt_spudcan_cy_HV(int argc, char** argv)
 {
 	Model_T3D_CHM_mt model;
 #ifndef Undrained
@@ -262,23 +263,24 @@ void test_t3d_chm_mt_spudcan_HV_cy(int argc, char** argv)
 	Step_T3D_CHM_ud_TBB step("step2");
 #endif
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
-		model, step, "t3d_chm_mt_spudcan_cy_HV_geo.h5", "geostatic", 11);
+		model, step, "t3d_chm_mt_spudcan_cy_HV_geo.h5", "geostatic", 51);
 	
-	constexpr double footing_radius = 1.5;
-	constexpr double dense_elem_size = 0.125 * footing_radius;
-	constexpr double sml_pcl_size = dense_elem_size * 0.25;
-	constexpr double K_cont = 5.0e5 / (sml_pcl_size * sml_pcl_size); // 1.0e6
+	// set tension cut-off surface
+	const size_t pcl_num = model.get_pcl_num();
+	MatModel::MaterialModel** mms = model.get_mat_models();
+	for (size_t p_id = 0; p_id < pcl_num; p_id++)
+		((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(min_prin_stress);
+
+	// contact
+	constexpr double K_cont = 5.0e8;
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont / 50.0, K_cont / 50.0);
-	model.set_frictional_contact_between_spcl_and_rect();
+	//model.set_frictional_contact_between_spcl_and_rect();
 
-	// modified velocity and contact stiffness
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5); // -0.2
-	model.set_k(1.75e-12);
-	//model.set_miu(684.0e-3);
+	// modified velocity and permeability
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
 
-	// -130.0e3 - 3m, -200.0e3 - 10m, -500.0e3 - 40m
-	//model.set_cavitation(100.0, -800.0e3, 0.05, 0.0, 0.0, 10.0e3);
-
+	model.set_k(1.0e-11);
+	
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_by_normal_and_point(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -319,10 +321,8 @@ void test_t3d_chm_mt_spudcan_HV_cy(int argc, char** argv)
 	out_cpb.set_interval_num(2000);
 
 	step.set_model(model);
-	step.set_thread_num(31);
-	step.set_step_time(0.9); // 2.25
-	//step.set_thread_num(3);
-	//step.set_step_time(5.0e-5);
+	step.set_thread_num(30);
+	step.set_step_time(1.25); // 2.25
 	step.set_dtime(5.0e-6); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -336,29 +336,28 @@ void test_t3d_chm_mt_spudcan_HV_cy(int argc, char** argv)
 void test_t3d_chm_mt_spudcan_cy_HV_geo_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t3d_chm_mt_spudcan_cy_geo.h5");
+	rf.open("t3d_chm_mt_spudcan_cy_HV_geo.h5");
 
 	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.set_res_file(rf, "geostatic", 10, Hdf5Field::s33);
 	//app.set_color_map_fld_range(-111000.0, 0.0);
 
-	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
-		QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
-	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 1.0, 0.0);
-	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
+	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
+	app.get_div_set().set_by_normal_and_point(-1.0, 0.0, 0.0, -0.5, 0.0, 0.0);
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 800);
-	app.set_view_dir(-90.0f, 5.0f);
+	app.set_view_dir(0.0f, 5.0f);
 	app.set_fog_coef(0.02f);
-	app.set_light_dir(-135.0f, 10.0f);
-	app.set_light_dist_scale(1.0f);
-	//app.move_view_pos(0.0, 0.0, 3.0);
-	//app.set_view_dist_scale(0.55f);
+	app.set_light_dir(10.0f, 5.0f);
+	app.move_view_pos(0.0, 0.0, 2.0);
+	app.set_view_dist_scale(0.4f);
 	app.set_display_bg_mesh(false);
 	// s33
-	app.set_res_file(rf, "geostatic", Hdf5Field::s33);
-	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_s33);
-	app.set_color_map_fld_range(-111000.0, 0.0);
+	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-11000.0, 0.0);
+	// pore
+	app.set_res_file(rf, "geostatic", Hdf5Field::p);
+	app.set_color_map_fld_range(-10000.0, 10000.0);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_chm_mt_spudcan_cy_HV_geo");
@@ -369,8 +368,7 @@ void test_t3d_chm_mt_spudcan_cy_HV_geo_result(int argc, char** argv)
 void test_t3d_chm_mt_spudcan_cy_HV_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	//rf.open("t3d_chm_mt_spudcan_cy_vstaud.h5");
-	rf.open("E:\\t3d_chm_mt_spudcan_cy_vstapd1_v0.1.h5");
+	rf.open("t3d_chm_mt_spudcan_cy_HV.h5");
 
 	//QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv, QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::SingleFrame);
 	//app.set_res_file(rf, "penetration", 100, Hdf5Field::s33);
@@ -378,42 +376,24 @@ void test_t3d_chm_mt_spudcan_cy_HV_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", 50, Hdf5Field::plastic_mises_strain_2d);
 	QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet> app(argc, argv,
 		QtApp_Posp_T3D_CHM_mt_Div<PlaneDivisionSet>::Animation);
-	app.get_div_set().set_by_normal_and_point(0.0, 1.0, 0.0, 0.0, 0.1, 0.0);
-	//QtApp_Posp_T3D_CHM_mt app(argc, argv, QtApp_Posp_T3D_CHM_mt::Animation);
+	app.get_div_set().set_by_normal_and_point(-1.0, 0.0, 0.0, -0.5, 0.0, 0.0);
 	app.set_ani_time(5.0);
-	app.set_win_size(1600, 800);
-	app.set_view_dir(-90.0f, 5.0f);
+	app.set_win_size(1200, 800);
+	app.set_view_dir(0.0f, 5.0f);
 	app.set_fog_coef(0.02f);
-	app.set_light_dir(-90.0f, 5.0f);
-	app.set_light_dist_scale(1.0f);
-	//app.move_view_pos(0.0, 0.0, 3.0);
-	app.set_view_dist_scale(0.7f);
+	app.set_light_dir(10.0f, 5.0f);
+	app.move_view_pos(0.0, 0.0, 2.0);
+	app.set_view_dist_scale(0.4f);
 	app.set_display_bg_mesh(false);
-	app.set_update_rb_pos();
-	//app.set_bg_color(QVector3D(1.0, 1.0, 1.0));
-	//app.set_color_map_char_color(0.0, 0.0, 0.0);
-	app.set_color_map_geometry(1.8f, 0.4f, 0.45f);
-	// s33
-	app.set_res_file(rf, "penetration", Hdf5Field::s33);
-	app.set_color_map_fld_range(-5.0e6, 0.0);
-	// p
-	//app.set_res_file(rf, "penetration", Hdf5Field::p);
-	//app.set_color_map_fld_range(-5.0e5, 5.0e5);
-	// e
-	//app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
-	//app.set_color_map_fld_range(0.5, 0.65);
-	// shear stress
-	//app.set_res_file(rf, "penetration", Hdf5Field::max_shear_stress);
-	//app.set_color_map_fld_range(0.0, 5000.0);
-	// plastic mises strain
-	//app.set_res_file(rf, "penetration", Hdf5Field::plastic_mises_strain_2d);
-	//app.set_color_map_fld_range(0.0, 0.05);
-	// cav ratio
-	//app.set_res_file(rf, "penetration", Hdf5Field::is_cavitated);
-	//app.set_color_map_fld_range(0.0, 1.0);
-	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
-	app.set_png_name("t3d_chm_mt_spudcan_cy_HV");
+	// s33
+	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
+	//app.set_color_map_fld_range(-11000.0, 0.0);
+	// pore
+	app.set_res_file(rf, "penetration", Hdf5Field::p);
+	app.set_color_map_fld_range(-10000.0, 10000.0);
+	//
+	//app.set_png_name("t3d_chm_mt_spudcan_cy_HV");
 	//app.set_gif_name("t3d_chm_mt_spudcan_cy_HV");
 	app.start();
 }

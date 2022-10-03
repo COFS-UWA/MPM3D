@@ -79,6 +79,9 @@ void test_t3d_me_mt_spudcan_cy_result(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_geo_result(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv);
 
+void test_t3d_chm_mt_spudcan_cy_HV_geo_result(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_HV_result(int argc, char** argv);
+
 void test_t3d_me_mt_spudcan_cy_Hossain_2006_result(int argc, char** argv);
 
 #endif

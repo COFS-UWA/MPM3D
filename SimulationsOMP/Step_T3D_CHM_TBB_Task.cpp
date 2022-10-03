@@ -1128,6 +1128,8 @@ namespace Step_T3D_CHM_TBB_Task
 #ifdef _DEBUG
 			assert(ori_p_id < stp.ori_pcl_num);
 #endif
+			if (ori_p_id == 48639)
+				int efe = stp.substep_index;
 
 			const Position& p_p = pcl_pos[ori_p_id];
 			const double p_x = p_p.x + p_u_s0.ux;
@@ -1170,6 +1172,7 @@ namespace Step_T3D_CHM_TBB_Task
 			dstrain[5] = pe_de->de31;
 			pcl_mm.integrate(dstrain);
 			const double* dstress = pcl_mm.get_dstress();
+
 			Stress& p_s = pcl_stress0[p_id];
 			p_s.s11 += dstress[0];
 			p_s.s22 += dstress[1];

@@ -6,7 +6,7 @@ from multiprocessing import Process, Array
 
 path_name = "D:/"
 #path_name = "../Build/TestsParallel/"
-sim_name = "t3d_chm_mt_spudcan_cy_ucav-130_V1000"
+sim_name = "t3d_chm_mt_spudcan_cy_ucav-130_V2000"
 var_name = "p"
 model_var_r0 = 0.1
 model_var_z0 = -0.1
