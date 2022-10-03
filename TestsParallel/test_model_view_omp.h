@@ -4,6 +4,7 @@
 void test_t2d_me_mt_test1_result(int argc, char** argv);
 void test_t2d_me_s_test2_result(int argc, char** argv);
 void test_t2d_me_mt_1d_compression_result(int argc, char** argv);
+void test_t2d_me_mt_1d_tension_result(int argc, char** argv);
 void test_t2d_me_mt_cap_compression_result(int argc, char** argv);
 void test_t2d_me_mt_block_collision_result(int argc, char** argv);
 void test_t2d_me_mt_block_sliding_result(int argc, char** argv);
@@ -77,6 +78,9 @@ void test_t3d_me_mt_spudcan_cy_result(int argc, char** argv);
 
 void test_t3d_chm_mt_spudcan_cy_geo_result(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_result(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_cy_HV_geo_result(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_HV_result(int argc, char** argv);
 
 void test_t3d_me_mt_spudcan_cy_Hossain_2006_result(int argc, char** argv);
 

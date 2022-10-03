@@ -16,6 +16,9 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_1d_compression(argc, argv);
 	//test_t2d_me_mt_1d_compression_result(argc, argv);
 
+	//test_t2d_me_mt_1d_tension(argc, argv);
+	//test_t2d_me_mt_1d_tension_result(argc, argv);
+
 	//test_t2d_me_mt_cap_compression(argc, argv);
 	//test_t2d_me_mt_cap_compression_result(argc, argv);
 
@@ -61,7 +64,8 @@ int main(int argc, char *argv[])
 	//test_rigid_mesh_contact2(argc, argv);
 	//test_rigid_mesh_contact_2d(argc, argv);
 	//test_contact_model_3d(argc, argv);
-	
+	//test_stress_rotate();
+
 	//test_t3d_me_mt_cap_compression(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart(argc, argv);
 	//test_t3d_me_mt_cap_compression_restart2(argc, argv);
@@ -135,7 +139,6 @@ int main(int argc, char *argv[])
 	//test_sand_hypoplasticity_triaxial();
 	//test_triaxial_secant();
 	//test_sand_hypoplasticity_wrapper();
-	
 	//test_mohr_coulomb();
 
 	//test_t3d_me_mt_triaxial_compression(argc, argv);
@@ -181,10 +184,10 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_restart(argc, argv);
-	test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
-	//test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
+	test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_geo_result(argc, argv);

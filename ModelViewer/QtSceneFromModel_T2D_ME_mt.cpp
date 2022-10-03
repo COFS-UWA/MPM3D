@@ -12,6 +12,7 @@ QtSceneFromModel_T2D_ME_mt::QtSceneFromModel_T2D_ME_mt(
 	display_pts(true), pts_obj(_gl),
 	display_rigid_circle(true), rc_obj(_gl),
 	display_rigid_rect(true), rr_obj(_gl),
+	display_rigid_body(true), rb_obj(_gl),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f),
 	rb_color(0.5176f, 0.4392, 1.0f), // light_slate_blue
@@ -66,6 +67,14 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 		"../../Asset/shader_circles.frag");
 	shader_circles.link();
 
+	shader_rigid_mesh.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"../../Asset/shader_rigid_mesh2D.vert");
+	shader_rigid_mesh.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"../../Asset/shader_rigid_mesh2D.frag");
+	shader_rigid_mesh.link();
+
 	// get bounding box
 	if (display_whole_model)
 	{
@@ -81,6 +90,12 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 			Rect rr_bbox;
 			model->get_rigid_rect().get_bbox(rr_bbox);
 			bbox.envelop(rr_bbox);
+		}
+		if (model->has_t2d_rigid_mesh())
+		{
+			Rect rb_bbox;
+			model->get_t2d_rigid_mesh().get_bbox(rb_bbox);
+			bbox.envelop(rb_bbox);
 		}
 		GLfloat xlen = GLfloat(bbox.xu - bbox.xl);
 		GLfloat ylen = GLfloat(bbox.yu - bbox.yl);
@@ -108,6 +123,8 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 	shader_plain2D.setUniformValue("view_mat", view_mat);
 	shader_circles.bind();
 	shader_circles.setUniformValue("view_mat", view_mat);
+	shader_rigid_mesh.bind();
+	shader_rigid_mesh.setUniformValue("view_mat", view_mat);
 
 	// init bg_mesh
 	bg_mesh_obj.init_from_elements(
@@ -153,6 +170,13 @@ int QtSceneFromModel_T2D_ME_mt::initialize(int wd, int ht)
 			3.0f);
 	}
 
+	// init rigid object
+	if (model->has_t2d_rigid_mesh())
+	{
+		RigidObjectByT2DMesh &rb = model->get_t2d_rigid_mesh();
+		rb_obj.init(rb, rb_color);
+	}
+
 	// init pts
 	QVector3D red(1.0f, 0.0f, 0.0f);
 	if (pts && pt_num)
@@ -178,6 +202,12 @@ void QtSceneFromModel_T2D_ME_mt::draw()
 
 	if (model->has_rigid_rect() && display_rigid_rect)
 		rr_obj.draw(shader_plain2D);
+
+	if (model->has_t2d_rigid_mesh() && display_rigid_body)
+	{
+		shader_rigid_mesh.bind();
+		rb_obj.draw(shader_rigid_mesh);
+	}
 
 	shader_circles.bind();
 

@@ -1,5 +1,6 @@
 #include "ModelViewer_pcp.h"
 
+#include "RigidObject/RigidObject_hdf5_utilities.h"
 #include "Model_T2D_ME_mt_hdf5_utilities.h"
 #include "QtSceneFromHdf5_T2D_ME_mt.h"
 
@@ -13,6 +14,7 @@ QtSceneFromHdf5_T2D_ME_mt::QtSceneFromHdf5_T2D_ME_mt(
 	display_pcls(true), pcls_obj(_gl),
 	display_rc(true), has_rc_obj(false), rc_obj(_gl),
 	display_rr(true), has_rr_obj(false), rr_obj(_gl),
+	display_rb(true), has_rb_obj(false), rb_obj(_gl),
 	has_color_map(false), color_map_obj(_gl), color_map_texture(0),
 	display_whole_model(true), padding_ratio(0.05f),
 	bg_color(0.2f, 0.3f, 0.3f),
@@ -96,6 +98,13 @@ void QtSceneFromHdf5_T2D_ME_mt::draw()
 	if (has_rr_obj && display_rr)
 		rr_obj.draw(shader_plain2D);
 
+	if (has_rb_obj && display_rb)
+	{
+		shader_rigid_mesh_2D.bind();
+		shader_rigid_mesh_2D.setUniformValue("view_mat", view_mat);
+		rb_obj.draw(shader_rigid_mesh_2D);
+	}
+
 	shader_circles.bind();
 
 	if (display_pcls)
@@ -125,8 +134,7 @@ void QtSceneFromHdf5_T2D_ME_mt::resize(int wd, int ht)
 int QtSceneFromHdf5_T2D_ME_mt::set_res_file(
 	ResultFile_hdf5& rf,
 	const char *th_name,
-	Hdf5Field::FieldType fld_type
-	)
+	Hdf5Field::FieldType fld_type)
 {
 	char exception_msg[256];
 	close_file();
@@ -330,6 +338,46 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 			bbox.envelop(rb_bbox);
 	}
 	rf.close_group(frame_grp_id);
+	// rigid body by t2d mesh
+	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+	if (rf.has_group(md_data_grp_id, "RigidObjectByT2DMesh"))
+	{
+		has_rb_obj = true;
+		hid_t rb_grp_id = rf.open_group(md_data_grp_id, "RigidObjectByT2DMesh");
+		size_t edge_num;
+		rf.read_attribute(rb_grp_id, "edge_num", edge_num);
+		double rb_x, rb_y, rb_ang;
+		rf.read_attribute(rb_grp_id, "x", rb_x);
+		rf.read_attribute(rb_grp_id, "y", rb_y);
+		rf.read_attribute(rb_grp_id, "ang", rb_ang);
+		PointToLineDistance *pt_ln_dist = new PointToLineDistance[edge_num];
+		hid_t pt_ln_dt = RigidObject_hdf5_utilities::get_pt_to_ln_dist_dt_id();
+		rf.read_dataset(
+			rb_grp_id,
+			"pt_ln_dist",
+			edge_num,
+			pt_ln_dist,
+			pt_ln_dt);
+		H5Tclose(pt_ln_dt);
+		rb_obj.init_edges(
+			pt_ln_dist,
+			edge_num,
+			rb_x, rb_y, rb_ang,
+			navajowhite);
+		delete[] pt_ln_dist;
+		double grid_xl, grid_yl, grid_hx, grid_hy;
+		size_t grid_x_num, grid_y_num;
+		rf.read_attribute(rb_grp_id, "grid_xl", grid_xl);
+		rf.read_attribute(rb_grp_id, "grid_yl", grid_yl);
+		rf.read_attribute(rb_grp_id, "grid_hx", grid_hx);
+		rf.read_attribute(rb_grp_id, "grid_hy", grid_hy);
+		rf.read_attribute(rb_grp_id, "grid_x_num", grid_x_num);
+		rf.read_attribute(rb_grp_id, "grid_y_num", grid_y_num);
+		Rect rmesh_bbox(grid_xl + rb_x, grid_xl + double(grid_x_num) * grid_hx + rb_x,
+						grid_yl + rb_y, grid_yl + double(grid_y_num) * grid_hy + rb_y);
+		if (display_whole_model)
+			bbox.envelop(rmesh_bbox);
+	}
 
 	// color map display
 	if (has_color_map)
@@ -362,6 +410,15 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		"../../Asset/shader_plain2D.frag");
 	shader_plain2D.link();
 
+	// shader_rigid_mesh_2D
+	shader_rigid_mesh_2D.addShaderFromSourceFile(
+		QOpenGLShader::Vertex,
+		"../../Asset/shader_rigid_mesh2D.vert");
+	shader_rigid_mesh_2D.addShaderFromSourceFile(
+		QOpenGLShader::Fragment,
+		"../../Asset/shader_rigid_mesh2D.frag");
+	shader_rigid_mesh_2D.link();
+
 	// shader_circles
 	shader_circles.addShaderFromSourceFile(
 		QOpenGLShader::Vertex,
@@ -393,8 +450,11 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 	hud_view_mat.setToIdentity();
 	hud_view_mat.ortho(0.0f, GLfloat(wd) / GLfloat(ht), 0.0f, 1.0f, -1.0f, 1.0f);
 
-	//shader_plain2D.bind();
-	//shader_plain2D.setUniformValue("view_mat", view_mat);
+	shader_plain2D.bind();
+	shader_plain2D.setUniformValue("view_mat", view_mat);
+
+	shader_rigid_mesh_2D.bind();
+	shader_rigid_mesh_2D.setUniformValue("view_mat", view_mat);
 
 	shader_circles.bind();
 	shader_circles.setUniformValue("view_mat", view_mat);
@@ -452,5 +512,17 @@ void QtSceneFromHdf5_T2D_ME_mt::update_scene(size_t frame_id)
 		rr_obj.update(rr_x, rr_y, rr_ang);
 		rf.close_group(rb_grp_id);
 	}
+	// rigid t2d mesh
+	if (rf.has_group(frame_grp_id, "RigidObjectByT2DMesh"))
+	{
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidObjectByT2DMesh");
+		double rb_x, rb_y, rb_ang;
+		rf.read_attribute(rb_grp_id, "x", rb_x);
+		rf.read_attribute(rb_grp_id, "y", rb_y);
+		rf.read_attribute(rb_grp_id, "ang", rb_ang);
+		rb_obj.update(rb_x, rb_y, rb_ang);
+		rf.close_group(rb_grp_id);
+	}
+	//
 	rf.close_group(frame_grp_id);
 }

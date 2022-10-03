@@ -181,6 +181,7 @@ if __name__ == "__main__":
     # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter_cylinder_8D.h5")
     nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_half_cylinder_8R.inp", "Part-1")
     move_mesh_in_z_direction(nodes, -12.0)
+    rotate_mesh(nodes, 0.0, 0.0, 90.0)
     output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_half_cylinder_8R.h5")
     # nodes, elems = get_mesh_from_inp("../Asset/weird_cylinder.inp", "Part-1")
     # output_mesh_to_hdf5(nodes, elems, "../Asset/weird_cylinder.h5")

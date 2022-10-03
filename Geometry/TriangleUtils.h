@@ -180,73 +180,67 @@ struct PointToLineDistance
 		unsigned char norm_type,
 		Vector2D& normal) const
 	{
+		Vector2D tmp;
 		double side;
 		switch (norm_type)
 		{
 		case 0:
-			normal.substract<Point2D>(pt, n1).normalize();
-			side = normal.x * iy.x + normal.y * iy.y;
-			if (side < 0.0)
-				normal.reverse();
+			normal.substract<Point2D>(pt, n1);
 			return;
 		case 1:
 			normal.x = iy.x;
 			normal.y = iy.y;
-			return;
-		case 2:
-			normal.substract<Point2D>(pt, n1);
-			side = normal.x * iy.x + normal.y * iy.y;
-			normal.substract<Point2D>(pt, n2).normalize();
-			if (side < 0.0)
+			tmp.substract<Point2D>(pt, n1);
+			side = tmp.x * iy.x + tmp.y * iy.y;
+			if (side <= 0.0)
 				normal.reverse();
 			return;
+		case 2:
+			normal.substract<Point2D>(pt, n2);
+			return;
+		default:
+			assert(0);
+			return;
 		}
-		assert(0);
+
+		// normalization
+		double norm = normal.norm();
+		if (norm != 0.0)
+		{
+			normal.scale(1.0 / norm);
+		}
+		else
+		{
+			normal.x = -iy.x;
+			normal.y = -iy.y;
+		}
 		return;
 	}
 };
 
-//template <typename Point3D>
-//void cal_triangle_moi(
-//	double xc,
-//	double yc,
-//	Point3D &p1,
-//	Point3D &p2,
-//	Point3D &p3, 
-//	double vol,
-//	double &moi
-//	)
-//{
-//	moi_mat[0] = vol / 10.0 *
-//		 (p1.y * p1.y + p1.y * p2.y + p2.y * p2.y + p1.y * p3.y + p2.y * p3.y
-//		+ p3.y * p3.y + p1.y * p4.y + p2.y * p4.y + p3.y * p4.y + p4.y * p4.y
-//		+ p1.z * p1.z + p1.z * p2.z + p2.z * p2.z + p1.z * p3.z + p2.z * p3.z
-//		+ p3.z * p3.z + p1.z * p4.z + p2.z * p4.z + p3.z * p4.z + p4.z * p4.z);
-//	moi_mat[1] = vol / 10.0 *
-//		 (p1.x * p1.x + p1.x * p2.x + p2.x * p2.x + p1.x * p3.x + p2.x * p3.x
-//		+ p3.x * p3.x + p1.x * p4.x + p2.x * p4.x + p3.x * p4.x + p4.x * p4.x
-//		+ p1.z * p1.z + p1.z * p2.z + p2.z * p2.z + p1.z * p3.z + p2.z * p3.z
-//		+ p3.z * p3.z + p1.z * p4.z + p2.z * p4.z + p3.z * p4.z + p4.z * p4.z);
-//	moi_mat[2] = vol / 10.0 *
-//		 (p1.x * p1.x + p1.x * p2.x + p2.x * p2.x + p1.x * p3.x + p2.x * p3.x
-//		+ p3.x * p3.x + p1.x * p4.x + p2.x * p4.x + p3.x * p4.x + p4.x * p4.x
-//		+ p1.y * p1.y + p1.y * p2.y + p2.y * p2.y + p1.y * p3.y + p2.y * p3.y
-//		+ p3.y * p3.y + p1.y * p4.y + p2.y * p4.y + p3.y * p4.y + p4.y * p4.y);
-//	moi_mat[3] = -vol / 20.0 *
-//		 (2.0 * p1.y * p1.z + p2.y * p1.z + p3.y * p1.z + p4.y * p1.z + p1.y * p2.z
-//		+ 2.0 * p2.y * p2.z + p3.y * p2.z + p4.y * p2.z + p1.y * p3.z + p2.y * p3.z
-//		+ 2.0 * p3.y * p3.z + p4.y * p3.z + p1.y * p4.z + p2.y * p4.z + p3.y * p4.z
-//		+ 2.0 * p4.y * p4.z);
-//	moi_mat[4] = -vol / 20.0 *
-//		 (2.0 * p1.x * p1.z + p2.x * p1.z + p3.x * p1.z + p4.x * p1.z + p1.x * p2.z
-//		+ 2.0 * p2.x * p2.z + p3.x * p2.z + p4.x * p2.z + p1.x * p3.z + p2.x * p3.z
-//		+ 2.0 * p3.x * p3.z + p4.x * p3.z + p1.x * p4.z + p2.x * p4.z + p3.x * p4.z
-//		+ 2.0 * p4.x * p4.z);
-//	moi_mat[5] = -vol / 20.0 *
-//		 (2.0 * p1.x * p1.y + p2.x * p1.y + p3.x * p1.y + p4.x * p1.y + p1.x * p2.y
-//		+ 2.0 * p2.x * p2.y + p3.x * p2.y + p4.x * p2.y + p1.x * p3.y + p2.x * p3.y
-//		+ 2.0 * p3.x * p3.y + p4.x * p3.y + p1.x * p4.y + p2.x * p4.y + p3.x * p4.y
-//		+ 2.0 * p4.x * p4.y);
-//}
+template <typename Point2D>
+void cal_triangle_moi(
+	double xc,
+	double yc,
+	Point2D &p1,
+	Point2D &p2,
+	Point2D &p3, 
+	double area,
+	double &moi)
+{
+	const double xc_tri = (p1.x + p2.x + p3.x) / 3.0;
+	const double yc_tri = (p1.y + p2.y + p3.y) / 3.0;
+	Vector2D n21, n23;
+	n21.substract<Point2D>(p2, p1);
+	const double b = n21.norm();
+	//const double h = (area + area) / b;
+	n21.normalize();
+	n23.substract<Point2D>(p2, p3);
+	const double c = n23.dot(n21);
+	n23.substract(n21.scale(c));
+	const double h = n23.norm();
+	moi =  b * h * (h*h + b*b - b*c + c*c) / 36.0
+		+ ((xc_tri - xc) * (xc_tri - xc) + (yc_tri - yc) * (yc_tri - yc)) * area;
+}
 
 #endif

@@ -15,6 +15,7 @@
 #include "RigidObject/StickyContact2D.h"
 #include "RigidObject/RoughContact2D.h"
 #include "RigidBody/RigidRect.h"
+#include "RigidObject/RigidObjectByT2DMesh.h"
 #include "RigidObject/Force2D.h"
 
 class Model_T2D_ME_mt;
@@ -43,6 +44,10 @@ namespace Model_T2D_ME_mt_hdf5_utilities
 	int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
 	int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	int load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_t2d_rigid_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int output_t2d_rigid_mesh_state_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_t2d_rigid_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	int load_t2d_rigid_mesh_state_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t frame_grp_id);
 }
 
 class PclVar_T2D_ME_mt;
@@ -241,8 +246,7 @@ public:
 		double pcl_x,
 		double pcl_y,
 		size_t elem_id,
-		ShapeFunc& pcl_N
-	) const noexcept
+		ShapeFunc& pcl_N) const noexcept
 	{
 		const ShapeFuncAB& e_dN_ab = elem_dN_ab[elem_id];
 		const ShapeFuncC& e_dN_c = elem_dN_c[elem_id];
@@ -258,8 +262,7 @@ public:
 		double pcl_x,
 		double pcl_y,
 		size_t elem_id,
-		ShapeFunc& p_N
-	) const noexcept
+		ShapeFunc& p_N) const noexcept
 	{
 		const ShapeFuncAB& e_dN_ab = elem_dN_ab[elem_id];
 		const ShapeFuncC& e_dN_c = elem_dN_c[elem_id];
@@ -292,8 +295,7 @@ public:
 	inline size_t find_pcl_in_which_elem(
 		double pcl_x,
 		double pcl_y,
-		ShapeFunc& pcl_N
-		) const noexcept
+		ShapeFunc& pcl_N) const noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu)
@@ -314,8 +316,7 @@ public:
 	inline size_t find_pcl_in_which_elem_tol(
 		double pcl_x,
 		double pcl_y,
-		ShapeFunc& pcl_N
-		) const noexcept
+		ShapeFunc& pcl_N) const noexcept
 	{
 		if (pcl_x < grid_xl || pcl_x > grid_xu ||
 			pcl_y < grid_yl || pcl_y > grid_yu)
@@ -334,8 +335,7 @@ public:
 	}
 
 	inline void add_mat_model(size_t pcl_id,
-		MatModel::MaterialModel& mat_model,
-		size_t model_size)
+		MatModel::MaterialModel& mat_model, size_t model_size)
 	{
 		pcl_mat_model[pcl_id] = &mat_model;
 		//pcl_mat_model_copy_offset[pcl_id] = pcl_mat_model_total_size;
@@ -355,6 +355,8 @@ protected: // rigid object contact
 	// rigid rect
 	bool rigid_rect_is_valid;
 	RigidRect rigid_rect;
+	bool rigid_t2d_mesh_is_valid;
+	RigidObjectByT2DMesh rigid_t2d_mesh;
 
 	// ad hoc design for output
 	double Kn_cont, Kt_cont;
@@ -368,6 +370,8 @@ protected: // rigid object contact
 public:
 	inline bool has_rigid_rect() const noexcept { return rigid_rect_is_valid; }
 	inline RigidRect& get_rigid_rect() { return rigid_rect; }
+	inline bool has_t2d_rigid_mesh() const noexcept { return rigid_t2d_mesh_is_valid; }
+	inline RigidObjectByT2DMesh& get_t2d_rigid_mesh() { return rigid_t2d_mesh; }
 	inline double get_Kn_cont() const noexcept { return Kn_cont; }
 	inline double get_Kt_cont() const noexcept { return Kt_cont; }
 	inline double get_fric_ratio() const noexcept { return fric_ratio; }
@@ -387,6 +391,23 @@ public:
 	{ rigid_rect.set_v_bc(vx, vy, v_ang); }
 	inline void set_rigid_rect_ini_velocity(double vx, double vy, double v_ang)
 	{ rigid_rect.set_ini_v(vx, vy, v_ang); }
+	inline void init_rb(double density, const char* filename,
+		double dx, double dy, double dang, double ghx, double ghy)
+	{
+		rigid_t2d_mesh_is_valid = true;
+		rigid_t2d_mesh.init(density, filename, dx, dy, dang, ghx, ghy);
+	}
+	inline void set_rb_ext_force(double fx, double fy, double m = 0.0)
+	{ rigid_t2d_mesh.set_ext_force(fx, fy, m); }
+	inline void set_rb_velocity(double vx, double vy, double v_ang)
+	{
+		rigid_t2d_mesh.set_vx_bc(vx);
+		rigid_t2d_mesh.set_vy_bc(vy);
+		rigid_t2d_mesh.set_v_ang_bc(v_ang);
+	}
+	inline void set_rb_ini_velocity(double vx, double vy, double v_ang)
+	{ rigid_t2d_mesh.set_velocity(vx, vy, v_ang); }
+
 	// for contact model
 	inline void set_contact_param(
 		double _Kn_cont,
@@ -422,6 +443,10 @@ public:
 	friend int Model_T2D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_ME_mt_hdf5_utilities::output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T2D_ME_mt_hdf5_utilities::load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_t2d_rigid_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::output_t2d_rigid_mesh_state_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_t2d_rigid_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+	friend int Model_T2D_ME_mt_hdf5_utilities::load_t2d_rigid_mesh_state_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t frame_grp_id);
 	friend class PclVar_T2D_ME_mt;
 };
 

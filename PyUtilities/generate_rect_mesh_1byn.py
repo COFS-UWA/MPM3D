@@ -19,8 +19,8 @@ def generate_rect_mesh_1byn(grid_num, grid_size):
     return nodes, elems
     
 if __name__ == "__main__":
-    grid_size = 1.0
-    grid_num = 10
+    grid_size = 0.06
+    grid_num = 5
     nodes, elems = generate_rect_mesh_1byn(grid_num, grid_size)
     h5_file = h5py.File("../Asset/rect_mesh_1by%d.h5" % grid_num, "w")
     mesh_grp = h5_file.create_group("Mesh")

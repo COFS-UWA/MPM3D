@@ -382,4 +382,17 @@ inline void vector_from_local_to_global_coordinate(
 	gp.y = sin_ang * lp.x + cos_ang * lp.y;
 }
 
+inline void rotate_axses_by_angle(
+	double ang,
+	Vector2D& ix,
+	Vector2D& iy) noexcept
+{
+	const double sin_ang = sin(ang);
+	const double cos_ang = cos(ang);
+	ix.x = cos_ang;
+	ix.y = sin_ang;
+	iy.x = -sin_ang;
+	iy.y =  cos_ang;
+}
+
 #endif

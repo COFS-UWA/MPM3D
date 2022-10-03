@@ -72,6 +72,7 @@ protected:
 
 	double Kn_cont, Kt_cont, fric_ratio;
 	RigidRect* prr;
+	RigidObjectByT2DMesh *prb;
 	ContactModel2D* pcf;
 
 	// thread-wise data
@@ -109,6 +110,13 @@ protected:
 	CacheAlignedMem cal_mem;
 
 	int apply_rigid_rect(
+		size_t p_id0, size_t p_id1,
+		size_t* pcl_in_elem,
+		SortedPclVarArrays& cur_spva,
+		Force2D& rc_cf,
+		size_t substp_id,
+		ThreadData& thd) noexcept;
+	int apply_rigid_t2d_mesh(
 		size_t p_id0, size_t p_id1,
 		size_t* pcl_in_elem,
 		SortedPclVarArrays& cur_spva,

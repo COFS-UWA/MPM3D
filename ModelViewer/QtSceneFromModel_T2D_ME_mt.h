@@ -8,6 +8,7 @@
 #include "QtTriangleMeshGLObject.h"
 #include "QtRigidCircleObject.h"
 #include "QtRigidRectObject.h"
+#include "QtRigidObjectByT2DMesh.h"
 #include "QtMonoColorCircleGLObject.h"
 #include "QtSceneFromModel.h"
 
@@ -24,17 +25,20 @@ protected:
 
 	QOpenGLShaderProgram shader_plain2D;
 	QOpenGLShaderProgram shader_circles;
+	QOpenGLShaderProgram shader_rigid_mesh;
 
 	bool display_bg_mesh;
 	bool display_pcls;
 	bool display_rigid_circle;
 	bool display_rigid_rect;
+	bool display_rigid_body;
 	bool display_pts;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 	QtMonoColorCircleGLObject pcls_obj;
 	QtRigidCircleObject rc_obj;
 	QtRigidRectObject rr_obj;
+	QtRigidObjectByT2DMesh rb_obj;
 	// points to be high lighted
 	QtMonoColorCircleGLObject pts_obj;
 
@@ -65,6 +69,7 @@ public:
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }
 	inline void set_display_rc(bool op = true) { display_rigid_circle = op; }
+	inline void set_display_rb(bool op = true) { display_rigid_body = op; }
 	inline void set_display_pts(bool op = true) { display_pts = op; }
 
 	inline void set_display_whole_model() { display_whole_model = true; }
