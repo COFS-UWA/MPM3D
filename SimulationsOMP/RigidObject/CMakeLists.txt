@@ -16,6 +16,7 @@ target_sources(
     RoughContact3D.h RoughContact3D.cpp
     FrictionalContact3D.h FrictionalContact3D.cpp
     StickyContact3D.h StickyContact3D.cpp
+	NonSeperateContact3D.h NonSeperateContact3D.cpp
     Force3D.h
     RigidCube.h RigidCube.cpp
     RigidCylinder.h RigidCylinder.cpp

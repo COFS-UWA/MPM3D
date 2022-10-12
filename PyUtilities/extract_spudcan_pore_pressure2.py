@@ -4,14 +4,22 @@ import h5py as py
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Array
 
+<<<<<<< HEAD
+sim_name = "t3d_chm_mt_spudcan_cy_HIg230"
+=======
 #path_name = "D:/"
 path_name = "../Build/TestsParallel/"
 sim_name = "t3d_chm_mt_spudcan_cy_vstaud"
+>>>>>>> 49c228ff327445f2b425566ad73810f84a6487b6
 model_var_r0 = 0.2
 model_var_z0 = -0.5
 model_var_dr = 0.2
 model_var_dz = 0.2
+<<<<<<< HEAD
+proc_num = 5
+=======
 proc_num = 2
+>>>>>>> 49c228ff327445f2b425566ad73810f84a6487b6
 
 # time history name
 th_name = "penetration"

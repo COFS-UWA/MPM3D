@@ -5,6 +5,7 @@
 #include "MatModelContainer.h"
 #include "Model_T2D_ME_mt.h"
 #include "Step_T2D_ME_mt.h"
+#include "Step_T2D_ME_mt_Geo.h"
 #include "Step_T2D_ME_TBB.h"
 
 namespace Model_T2D_ME_mt_hdf5_utilities
@@ -297,6 +298,7 @@ int load_boundary_condition_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5&
 int output_ori_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt &stp, ResultFile_hdf5& rf, hid_t grp_id);
 int output_pcl_data_to_hdf5_file(Model_T2D_ME_mt &md, Step_T2D_ME_TBB &stp, ResultFile_hdf5 &rf, hid_t grp_id);
+int output_pcl_data_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt_Geo& stp, ResultFile_hdf5& rf, hid_t grp_id);
 int load_pcl_data_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
 int output_material_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -313,6 +315,7 @@ int output_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf);
 
 // output the particle data and material models to hdf5 (used by time history)
 int time_history_complete_output_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
+int time_history_complete_output_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_mt_Geo& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 int time_history_complete_output_to_hdf5_file(Model_T2D_ME_mt& md, Step_T2D_ME_TBB& stp, ResultFile_hdf5& rf, hid_t frame_grp_id);
 
 // load model data from hdf5 to model data

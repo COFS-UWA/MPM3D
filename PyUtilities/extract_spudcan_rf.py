@@ -2,10 +2,9 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
-#file_name = "t3d_me_mt_spudcan_cy"
-file_name = "t3d_chm_mt_spudcan"
+file_name = "t3d_me_mt_spudcan_cy3"
 
-spudcan_diameter = 3.0
+spudcan_diameter = 6.0
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
@@ -13,10 +12,10 @@ hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
 th_grp = hdf5_file['TimeHistory']['penetration']
 th_num = th_grp.attrs['output_num']
 
-rb_z = [0.0]
-rb_fz = [0.0]
-rb_z_norm = [0.0]
-rb_fz_norm = [0.0]
+rb_z = []
+rb_fz = []
+rb_z_norm = []
+rb_fz_norm = []
 is_init = False
 ini_z = 0.0
 spudcan_area = math.pi * spudcan_diameter * spudcan_diameter * 0.25

@@ -29,7 +29,13 @@ int main(int argc, char *argv[])
 	//test_t2d_me_mt_strip_footing_smaller_result(argc, argv);
 
 	//test_t2d_me_mt_strip_footing(argc, argv);
-	test_t2d_me_mt_strip_footing_result(argc, argv);
+	//test_t2d_me_mt_strip_footing_result(argc, argv);
+
+	//test_t2d_me_mt_geostatic(argc, argv);
+	//test_t2d_me_mt_geostatic_result(argc, argv);
+
+	//test_t2d_me_mt_column_collapse(argc, argv);
+	//test_t2d_me_mt_column_collapse_result(argc, argv);
 
 	//test_t3d_me_mt_1d_compression(argc, argv);
 	//test_t3d_me_mt_1d_compression_result(argc, argv);
@@ -62,6 +68,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_cap_compression_result_div(argc, argv);
 
 	//test_t3d_chm_mt_cap_compression(argc, argv);
+	//test_t3d_chm_mt_cap_compression_restart(argc, argv);
 	//test_t3d_chm_mt_cap_compression_result(argc, argv);
 
 	//test_t3d_me_mt_block_sliding(argc, argv);
@@ -95,6 +102,9 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_1d_consolidation_static_result(argc, argv);
 	//test_t2d_chm_mt_1d_consolidation_ani_result(argc, argv);
 
+	//test_t2d_chm_mt_geostatic(argc, argv);
+	//test_t2d_chm_mt_geostatic_result(argc, argv);
+
 	//test_t2d_chm_mt_test_rigid_circle(argc, argv);
 	//test_t2d_chm_mt_test_rigid_circle_result(argc, argv);
 	
@@ -105,9 +115,9 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_mt_pipe_conference_den_restart(argc, argv);
 	//test_t2d_chm_mt_pipe_conference_den_result(argc, argv);
 
-	//test_t2d_chm_mt_pipe_conference_den_half_geo(argc, argv);
-	//test_t2d_chm_mt_pipe_conference_den_half(argc, argv);
-	//test_t2d_chm_mt_pipe_conference_den_half_result(argc, argv);
+	//test_t2d_chm_mt_pipe_embedment(argc, argv);
+	//test_t2d_chm_mt_pipe_embedment_restart(argc, argv);
+	test_t2d_chm_mt_pipe_embedment_result(argc, argv);
 
 	//test_t3d_me_mt_test_spudcan_model(argc, argv);
 	//test_t3d_me_mt_spudcan_coarse_model(argc, argv);
@@ -169,6 +179,12 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
+	//test_t3d_me_mt_spudcan_cy_Hossain_2006_model(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(argc, argv);
+	//test_t3d_me_mt_spudcan_cy_Hossain_2006_result(argc, argv);
+
 	//test_t3d_me_mt_cylinder_bcs(argc, argv);
 	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
 
@@ -207,7 +223,7 @@ int main(int argc, char *argv[])
 	// element test simulation
 	//test_t3d_chm_tbb_cap_compression(argc, argv);
 	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
-
+	
 	// Time profiling
 	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
 	// tbb version

@@ -4,7 +4,7 @@ import h5py as py
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Array
 
-path_name = "E:/"
+path_name = "D:/"
 #path_name = "../Build/TestsParallel/"
 sim_name = "t3d_chm_mt_spudcan_cy_ucav-130_V2000"
 var_name = "p"

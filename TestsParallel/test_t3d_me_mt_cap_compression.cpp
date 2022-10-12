@@ -29,13 +29,13 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	const size_t pcl_num = model.get_pcl_num();
 	MatModel::MaterialModel** mms = model.get_mat_models();
 	// Linear elasticity
-	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
-	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	//{
-	//	MatModel::LinearElasticity& le = les[pcl_id];
-	//	le.set_param(1000.0, 0.0);
-	//	mms[pcl_id] = &le;
-	//}
+	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
+	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	{
+		les->set_param(1000.0, 0.0);
+		model.add_mat_model(pcl_id, *les, sizeof(MatModel::LinearElasticity));
+		les = model.following_LinearElasticity(les);
+	}
 	// Tresca
 	//MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
@@ -45,14 +45,14 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//	mms[pcl_id] = &le;
 	//}
 	// Mohr Coulomb
-	const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(pcl_num);
-	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
-	{
-		mcs->set_param(ini_stress, 30.0, 0.0, 100.0, 10000.0, 0.3);
-		model.add_mat_model(pcl_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
-		mcs = model.following_MohrCoulombWrapper(mcs);
-	}
+	//const double ini_stress[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	//MatModel::MohrCoulombWrapper* mcs = model.add_MohrCoulombWrapper(pcl_num);
+	//for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
+	//{
+	//	mcs->set_param(ini_stress, 30.0, 0.0, 100.0, 10000.0, 0.3);
+	//	model.add_mat_model(pcl_id, *mcs, sizeof(MatModel::MohrCoulombWrapper));
+	//	mcs = model.following_MohrCoulombWrapper(mcs);
+	//}
 	// Stb hypoplasticity
 	//const double ini_stress[6] = { -100.0e3, -100.0e3, -100.0e3, 0.0, 0.0, 0.0 };
 	//MatModel::SandHypoplasticityWrapper* shps = model.add_SandHypoplasticityWrapper(pcl_num);
@@ -60,10 +60,10 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//{
 	//	MatModel::SandHypoplasticityWrapper& shp = shps[pcl_id];
 	//	shp.set_param(
-	//		ini_stress, 0.55,
-	//		30.0, 1354.0e6, 0.34,
-	//		0.18, 1.27,
-	//		0.49, 0.76, 0.86);
+	//		ini_stress, 0.527,
+	//		30.02299, 2.029e10, 0.2966,
+	//		0.441, 0.831, 0.956,
+	//		0.177, 0.04);
 	//	mms[pcl_id] = &shp;
 	//}
 	// Stb hypoplasticity
@@ -84,10 +84,11 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//}
 
 	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.1);
-	const double Kct = 100.0 / (0.025 * 0.025); 
+	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.01);
+	const double Kct = 1000000.0 / (0.025 * 0.025);
 	//const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
 	model.set_contact_param(Kct, Kct, 0.1, 0.2);
+	//model.set_rough_contact_between_pcl_and_rect();
 
 	//model.init_rigid_cone(0.0, 0.5, 0.5, 0.34641, 0.3, 0.2);
 	//model.set_rigid_cone_velocity(0.0, 0.0, 0.0);
@@ -132,14 +133,14 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	TimeHistory_T3D_ME_mt_complete out1("compression");
 	//out1.set_output_init_state();
-	out1.set_interval_num(200);
+	out1.set_interval_num(100);
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
 	step.set_thread_num(4);
-	step.set_step_time(0.5);
+	step.set_step_time(5.0);
 	//step.set_step_time(5.0e-4);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
@@ -150,7 +151,10 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 void test_t3d_me_mt_cap_compression_restart(int argc, char** argv)
 {
 	Model_T3D_ME_mt model;
-	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model, "t3d_me_mt_cap_compression.h5");
+	Step_T3D_ME_mt step("step1");
+	//Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model, "t3d_me_mt_cap_compression.h5");
+	Model_T3D_ME_mt_hdf5_utilities::load_me_mt_model_from_hdf5_file(model, step,
+		"t3d_me_mt_cap_compression.h5", "compression", 1);
 
 	//model.clear_rigid_cylinder();
 
@@ -182,10 +186,9 @@ void test_t3d_me_mt_cap_compression_restart(int argc, char** argv)
 	out1.set_interval_num(100);
 	TimeHistory_ConsoleProgressBar out_cpb;
 
-	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(0.5);
-	//step.set_step_time(5.0e-5);
+	//step.set_step_time(0.5);
+	step.set_step_time(5.0e-5);
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(6);
 	step.add_time_history(out1);
@@ -281,7 +284,7 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 30.0);
 	//
 	//app.set_png_name("t3d_me_mt_cap_compression");
-	//app.set_gif_name("t3d_me_mt_cap_compression");
+	app.set_gif_name("t3d_me_mt_cap_compression");
 	app.start();
 }
 

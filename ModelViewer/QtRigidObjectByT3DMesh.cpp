@@ -128,8 +128,10 @@ int QtRigidObjectByT3DMesh::init_face_data(
 		rb.get_ix(),
 		rb.get_iy(),
 		rb.get_iz(),
-		model_mat
-		);
+		model_mat);
+
+	const Point3D &rb_pos = rb.get_pos();
+
 	return 0;
 }
 

@@ -162,8 +162,7 @@ void test_t2d_chm_mt_pipe_conference_den_restart(int argc, char** argv)
 void test_t2d_chm_mt_pipe_conference_den_result(int argc, char** argv)
 {
 	ResultFile_hdf5 rf;
-	rf.open("t2d_chm_mt_pipe_conference_den1.h5");
-	//rf.open("t2d_chm_mt_pipe_conference_den2.h5");
+	rf.open("t2d_chm_mt_pipe_embedment_geo_D2_smh.h5");
 
 	QtApp_Posp_T2D_CHM_mt app(argc, argv, QtApp_Posp_T2D_CHM_mt::Animation);
 	app.set_ani_time(5.0);
@@ -177,6 +176,6 @@ void test_t2d_chm_mt_pipe_conference_den_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0, 0.4); // mises strain
 	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
 	//app.set_png_name("t2d_chm_mt_pipe_conference2");
-	//app.set_gif_name("t2d_chm_mt_pipe_conference2");
+	app.set_gif_name("t2d_chm_mt_pipe_conference");
 	app.start();
 }

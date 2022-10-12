@@ -447,8 +447,7 @@ int QtUniformColorMapObject::init(
 			ei.num_str_rect.xl,
 			ei.num_str_rect.yl,
 			ei.num_str_info.nr,
-			ei.num_str_info.str.c_str()
-		);
+			ei.num_str_info.str.c_str());
 	}
 
 	// set up opengl buffer
@@ -486,8 +485,7 @@ int QtUniformColorMapObject::init(
 	gl.glBufferData(GL_ARRAY_BUFFER,
 		tri_node_mem.get_num() * sizeof(Type1NodeData),
 		(GLvoid*)tri_node_mem.get_mem(),
-		GL_STREAM_DRAW
-		);
+		GL_STREAM_DRAW);
 
 	// type
 	gl.glVertexAttribIPointer(0, 1, GL_INT,
@@ -506,8 +504,7 @@ int QtUniformColorMapObject::init(
 	gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 		tri_elem_mem.get_num() * sizeof(GLuint),
 		(GLvoid*)tri_elem_mem.get_mem(),
-		GL_STREAM_DRAW
-		);
+		GL_STREAM_DRAW);
 
 	// for character gl buffer
 	CharNodeData cnd[6];
@@ -516,8 +513,7 @@ int QtUniformColorMapObject::init(
 	gl.glBufferData(GL_ARRAY_BUFFER,
 		6 * sizeof(CharNodeData),
 		(GLvoid *)&cnd,
-		GL_DYNAMIC_DRAW
-		);
+		GL_DYNAMIC_DRAW);
 
 	// coordinates
 	gl.glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,

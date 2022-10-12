@@ -303,7 +303,7 @@ namespace Step_T3D_ME_TBB_Task
 
 	public:
 		ContactRigidBody(Step_T3D_ME_TBB& _stp) : stp(_stp) {}
-		void init(double max_pcl_vol) noexcept;
+		void init(double max_pcl_vol, bool is_first_step) noexcept;
 		void update() noexcept;
 		inline bool has_rigid_cone() const noexcept { return prco != nullptr; }
 		inline bool has_rigid_cube() const noexcept { return prcu != nullptr; }

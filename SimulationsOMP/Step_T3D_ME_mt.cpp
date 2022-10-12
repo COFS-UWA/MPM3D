@@ -1524,8 +1524,7 @@ int Step_T3D_ME_mt::apply_rigid_cube(
 			rc_cf.add_force(
 				p_x, p_y, p_z,
 				-gcont_f.fx, -gcont_f.fy, -gcont_f.fz,
-				rc_cen.x, rc_cen.y, rc_cen.z
-			);
+				rc_cen.x, rc_cen.y, rc_cen.z);
 		}
 	}
 

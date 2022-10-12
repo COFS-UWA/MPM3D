@@ -366,7 +366,7 @@ int ResultFile_hdf5::write_attribute(
 	hid_t dataspace_id = H5Screate(H5S_SCALAR);
 	hid_t attr_id = H5Acreate(grp_id, name, H5T_NATIVE_ULONG,
 		dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-	H5Awrite(attr_id, H5T_NATIVE_ULONG, &value);
+	H5Awrite(attr_id, H5T_NATIVE_UINT32, &value);
 	H5Aclose(attr_id);
 	H5Sclose(dataspace_id);
 	return 0;
@@ -507,7 +507,7 @@ int ResultFile_hdf5::read_attribute(
 	hid_t attr_id = H5Aopen(grp_id, name, H5P_DEFAULT);
 	if (attr_id < 0)
 		return -1;
-	H5Aread(attr_id, H5T_NATIVE_ULLONG, &value);
+	H5Aread(attr_id, H5T_NATIVE_UINT32, &value);
 	H5Aclose(attr_id);
 	H5Sclose(dataspace_id);
 	return 0;

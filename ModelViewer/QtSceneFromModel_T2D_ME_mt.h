@@ -51,12 +51,9 @@ protected:
 	void set_viewport(int wd, int ht, GLfloat xlen, GLfloat ylen);
 
 	QVector3D bg_color;
-	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
-	{
-		bg_color[0] = r;
-		bg_color[1] = g;
-		bg_color[2] = b;
-	}
+	QVector3D rb_color;
+	QVector3D mesh_color;
+	QVector3D pcl_color;
 
 public:
 	typedef Model_T2D_ME_mt::Position Position;
@@ -100,6 +97,32 @@ public:
 		return 0;
 	}
 
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		bg_color[0] = r;
+		bg_color[1] = g;
+		bg_color[2] = b;
+	}
+	inline void set_rb_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		rb_color[0] = r;
+		rb_color[1] = g;
+		rb_color[2] = b;
+	}
+	inline void set_mesh_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		mesh_color[0] = r;
+		mesh_color[1] = g;
+		mesh_color[2] = b;
+	}
+	// only for mono color pcl
+	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		pcl_color[0] = r;
+		pcl_color[1] = g;
+		pcl_color[2] = b;
+	}
+	
 	int initialize(int wd, int ht);
 	void draw();
 	void resize(int wd, int ht);

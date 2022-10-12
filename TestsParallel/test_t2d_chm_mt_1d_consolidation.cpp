@@ -35,8 +35,9 @@ void test_t2d_chm_mt_1d_consolidation(int argc, char** argv)
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(model.get_pcl_num());
 	for (uint32_t p_id = 0; p_id < pcl_num; ++p_id)
 	{
-		les[p_id].set_param(1000.0, 0.0);
-		mms[p_id] = &les[p_id];
+		mms[p_id] = les;
+		les->set_param(1000.0, 0.0);
+		les = model.following_LinearElasticity(les);
 	}
 
 	// tbc
@@ -175,13 +176,15 @@ void test_t2d_chm_mt_1d_consolidation_ani_result(int argc, char** argv)
 	app.set_ani_time(5.0);
 	app.set_win_size(1200, 950);
 	app.set_bg_color(1.0f, 1.0f, 1.0f);
-	app.set_char_color(0.0f, 0.0f, 0.0f);
+	app.set_rb_color(0.92941, 0.49, 0.19216);
+	app.set_mesh_color(0.75, 0.75, 0.75);
+	app.set_color_map_char_color(0.0f, 0.0f, 0.0f);
 	app.set_res_file(rf, "consolidation", Hdf5Field::p);
 	app.set_color_map_fld_range(0.0, 1.0);
 	//app.set_res_file(rf, "consolidation", Hdf5Field::mises_strain_2d);
 	//app.set_color_map_fld_range(0.0, 0.01);
 	app.set_color_map_geometry(0.8, 0.3, 0.6);
 	//app.set_png_name("t2d_chm_mt_1d_consolidation");
-	app.set_gif_name("t2d_chm_mt_1d_consolidation");
+	//app.set_gif_name("t2d_chm_mt_1d_consolidation");
 	app.start();
 }

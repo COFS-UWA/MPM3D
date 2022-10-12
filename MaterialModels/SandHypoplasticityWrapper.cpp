@@ -7,7 +7,9 @@ namespace MatModel
 {
 	SandHypoplasticityWrapper::SandHypoplasticityWrapper() :
 		MaterialModel(sand_hypoplasticity_wrapper_integration_function,
-			"SandHypoplasticityWrapper")
+			"SandHypoplasticityWrapper",
+			&sand_hypoplasticity_wrapper_store_to_function,
+			&sand_hypoplasticity_wrapper_retrieve_from_function)
 	{
 		dee11 = 0.0;
 		dee22 = 0.0;
@@ -88,5 +90,15 @@ namespace MatModel
 		self.dep23 = dstrain[4];
 		self.dep31 = dstrain[5];
 		return self.status_code;
+	}
+
+	void sand_hypoplasticity_wrapper_store_to_function(const MaterialModel* _self, char* mat_model_mem)
+	{
+		memcpy(mat_model_mem, _self, sizeof(SandHypoplasticityWrapper));
+	}
+
+	void sand_hypoplasticity_wrapper_retrieve_from_function(MaterialModel* _self, const char* mat_model_mem)
+	{
+		memcpy(_self, mat_model_mem, sizeof(SandHypoplasticityWrapper));
 	}
 }

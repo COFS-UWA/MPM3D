@@ -13,6 +13,7 @@
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
 #include "RigidObject/StickyContact3D.h"
+#include "RigidObject/NonSeperateContact3D.h"
 
 class Model_T3D_CHM_mt;
 class Step_T3D_CHM_mt;
@@ -515,6 +516,7 @@ protected:
 	RoughContact3D rough_contact_s, rough_contact_f;
 	FrictionalContact3D fric_contact_s;
 	StickyContact3D sticky_contact_s;
+	NonSeperateContact3D non_sep_contact_s, non_sep_contact_f;
 	ContactModel3D *pcm_s, *pcm_f;
 
 	// solid
@@ -582,17 +584,33 @@ public:
 		fric_contact_s.set_friction_ratio(_fric_ratio);
 		sticky_contact_s.set_K_cont(_Ksn_cont, _Kst_cont);
 		sticky_contact_s.set_shear_strength(_shear_strength);
+		non_sep_contact_s.set_K_cont(_Ksn_cont);
 		smooth_contact_f.set_Kn_cont(_Kfn_cont);
 		rough_contact_f.set_K_cont(_Kfn_cont, _Kft_cont);
+		non_sep_contact_f.set_K_cont(_Kfn_cont);
+	}
+	// for non seperate contact only
+	inline void set_overlap_dist_off(double dist_off)
+	{
+		non_sep_contact_s.set_overlap_dist_off(dist_off);
+		non_sep_contact_f.set_overlap_dist_off(dist_off);
 	}
 	inline void set_smooth_contact_between_spcl_and_rect() noexcept { pcm_s = &smooth_contact_s; }
-	inline void set_rough_contact_between_spcl_and_rect() noexcept { pcm_s = &rough_contact_s; }
 	inline void set_frictional_contact_between_spcl_and_rect() noexcept { pcm_s = &fric_contact_s; }
 	inline void set_sticky_contact_between_spcl_and_rect() noexcept { pcm_s = &sticky_contact_s; }
+	inline void set_rough_contact_between_spcl_and_rect() noexcept { pcm_s = &rough_contact_s; }
+	inline void set_non_sep_contact_between_spcl_and_rect() noexcept { pcm_s = &non_sep_contact_s; }
 	inline void set_smooth_contact_between_fpcl_and_rect() noexcept { pcm_f = &smooth_contact_f; }
 	inline void set_rough_contact_between_fpcl_and_rect() noexcept { pcm_f = &rough_contact_f; }
+	inline void set_non_sep_contact_between_fpcl_and_rect() noexcept { pcm_f = &non_sep_contact_f; }
 	inline ContactModel3D *get_contact_model_s() noexcept { return pcm_s; }
 	inline ContactModel3D* get_contact_model_f() noexcept { return pcm_f; }
+	inline bool is_smooth_contact_s() noexcept { return pcm_s == &smooth_contact_s; }
+	inline bool is_frictional_contact_s() noexcept { return pcm_s == &fric_contact_s; }
+	inline bool is_sticky_contact_s() noexcept { return pcm_s == &sticky_contact_s; }
+	inline bool is_rough_contact_s() noexcept { return pcm_s == &rough_contact_s; }
+	inline bool is_smooth_contact_f() noexcept { return pcm_f == &smooth_contact_f; }
+	inline bool is_rough_contact_f() noexcept { return pcm_f == &rough_contact_f; }
 
 	inline void set_cylinder_vx_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vx_bc(ramp_up_time); }
 	inline void set_cylinder_vy_bc_ramp_up_time(double ramp_up_time) { rigid_cylinder.set_ramp_up_vy_bc(ramp_up_time); }

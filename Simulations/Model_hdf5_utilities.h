@@ -8,6 +8,15 @@
 
 namespace Model_hdf5_utilities
 {
+	enum class ContactType : unsigned int
+	{
+		Invalid = 0,
+		Smooth = 1,
+		Frictional = 2,
+		Sticky = 3,
+		Rough = 4
+	};
+
 	// 2D Background mesh
 	struct Node2DData
 	{

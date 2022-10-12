@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 
 	//test_stack_and_link_list();
 
+	test_tresca();
 	//test_model_container();
 	//test_mcc_get_Su();
 	//test_mcc_compression();
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
 	//test_t2d_chm_s_geostatic_mcc_result(argc, argv);
 
 	//test_t2d_me_s_1d_compression(argc, argv);
-	test_t2d_me_s_1d_compression_static_result(argc, argv);
+	//test_t2d_me_s_1d_compression_static_result(argc, argv);
 	//test_t2d_me_s_1d_compression_ani_result(argc, argv);
 
 	//test_t2d_me_s_1d_compression_horizontal(argc, argv);

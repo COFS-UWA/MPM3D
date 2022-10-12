@@ -76,13 +76,9 @@ protected:
 	QMatrix4x4 hud_view_mat;
 
 	QVector3D bg_color;
-	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
-	{
-		bg_color[0] = r;
-		bg_color[1] = g;
-		bg_color[2] = b;
-	}
-
+	QVector3D rb_color;
+	QVector3D mesh_color;
+	
 	void clear();
 
 public:
@@ -109,8 +105,33 @@ public:
 		has_color_map = true;
 		cm_xpos = xpos;	cm_ypos = ypos; cm_ht = ht;
 	}
+	inline void set_color_map_color(GLfloat r, GLfloat g, GLfloat b)
+	{ color_map_obj.set_char_color(r, g, b); }
+
+	inline void set_bg_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		bg_color[0] = r;
+		bg_color[1] = g;
+		bg_color[2] = b;
+	}
+	inline void set_rb_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		rb_color[0] = r;
+		rb_color[1] = g;
+		rb_color[2] = b;
+	}
+	inline void set_mesh_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		mesh_color[0] = r;
+		mesh_color[1] = g;
+		mesh_color[2] = b;
+	}
+
 	inline void set_mono_color_pcl(bool _op = true) noexcept
 	{ pcl_is_mono_color = _op; }
+	// only for mono color pcl
+	inline void set_pcl_color(GLfloat r, GLfloat g, GLfloat b)
+	{ color_map1.set_color(r, g, b); }
 
 	size_t get_frame_num();
 	double get_frame_time(size_t frame_id);

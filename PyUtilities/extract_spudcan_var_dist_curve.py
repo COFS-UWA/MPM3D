@@ -6,7 +6,7 @@ from multiprocessing import Process, Array
 
 path_name = "E:/"
 #path_name = "../Build/TestsParallel/"
-sim_name = "t3d_chm_mt_spudcan_cy_vdynd3"
+sim_name = "t3d_chm_mt_spudcan_cy_ucav-400_V16000"
 var_name = "s33"
 th_name = "penetration"
 rb_name = "RigidObjectByT3DMesh"
@@ -15,7 +15,7 @@ proc_num = 8
 
 # (r0, z0, dr, dz)
 # absolute rb_position
-# var_depth = -6.0
+# var_depth = -3.0
 # var_pos = [
     # (0.1, var_depth, 0.2, 0.2),
     # (0.3, var_depth, 0.2, 0.2),
