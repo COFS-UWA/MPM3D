@@ -637,12 +637,10 @@ struct PointToTriangleDistance
 			normal.z = iz1.z;
 			tmp1.substract<Point3D>(pt, n1);
 			coef = T1[2][0] * tmp1.x + T1[2][1] * tmp1.y + T1[2][2] * tmp1.z;
-			if (coef < 0.0)
+			if (coef <= 0.0)
 				normal.reverse();
 			return;
 		case 1:
-			//v1.substract(n2, n1);
-			//v1.normalize();
 			v2.substract(pt, n1);
 			coef = ix1.dot(v2);
 			v1.x = ix1.x;
@@ -651,8 +649,6 @@ struct PointToTriangleDistance
 			normal.substract(v2, v1.scale(coef));
 			break;
 		case 2:
-			//v1.substract(n3, n2);
-			//v1.normalize();
 			v2.substract(pt, n2);
 			coef = ix2.dot(v2);
 			v1.x = ix2.x;
@@ -661,8 +657,6 @@ struct PointToTriangleDistance
 			normal.substract(v2, v1.scale(coef));
 			break;
 		case 3:
-			//v1.substract(n1, n3);
-			//v1.normalize();
 			v2.substract(pt, n3);
 			coef = ix3.dot(v2);
 			v1.x = ix3.x;
@@ -685,7 +679,7 @@ struct PointToTriangleDistance
 		}
 
 		// normalization
-		double norm = normal.norm();
+		const double norm = normal.norm();
 		if (norm != 0.0)
 			normal.scale(1.0 / norm);
 		else

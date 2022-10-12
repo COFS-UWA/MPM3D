@@ -197,3 +197,7 @@ if __name__ == "__main__":
     # nodes, elems = get_mesh_from_inp("../Asset/cylinder_cap.inp", "Part-1")
     # move_mesh_in_z_direction(nodes, 1.0)
     # output_mesh_to_hdf5(nodes, elems, "../Asset/cylinder_cap.h5")
+    # nodes, elems = get_mesh_from_inp("../Asset/cy_pap2.inp", "Part-1")
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/cy_pap2.h5")
+    nodes, elems = get_mesh_from_inp("../Asset/ba_pap2.inp", "Part-1")
+    output_mesh_to_hdf5(nodes, elems, "../Asset/ba_pap2.h5")

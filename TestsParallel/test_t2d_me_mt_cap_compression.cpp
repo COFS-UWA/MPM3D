@@ -42,10 +42,11 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	//model.init_rigid_rect(0.1, 1.03, 0.3, 0.06, 1.0);
 	//model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
 	// rigid body
-	model.init_rb(2.0, "../../Asset/rect_mesh_w006_1by5.h5", -0.05, 1.0, 0.0, 0.04, 0.04);
+	//model.init_rb(2.0, "../../Asset/rect_mesh_w006_1by5.h5", -0.05, 1.0, 0.0, 0.04, 0.04);
+	model.init_rb(2.0, "C:\\MyData\\Work\\Contact algorithm 3D\\pap2_md\\rect_cap_pp2.h5", -0.05, 1.0, 0.0, 0.04, 0.04);
 	model.set_rb_velocity(0.0, -0.01, 0.0);
 	// 5000.0, 10000.0, 20000.0, 50000.0
-	model.set_contact_param(5000.0, 5000.0, 0.2, 3.0);
+	model.set_contact_param(20000.0, 20000.0, 0.2, 3.0);
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -58,13 +59,13 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	find_2d_nodes_on_y_line(model, vy_bc_pt_array, 0.0);
 	model.init_fixed_vy_bc(vy_bc_pt_array.get_num(), vy_bc_pt_array.get_mem());
 
-	QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
-	md_disp.set_win_size(600, 950);
-	md_disp.set_model(model);
-	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	md_disp.start();
-	return;
+	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
+	//md_disp.set_win_size(600, 950);
+	//md_disp.set_model(model);
+	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.start();
+	//return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t2d_me_mt_cap_compression.h5");

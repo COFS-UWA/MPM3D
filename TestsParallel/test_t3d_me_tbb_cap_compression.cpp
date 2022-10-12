@@ -55,21 +55,21 @@ void test_t3d_me_tbb_cap_compression(int argc, char **argv)
 	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, 0.0);
 	model.init_fixed_vz_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
-	//QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
-	////QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
-	////md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
-	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
-	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(200.0f, 30.0f);
-	//md_disp.set_light_dir(200.0f, 30.0f);
-	////md_disp.set_view_dist_scale(0.5);
-	//md_disp.set_model(model);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	//md_disp.start();
-	//return;
+	QtApp_Prep_T3D_ME_mt_Div<> md_disp(argc, argv);
+	//QtApp_Prep_T3D_ME_mt_Div<BoxDivisionSet> md_disp(argc, argv);
+	//md_disp.get_div_set().set_param(0.0, 0.1, 0.0, 0.1, 0.0, 0.18);
+	//QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
+	//md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
+	md_disp.set_win_size(1200, 950);
+	md_disp.set_view_dir(200.0f, -15.0f);
+	md_disp.set_light_dir(200.0f, -20.0f);
+	//md_disp.set_view_dist_scale(0.5);
+	md_disp.set_model(model);
+	//md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
+	md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	//md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
+	md_disp.start();
+	return;
 
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_me_tbb_cap_compression.h5");

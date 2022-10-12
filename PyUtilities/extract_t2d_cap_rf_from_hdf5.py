@@ -12,9 +12,9 @@ rb_fy = []
 is_init = False
 ini_y = 0.0
 for th_id in range(th_num):
-    rb_grp = th_grp['frame_%d' % th_id]['RigidRect']
+    rb_grp = th_grp['frame_%d' % th_id]['RigidObjectByT2DMesh'] # ['RigidRect'] ['RigidObjectByT2DMesh']
     cen_y = rb_grp.attrs['y']
-    rf_y = rb_grp.attrs['fy_contact']
+    rf_y = rb_grp.attrs['fy_cont'] # ['fy_contact'] ['fy_cont']
     if not is_init:
         ini_y = cen_y
         is_init = True
