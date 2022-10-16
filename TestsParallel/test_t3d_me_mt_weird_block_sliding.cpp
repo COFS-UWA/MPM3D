@@ -68,9 +68,9 @@ void test_t3d_me_mt_weird_block_sliding(int argc, char** argv)
 	model.set_t3d_rigid_mesh_init_velocity(0.0, 0.0, 0.0);
 	model.set_t3d_rigid_mesh_ext_force(0.0, 0.0, fz);
 	constexpr double K_cont = 1.0e4;
-	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
+	model.set_contact_param(K_cont, K_cont, 0.2, 0.3);
 	//model.set_frictional_contact_between_pcl_and_rect();
-	//model.set_sticky_contact_between_pcl_and_rect();
+	model.set_sticky_contact_between_pcl_and_rect();
 	//model.set_rough_contact_between_pcl_and_rect();
 
 	//QtApp_Prep_T3D_ME_mt md_disp(argc, argv);

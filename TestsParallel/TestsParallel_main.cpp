@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_block_sliding(argc, argv);
 	//test_t3d_me_mt_block_sliding_result(argc, argv);
 
+	// paper2
 	//test_t3d_me_mt_weird_block_sliding(argc, argv);
 	//test_t3d_me_mt_weird_block_sliding_result(argc, argv);
 
@@ -190,7 +191,7 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
 	//test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
-	//test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
+	test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_result(argc, argv);
@@ -249,7 +250,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_mt_piezofoundation_sim_mat_restart(argc, argv);
 	// tbb version
-	test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
+	//test_t3d_me_tbb_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_tbb_piezofoundation_sim_mat_restart(argc, argv);
 	//test_t3d_me_tbb_piezofoundation_result(argc, argv);
 	

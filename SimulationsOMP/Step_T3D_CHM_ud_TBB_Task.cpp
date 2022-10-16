@@ -316,35 +316,35 @@ namespace Step_T3D_CHM_ud_TBB_Task
 				const DShapeFuncABC& e_dN = elem_N_abc[e_id];
 				// node 1
 				Force& en1_f_s = elem_node_force_s[e_id * 4];
-				en1_fx_s -= (e_dN.dN1_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN1_dy * e_s12 + e_dN.dN1_dz * e_s31) * e_p_vol;
+				en1_fx_s -= (e_dN.dN1_dx * (e_s11 - e_p) + e_dN.dN1_dy * e_s12 + e_dN.dN1_dz * e_s31) * e_p_vol;
 				en1_f_s.fx = en1_fx_s;
-				en1_fy_s -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN1_dz * e_s23) * e_p_vol;
+				en1_fy_s -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * (e_s22 - e_p) + e_dN.dN1_dz * e_s23) * e_p_vol;
 				en1_f_s.fy = en1_fy_s;
-				en1_fz_s -= (e_dN.dN1_dx * e_s31 + e_dN.dN1_dy * e_s23 + e_dN.dN1_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
+				en1_fz_s -= (e_dN.dN1_dx * e_s31 + e_dN.dN1_dy * e_s23 + e_dN.dN1_dz * (e_s33 - e_p)) * e_p_vol;
 				en1_f_s.fz = en1_fz_s;
 				// node 2
 				Force& en2_f_s = elem_node_force_s[e_id * 4 + 1];
-				en2_fx_s -= (e_dN.dN2_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN2_dy * e_s12 + e_dN.dN2_dz * e_s31) * e_p_vol;
+				en2_fx_s -= (e_dN.dN2_dx * (e_s11 - e_p) + e_dN.dN2_dy * e_s12 + e_dN.dN2_dz * e_s31) * e_p_vol;
 				en2_f_s.fx = en2_fx_s;
-				en2_fy_s -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN2_dz * e_s23) * e_p_vol;
+				en2_fy_s -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * (e_s22 - e_p) + e_dN.dN2_dz * e_s23) * e_p_vol;
 				en2_f_s.fy = en2_fy_s;
-				en2_fz_s -= (e_dN.dN2_dx * e_s31 + e_dN.dN2_dy * e_s23 + e_dN.dN2_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
+				en2_fz_s -= (e_dN.dN2_dx * e_s31 + e_dN.dN2_dy * e_s23 + e_dN.dN2_dz * (e_s33 - e_p)) * e_p_vol;
 				en2_f_s.fz = en2_fz_s;
 				// node 3
 				Force& en3_f_s = elem_node_force_s[e_id * 4 + 2];
-				en3_fx_s -= (e_dN.dN3_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN3_dy * e_s12 + e_dN.dN3_dz * e_s31) * e_p_vol;
+				en3_fx_s -= (e_dN.dN3_dx * (e_s11 - e_p) + e_dN.dN3_dy * e_s12 + e_dN.dN3_dz * e_s31) * e_p_vol;
 				en3_f_s.fx = en3_fx_s;
-				en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN3_dz * e_s23) * e_p_vol;
+				en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * (e_s22 - e_p) + e_dN.dN3_dz * e_s23) * e_p_vol;
 				en3_f_s.fy = en3_fy_s;
-				en3_fz_s -= (e_dN.dN3_dx * e_s31 + e_dN.dN3_dy * e_s23 + e_dN.dN3_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
+				en3_fz_s -= (e_dN.dN3_dx * e_s31 + e_dN.dN3_dy * e_s23 + e_dN.dN3_dz * (e_s33 - e_p)) * e_p_vol;
 				en3_f_s.fz = en3_fz_s;
 				// node 4
 				Force& en4_f_s = elem_node_force_s[e_id * 4 + 3];
-				en4_fx_s -= (e_dN.dN4_dx * (e_s11 - (1.0 - e_n) * e_p) + e_dN.dN4_dy * e_s12 + e_dN.dN4_dz * e_s31) * e_p_vol;
+				en4_fx_s -= (e_dN.dN4_dx * (e_s11 - e_p) + e_dN.dN4_dy * e_s12 + e_dN.dN4_dz * e_s31) * e_p_vol;
 				en4_f_s.fx = en4_fx_s;
-				en4_fy_s -= (e_dN.dN4_dx * e_s12 + e_dN.dN4_dy * (e_s22 - (1.0 - e_n) * e_p) + e_dN.dN4_dz * e_s23) * e_p_vol;
+				en4_fy_s -= (e_dN.dN4_dx * e_s12 + e_dN.dN4_dy * (e_s22 - e_p) + e_dN.dN4_dz * e_s23) * e_p_vol;
 				en4_f_s.fy = en4_fy_s;
-				en4_fz_s -= (e_dN.dN4_dx * e_s31 + e_dN.dN4_dy * e_s23 + e_dN.dN4_dz * (e_s33 - (1.0 - e_n) * e_p)) * e_p_vol;
+				en4_fz_s -= (e_dN.dN4_dx * e_s31 + e_dN.dN4_dy * e_s23 + e_dN.dN4_dz * (e_s33 - e_p)) * e_p_vol;
 				en4_f_s.fz = en4_fz_s;
 
 				e_id = pcl_in_elems[p_id + 1];
@@ -749,7 +749,6 @@ namespace Step_T3D_CHM_ud_TBB_Task
 					+ node_de_vol_f[eni.n3]
 					+ node_de_vol_f[eni.n4]) * one_fourth;
 				e_density_f = elem_density_f[e_id] / (1.0 - e_de_vol_f);
-				//e_p = elem_p[e_id] + stp.Kf * e_de_vol_f;
 				// cavitation
 				Kf_ratio = 1.0;
 				if (stp.m_cav != 0.0) // consider cavitation

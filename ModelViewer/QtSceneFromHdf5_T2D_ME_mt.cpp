@@ -337,9 +337,8 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		if (display_whole_model)
 			bbox.envelop(rb_bbox);
 	}
-	rf.close_group(frame_grp_id);
 	// rigid body by t2d mesh
-	QVector3D navajowhite(1.0f, 0.871f, 0.678f);
+	//QVector3D navajowhite(1.0f, 0.871f, 0.678f);
 	if (rf.has_group(md_data_grp_id, "RigidObjectByT2DMesh"))
 	{
 		has_rb_obj = true;
@@ -363,7 +362,7 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 			pt_ln_dist,
 			edge_num,
 			rb_x, rb_y, rb_ang,
-			navajowhite);
+			rb_color);
 		delete[] pt_ln_dist;
 		double grid_xl, grid_yl, grid_hx, grid_hy;
 		size_t grid_x_num, grid_y_num;
@@ -378,6 +377,17 @@ int QtSceneFromHdf5_T2D_ME_mt::init_scene(int wd, int ht, size_t frame_id)
 		if (display_whole_model)
 			bbox.envelop(rmesh_bbox);
 	}
+	if (rf.has_group(frame_grp_id, "RigidObjectByT2DMesh"))
+	{
+		hid_t rb_grp_id = rf.open_group(frame_grp_id, "RigidObjectByT2DMesh");
+		double rb_x, rb_y, rb_ang;
+		rf.read_attribute(rb_grp_id, "x", rb_x);
+		rf.read_attribute(rb_grp_id, "y", rb_y);
+		rf.read_attribute(rb_grp_id, "ang", rb_ang);
+		rb_obj.update(rb_x, rb_y, rb_ang);
+		rf.close_group(rb_grp_id);
+	}
+	rf.close_group(frame_grp_id);
 
 	// color map display
 	if (has_color_map)

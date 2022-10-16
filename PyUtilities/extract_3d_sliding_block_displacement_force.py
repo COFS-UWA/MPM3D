@@ -2,7 +2,7 @@ import h5py as py
 import matplotlib.pyplot as plt
 
 # Numerical result
-hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_block_sliding.h5", "r")
+hdf5_file = py.File("../Build/TestsParallel/t3d_me_mt_weird_block_sliding.h5", "r")
 
 th_grp = hdf5_file['TimeHistory']['sliding']
 th_num = th_grp.attrs['output_num']
@@ -17,7 +17,7 @@ rb_cfz = []
 for th_id in range(th_num):
     frame_grp = th_grp['frame_%d' % th_id]
     cal_time.append(frame_grp.attrs['current_time'])
-    rb_grp = frame_grp['RigidCube']
+    rb_grp = frame_grp['RigidObjectByT3DMesh']
     rb_x.append(rb_grp.attrs['x'])
     rb_y.append(rb_grp.attrs['y'])
     rb_z.append(rb_grp.attrs['z'])

@@ -6,6 +6,7 @@
 #include "Step_T3D_CHM_mt_Geo.h"
 #include "TimeHistory_T3D_CHM_mt_Geo_complete.h"
 #include "Step_T3D_CHM_mt.h"
+#include "Step_T3D_CHM_ud_mt.h"
 #include "TimeHistory_T3D_CHM_mt_complete.h"
 #include "Step_T3D_CHM_TBB.h"
 #include "TimeHistory_T3D_CHM_TBB_complete.h"
@@ -31,12 +32,14 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	constexpr double cy_len = cy_top + cy_depth;
 	constexpr double dense_elem_size = 0.125 * footing_radius;
 	constexpr double coarse_elem_size = 0.25 * footing_radius;
-	constexpr double sml_pcl_size = dense_elem_size * 0.25;
+	constexpr double sml_pcl_size = dense_elem_size * 0.3; // 0.25
 	constexpr double lgr_pcl_size = coarse_elem_size * 0.25;
 
 	TetrahedronMesh teh_mesh;
-	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_half_cylinder_8R.h5");
-	teh_mesh.init_search_grid(0.2, 0.2, 0.2);
+	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_half_cylinder_3_5R.h5");
+	teh_mesh.init_search_grid(0.35, 0.35, 0.35);
+	//teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_half_cylinder_8R.h5");
+	//teh_mesh.init_search_grid(0.2, 0.2, 0.2);
 	std::cout << "node_num: " << teh_mesh.get_node_num() << "\n"
 			  << "elem_num: " << teh_mesh.get_elem_num() << "\n";
 
@@ -50,20 +53,20 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		cy_coarse_depth,
 		sml_pcl_size, sml_pcl_size, sml_pcl_size);
 	// coarse area
-	pcl_generator.generate_pcls_in_cylinder(
-		0.0, 0.0, -cy_coarse_depth,
-		0.0, 0.0, 1.0,
-		cy_coarse_radius, cy_radius,
-		-180.0, 0.0,
-		cy_coarse_depth,
-		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
-	pcl_generator.generate_pcls_in_cylinder(
-		0.0, 0.0, -cy_depth,
-		0.0, 0.0, 1.0,
-		0.0, cy_radius,
-		-180.0, 0.0,
-		cy_depth - cy_coarse_depth,
-		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
+	//pcl_generator.generate_pcls_in_cylinder(
+	//	0.0, 0.0, -cy_coarse_depth,
+	//	0.0, 0.0, 1.0,
+	//	cy_coarse_radius, cy_radius,
+	//	-180.0, 0.0,
+	//	cy_coarse_depth,
+	//	lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
+	//pcl_generator.generate_pcls_in_cylinder(
+	//	0.0, 0.0, -cy_depth,
+	//	0.0, 0.0, 1.0,
+	//	0.0, cy_radius,
+	//	-180.0, 0.0,
+	//	cy_depth - cy_coarse_depth,
+	//	lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	//
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
@@ -73,7 +76,6 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	constexpr double den_dry = den_grain / (e0 + 1.0);
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000.0 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
-	constexpr double stress_depth_limit = -0.01;
 	constexpr double n0 = e0 / (1.0 + e0);
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
@@ -104,8 +106,6 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		pcl_s.s33 = pcl_z * 9.81 * den_float;
 		pcl_s.s22 = K0 * pcl_s.s33;
 		pcl_s.s11 = pcl_s.s22;
-		if (pcl_z > stress_depth_limit) // shallow depth
-			pcl_z = stress_depth_limit;
 		ini_stress[2] = pcl_s.s33 < -min_prin_stress ? pcl_s.s33 : -min_prin_stress;
 		ini_stress[1] = pcl_s.s22 < -min_prin_stress ? pcl_s.s22 : -min_prin_stress;
 		ini_stress[0] = pcl_s.s11 < -min_prin_stress ? pcl_s.s11 : -min_prin_stress;
@@ -118,8 +118,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	}
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
-		0.0, 0.0, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
+		0.0, -1.0, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.29, -0.5);
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
 	model.set_contact_param(K_cont, K_cont, 0.36, 5.0, K_cont/50.0, K_cont/50.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
@@ -175,8 +175,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	md_disp.set_win_size(1200, 950);
 	md_disp.set_view_dir(0.0f, 5.0f);
 	md_disp.set_light_dir(10.0f, -5.0f);
-	md_disp.set_display_bg_mesh(false);
-	md_disp.set_view_dist_scale(0.8);
+	md_disp.set_display_bg_mesh(true);
+	md_disp.set_view_dist_scale(0.6);
 	md_disp.set_pts_from_vx_bc_s(0.04);
 	//md_disp.set_pts_from_vy_bc_s(0.04);
 	//md_disp.set_pts_from_vz_bc_s(0.04);
@@ -194,18 +194,18 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 		model, "t3d_chm_mt_spudcan_cy_HV_model.h5");
 
 	// set tension cut-off surface
-	const size_t pcl_num = model.get_pcl_num();
-	MatModel::MaterialModel** mms = model.get_mat_models();
-	for (size_t p_id = 0; p_id < pcl_num; p_id++)
-		((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(min_prin_stress);
+	//const size_t pcl_num = model.get_pcl_num();
+	//MatModel::MaterialModel** mms = model.get_mat_models();
+	//for (size_t p_id = 0; p_id < pcl_num; p_id++)
+	//	((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(min_prin_stress);
 
 	// contact
-	constexpr double K_cont = 5.0e8;
+	constexpr double K_cont = 1.0e8;
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont/50.0, K_cont/50.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and permeability
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.29, -0.5);
 
 	model.set_k(1.0e-11);
 	
@@ -233,8 +233,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_CHM_mt_complete out1("geostatic");
 	//TimeHistory_T3D_CHM_mt_Geo_complete out1("geostatic");
+	TimeHistory_T3D_CHM_mt_complete out1("geostatic");
 	out1.set_interval_num(50);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
@@ -242,11 +242,11 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(2000);
 
-	Step_T3D_CHM_mt step("step1");
+	Step_T3D_CHM_ud_mt step("step1");
 	//Step_T3D_CHM_mt_Geo step("step1");
 	step.set_model(model);
 	step.set_thread_num(30);
-	step.set_step_time(1.0);
+	step.set_step_time(5.0-6);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);

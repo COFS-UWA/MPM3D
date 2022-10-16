@@ -12,9 +12,17 @@ rb_fy = []
 is_init = False
 ini_y = 0.0
 for th_id in range(th_num):
-    rb_grp = th_grp['frame_%d' % th_id]['RigidObjectByT2DMesh'] # ['RigidRect'] ['RigidObjectByT2DMesh']
+    rb_grp = None
+    rf_y = None
+    if 'RigidCylinder' in th_grp['frame_%d' % th_id].keys():
+        rb_grp = th_grp['frame_%d' % th_id]['RigidRect']
+        rf_y = rb_grp.attrs['fy_contact']
+    else:
+        rb_grp = th_grp['frame_%d' % th_id]['RigidObjectByT2DMesh']
+        rf_y = rb_grp.attrs['fy_cont']
+    #rb_grp = th_grp['frame_%d' % th_id]['RigidObjectByT2DMesh'] # ['RigidRect'] ['RigidObjectByT2DMesh']
+    #rf_y = rb_grp.attrs['fy_cont'] # ['fy_contact'] ['fy_cont']
     cen_y = rb_grp.attrs['y']
-    rf_y = rb_grp.attrs['fy_cont'] # ['fy_contact'] ['fy_cont']
     if not is_init:
         ini_y = cen_y
         is_init = True
