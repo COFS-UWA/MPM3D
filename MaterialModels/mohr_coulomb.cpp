@@ -178,19 +178,21 @@ int32_t integrate_mohr_coulomb(
 	eigen_vals[2] = -s1;
 
 	// rotate stress back
-	const __Float_Type__ s_tmp[3][3] = {
-		eigen_vals[0] * eigen_vecs[0][0], eigen_vals[0] * eigen_vecs[1][0], eigen_vals[0] * eigen_vecs[2][0],
-		eigen_vals[1] * eigen_vecs[0][1], eigen_vals[1] * eigen_vecs[1][1], eigen_vals[1] * eigen_vecs[2][1],
-		eigen_vals[2] * eigen_vecs[0][2], eigen_vals[2] * eigen_vecs[1][2], eigen_vals[2] * eigen_vecs[2][2]
-	};
-	const __Float_Type__ s_corrected[6] = {
-		eigen_vecs[0][0] * s_tmp[0][0] + eigen_vecs[0][1] * s_tmp[1][0] + eigen_vecs[0][2] * s_tmp[2][0],
-		eigen_vecs[1][0] * s_tmp[0][1] + eigen_vecs[1][1] * s_tmp[1][1] + eigen_vecs[1][2] * s_tmp[2][1],
-		eigen_vecs[2][0] * s_tmp[0][2] + eigen_vecs[2][1] * s_tmp[1][2] + eigen_vecs[2][2] * s_tmp[2][2],
-		eigen_vecs[0][0] * s_tmp[0][1] + eigen_vecs[0][1] * s_tmp[1][1] + eigen_vecs[0][2] * s_tmp[2][1],
-		eigen_vecs[0][0] * s_tmp[0][2] + eigen_vecs[0][1] * s_tmp[1][2] + eigen_vecs[0][2] * s_tmp[2][2],
-		eigen_vecs[1][0] * s_tmp[0][2] + eigen_vecs[1][1] * s_tmp[1][2] + eigen_vecs[1][2] * s_tmp[2][2]
-	};
+	__Float_Type__ s_corrected[6];
+	rotate_eigen_mat_to_sym_mat(eigen_vals, eigen_vecs, s_corrected);
+	//const __Float_Type__ s_tmp[3][3] = {
+	//	eigen_vals[0] * eigen_vecs[0][0], eigen_vals[0] * eigen_vecs[1][0], eigen_vals[0] * eigen_vecs[2][0],
+	//	eigen_vals[1] * eigen_vecs[0][1], eigen_vals[1] * eigen_vecs[1][1], eigen_vals[1] * eigen_vecs[2][1],
+	//	eigen_vals[2] * eigen_vecs[0][2], eigen_vals[2] * eigen_vecs[1][2], eigen_vals[2] * eigen_vecs[2][2]
+	//};
+	//const __Float_Type__ s_corrected[6] = {
+	//	eigen_vecs[0][0] * s_tmp[0][0] + eigen_vecs[0][1] * s_tmp[1][0] + eigen_vecs[0][2] * s_tmp[2][0],
+	//	eigen_vecs[1][0] * s_tmp[0][1] + eigen_vecs[1][1] * s_tmp[1][1] + eigen_vecs[1][2] * s_tmp[2][1],
+	//	eigen_vecs[2][0] * s_tmp[0][2] + eigen_vecs[2][1] * s_tmp[1][2] + eigen_vecs[2][2] * s_tmp[2][2],
+	//	eigen_vecs[0][0] * s_tmp[0][1] + eigen_vecs[0][1] * s_tmp[1][1] + eigen_vecs[0][2] * s_tmp[2][1],
+	//	eigen_vecs[0][0] * s_tmp[0][2] + eigen_vecs[0][1] * s_tmp[1][2] + eigen_vecs[0][2] * s_tmp[2][2],
+	//	eigen_vecs[1][0] * s_tmp[0][2] + eigen_vecs[1][1] * s_tmp[1][2] + eigen_vecs[1][2] * s_tmp[2][2]
+	//};
 
 	const __Float_Type__ ds_corrected[3] = {
 		mat_dat.stress[0] - s_corrected[0],

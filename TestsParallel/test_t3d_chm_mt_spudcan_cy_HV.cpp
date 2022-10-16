@@ -17,7 +17,7 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
-#define min_prin_stress 5000.0
+#define pi_min 1.0e3
 
 void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 {
@@ -73,7 +73,6 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	constexpr double den_dry = den_grain / (e0 + 1.0);
 	constexpr double den_sat = den_grain / (e0 + 1.0) + 1000.0 * e0 / (e0 + 1.0);
 	constexpr double den_float = den_sat - 1000.0;
-	constexpr double stress_depth_limit = -0.01;
 	constexpr double n0 = e0 / (1.0 + e0);
 	Model_T3D_CHM_mt model;
 	model.init_mesh(teh_mesh);
@@ -98,22 +97,20 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	MatModel::NorsandWrapper *ns = model.add_NorsandWrapper(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		mms[pcl_id] = ns;
 		double pcl_z = model.get_pcl_pos()[pcl_id].z;
 		auto& pcl_s = model.get_pcl_stress0()[pcl_id];
 		pcl_s.s33 = pcl_z * 9.81 * den_float;
 		pcl_s.s22 = K0 * pcl_s.s33;
 		pcl_s.s11 = pcl_s.s22;
-		if (pcl_z > stress_depth_limit) // shallow depth
-			pcl_z = stress_depth_limit;
-		ini_stress[2] = pcl_s.s33 < -min_prin_stress ? pcl_s.s33 : -min_prin_stress;
-		ini_stress[1] = pcl_s.s22 < -min_prin_stress ? pcl_s.s22 : -min_prin_stress;
-		ini_stress[0] = pcl_s.s11 < -min_prin_stress ? pcl_s.s11 : -min_prin_stress;
+		ini_stress[2] = pcl_s.s33;
+		ini_stress[1] = pcl_s.s22;
+		ini_stress[0] = pcl_s.s11;
+		mms[pcl_id] = ns;
 		ns->set_param(
 			ini_stress, e0, 
 			fric_ang, gamma, lambda,
 			N, chi, H, Ig, niu);
-		ns->set_min_prin_s(min_prin_stress);
+		ns->set_min_prin_s(pi_min);
 		ns = model.following_NorsandWrapper(ns);
 	}
 
@@ -192,20 +189,14 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	Model_T3D_CHM_mt model;
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 		model, "t3d_chm_mt_spudcan_cy_HV_model.h5");
-
-	// set tension cut-off surface
-	const size_t pcl_num = model.get_pcl_num();
-	MatModel::MaterialModel** mms = model.get_mat_models();
-	for (size_t p_id = 0; p_id < pcl_num; p_id++)
-		((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(min_prin_stress);
-
+	
 	// contact
-	constexpr double K_cont = 5.0e8;
-	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont/50.0, K_cont/50.0);
+	constexpr double K_cont = 1.0e9;
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont/1000.0, K_cont/1000.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and permeability
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.29, -0.5);
 
 	model.set_k(1.0e-11);
 	
@@ -233,7 +224,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	ModelData_T3D_CHM_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_CHM_mt_complete out1("geostatic");
+	TimeHistory_T3D_CHM_ud_TBB_complete out1("geostatic");
+	//TimeHistory_T3D_CHM_mt_complete out1("geostatic");
 	//TimeHistory_T3D_CHM_mt_Geo_complete out1("geostatic");
 	out1.set_interval_num(50);
 	out1.set_output_init_state();
@@ -242,11 +234,10 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(2000);
 
-	Step_T3D_CHM_mt step("step1");
-	//Step_T3D_CHM_mt_Geo step("step1");
+	Step_T3D_CHM_ud_TBB step("step1");
 	step.set_model(model);
 	step.set_thread_num(30);
-	step.set_step_time(1.0);
+	step.set_step_time(1.5);
 	step.set_dtime(5.0e-6);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -265,15 +256,9 @@ void test_t3d_chm_mt_spudcan_cy_HV(int argc, char** argv)
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 		model, step, "t3d_chm_mt_spudcan_cy_HV_geo.h5", "geostatic", 51);
 	
-	// set tension cut-off surface
-	const size_t pcl_num = model.get_pcl_num();
-	MatModel::MaterialModel** mms = model.get_mat_models();
-	for (size_t p_id = 0; p_id < pcl_num; p_id++)
-		((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(min_prin_stress);
-
 	// contact
 	constexpr double K_cont = 5.0e8;
-	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont / 50.0, K_cont / 50.0);
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont / 1000.0, K_cont / 1000.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
 
 	// modified velocity and permeability
@@ -354,14 +339,17 @@ void test_t3d_chm_mt_spudcan_cy_HV_geo_result(int argc, char** argv)
 	app.set_display_bg_mesh(false);
 	// s33
 	//app.set_res_file(rf, "geostatic", Hdf5Field::s33);
-	//app.set_color_map_fld_range(-11000.0, 0.0);
+	//app.set_color_map_fld_range(-110000.0, 0.0);
 	// pore
 	app.set_res_file(rf, "geostatic", Hdf5Field::p);
-	app.set_color_map_fld_range(-10000.0, 10000.0);
+	app.set_color_map_fld_range(-33000.0, 33000.0);
+	// void ratio
+	//app.set_res_file(rf, "geostatic", Hdf5Field::mat_e);
+	//app.set_color_map_fld_range(0.5, 0.65);
 	//
 	app.set_color_map_geometry(1.2f, 0.4f, 0.45f);
 	//app.set_png_name("t3d_chm_mt_spudcan_cy_HV_geo");
-	app.set_gif_name("t3d_chm_mt_spudcan_cy_HV_geo");
+	//app.set_gif_name("t3d_chm_mt_spudcan_cy_HV_geo");
 	app.start();
 }
 
