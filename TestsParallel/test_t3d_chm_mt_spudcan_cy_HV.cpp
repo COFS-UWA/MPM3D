@@ -18,7 +18,7 @@
 #include "test_parallel_utils.h"
 #include "test_simulations_omp.h"
 
-#define min_prin_stress 5000.0
+#define min_prin_stress 1000.0
 
 void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 {
@@ -30,6 +30,7 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	constexpr double cy_depth = 8.0 * footing_radius; // 7.0, 8.0
 	constexpr double cy_coarse_depth = 4.0 * footing_radius;
 	constexpr double cy_len = cy_top + cy_depth;
+	constexpr double cy_len2 = cy_top + cy_coarse_depth;
 	constexpr double dense_elem_size = 0.125 * footing_radius;
 	constexpr double coarse_elem_size = 0.25 * footing_radius;
 	constexpr double sml_pcl_size = dense_elem_size * 0.3; // 0.25
@@ -150,7 +151,9 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	// arc bcs
 	IndexArray arc_bc_pt_array(1000);
 	find_3d_nodes_on_cylinder(model, arc_bc_pt_array,
-		Vector3D(0.0, 0.0, -cy_depth), Vector3D(0.0, 0.0, 1.0), cy_radius, cy_len);
+		Vector3D(0.0, 0.0, -cy_coarse_depth), Vector3D(0.0, 0.0, 1.0), cy_coarse_radius, cy_len2);
+	//find_3d_nodes_on_cylinder(model, arc_bc_pt_array,
+	//	Vector3D(0.0, 0.0, -cy_depth), Vector3D(0.0, 0.0, 1.0), cy_radius, cy_len);
 	const auto* node_pos = model.get_node_pos();
 	for (size_t n_id = 0; n_id < arc_bc_pt_array.get_num(); n_id++)
 	{
@@ -161,7 +164,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 
 	// bottom bcs
 	IndexArray vz_bc_pt_array(100);
-	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -cy_depth);
+	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -cy_coarse_depth);
+	//find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -cy_depth);
 	model.init_fixed_vz_s_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
 	ResultFile_hdf5 res_file_hdf5;
@@ -173,16 +177,14 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(0.0f, 5.0f);
-	md_disp.set_light_dir(10.0f, -5.0f);
+	md_disp.set_view_dir(70.0f, 30.0f);
+	md_disp.set_light_dir(80.0f, 25.0f);
 	md_disp.set_display_bg_mesh(true);
 	md_disp.set_view_dist_scale(0.6);
-	md_disp.set_pts_from_vx_bc_s(0.04);
-	//md_disp.set_pts_from_vy_bc_s(0.04);
+	//md_disp.set_pts_from_vx_bc_s(0.04);
 	//md_disp.set_pts_from_vz_bc_s(0.04);
 	//md_disp.set_pts_from_vec_bc_s(0.04);
-	//md_disp.set_pts_from_vx_bc_f(0.04);
-	//md_disp.set_pts_from_vy_bc_f(0.04);
+	md_disp.set_pts_from_vx_bc_f(0.04);
 	//md_disp.set_pts_from_vz_bc_f(0.04);
 	md_disp.start();
 }
@@ -192,12 +194,6 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	Model_T3D_CHM_mt model;
 	Model_T3D_CHM_mt_hdf5_utilities::load_model_from_hdf5_file(
 		model, "t3d_chm_mt_spudcan_cy_HV_model.h5");
-
-	// set tension cut-off surface
-	//const size_t pcl_num = model.get_pcl_num();
-	//MatModel::MaterialModel** mms = model.get_mat_models();
-	//for (size_t p_id = 0; p_id < pcl_num; p_id++)
-	//	((MatModel::NorsandWrapper*)mms[p_id])->set_min_prin_s(min_prin_stress);
 
 	// contact
 	constexpr double K_cont = 1.0e8;
