@@ -76,3 +76,71 @@ void test_contact_model_3d(int argc, char** argv)
 	step.add_time_history(out_cpb);
 	step.solve();
 }
+
+#include <chrono>
+
+void test_contact_3d_rigid_ball_pap2(int argc, char** argv)
+{
+	RigidObjectByT3DMesh rb_mh;
+	rb_mh.init(1.0, "../../Asset/ba_pap2.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1);
+	rb_mh.init_max_dist(0.5);
+
+	Point3D pt(0.0, 0.0, -1.2);
+	double dist;
+	Vector3D lnorm;
+	Point3D lcontpos;
+
+	std::chrono::high_resolution_clock::time_point t0, t1;
+	const size_t repeat_num = 1000000;
+	size_t pcl_se_time = 0;
+	for (size_t i = 0; i < repeat_num; ++i)
+	{
+		t0 = std::chrono::high_resolution_clock::now();
+		bool res = rb_mh.detect_collision_with_point(pt.x, pt.y, pt.z, 0.3, dist, lnorm, lcontpos);
+		t1 = std::chrono::high_resolution_clock::now();
+		pcl_se_time += (t1 - t0).count();
+	}
+
+	std::cout << "dist: " << dist << ", lnorm: "
+		<< lnorm.x << ", " << lnorm.y << ", " << lnorm.z << ",\n";
+	const double avg_find_time = double(pcl_se_time) / double(repeat_num);
+	std::cout << "search time: " << avg_find_time << ",\n";
+}
+
+void test_contact_3d_rigid_cylinder_pap2(int argc, char** argv)
+{
+	RigidObjectByT3DMesh rb_mh;
+	//rb_mh.init(1.0, "../../Asset/cy_pap2.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1);
+	//rb_mh.init(1.0, "C:\\MyData\\Work\\Contact algorithm paper2\\pap2_md\\cy_pap2.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, 0.05, 0.05);
+	rb_mh.init(1.0, "C:\\MyData\\Work\\Contact algorithm paper2\\pap2_md\\ba_pap2.h5", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, 0.05, 0.05);
+	std::cout << "Complete initing model.\n";
+
+	rb_mh.init_max_dist(0.15);
+	std::cout << "Complete loading model.\n";
+
+	//Point3D pt(0.0, 0.0, 0.0);
+	Point3D pt(0.0, 0.0, -1.0);
+	double dist;
+	Vector3D lnorm;
+	Point3D lcontpos;
+
+	std::chrono::high_resolution_clock::time_point t0, t1;
+	constexpr size_t repeat_num = 1000000;
+	size_t pcl_se_time;
+	
+	for (size_t j = 0; j < 10; ++j)
+	{
+		pcl_se_time = 0;
+		for (size_t i = 0; i < repeat_num; ++i)
+		{
+			t0 = std::chrono::high_resolution_clock::now();
+			bool res = rb_mh.detect_collision_with_point(pt.x, pt.y, pt.z, 0.01, dist, lnorm, lcontpos);
+			t1 = std::chrono::high_resolution_clock::now();
+			pcl_se_time += (t1 - t0).count();
+		}
+		std::cout << "dist: " << dist << ", lnorm: "
+			<< lnorm.x << ", " << lnorm.y << ", " << lnorm.z << ",\n";
+		const double avg_find_time = double(pcl_se_time) / double(repeat_num);
+		std::cout << "search time: " << avg_find_time << ",\n";
+	}
+}

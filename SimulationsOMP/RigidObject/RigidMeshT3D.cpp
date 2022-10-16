@@ -550,8 +550,7 @@ void RigidMeshT3D::search_closest_face(
 	unsigned char norm_type;
 	const size_t g_off = offset_from_xyz_id(id_range.xl_id, id_range.yl_id, id_range.zl_id);
 	const size_t end_f_id = face_in_grid_range[g_off + 1];
-	for (size_t f_id = face_in_grid_range[g_off];
-		 f_id < end_f_id; ++f_id)
+	for (size_t f_id = face_in_grid_range[g_off]; f_id < end_f_id; ++f_id)
 	{
 		const PointToTriangleDistance& ptd = pt_tri_dist[face_in_grid_list[f_id]];
 		norm_type = ptd.cal_distance_to_point(pt, dist_tmp);

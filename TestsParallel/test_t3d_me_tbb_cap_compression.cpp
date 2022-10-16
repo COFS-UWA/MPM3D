@@ -38,8 +38,13 @@ void test_t3d_me_tbb_cap_compression(int argc, char **argv)
 
 	model.init_rigid_cylinder(0.1, 0.1, 1.025, 0.05, 0.2);
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.02);
+	//model.set_cylinder_vz_bc_ramp_up_time(1.0);
+
+	//model.init_t3d_rigid_mesh(1.0, "../../Asset/cone_pap2.h5",
+	//	0.1, 0.1, 1.0, 90.0, 0.0, 0.0, 0.05, 0.05, 0.05); // D = 3 m
+	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.02);
+
 	model.set_contact_param(20.0 / (0.025*0.025), 20.0 / (0.025*0.025), 0.1, 0.1);
-	model.set_cylinder_vz_bc_ramp_up_time(1.0);
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
@@ -61,12 +66,13 @@ void test_t3d_me_tbb_cap_compression(int argc, char **argv)
 	////QtApp_Prep_T3D_ME_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
 	////md_disp.get_div_set().set_param(0.0, 0.0, -1.0, 0.45);
 	//md_disp.set_win_size(1200, 950);
-	//md_disp.set_view_dir(200.0f, 30.0f);
-	//md_disp.set_light_dir(200.0f, 30.0f);
+	//md_disp.set_view_dir(30.0f, 0.0f);
+	//md_disp.set_light_dir(30.0f, 20.0f);
+	//md_disp.set_bg_color(QVector3D(1.0f, 1.0f, 1.0f));
 	////md_disp.set_view_dist_scale(0.5);
 	//md_disp.set_model(model);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	//md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
+	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
 	//md_disp.start();
 	//return;
@@ -102,14 +108,16 @@ void test_t3d_me_tbb_cap_compression_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t3d_me_tbb_cap_compression.h5");
 
-	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
-	//app.set_res_file(rf, "compression", 2, Hdf5Field::max_shear_stress);
-	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
+	QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::SingleFrame);
+	app.set_res_file(rf, "compression", 50, Hdf5Field::s33);
+	//QtApp_Posp_T3D_ME_mt app(argc, argv, QtApp_Posp_T3D_ME_mt::Animation);
 	app.set_win_size(1200, 950);
 	app.set_ani_time(7.5);
 	app.set_view_dir(30.0f, 0.0f);
 	app.set_light_dir(30.0f, 20.0f);
 	//app.set_view_dist_scale(1.1);
+	app.set_bg_color(1.0f, 1.0f, 1.0f);
+	app.set_color_map_char_color(0.0f, 0.0f, 0.0f);
 	app.set_color_map_geometry(0.85f, 0.45f, 0.5f);
 	// s33
 	app.set_res_file(rf, "compression", Hdf5Field::s33);
@@ -122,6 +130,6 @@ void test_t3d_me_tbb_cap_compression_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 0.1);
 	//
 	//app.set_png_name("t3d_me_tbb_cap_compression");
-	app.set_gif_name("t3d_me_tbb_cap_compression");
+	//app.set_gif_name("t3d_me_tbb_cap_compression");
 	app.start();
 }

@@ -39,13 +39,14 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	}
 
 	// rigid rect
-	//model.init_rigid_rect(0.1, 1.03, 0.3, 0.06, 1.0);
-	//model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
+	model.init_rigid_rect(0.1, 1.03, 0.3, 0.06, 1.0);
+	model.set_rigid_rect_velocity(0.0, -0.01, 0.0);
 	// rigid body
-	model.init_rb(2.0, "../../Asset/rect_mesh_w006_1by5.h5", -0.05, 1.0, 0.0, 0.04, 0.04);
-	model.set_rb_velocity(0.0, -0.01, 0.0);
+	////model.init_rb(2.0, "../../Asset/rect_mesh_w006_1by5.h5", -0.05, 1.0, 0.0, 0.04, 0.04);
+	//model.init_rb(2.0, "C:\\MyData\\Work\\Contact algorithm 3D\\pap2_md\\rect_cap_pp2.h5", -0.05, 1.0, 0.0, 0.04, 0.04);
+	//model.set_rb_velocity(0.0, -0.01, 0.0);
 	// 5000.0, 10000.0, 20000.0, 50000.0
-	model.set_contact_param(5000.0, 5000.0, 0.2, 3.0);
+	model.set_contact_param(20000.0, 20000.0, 0.2, 3.0);
 
 	// vx bc
 	IndexArray vx_bc_pt_array(50);
@@ -61,6 +62,7 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 	//QtApp_Prep_T2D_ME_mt md_disp(argc, argv);
 	//md_disp.set_win_size(600, 950);
 	//md_disp.set_model(model);
+	//md_disp.set_bg_color(1.0f, 1.0f, 1.0f);
 	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
 	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
 	//md_disp.start();
@@ -81,7 +83,7 @@ void test_t2d_me_mt_cap_compression(int argc, char** argv)
 
 	Step_T2D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(2.0);
+	step.set_step_time(5.0);
 	//step.set_step_time(5.0e-5);
 	step.set_dtime(1.0e-5);
 	//step.set_thread_num(4);
@@ -98,28 +100,28 @@ void test_t2d_me_mt_cap_compression_result(int argc, char** argv)
 	ResultFile_hdf5 rf;
 	rf.open("t2d_me_mt_cap_compression.h5");
 
-	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
-	app.set_win_size(1200, 800);
-	app.set_ani_time(5.0);
-	app.set_res_file(rf, "loading", Hdf5Field::s22);
-	app.set_bg_color(1.0, 1.0, 1.0);
-	app.set_rb_color(0.92941, 0.49, 0.19216);
-	app.set_mesh_color(0.75, 0.75, 0.75);
-	app.set_color_map_fld_range(-50.0, 0.0);
-	app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
-	app.set_color_map_char_color(0.0, 0.0, 0.0);
-	//app.set_png_name("t2d_me_mt_cap_compression");
-	//app.set_gif_name("t2d_me_mt_cap_compression");
-	app.start();
-
-	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
-	//app.set_win_size(600, 950);
-	//app.set_res_file(rf, "loading", 101, Hdf5Field::s22);
-	//app.set_mono_color_pcl();
-	//app.set_pcl_color(0.26667, 0.44706, 0.76863);
+	//QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::Animation);
+	//app.set_win_size(1200, 800);
+	//app.set_ani_time(5.0);
+	//app.set_res_file(rf, "loading", Hdf5Field::s22);
 	//app.set_bg_color(1.0, 1.0, 1.0);
 	//app.set_rb_color(0.92941, 0.49, 0.19216);
 	//app.set_mesh_color(0.75, 0.75, 0.75);
+	//app.set_color_map_fld_range(-50.0, 0.0);
+	//app.set_color_map_geometry(1.0f, 0.45f, 0.5f);
+	//app.set_color_map_char_color(0.0, 0.0, 0.0);
 	////app.set_png_name("t2d_me_mt_cap_compression");
+	//app.set_gif_name("t2d_me_mt_cap_compression");
 	//app.start();
+
+	QtApp_Posp_T2D_ME_mt app(argc, argv, QtApp_Posp_T2D_ME_mt::SingleFrame);
+	app.set_win_size(1200, 800);
+	app.set_res_file(rf, "loading", 100, Hdf5Field::s22);
+	app.set_mono_color_pcl();
+	app.set_pcl_color(0.26667, 0.44706, 0.76863);
+	app.set_bg_color(1.0, 1.0, 1.0);
+	app.set_rb_color(0.92941, 0.49, 0.19216);
+	app.set_mesh_color(0.75, 0.75, 0.75);
+	//app.set_png_name("t2d_me_mt_cap_compression");
+	app.start();
 }

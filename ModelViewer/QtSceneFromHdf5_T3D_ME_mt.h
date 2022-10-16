@@ -173,6 +173,9 @@ public:
 
 	inline void set_color_map_fld_range(double min, double max)
 	{ color_map.set_range(min, max); }
+	inline void set_char_color(GLfloat r, GLfloat g, GLfloat b)
+	{ color_map_obj.set_char_color(r, g, b); }
+
 	inline void set_color_map_geometry(float xpos, float ypos, float ht)
 	{
 		has_color_map = true;

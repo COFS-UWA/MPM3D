@@ -79,6 +79,11 @@ public:
 	inline void set_light_dir(float theta, float fai) { scene.set_light_dir(theta, fai); }
 	inline void set_light_dist_scale(float dist_sc) { scene.set_light_dist_scale(dist_sc); }
 
+	inline void set_bg_color(float r, float g, float b)
+	{
+		QVector3D color(r, g, b);
+		scene.set_bg_color(color);
+	}
 	inline void set_bg_color(QVector3D& color) { scene.set_bg_color(color); }
 
 	inline void set_fog_coef(float coef) { scene.set_fog_coef(coef); }
@@ -102,6 +107,10 @@ public:
 	inline void set_color_map_geometry(float xpos, float ypos, float ht)
 	{
 		scene.set_color_map_geometry(xpos, ypos, ht);
+	}
+	inline void set_color_map_char_color(GLfloat r, GLfloat g, GLfloat b)
+	{
+		scene.set_char_color(r, g, b);
 	}
 	inline void set_mono_color_pcl(bool _op = true) noexcept { scene.set_mono_color_pcl(_op); }
 
