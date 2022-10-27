@@ -100,6 +100,9 @@ void test_t3d_chm_mt_1d_consolidation_restart(int argc, char** argv);
 void test_t3d_chm_mt_1d_geostatic(int argc, char** argv);
 void test_t3d_chm_mt_1d_geostatic_restart(int argc, char** argv);
 
+void test_t3d_chm_mt_1d_consolidation_up(int argc, char** argv);
+void test_t3d_chm_mt_1d_consolidation_up_restart(int argc, char** argv);
+
 void test_sort_pcl_task();
 void test_sort_pcl_task2();
 void test_sort_tri_mesh_node_task();

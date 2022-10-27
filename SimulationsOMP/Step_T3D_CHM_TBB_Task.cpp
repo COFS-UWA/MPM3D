@@ -1128,9 +1128,7 @@ namespace Step_T3D_CHM_TBB_Task
 #ifdef _DEBUG
 			assert(ori_p_id < stp.ori_pcl_num);
 #endif
-			if (ori_p_id == 48639)
-				int efe = stp.substep_index;
-
+			
 			const Position& p_p = pcl_pos[ori_p_id];
 			const double p_x = p_p.x + p_u_s0.ux;
 			const double p_y = p_p.y + p_u_s0.uy;

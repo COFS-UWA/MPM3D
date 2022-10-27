@@ -214,9 +214,10 @@ protected:
 	// element-node data
 	ElemNodeVM* elem_node_vm_s; // elem_num * 4
 	ElemNodeVM* elem_node_vm_f; // elem_num * 4
+	double* elem_node_p; // elem_num * 4
 	Force* elem_node_force_s; // elem_num * 4
 	Force* elem_node_force_f; // elem_num * 4
-	
+
 	// node data
 	Position* node_pos; // node_num
 	double* node_am_s; // node_num
