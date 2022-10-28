@@ -1,7 +1,7 @@
 #include "SimulationsOMP_pcp.h"
 
-#include <iostream>
-#include <fstream>
+//#include <iostream>
+//#include <fstream>
 
 #include "SimulationsOMPUtils.h"
 #include "TetrahedronUtils.h"
@@ -87,11 +87,11 @@ Cube Model_T3D_CHM_up_mt::get_mesh_bbox()
 	if (!node_num)
 		return Cube(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	
-	Position& np0 = node_pos[0];
+	const Position& np0 = node_pos[0];
 	Cube res(np0.x, np0.x, np0.y, np0.y, np0.z, np0.z);
 	for (size_t n_id = 1; n_id < node_num; ++n_id)
 	{
-		Position& np = node_pos[n_id];
+		const Position& np = node_pos[n_id];
 		if (res.xl > np.x)
 			res.xl = np.x;
 		if (res.xu < np.x)
@@ -132,10 +132,10 @@ void Model_T3D_CHM_up_mt::alloc_mesh(size_t n_num, size_t e_num)
 		+ sizeof(DShapeFuncD) + sizeof(StrainInc)
 		+ sizeof(ElemNodeVM) * 4 + sizeof(Force) * 4
 		+ sizeof(size_t) + sizeof(double) * 17
-		+ sizeof(bool) * 4) * e_num
+		+ sizeof(char) * 4) * e_num
 		+ (sizeof(Position) + sizeof(Acceleration) + sizeof(Velocity)
 		+ sizeof(NodeHasVBC) + sizeof(NodeVBCVec)
-		+ sizeof(double) * 5 + sizeof(bool)) * n_num;
+		+ sizeof(double) * 4 + sizeof(char) * 2) * n_num;
 	mesh_mem_raw = new char[mem_len];
 
 	char* cur_mem = mesh_mem_raw;
@@ -149,6 +149,8 @@ void Model_T3D_CHM_up_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(DShapeFuncABC) * elem_num;
 	elem_dN_d = (DShapeFuncD *)cur_mem; // elem_num
 	cur_mem += sizeof(DShapeFuncD) * elem_num;
+	elem_u_cav = (double*)cur_mem; // elem_num
+	cur_mem += sizeof(double) * elem_num;
 	elem_has_pcls = (size_t *)cur_mem; // elem_num, elem has pcls if == substep_id
 	cur_mem += sizeof(size_t) * elem_num;
 	elem_pcl_vol = (double *)cur_mem; // elem_num
@@ -167,8 +169,6 @@ void Model_T3D_CHM_up_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(double) * elem_num;
 	elem_m_de_vol_s = (double *)cur_mem; // elem_num, strain enhancement
 	cur_mem += sizeof(double) * elem_num;
-	elem_u_cav = (double *)cur_mem; // elem_num
-	cur_mem += sizeof(double) * elem_num;
 
 	elem_node_vm_s = (ElemNodeVM *)cur_mem; // elem_num * 4
 	cur_mem += sizeof(ElemNodeVM) * elem_num * 4;
@@ -178,29 +178,29 @@ void Model_T3D_CHM_up_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(double) * elem_num * 4;
 	elem_node_p_force = (double *)cur_mem;
 	cur_mem += sizeof(double) * elem_num * 4;
-	elem_node_at_surface = (bool *)cur_mem; // elem_num * 4
-	cur_mem += sizeof(bool) * elem_num * 4;
+	elem_node_at_surface = (char *)cur_mem; // elem_num * 4
+	cur_mem += sizeof(char) * elem_num * 4;
 
 	node_pos = (Position *)cur_mem; // node_num
 	cur_mem += sizeof(Position) * node_num;
+	node_has_vbc = (NodeHasVBC*)cur_mem; // node_num
+	cur_mem += sizeof(NodeHasVBC) * node_num;
+	node_vbc_vec_s = (NodeVBCVec*)cur_mem; // node_num
+	cur_mem += sizeof(NodeVBCVec) * node_num;
 	node_am = (double *)cur_mem; // node_num
 	cur_mem += sizeof(double) * node_num;
 	node_a_s = (Acceleration *)cur_mem; // node_num
 	cur_mem += sizeof(Acceleration) * node_num;
 	node_v_s = (Velocity *)cur_mem; // node_num
 	cur_mem += sizeof(Velocity) * node_num;
-	node_has_vbc = (NodeHasVBC *)cur_mem; // node_num
-	cur_mem += sizeof(NodeHasVBC) * node_num;
-	node_vbc_vec_s = (NodeVBCVec *)cur_mem; // node_num
-	cur_mem += sizeof(NodeVBCVec) * node_num;
-	node_pm = (double *)cur_mem; // node_num
+	node_p = (double*)cur_mem; // node_num
 	cur_mem += sizeof(double) * node_num;
 	node_dp = (double *)cur_mem; // node_num
 	cur_mem += sizeof(double) * node_num;
-	node_p = (double *)cur_mem; // node_num
-	cur_mem += sizeof(double) * node_num;
-	node_at_surface = (bool *)cur_mem; // node_num
-	cur_mem += sizeof(bool) * node_num;
+	node_in_contact = (char *)cur_mem; // node_num
+	cur_mem += sizeof(char) * node_num;
+	node_at_surface = (char *)cur_mem; // node_num
+	cur_mem += sizeof(char) * node_num;
 	node_de_vol_s = (double *)cur_mem; // node_num
 }
 
@@ -369,7 +369,7 @@ void Model_T3D_CHM_up_mt::alloc_pcls(size_t num)
 	char* cur_mem;
 
 	ori_pcl_num = num;
-	pcl_num = ori_pcl_num;
+	pcl_num = num;
 	mem_len = (sizeof(double) * 6 + sizeof(Force) * 3
 			+ sizeof(Position) + sizeof(MatModel::MaterialModel*)
 			+ (sizeof(size_t) + sizeof(double) * 3
@@ -377,8 +377,8 @@ void Model_T3D_CHM_up_mt::alloc_pcls(size_t num)
 			 + sizeof(Stress) + sizeof(Strain) * 3
 			 + sizeof(ShapeFunc)) * 2
 			) * num;
+	
 	pcl_mem_raw = new char[mem_len];
-
 	cur_mem = pcl_mem_raw;
 	pcl_m_s = (double *)cur_mem;
 	cur_mem += sizeof(double) * num;
@@ -394,11 +394,12 @@ void Model_T3D_CHM_up_mt::alloc_pcls(size_t num)
 	cur_mem += sizeof(Force) * num;
 	pcl_pos = (Position *)cur_mem;
 	cur_mem += sizeof(Position) * num;
-	pcl_vol = (double*)cur_mem;
-	cur_mem += sizeof(double) * num;
 	pcl_mat_model = (MatModel::MaterialModel**)cur_mem;
 	cur_mem += sizeof(MatModel::MaterialModel*) * num;
 
+	pcl_vol = (double*)cur_mem;
+	cur_mem += sizeof(double) * num;
+	
 	pcl_u_cav = (double*)cur_mem;
 	cur_mem += sizeof(double) * num;
 	pcl_is_cavitated = (double*)cur_mem;

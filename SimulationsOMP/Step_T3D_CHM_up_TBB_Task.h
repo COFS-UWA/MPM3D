@@ -89,20 +89,22 @@ namespace Step_T3D_CHM_up_TBB_Task
 		// pcl data
 		const double* pcl_m_s;
 		const double *pcl_vol_s;
-		const Force* pcl_bf_s, * pcl_bf_f, * pcl_t;
 		double* pcl_vol;
+		const Force* pcl_bf_s, * pcl_bf_f, * pcl_t;
 
 		// bg mesh data
 		const DShapeFuncABC *elem_dN_abc;
 		const double *elem_vol;
 		size_t* elem_has_pcls;
 		double* elem_pcl_m, *elem_pcl_pm;
-		double* elem_pcl_n, *elem_density_f;
+		double* elem_pcl_n, * elem_density_f;
+		double *elem_p, * elem_pcl_vol;
 		ElemNodeVM* elem_node_vm_s;
 		double *elem_node_p;
 		Force* elem_node_force;
 		double* elem_node_p_force;
-		
+		char *elem_node_at_surface;
+
 		// pcl_vars0
 		size_t* pcl_index0;
 		double* pcl_n0;
@@ -151,14 +153,15 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const Force* elem_node_force;
 		const ElemNodeVM *elem_node_vm_s;
 		const double* elem_node_p;
+		const char* elem_node_at_surface;
 
-		double* node_am;
-		Acceleration *node_a_s;
-		Velocity *node_v_s;
 		const NodeHasVBC *node_has_vbc;
 		const NodeVBCVec *node_vbc_vec_s;
-		
+		double* node_am;
+		Acceleration* node_a_s;
+		Velocity* node_v_s;
 		double* node_p;
+		char* node_in_contact;
 
 		// node ranges
 		const size_t* node_ids;
@@ -200,11 +203,14 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const double *elem_density_f;
 		StrainInc* elem_de;
 		double* elem_m_de_vol_s;
+
+		double* elem_node_p_force;
+		char* elem_node_at_surface;
+
 		const Acceleration* node_a_s;
 		const Velocity* node_v_s;
 		double* node_p;
-		bool *elem_node_at_surface;
-		double *elem_node_p_force;
+		char* node_in_contact;
 
 		// elem ranges
 		const size_t *elem_ids;
@@ -230,9 +236,9 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Step_T3D_CHM_up_TBB &stp;
 
 		const NodeHasVBC* node_has_vbc;
+		const double* elem_pcl_pm;
 		const double* elem_node_p_force;
-		const bool* elem_node_at_surface;
-		const double* node_pm;
+		const char* elem_node_at_surface;
 		double *node_dp;
 
 		// strain enhancement
@@ -287,6 +293,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const Acceleration *node_a_s;
 		const Velocity *node_v_s;
 		double* node_dp;
+		double* node_p;
 		double* elem_p;
 		double* elem_pcl_n;
 		double * elem_density_f;
@@ -346,6 +353,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const Position* pcl_pos;
 		const double* pcl_vol;
 		Force* elem_node_force;
+		char *elem_node_at_surface;
 
 		const size_t* pcl_index;
 		const Displacement* pcl_u;

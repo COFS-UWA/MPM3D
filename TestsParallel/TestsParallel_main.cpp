@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_1d_consolidation_restart(argc, argv);
 	//test_t3d_chm_mt_1d_consolidation_result(argc, argv);
 
-	test_t3d_chm_mt_1d_consolidation_up(argc, argv);
-	//test_t3d_chm_mt_1d_consolidation_up_result(argc, argv);
+	//test_t3d_chm_mt_1d_consolidation_up(argc, argv);
+	test_t3d_chm_mt_1d_consolidation_up_result(argc, argv);
 
 	//test_t3d_me_mt_1d_geostatic(argc, argv);
 	//test_t3d_me_mt_1d_geostatic_result(argc, argv);

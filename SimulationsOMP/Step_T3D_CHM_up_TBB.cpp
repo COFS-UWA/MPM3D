@@ -38,9 +38,7 @@ int Step_T3D_CHM_up_TBB::init_calculation()
 
 	size_t e_num = md.get_elem_num();
 	for (size_t e_id = 0; e_id < e_num; ++e_id)
-	{
 		md.elem_has_pcls[e_id] = SIZE_MAX;
-	}
 
 	auto& spva0 = spvas[0];
 	const auto& md_spva0 = md.sorted_pcl_var_arrays[0];
@@ -210,7 +208,6 @@ int cal_substep_func_T3D_CHM_up_TBB(void* _self)
 		Step_T3D_CHM_up_TBB_Task::min_pcl_num_per_task,
 		Step_T3D_CHM_up_TBB_Task::map_mesh_to_pcl_task_num_per_thread>(
 			self.thread_num, self.prev_valid_pcl_num);
-	
 	self.map_mesh_to_pcl.update(task_num);
 	ParaUtil::parallel_reduce(self.map_mesh_to_pcl, self.map_mesh_to_pcl_res, task_num);
 	

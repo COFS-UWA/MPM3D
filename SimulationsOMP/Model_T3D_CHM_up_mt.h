@@ -136,7 +136,7 @@ public:
 	};
 	
 protected: // pcl data
-		// parameters for seepage
+	// parameters for seepage
 	double Kf, k, dyn_viscosity;
 
 	// parameters for cavitation
@@ -152,12 +152,12 @@ protected: // pcl data
 	Force* pcl_bf_f; // ori_pcl_num
 	Force* pcl_t; // ori_pcl_num
 	Position* pcl_pos; // ori_pcl_num
-	double* pcl_vol; // ori_pcl_num
 	MatModel::MaterialModel** pcl_mat_model; // ori_pcl_num
 
+	double* pcl_vol; // ori_pcl_num
 	// cavitation
-	double* pcl_u_cav; // cavitation triggering pore pressure
-	double* pcl_is_cavitated; // 0.0 not cavitated, 1.0 fully cavitated
+	double* pcl_u_cav; // ori_pcl_num, cavitation pore pressure
+	double* pcl_is_cavitated; // ori_pcl_num, 0.0 not cavitated, 1.0 fully cavitated
 	
 	SortedPclVarArrays sorted_pcl_var_arrays[2];
 
@@ -192,7 +192,7 @@ protected: // mesh data
 	Force* elem_node_force; // elem_num * 4
 	double* elem_node_p; // elem_num * 4
 	double* elem_node_p_force; // elem_num * 4
-	bool *elem_node_at_surface; // elem_num * 4
+	char *elem_node_at_surface; // elem_num * 4
 
 	Position* node_pos; // node_num
 	NodeHasVBC* node_has_vbc; // node_num
@@ -203,9 +203,9 @@ protected: // mesh data
 	Acceleration* node_a_s; // node_num
 	Velocity* node_v_s; // node_num
 	double* node_p; // node_num
-	double* node_pm; // node_num
 	double* node_dp; // node_num
-	bool* node_at_surface; // node_num
+	char* node_in_contact; // node_Num
+	char* node_at_surface; // node_num
 	double* node_de_vol_s; // node_num, strain enhancement
 
 protected: // === Non calculation data ===
@@ -307,7 +307,7 @@ public:
 	void init_tys(size_t t_num, const size_t* t_pcls, const double* ts);
 	void init_tzs(size_t t_num, const size_t* t_pcls, const double* ts);
 
-	void Model_T3D_CHM_up_mt::init_drained_bc(size_t bc_num, const size_t* bcs);
+	void init_drained_bc(size_t drained_bc_num, const size_t* drained_bcs);
 	void init_fixed_vx_bc(size_t vx_bc_num, const size_t* vx_bcs);
 	void init_fixed_vy_bc(size_t vy_bc_num, const size_t* vy_bcs);
 	void init_fixed_vz_bc(size_t vz_bc_num, const size_t* vz_bcs);
