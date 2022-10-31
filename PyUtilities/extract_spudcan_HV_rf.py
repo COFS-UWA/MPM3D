@@ -2,13 +2,14 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
-file_name = "t3d_me_mt_spudcan_cy"
-step_name = "penetration"
+file_name = "t3d_chm_mt_spudcan_cy_HV_geo2"
 
 spudcan_diameter = 3.0
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
+#force_dir = "y"
+force_dir = "z"
 
 th_grp = hdf5_file['TimeHistory']['geostatic']
 th_num = th_grp.attrs['output_num']
@@ -23,15 +24,15 @@ spudcan_area = math.pi * spudcan_diameter * spudcan_diameter * 0.25
 for th_id in range(th_num):
     rb_grp = th_grp['frame_%d' % th_id]['RigidObjectByT3DMesh']
     cen_z = rb_grp.attrs['z']
-    rf_z = rb_grp.attrs['fz_cont']
+    rf_z = rb_grp.attrs['f' + force_dir + '_cont']
     if not is_init:
         ini_z = cen_z
         is_init = True
     else:
         rb_z.append(ini_z - cen_z)
-        rb_fz.append(rf_z*4.0)
+        rb_fz.append(rf_z*2.0)
         rb_z_norm.append((ini_z - cen_z)/spudcan_diameter)
-        rb_fz_norm.append(rf_z*4.0/spudcan_area/1000.0)
+        rb_fz_norm.append(rf_z*2.0/spudcan_area/1000.0)
 
 hdf5_file.close()
 
@@ -46,6 +47,6 @@ print(rb_fz)
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
 line1, = plot1.plot(rb_fz_norm, rb_z_norm)
-plt.xlim(0.0)
+#plt.xlim(0.0)
 plt.ylim(rb_z_norm[0], rb_z_norm[-1])
 plt.show()
