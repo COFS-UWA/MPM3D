@@ -12,6 +12,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 {
 	constexpr size_t init_pcl_task_num_per_thread = 100;
 	constexpr size_t map_pcl_to_mesh_task_num_per_thread = 100;
+	constexpr size_t cal_find_soil_surface_task_num_per_thread = 20;
 	constexpr size_t update_node_av_task_num_per_thread = 20;
 	constexpr size_t cal_elem_de_task_num_per_thread = 20;
 	constexpr size_t cal_node_de_task_num_per_thread = 20;
@@ -81,7 +82,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Step_T3D_CHM_up_TBB& stp;
 
 		double Kf0, k, dyn_viscosity;
-
+		
 		// pcl range
 		const size_t* pcl_in_elems;
 		const size_t* prev_pcl_ids;
@@ -103,7 +104,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		double *elem_node_p;
 		Force* elem_node_force;
 		double* elem_node_p_force;
-		char *elem_node_at_surface;
+		uint16_t *elem_node_at_surface;
 
 		// pcl_vars0
 		size_t* pcl_index0;
@@ -137,6 +138,31 @@ namespace Step_T3D_CHM_up_TBB_Task
 		{ work(tsk_id, res); return nullptr; }
 	};
 	
+	class FindSoilSurface
+	{
+	protected:
+		typedef Model_T3D_CHM_up_mt::AdjElemIndex AdjElemIndex;
+
+		Step_T3D_CHM_up_TBB& stp;
+
+		const AdjElemIndex* elem_adj_elems;
+		const size_t* elem_has_pcls;
+		uint16_t *elem_node_at_surface;
+
+		// elem ranges
+		const size_t* elem_ids;
+
+		size_t substep_index;
+		size_t elem_num, task_num;
+
+	public:
+		FindSoilSurface(Step_T3D_CHM_up_TBB& _stp) : stp(_stp) {}
+		void init() noexcept;
+		void update(size_t tsk_num) noexcept;
+		void work(size_t tsk_id) const;
+		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id) const { work(tsk_id); return nullptr; }
+	};
+
 	class UpdateAccelerationAndVelocity
 	{
 	protected:
@@ -153,7 +179,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const Force* elem_node_force;
 		const ElemNodeVM *elem_node_vm_s;
 		const double* elem_node_p;
-		const char* elem_node_at_surface;
+		const uint16_t *elem_node_at_surface;
 
 		const NodeHasVBC *node_has_vbc;
 		const NodeVBCVec *node_vbc_vec_s;
@@ -161,7 +187,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Acceleration* node_a_s;
 		Velocity* node_v_s;
 		double* node_p;
-		char* node_in_contact;
+		uint16_t *node_at_surface;
 
 		// node ranges
 		const size_t* node_ids;
@@ -175,7 +201,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 		void init() noexcept;
 		void update(size_t tsk_num) noexcept;
 		void work(size_t tsk_id) const;
-		inline void operator() (const tbb::blocked_range<size_t>& range) const { work(range.begin()); }
 		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id) const { work(tsk_id); return nullptr; }
 	};
 
@@ -196,8 +221,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 		const ElemNodeIndex* elem_node_id;
 		const DShapeFuncABC* elem_dN_abc;
-		const AdjElemIndex *elem_adj_elems;
-		const size_t *elem_has_pcls;
 		const double* elem_pcl_m;
 		const double* elem_pcl_vol;
 		const double *elem_density_f;
@@ -205,17 +228,15 @@ namespace Step_T3D_CHM_up_TBB_Task
 		double* elem_m_de_vol_s;
 
 		double* elem_node_p_force;
-		char* elem_node_at_surface;
+		uint16_t* elem_node_at_surface;
 
 		const Acceleration* node_a_s;
 		const Velocity* node_v_s;
-		double* node_p;
-		char* node_in_contact;
+		const double* node_p;
 
 		// elem ranges
 		const size_t *elem_ids;
 
-		size_t substep_index;
 		double dtime;
 		size_t elem_num, task_num;
 
@@ -224,7 +245,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 		void init() noexcept;
 		void update(size_t tsk_num) noexcept;
 		void work(size_t tsk_id) const;
-		inline void operator() (const tbb::blocked_range<size_t>& range) const { work(range.begin()); }
 		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id) const { work(tsk_id); return nullptr; }
 	};
 
@@ -235,11 +255,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 		Step_T3D_CHM_up_TBB &stp;
 
-		const NodeHasVBC* node_has_vbc;
 		const double* elem_pcl_pm;
 		const double* elem_node_p_force;
-		const char* elem_node_at_surface;
-		double *node_dp;
+		const NodeHasVBC* node_has_vbc;
+		const uint16_t* node_at_surface;
+		double* node_dp;
 
 		// strain enhancement
 		const double* elem_m_de_vol_s;
@@ -257,7 +277,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 		void init() noexcept;
 		void update(size_t tsk_num) noexcept;
 		void work(size_t tsk_id) const;
-		inline void operator() (const tbb::blocked_range<size_t>& range) const { work(range.begin()); }
 		inline tbb::task* operator() (tbb::task& parent, size_t tsk_id) const { work(tsk_id); return nullptr; }
 	};
 
@@ -353,7 +372,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const Position* pcl_pos;
 		const double* pcl_vol;
 		Force* elem_node_force;
-		char *elem_node_at_surface;
+		uint16_t *elem_node_at_surface;
 
 		const size_t* pcl_index;
 		const Displacement* pcl_u;

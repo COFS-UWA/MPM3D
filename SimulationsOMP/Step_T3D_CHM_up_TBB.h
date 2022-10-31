@@ -41,11 +41,12 @@ protected:
 	// ParaUtil
 	typedef Step_T3D_CHM_up_TBB_Task::InitPcl InitPcl;
 	typedef Step_T3D_CHM_up_TBB_Task::MapPclToBgMesh MapPclToBgMesh;
-	typedef Step_T3D_CHM_up_TBB_Task::ContactRigidBody ContactRigidBody;
+	typedef Step_T3D_CHM_up_TBB_Task::FindSoilSurface FindSoilSurface;
 	typedef Step_T3D_CHM_up_TBB_Task::UpdateAccelerationAndVelocity UpdateAccelerationAndVelocity;
 	typedef Step_T3D_CHM_up_TBB_Task::CalElemDeAndMapToNode CalElemDeAndMapToNode;
 	typedef Step_T3D_CHM_up_TBB_Task::CalNodeDe CalNodeDe;
 	typedef Step_T3D_CHM_up_TBB_Task::MapBgMeshToPcl MapBgMeshToPcl;
+	typedef Step_T3D_CHM_up_TBB_Task::ContactRigidBody ContactRigidBody;
 	// reduce res
 	typedef Step_T3D_CHM_up_TBB_Task::InitPclRes InitPclRes;
 	typedef Step_T3D_CHM_up_TBB_Task::MapPclToBgMeshRes MapPclToBgMeshRes;
@@ -53,6 +54,7 @@ protected:
 	//
 	friend class InitPcl;
 	friend class MapPclToBgMesh;
+	friend class FindSoilSurface;
 	friend class ContactRigidBody;
 	friend class UpdateAccelerationAndVelocity;
 	friend class CalElemDeAndMapToNode;
@@ -76,12 +78,13 @@ protected:
 
 	InitPcl init_pcl;
 	MapPclToBgMesh map_pcl_to_mesh;
-	ContactRigidBody cont_rigid_body;
+	FindSoilSurface find_soil_surface;
 	UpdateAccelerationAndVelocity update_a_and_v;
 	CalElemDeAndMapToNode cal_elem_de;
 	CalNodeDe cal_node_de;
 	MapBgMeshToPcl map_mesh_to_pcl;
-	
+	ContactRigidBody cont_rigid_body;
+
 	// data changed during computation
 	InitPclRes init_pcl_res;
 	union

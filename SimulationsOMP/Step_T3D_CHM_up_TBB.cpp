@@ -13,11 +13,12 @@ Step_T3D_CHM_up_TBB::Step_T3D_CHM_up_TBB(const char* _name) :
 	sche_init(tbb::task_scheduler_init::deferred),
 	init_pcl(*this),
 	map_pcl_to_mesh(*this),
-	cont_rigid_body(*this),
+	find_soil_surface(*this),
 	update_a_and_v(*this),
 	cal_elem_de(*this),
 	cal_node_de(*this),
-	map_mesh_to_pcl(*this) {}
+	map_mesh_to_pcl(*this),
+	cont_rigid_body(*this) {}
 
 Step_T3D_CHM_up_TBB::~Step_T3D_CHM_up_TBB() {}
 
@@ -92,12 +93,13 @@ int Step_T3D_CHM_up_TBB::init_calculation()
 	valid_pcl_num = init_pcl_res.pcl_num;
 	
 	map_pcl_to_mesh.init();
-	cont_rigid_body.init(init_pcl_res.max_pcl_vol, is_first_step);
+	find_soil_surface.init();
 	update_a_and_v.init();
 	cal_elem_de.init();
 	cal_node_de.init();
 	map_mesh_to_pcl.init();
 	map_pcl_to_mesh_res.react_force.reset();
+	cont_rigid_body.init(init_pcl_res.max_pcl_vol, is_first_step);
 
 	return 0;
 }
@@ -175,6 +177,13 @@ int cal_substep_func_T3D_CHM_up_TBB(void* _self)
 		rmesh.update_motion(self.dtime);
 	}
 	
+	task_num = ParaUtil::cal_task_num<
+		Step_T3D_CHM_up_TBB_Task::min_elem_num_per_task,
+		Step_T3D_CHM_up_TBB_Task::cal_find_soil_surface_task_num_per_thread>(
+			self.thread_num, self.valid_elem_num);
+	self.find_soil_surface.update(task_num);
+	ParaUtil::parallel_for(self.find_soil_surface, task_num);
+
 	// update nodal a and v
 	task_num = ParaUtil::cal_task_num<
 		Step_T3D_CHM_up_TBB_Task::min_node_elem_num_per_task,

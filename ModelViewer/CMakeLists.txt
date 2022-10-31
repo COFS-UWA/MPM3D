@@ -186,6 +186,10 @@ add_library(
     QtApp_Prep_T3D_CHM_up_mt.h QtApp_Prep_T3D_CHM_up_mt.cpp
     QtSceneFromHdf5_T3D_CHM_up_mt.h QtSceneFromHdf5_T3D_CHM_up_mt.cpp
     QtApp_Posp_T3D_CHM_up_mt.h QtApp_Posp_T3D_CHM_up_mt.cpp
+    QtSceneFromModel_T3D_CHM_up_mt_Div.h
+    QtApp_Prep_T3D_CHM_up_mt_Div.h QtApp_Prep_T3D_CHM_up_mt_Div.cpp
+    QtSceneFromHdf5_T3D_CHM_up_mt_Div.h
+    QtApp_Posp_T3D_CHM_up_mt_Div.h QtApp_Posp_T3D_CHM_up_mt_Div.cpp
     )
 
 set(MODELVIEWER_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING INTERNAL FORCE)

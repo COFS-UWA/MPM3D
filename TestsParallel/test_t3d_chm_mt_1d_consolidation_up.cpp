@@ -14,7 +14,7 @@
 void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 {
 	TetrahedronMesh teh_mesh;
-	teh_mesh.load_mesh_from_hdf5("../../Asset/brick_mesh_1.00_2x2x10.h5");
+	teh_mesh.load_mesh_from_hdf5("../../Asset/brick_mesh_1.20_2x2x12.h5");
 	teh_mesh.init_search_grid(0.05, 0.05, 0.05);
 
 	Model_T3D_CHM_up_mt model;
@@ -23,6 +23,7 @@ void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 
 	ParticleGenerator3D<TetrahedronMesh> pcl_generator;
 	pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 1.0), 0.025, 0.025, 0.025);
+	//pcl_generator.generate_pcls_grid(Cube(0.0, 0.2, 0.0, 0.2, 0.0, 0.95), 0.025, 0.025, 0.025);
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	model.init_pcls(pcl_generator, 0.4, 20.0, 10.0, 40000.0, 1.0e-4, 1.0);
 	//model.init_pcls(pcl_generator, 0.4, 20.0, 10.0, 40000.0, 0.0, 1.0);
@@ -36,17 +37,24 @@ void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 		les = model.following_LinearElasticity(les);
 	}
 
-	IndexArray tbc_pcl_array(100);
-	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
-	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	double tz_mag = 0.025 * 0.025 * -1.0;
-	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
-		tzs_mem.add(tz_mag);
-	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
+	model.init_t3d_rigid_mesh(1.0, "../../Asset/cylinder_cap.h5",
+		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.01);
+	constexpr double K_cont = 1.04;
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
+	
+	//IndexArray tbc_pcl_array(100);
+	//find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	////find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 0.95 - 0.013, 1.0));
+	//MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
+	//double tz_mag = 0.025 * 0.025 * -1.0;
+	//for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
+	//	tzs_mem.add(tz_mag);
+	//model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
 
-	IndexArray drained_bc_pt_array(100);
-	find_3d_nodes_on_z_plane(model, drained_bc_pt_array, 1.0);
-	model.init_drained_bc(drained_bc_pt_array.get_num(), drained_bc_pt_array.get_mem());
+	//IndexArray drained_bc_pt_array(100);
+	//find_3d_nodes_on_z_plane(model, drained_bc_pt_array, 1.0);
+	//model.init_drained_bc(drained_bc_pt_array.get_num(), drained_bc_pt_array.get_mem());
 
 	IndexArray vx_bc_pt_array(100);
 	find_3d_nodes_on_x_plane(model, vx_bc_pt_array, 0.0);
@@ -68,12 +76,14 @@ void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 	//md_disp.set_light_dir(30.0, 15.0);
 	//md_disp.set_model(model);
 	//md_disp.set_view_dist_scale(1.1);
-	////md_disp.set_pts_from_node_id(vx_bc_pt_array.get_mem(), vx_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vy_bc_pt_array.get_mem(), vy_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_node_id(vz_bc_pt_array.get_mem(), vz_bc_pt_array.get_num(), 0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
 	////md_disp.set_pts_from_drained_bc(0.01);
-	//md_disp.set_pts_from_vx_bc(0.01);
+	////md_disp.set_pts_from_vx_bc(0.01);
+	////md_disp.set_pts_from_vy_bc(0.01);
+	////md_disp.set_pts_from_vz_bc(0.01);
+	////md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	////size_t ids[] = { 90, 91, 92, 93, 94, 95, 96, 97, 98 };
+	//size_t ids[] = { 82, 84, 86, 88 };
+	//md_disp.set_pts_from_node_id(ids, sizeof(ids)/sizeof(ids[0]), 0.01);
 	//md_disp.start();
 	//return;
 
@@ -92,12 +102,12 @@ void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 
 	Step_T3D_CHM_up_TBB step("step1");
 	step.set_model(model);
-	step.set_step_time(1.0);
-	//step.set_step_time(1.0e-1);
+	//step.set_step_time(10.0);
+	step.set_step_time(3.0e-5);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(4);
+	step.set_thread_num(1);
 	step.add_time_history(out1);
-	step.add_time_history(out_cpb);
+	//step.add_time_history(out_cpb);
 	step.solve();
 }
 

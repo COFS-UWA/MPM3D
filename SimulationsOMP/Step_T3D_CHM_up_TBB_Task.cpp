@@ -1,5 +1,6 @@
 #include "SimulationsOMP_pcp.h"
 
+#include <iostream>
 #include <assert.h>
 
 #include "ParaUtil.h"
@@ -209,11 +210,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 			// m_s
 			const double p_m_s = pcl_m_s[ori_p_id];
 			e_p_m_s += p_m_s;
-			const double p_v_s = pcl_vol_s[ori_p_id];
-			e_p_vol_s += p_v_s;
+			const double p_vol_s = pcl_vol_s[ori_p_id];
+			e_p_vol_s += p_vol_s;
 			// vol
 			const double p_n = pcl_n1[prev_p_id];
-			const double p_vol = p_v_s / (1.0 - p_n);
+			const double p_vol = p_vol_s / (1.0 - p_n);
 			pcl_vol[p_id] = p_vol;
 			e_p_vol += p_vol;
 			// vol_f
@@ -319,10 +320,10 @@ namespace Step_T3D_CHM_up_TBB_Task
 			if (e_id != pcl_in_elems[p_id + 1])
 			{
 				elem_has_pcls[e_id] = substep_index;
-				elem_node_at_surface[e_id * 4] = char(0);
-				elem_node_at_surface[e_id * 4 + 1] = char(0);
-				elem_node_at_surface[e_id * 4 + 2] = char(0);
-				elem_node_at_surface[e_id * 4 + 3] = char(0);
+				elem_node_at_surface[e_id * 4] = 0;
+				elem_node_at_surface[e_id * 4 + 1] = 0;
+				elem_node_at_surface[e_id * 4 + 2] = 0;
+				elem_node_at_surface[e_id * 4 + 3] = 0;
 				
 				elem_pcl_m[e_id] = e_p_m_s + e_p_m_f;
 				elem_pcl_pm[e_id] = e_p_pm;
@@ -468,6 +469,69 @@ namespace Step_T3D_CHM_up_TBB_Task
 			crb.apply_t3d_rigid_object(p_id0, p_id1, res.react_force);
 	}
 
+	void FindSoilSurface::init() noexcept
+	{
+		Model_T3D_CHM_up_mt& md = *stp.pmodel;
+		
+		elem_adj_elems = md.elem_adj_elems;
+		elem_has_pcls = md.elem_has_pcls;
+		elem_node_at_surface = md.elem_node_at_surface;
+		//
+		elem_ids = stp.elem_ids;
+	}
+
+	void FindSoilSurface::update(size_t tsk_num) noexcept
+	{
+		substep_index = stp.substep_index;
+		elem_num = stp.valid_elem_num;
+		task_num = tsk_num;
+	}
+
+	void FindSoilSurface::work(size_t tsk_id) const
+	{
+		const size_t ve_id0 = Block_Low(tsk_id, task_num, elem_num);
+		const size_t ve_id1 = Block_Low(tsk_id + 1, task_num, elem_num);
+		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
+		{
+			const size_t e_id = elem_ids[ve_id];
+			
+			uint16_t en1_at_surface = 0;
+			uint16_t en2_at_surface = 0;
+			uint16_t en3_at_surface = 0;
+			uint16_t en4_at_surface = 0;
+			const AdjElemIndex& adj_elem = elem_adj_elems[e_id];
+			if (adj_elem.adj_e1 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e1] != substep_index) // adjacent element is empty
+			{
+				en1_at_surface = 1;
+				en2_at_surface = 1;
+				en3_at_surface = 1;
+			}
+			if (adj_elem.adj_e2 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e2] != substep_index) // adjacent elem is empty
+			{
+				en1_at_surface = 1;
+				en4_at_surface = 1;
+				en2_at_surface = 1;
+			}
+			if (adj_elem.adj_e3 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e3] != substep_index) // adjacent elem is empty
+			{
+				en2_at_surface = 1;
+				en4_at_surface = 1;
+				en3_at_surface = 1;
+			}
+			if (adj_elem.adj_e4 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e4] != substep_index) // adjacent elem is empty
+			{
+				en1_at_surface = 1;
+				en3_at_surface = 1;
+				en4_at_surface = 1;
+			}
+			elem_node_at_surface[4 * e_id + 0] |= en1_at_surface;
+			elem_node_at_surface[4 * e_id + 1] |= en2_at_surface;
+			elem_node_at_surface[4 * e_id + 2] |= en3_at_surface;
+			elem_node_at_surface[4 * e_id + 3] |= en4_at_surface;
+		}
+
+	}
+
 	void UpdateAccelerationAndVelocity::init() noexcept
 	{
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
@@ -484,7 +548,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		node_a_s = md.node_a_s;
 		node_v_s = md.node_v_s;
 		node_p = md.node_p;
-		node_in_contact = md.node_in_contact;
+		node_at_surface = md.node_at_surface;
 
 		// node ranges
 		node_ids = stp.node_ids;
@@ -523,7 +587,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		double n_vmy = 0.0;
 		double n_vmz = 0.0;
 		double n_pm = 0.0;
-		char n_in_contact = false;
+		uint16_t n_at_surface = 0;
 		n_id = node_ids[ve_id0];
 #ifdef _DEBUG
 		assert(n_id < stp.node_num);
@@ -546,10 +610,14 @@ namespace Step_T3D_CHM_up_TBB_Task
 			n_vmz += nvm.vmz;
 			n_pm += elem_node_p[ne_id];
 
-			n_in_contact |= elem_node_at_surface[ne_id];
+			n_at_surface |= elem_node_at_surface[ne_id];
 
 			if (n_id != node_ids[ve_id + 1])
 			{
+				node_at_surface[n_id] = n_at_surface;
+				//if (n_at_surface)
+				//	std::cout << n_id << ", " << n_at_surface << "\n";
+
 				Acceleration& n_a = node_a_s[n_id];
 				n_am *= one_fourth;
 				node_am[n_id] = n_am;
@@ -584,8 +652,8 @@ namespace Step_T3D_CHM_up_TBB_Task
 				n_p = n_pm / n_vm;
 				bc_mask = size_t(n_has_vbc.is_drained) + SIZE_MAX;
 				*(reinterpret_cast<size_t *>(&n_p)) &= bc_mask;
-
-				node_in_contact[n_id] = n_in_contact;
+				if (n_at_surface == 1) // at surface but in contact
+					n_p = 0.0;
 
 				n_id = node_ids[ve_id + 1];
 #ifdef _DEBUG
@@ -601,7 +669,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 				n_vmy = 0.0;
 				n_vmz = 0.0;
 				n_pm = 0.0;
-				n_in_contact = false;
+				n_at_surface = 0;
 			}
 		}
 	}
@@ -615,21 +683,18 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 		elem_node_id = md.elem_node_id;
 		elem_dN_abc = md.elem_dN_abc;
-		elem_adj_elems = md.elem_adj_elems;
-		elem_has_pcls = md.elem_has_pcls;
 		elem_pcl_m = md.elem_pcl_m;
 		elem_pcl_vol = md.elem_pcl_vol;
 		elem_density_f = md.elem_density_f;
 		elem_de = md.elem_de;
 		elem_m_de_vol_s = md.elem_m_de_vol_s;
 
-		elem_node_at_surface = md.elem_node_at_surface;
 		elem_node_p_force = md.elem_node_p_force;
+		elem_node_at_surface = md.elem_node_at_surface;
 
 		node_a_s = md.node_a_s;
 		node_v_s = md.node_v_s;
 		node_p = md.node_p;
-		node_in_contact = md.node_in_contact;
 
 		//
 		elem_ids = stp.elem_ids;
@@ -637,7 +702,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 	void CalElemDeAndMapToNode::update(size_t tsk_num) noexcept
 	{
-		substep_index = stp.substep_index;
 		dtime = stp.dtime;
 		elem_num = stp.valid_elem_num;
 		task_num = tsk_num;
@@ -665,11 +729,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 			e_de.de22 = (e_dN.dN1_dy * n_v1.vy + e_dN.dN2_dy * n_v2.vy + e_dN.dN3_dy * n_v3.vy + e_dN.dN4_dy * n_v4.vy) * dtime;
 			e_de.de33 = (e_dN.dN1_dz * n_v1.vz + e_dN.dN2_dz * n_v2.vz + e_dN.dN3_dz * n_v3.vz + e_dN.dN4_dz * n_v4.vz) * dtime;
 			e_de.de12 = (e_dN.dN1_dx * n_v1.vy + e_dN.dN2_dx * n_v2.vy + e_dN.dN3_dx * n_v3.vy + e_dN.dN4_dx * n_v4.vy
-				+ e_dN.dN1_dy * n_v1.vx + e_dN.dN2_dy * n_v2.vx + e_dN.dN3_dy * n_v3.vx + e_dN.dN4_dy * n_v4.vx) * dtime * 0.5;
+					   + e_dN.dN1_dy * n_v1.vx + e_dN.dN2_dy * n_v2.vx + e_dN.dN3_dy * n_v3.vx + e_dN.dN4_dy * n_v4.vx) * dtime * 0.5;
 			e_de.de23 = (e_dN.dN1_dy * n_v1.vz + e_dN.dN2_dy * n_v2.vz + e_dN.dN3_dy * n_v3.vz + e_dN.dN4_dy * n_v4.vz
-				+ e_dN.dN1_dz * n_v1.vy + e_dN.dN2_dz * n_v2.vy + e_dN.dN3_dz * n_v3.vy + e_dN.dN4_dz * n_v4.vy) * dtime * 0.5;
+					   + e_dN.dN1_dz * n_v1.vy + e_dN.dN2_dz * n_v2.vy + e_dN.dN3_dz * n_v3.vy + e_dN.dN4_dz * n_v4.vy) * dtime * 0.5;
 			e_de.de31 = (e_dN.dN1_dz * n_v1.vx + e_dN.dN2_dz * n_v2.vx + e_dN.dN3_dz * n_v3.vx + e_dN.dN4_dz * n_v4.vx
-				+ e_dN.dN1_dx * n_v1.vz + e_dN.dN2_dx * n_v2.vz + e_dN.dN3_dx * n_v3.vz + e_dN.dN4_dx * n_v4.vz) * dtime * 0.5;
+					   + e_dN.dN1_dx * n_v1.vz + e_dN.dN2_dx * n_v2.vz + e_dN.dN3_dx * n_v3.vz + e_dN.dN4_dx * n_v4.vz) * dtime * 0.5;
 			const double e_de_vol = e_de.de11 + e_de.de22 + e_de.de33;
 
 			const double e_pcl_vol = elem_pcl_vol[e_id];
@@ -678,63 +742,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 			double n3_pf = n1_pf;
 			double n4_pf = n1_pf;
 
-			// decide if node is located at surface and freely drained
-			bool n1_drained = false;
-			bool n2_drained = false;
-			bool n3_drained = false;
-			bool n4_drained = false;
-			const AdjElemIndex& adj_elem = elem_adj_elems[e_id];
-			if (adj_elem.adj_e1 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e1] != substep_index) // adjacent element is empty
-			{
-				n1_drained = true;
-				n2_drained = true;
-				n3_drained = true;
-			}
-			if (adj_elem.adj_e2 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e2] != substep_index) // adjacent elem is empty
-			{
-				n1_drained = true;
-				n4_drained = true;
-				n2_drained = true;
-			}
-			if (adj_elem.adj_e3 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e3] != substep_index) // adjacent elem is empty
-			{
-				n2_drained = true;
-				n4_drained = true;
-				n3_drained = true;
-			}
-			if (adj_elem.adj_e4 != SIZE_MAX && elem_has_pcls[adj_elem.adj_e4] != substep_index) // adjacent elem is empty
-			{
-				n1_drained = true;
-				n3_drained = true;
-				n4_drained = true;
-			}
-
 			// p_force
-			double& n1_p = node_p[eni.n1];
-			double& n2_p = node_p[eni.n2];
-			double& n3_p = node_p[eni.n3];
-			double& n4_p = node_p[eni.n4];
-			//if ((!node_in_contact[eni.n1]) & n1_drained)
-			//{
-			//	n1_p = 0.0;
-			//	elem_node_at_surface[e_id * 4] |= 1;
-			//}
-			//if ((!node_in_contact[eni.n2]) & n2_drained)
-			//{
-			//	n2_p = 0.0;
-			//	elem_node_at_surface[e_id * 4 + 1] |= 1;
-			//}
-			//if ((!node_in_contact[eni.n3]) & n3_drained)
-			//{
-			//	n3_p = 0.0;
-			//	elem_node_at_surface[e_id * 4 + 2] |= 1;
-			//}
-			//if ((!node_in_contact[eni.n4]) & n4_drained)
-			//{
-			//	n4_p = 0.0;
-			//	elem_node_at_surface[e_id * 4 + 3] |= 1;
-			//}
-
+			const double n1_p = node_p[eni.n1];
+			const double n2_p = node_p[eni.n2];
+			const double n3_p = node_p[eni.n3];
+			const double n4_p = node_p[eni.n4];
 			const double dp_dx = e_dN.dN1_dx * n1_p + e_dN.dN2_dx * n2_p + e_dN.dN3_dx * n3_p + e_dN.dN4_dx * n4_p;
 			const double dp_dy = e_dN.dN1_dy * n1_p + e_dN.dN2_dy * n2_p + e_dN.dN3_dy * n3_p + e_dN.dN4_dy * n4_p;
 			const double dp_dz = e_dN.dN1_dz * n1_p + e_dN.dN2_dz * n2_p + e_dN.dN3_dz * n3_p + e_dN.dN4_dz * n4_p;
@@ -752,10 +764,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 			const double e_ay_s = (n_a1.ay + n_a2.ay + n_a3.ay + n_a4.ay) * one_fourth;
 			const double e_az_s = (n_a1.az + n_a2.az + n_a3.az + n_a4.az) * one_fourth;
 			const double pf_a_tmp = pf_tmp * elem_density_f[e_id];
-			n1_pf -= pf_a_tmp * (e_dN.dN1_dx * e_ax_s + e_dN.dN1_dy * e_ay_s + e_dN.dN1_dz * e_az_s);
-			n2_pf -= pf_a_tmp * (e_dN.dN2_dx * e_ax_s + e_dN.dN2_dy * e_ay_s + e_dN.dN2_dz * e_az_s);
-			n3_pf -= pf_a_tmp * (e_dN.dN3_dx * e_ax_s + e_dN.dN3_dy * e_ay_s + e_dN.dN3_dz * e_az_s);
-			n4_pf -= pf_a_tmp * (e_dN.dN4_dx * e_ax_s + e_dN.dN4_dy * e_ay_s + e_dN.dN4_dz * e_az_s);
+			// this causes instability
+			//n1_pf -= pf_a_tmp * (e_dN.dN1_dx * e_ax_s + e_dN.dN1_dy * e_ay_s + e_dN.dN1_dz * e_az_s);
+			//n2_pf -= pf_a_tmp * (e_dN.dN2_dx * e_ax_s + e_dN.dN2_dy * e_ay_s + e_dN.dN2_dz * e_az_s);
+			//n3_pf -= pf_a_tmp * (e_dN.dN3_dx * e_ax_s + e_dN.dN3_dy * e_ay_s + e_dN.dN3_dz * e_az_s);
+			//n4_pf -= pf_a_tmp * (e_dN.dN4_dx * e_ax_s + e_dN.dN4_dy * e_ay_s + e_dN.dN4_dz * e_az_s);
 			
 			elem_node_p_force[e_id * 4] += n1_pf;
 			elem_node_p_force[e_id * 4 + 1] += n2_pf;
@@ -775,11 +788,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 	{
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
 
-		node_has_vbc = md.node_has_vbc;
 		elem_pcl_pm = md.elem_pcl_pm;
 		elem_node_p_force = md.elem_node_p_force;
-		elem_node_at_surface = md.elem_node_at_surface;
+		node_has_vbc = md.node_has_vbc;
 		node_dp = md.node_dp;
+		node_at_surface = md.node_at_surface;
 
 		elem_m_de_vol_s = md.elem_m_de_vol_s;
 		node_am = md.node_am;
@@ -814,7 +827,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 		//double n_am_de_vol_s = 0.0;
 		double n_pm = 0.0;
 		double n_pf = 0.0;
-		char n_at_surface = false;
 		n_id = node_ids[ve_id0];
 #ifdef _DEBUG
 		assert(n_id < stp.node_num || n_id == SIZE_MAX);
@@ -827,16 +839,14 @@ namespace Step_T3D_CHM_up_TBB_Task
 #endif
 			n_pm += elem_pcl_pm[ne_id / 4];
 			n_pf += elem_node_p_force[ne_id];
-			n_at_surface |= elem_node_at_surface[ne_id];
 			// strain enhancement
 			//n_am_de_vol_s += elem_m_de_vol_s[e_id];
 			if (n_id != node_ids[ve_id + 1])
 			{
 				n_pm *= one_fourth;
 				node_dp[n_id] = n_pf / n_pm;
-				if (node_has_vbc[n_id].is_drained)
-				// the node has drained bc or is located at surface without contact
-				//if (node_has_vbc[n_id].is_drained || n_at_surface == char(1))
+				// the node is at surface without contact
+				if (node_has_vbc[n_id].is_drained || node_at_surface[n_id] == 1)
 					node_dp[n_id] = 0.0;
 
 				// strain enhancement
@@ -849,7 +859,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 				// strain enhancement
 				n_pm = 0.0;
 				n_pf = 0.0;
-				n_at_surface = false;
 				//n_am_de_vol_s = 0.0;
 			}
 		}
@@ -970,11 +979,8 @@ namespace Step_T3D_CHM_up_TBB_Task
 				const double de_vol_s = e_de.de11 + e_de.de22 + e_de.de33;
 				e_n = (elem_pcl_n[e_id] + de_vol_s) / (1.0 + de_vol_s);
 
-				const double e_p_avg = (node_p[eni.n1] + node_p[eni.n2]
-					+ node_p[eni.n3] + node_p[eni.n4]) * one_fourth;
 				const double e_dp = (node_dp[eni.n1] + node_dp[eni.n2]
 					+ node_dp[eni.n3] + node_dp[eni.n4]) * one_fourth;
-				//e_p = e_p_avg + e_dp;
 				e_p = elem_p[e_id] + e_dp;
 				const double de_vol_f = -e_dp / Kf0;
 				e_density_f = elem_density_f[e_id] / (1.0 + de_vol_f);
@@ -1149,10 +1155,10 @@ namespace Step_T3D_CHM_up_TBB_Task
 				// apply contact force to mesh
 				// denoted the element as in contact
 				const size_t e_id = pcl_in_elems[p_id];
-				elem_node_at_surface[e_id * 4] |= char(2);
-				elem_node_at_surface[e_id * 4 + 1] |= char(2);
-				elem_node_at_surface[e_id * 4 + 2] |= char(2);
-				elem_node_at_surface[e_id * 4 + 3] |= char(2);
+				elem_node_at_surface[e_id * 4] |= 2;
+				elem_node_at_surface[e_id * 4 + 1] |= 2;
+				elem_node_at_surface[e_id * 4 + 2] |= 2;
+				elem_node_at_surface[e_id * 4 + 3] |= 2;
 				// contact force
 				const ShapeFunc& p_N = pcl_N[p_id];
 				Force& en_f1 = elem_node_force[e_id * 4];

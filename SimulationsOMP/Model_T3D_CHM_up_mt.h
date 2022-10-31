@@ -39,6 +39,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 {
 	class InitPcl;
 	class MapPclToBgMesh;
+	class FindSoilSurface;
 	class UpdateAccelerationAndVelocity;
 	class CalElemDeAndMapToNode;
 	class CalNodeDe;
@@ -192,7 +193,7 @@ protected: // mesh data
 	Force* elem_node_force; // elem_num * 4
 	double* elem_node_p; // elem_num * 4
 	double* elem_node_p_force; // elem_num * 4
-	char *elem_node_at_surface; // elem_num * 4
+	uint16_t *elem_node_at_surface; // elem_num * 4
 
 	Position* node_pos; // node_num
 	NodeHasVBC* node_has_vbc; // node_num
@@ -204,8 +205,7 @@ protected: // mesh data
 	Velocity* node_v_s; // node_num
 	double* node_p; // node_num
 	double* node_dp; // node_num
-	char* node_in_contact; // node_Num
-	char* node_at_surface; // node_num
+	uint16_t* node_at_surface; // node_num
 	double* node_de_vol_s; // node_num, strain enhancement
 
 protected: // === Non calculation data ===
@@ -322,6 +322,10 @@ public:
 		//pcl_mat_model_total_size += model_size;
 	}
 
+	inline void set_Kf(double _Kf) noexcept { Kf = _Kf; }
+	inline void set_k(double _k) noexcept { k = _k; }
+	inline void set_miu(double _dyn_vis) noexcept { dyn_viscosity = _dyn_vis; }
+	
 public:
 	inline bool is_in_element(
 		double pcl_x,
@@ -536,6 +540,7 @@ public: // rigid object
 
 	friend class Step_T3D_CHM_up_TBB_Task::InitPcl;
 	friend class Step_T3D_CHM_up_TBB_Task::MapPclToBgMesh;
+	friend class Step_T3D_CHM_up_TBB_Task::FindSoilSurface;
 	friend class Step_T3D_CHM_up_TBB_Task::UpdateAccelerationAndVelocity;
 	friend class Step_T3D_CHM_up_TBB_Task::CalElemDeAndMapToNode;
 	friend class Step_T3D_CHM_up_TBB_Task::CalNodeDe;

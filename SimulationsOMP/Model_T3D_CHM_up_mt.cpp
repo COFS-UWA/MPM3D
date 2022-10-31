@@ -1,8 +1,5 @@
 #include "SimulationsOMP_pcp.h"
 
-//#include <iostream>
-//#include <fstream>
-
 #include "SimulationsOMPUtils.h"
 #include "TetrahedronUtils.h"
 #include "SearchingGrid3D.hpp"
@@ -132,10 +129,10 @@ void Model_T3D_CHM_up_mt::alloc_mesh(size_t n_num, size_t e_num)
 		+ sizeof(DShapeFuncD) + sizeof(StrainInc)
 		+ sizeof(ElemNodeVM) * 4 + sizeof(Force) * 4
 		+ sizeof(size_t) + sizeof(double) * 17
-		+ sizeof(char) * 4) * e_num
+		+ sizeof(uint16_t) * 4) * e_num
 		+ (sizeof(Position) + sizeof(Acceleration) + sizeof(Velocity)
 		+ sizeof(NodeHasVBC) + sizeof(NodeVBCVec)
-		+ sizeof(double) * 4 + sizeof(char) * 2) * n_num;
+		+ sizeof(double) * 4 + sizeof(uint16_t)) * n_num;
 	mesh_mem_raw = new char[mem_len];
 
 	char* cur_mem = mesh_mem_raw;
@@ -178,8 +175,8 @@ void Model_T3D_CHM_up_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(double) * elem_num * 4;
 	elem_node_p_force = (double *)cur_mem;
 	cur_mem += sizeof(double) * elem_num * 4;
-	elem_node_at_surface = (char *)cur_mem; // elem_num * 4
-	cur_mem += sizeof(char) * elem_num * 4;
+	elem_node_at_surface = (uint16_t*)cur_mem; // elem_num * 4
+	cur_mem += sizeof(uint16_t) * elem_num * 4;
 
 	node_pos = (Position *)cur_mem; // node_num
 	cur_mem += sizeof(Position) * node_num;
@@ -197,10 +194,8 @@ void Model_T3D_CHM_up_mt::alloc_mesh(size_t n_num, size_t e_num)
 	cur_mem += sizeof(double) * node_num;
 	node_dp = (double *)cur_mem; // node_num
 	cur_mem += sizeof(double) * node_num;
-	node_in_contact = (char *)cur_mem; // node_num
-	cur_mem += sizeof(char) * node_num;
-	node_at_surface = (char *)cur_mem; // node_num
-	cur_mem += sizeof(char) * node_num;
+	node_at_surface = (uint16_t*)cur_mem; // node_num
+	cur_mem += sizeof(uint16_t) * node_num;
 	node_de_vol_s = (double *)cur_mem; // node_num
 }
 
