@@ -1,8 +1,176 @@
 #ifndef __Detect_Collision_SAT_hpp__
 #define __Detect_Collision_SAT_hpp__
 
+#include "Geometry2D.h"
+#include "TriangleUtils.h"
 #include "Geometry3D.h"
 #include "TetrahedronUtils.h"
+
+struct DetectLineAABBCollisionSAT
+{
+protected:
+	Rect ln_bbox;
+	double hx, hy;
+	Point2D n1, n2;
+	// normal of the line
+	Vector2D axes;
+
+	inline bool is_seperating_axis(Vector2D& axis, Point2D& p1, Point2D& p2)
+	{
+#define Norm_Tol 1.0e-6
+		if (axis.norm() < Norm_Tol)
+			return false;
+		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y)) * (1.0 + Norm_Tol);
+		double p1_proj = p1.x * axis.x + p1.y * axis.y;
+		double p2_proj = p2.x * axis.x + p2.y * axis.y;
+		return ((p1_proj > box_range && p2_proj > box_range) ||
+			(p1_proj < -box_range && p2_proj < -box_range));
+#undef Norm_Tol
+	}
+
+public:
+	inline void get_ln_bbox(Rect& box) const noexcept
+	{
+		box.xl = ln_bbox.xl; box.xu = ln_bbox.xu;
+		box.yl = ln_bbox.yl; box.yu = ln_bbox.yu;
+	}
+
+	template <typename Node2D>
+	void init_line(Node2D& _n1, Node2D& _n2)
+	{
+		n1.x = _n1.x;
+		n1.y = _n1.y;
+		n2.x = _n2.x;
+		n2.y = _n2.y;
+		const double e12_x = n1.x - n2.x;
+		const double e12_y = n1.y - n2.y;
+		axes.x = e12_y;
+		axes.y = -e12_x;
+		//
+		if (n1.x < n2.x)
+		{
+			ln_bbox.xl = n1.x;
+			ln_bbox.xu = n2.x;
+		}
+		else
+		{
+			ln_bbox.xl = n2.x;
+			ln_bbox.xu = n1.x;
+		}
+		if (n1.y < n2.y)
+		{
+			ln_bbox.yl = n1.y;
+			ln_bbox.yu = n2.y;
+		}
+		else
+		{
+			ln_bbox.yl = n2.y;
+			ln_bbox.yu = n1.y;
+		}
+	}
+
+	bool detect(const Rect& rect)
+	{
+		hx = rect.xu - rect.xl;
+		hy = rect.yu - rect.yl;
+		double box_xc = (rect.xl + rect.xu) * 0.5;
+		double box_yc = (rect.yl + rect.yu) * 0.5;
+		Point2D n1_m, n2_m;
+		n1_m.x = n1.x - box_xc;
+		n1_m.y = n1.y - box_yc;
+		n2_m.x = n2.x - box_xc;
+		n2_m.y = n2.y - box_yc;
+		// if there is one seperating axis, there is no collision
+		return !is_seperating_axis(axes, n1_m, n2_m);
+	}
+
+	inline const Point2D& get_n1() const noexcept { return n1; }
+	inline const Point2D& get_n2() const noexcept { return n2; }
+};
+
+struct DetectTriangleAABBCollisionSAT
+{
+protected:
+	double hx, hy;
+	Point2D n1, n2, n3;
+	Rect tri_bbox;
+	// 3 face normal
+	Vector2D axes[3];
+
+	inline bool is_seperating_axis(
+		Vector2D& axis,
+		Point2D &p1,
+		Point2D &p2,
+		Point2D &p3)
+	{
+#define Norm_Tol 1.0e-6
+		if (axis.norm() < Norm_Tol)
+			return false;
+		double box_range = 0.5 * (hx * abs(axis.x) + hy * abs(axis.y)) * (1.0 + Norm_Tol);
+		double p1_proj = p1.x * axis.x + p1.y * axis.y;
+		double p2_proj = p2.x * axis.x + p2.y * axis.y;
+		double p3_proj = p3.x * axis.x + p3.y * axis.y;
+		return ((p1_proj >  box_range && p2_proj >  box_range && p3_proj >  box_range) ||
+				(p1_proj < -box_range && p2_proj < -box_range && p3_proj < -box_range));
+#undef Norm_Tol
+	}
+
+public:
+	inline void get_tri_bbox(Rect& box) const noexcept
+	{
+		box.xl = tri_bbox.xl; box.xu = tri_bbox.xu;
+		box.yl = tri_bbox.yl; box.yu = tri_bbox.yu;
+	}
+	
+	template <typename Node2D>
+	void init_triangle(Node2D& _n1, Node2D& _n2, Node2D& _n3)
+	{
+		n1.x = _n1.x;
+		n1.y = _n1.y;
+		n2.x = _n2.x;
+		n2.y = _n2.y;
+		n3.x = _n3.x;
+		n3.y = _n3.y;
+		const double e12_x = n1.x - n2.x;
+		const double e12_y = n1.y - n2.y;
+		axes[0].x =  e12_y;
+		axes[0].y = -e12_x;
+		const double e13_x = n1.x - n3.x;
+		const double e13_y = n1.y - n3.y;
+		axes[1].x =  e13_y;
+		axes[1].y = -e13_x;
+		const double e23_x = n2.x - n3.x;
+		const double e23_y = n2.y - n3.y;
+		axes[2].x =  e23_y;
+		axes[2].y = -e23_x;
+		get_triangle_bounding_box(_n1, _n2, _n3, tri_bbox);
+	}
+
+	bool detect(const Rect &rect)
+	{
+		hx = rect.xu - rect.xl;
+		hy = rect.yu - rect.yl;
+		double box_xc = (rect.xl + rect.xu) * 0.5;
+		double box_yc = (rect.yl + rect.yu) * 0.5;
+		Point2D n1_m, n2_m, n3_m;
+		n1_m.x = n1.x - box_xc;
+		n1_m.y = n1.y - box_yc;
+		n2_m.x = n2.x - box_xc;
+		n2_m.y = n2.y - box_yc;
+		n3_m.x = n3.x - box_xc;
+		n3_m.y = n3.y - box_yc;
+		// if there is one seperating axis, there is no collision
+		if (is_seperating_axis(axes[0], n1_m, n2_m, n3_m) ||
+			is_seperating_axis(axes[1], n1_m, n2_m, n3_m) ||
+			is_seperating_axis(axes[2], n1_m, n2_m, n3_m))
+			return false;
+		return true;
+	}
+
+	inline const Point2D& get_n1() const noexcept { return n1; }
+	inline const Point2D& get_n2() const noexcept { return n2; }
+	inline const Point2D& get_n3() const noexcept { return n3; }
+};
 
 class DetectTetrahedronAABBCollisionSAT
 {
@@ -205,6 +373,9 @@ public:
 	{ n.x = tri_n2.x; n.y = tri_n2.y; n.z = tri_n2.z; }
 	inline void get_tri_n3(Point3D &n) const noexcept
 	{ n.x = tri_n3.x; n.y = tri_n3.y; n.z = tri_n3.z; }
+	inline const Point3D& get_tri_n1() const noexcept { return tri_n1; }
+	inline const Point3D& get_tri_n2() const noexcept { return tri_n2; }
+	inline const Point3D& get_tri_n3() const noexcept { return tri_n3; }
 
 	template <typename Node3D>
 	void init_triangle(
@@ -311,7 +482,6 @@ protected:
 		seperating_axes[9].cross(0.0, 0.0, 1.0, e23_x, e23_y, e23_z);
 	}
 };
-
 
 struct OBB3DAABBCollisionSAT
 {
@@ -491,7 +661,7 @@ struct OBB3DAABBCollisionSAT
 			it3z_not_zero = false;
 		}
 	}
-	inline bool detect_collision_with_cube(Cube& cube)
+	inline bool detect(Cube& cube)
 	{
 		double cube_xm = (cube.xl + cube.xu) * 0.5;
 		double cube_ym = (cube.yl + cube.yu) * 0.5;

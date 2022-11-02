@@ -83,11 +83,16 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 	//	mms[pcl_id] = &shp;
 	//}
 
-	model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
-	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.01);
-	const double Kct = 1000000.0 / (0.025 * 0.025);
+	//model.init_rigid_cylinder(0.0, 0.0, 1.025, 0.05, 0.3);
+	//model.set_rigid_cylinder_velocity(0.0, 0.0, -0.01);
+	model.init_t3d_rigid_mesh(1.0, "../../Asset/cylinder_cap.h5",
+		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.01);
+	const double Kct = 5.0e4;
+	//const double Kct = 5.0e7; // quad
 	//const double Kct = 1.0e5 / (0.025 * 0.025); // hypo 
 	model.set_contact_param(Kct, Kct, 0.1, 0.2);
+	//model.set_smooth_quad_contact_between_pcl_and_rect();
 	//model.set_rough_contact_between_pcl_and_rect();
 
 	//model.init_rigid_cone(0.0, 0.5, 0.5, 0.34641, 0.3, 0.2);
@@ -139,10 +144,9 @@ void test_t3d_me_mt_cap_compression(int argc, char **argv)
 
 	Step_T3D_ME_mt step("step1");
 	step.set_model(model);
-	step.set_thread_num(4);
+	//step.set_thread_num(4);
 	step.set_step_time(5.0);
-	//step.set_step_time(5.0e-4);
-	step.set_dtime(5.0e-6);
+	step.set_dtime(1.0e-4);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
@@ -284,7 +288,7 @@ void test_t3d_me_mt_cap_compression_result(int argc, char** argv)
 	//app.set_color_map_fld_range(0.0, 30.0);
 	//
 	//app.set_png_name("t3d_me_mt_cap_compression");
-	app.set_gif_name("t3d_me_mt_cap_compression");
+	//app.set_gif_name("t3d_me_mt_cap_compression");
 	app.start();
 }
 

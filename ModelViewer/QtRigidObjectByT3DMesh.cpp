@@ -28,8 +28,7 @@ void QtRigidObjectByT3DMesh::clear()
 }
 
 int QtRigidObjectByT3DMesh::init_face_data(
-	const RigidObjectByT3DMesh& rb,
-	const QVector3D& c)
+	const RigidObjectByT3DMesh& rb, const QVector3D& c)
 {
 	const size_t face_num = rb.get_face_num();
 	const PointToTriangleDistance* pt_tri_dist = rb.get_pt_tri_dist();
@@ -129,8 +128,6 @@ int QtRigidObjectByT3DMesh::init_face_data(
 		rb.get_iy(),
 		rb.get_iz(),
 		model_mat);
-
-	const Point3D &rb_pos = rb.get_pos();
 
 	return 0;
 }

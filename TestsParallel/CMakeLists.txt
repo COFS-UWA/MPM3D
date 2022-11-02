@@ -25,6 +25,7 @@ add_executable(
     test_t2d_me_mt_test1.cpp
     test_t2d_me_s_test2.cpp
     test_t2d_me_mt_1d_compression.cpp
+    test_t2d_me_mt_1d_tension.cpp
     test_t2d_me_mt_cap_compression.cpp
     test_t2d_me_mt_block_collision.cpp
     test_t2d_me_mt_block_sliding.cpp
@@ -49,6 +50,7 @@ add_executable(
     test_t3d_me_mt_cap_compression.cpp
     test_t3d_me_mt_triaxial_compression.cpp
     test_t3d_me_mt_block_sliding.cpp
+    test_t3d_me_mt_weird_block_sliding.cpp
     test_t3d_me_mt_test_rigid_mesh.cpp
 	test_t3d_me_mt_cylinder_foundation.cpp
     test_t3d_me_mt_cylinder_foundation_den.cpp
@@ -82,6 +84,7 @@ add_executable(
 	test_t3d_chm_mt_spudcan.cpp
 	test_t3d_me_mt_spudcan_cy.cpp
 	test_t3d_chm_mt_spudcan_cy.cpp
+    test_t3d_chm_mt_spudcan_cy_HV.cpp
     test_t3d_me_mt_spudcan_Hossain_2006.cpp
     )
 

@@ -93,19 +93,19 @@ struct Vector2D
 	{ return x * e2_x + y * e2_y; }
 
 	template <typename Point2D>
-	inline Vector2D& add(Point2D& p) noexcept
+	inline Vector2D& add(const Point2D& p) noexcept
 	{ x += p.x; y += p.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& add(Point2D& p1, Point2D& p2) noexcept
+	inline Vector2D& add(const Point2D& p1, const Point2D& p2) noexcept
 	{ x = p1.x + p2.x; y = p1.y + p2.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& substract(Point2D& p) noexcept
+	inline Vector2D& substract(const Point2D& p) noexcept
 	{ x -= p.x; y -= p.y; return *this; }
 	template <typename Point2D>
-	inline Vector2D& substract(Point2D& p1, Point2D& p2) noexcept
+	inline Vector2D& substract(const Point2D& p1, const Point2D& p2) noexcept
 	{ x = p1.x - p2.x; y = p1.y - p2.y; return *this; }
 	template <typename Point2D>
-	inline double dot(Point2D& p2) const noexcept
+	inline double dot(const Point2D& p2) const noexcept
 	{ return x * p2.x + y * p2.y; }
 };
 
@@ -380,6 +380,19 @@ inline void vector_from_local_to_global_coordinate(
 	double cos_ang = cos(angle);
 	gp.x = cos_ang * lp.x - sin_ang * lp.y;
 	gp.y = sin_ang * lp.x + cos_ang * lp.y;
+}
+
+inline void rotate_axses_by_angle(
+	double ang,
+	Vector2D& ix,
+	Vector2D& iy) noexcept
+{
+	const double sin_ang = sin(ang);
+	const double cos_ang = cos(ang);
+	ix.x = cos_ang;
+	ix.y = sin_ang;
+	iy.x = -sin_ang;
+	iy.y =  cos_ang;
 }
 
 #endif

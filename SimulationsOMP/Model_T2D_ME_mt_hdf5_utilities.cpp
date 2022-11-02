@@ -5,6 +5,7 @@
 #include "MatModelIdToPointerMap.h"
 #include "Model_hdf5_utilities.h"
 #include "RigidBody/RigidBody_hdf5_utilities.h"
+#include "RigidObject/RigidObject_hdf5_utilities.h"
 #include "Model_T2D_ME_mt_hdf5_utilities.h"
 
 namespace Model_T2D_ME_mt_hdf5_utilities
@@ -535,6 +536,129 @@ int load_rigid_rect_from_hdf5_file(
 	return 0;
 }
 
+int output_t2d_rigid_mesh_to_hdf5_file(
+	Model_T2D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_t2d_rigid_mesh())
+		return 0;
+
+	hid_t rm_grp_id = rf.create_group(grp_id, "RigidObjectByT2DMesh");
+
+	rf.write_attribute(rm_grp_id, "Kn_cont", md.Kn_cont);
+	rf.write_attribute(rm_grp_id, "Kt_cont", md.Kt_cont);
+	rf.write_attribute(rm_grp_id, "fric_ratio", md.fric_ratio);
+	rf.write_attribute(rm_grp_id, "shear_strength", md.shear_strength);
+
+	// contact model
+	//if (md.is_smooth_contact_between_pcl_and_rect())
+	//	rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Smooth));
+	//else if (md.is_frictional_contact_between_pcl_and_rect())
+	//	rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Frictional));
+	//else if (md.is_sticky_contact_between_pcl_and_rect())
+	//	rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Sticky));
+	//else if (md.is_rough_contact_between_pcl_and_rect())
+	//	rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Rough));
+	//else
+	//	rf.write_attribute(rm_grp_id, "contact_type", (unsigned int)(ContactType::Invalid));
+
+	RigidObject_hdf5_utilities::output_rigid_object_by_2dmesh_to_hdf5_file(
+		md.get_t2d_rigid_mesh(), rf, rm_grp_id);
+
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
+int output_t2d_rigid_mesh_state_to_hdf5_file(
+	Model_T2D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!md.has_t2d_rigid_mesh())
+		return 0;
+
+	hid_t rm_grp_id = rf.create_group(grp_id, "RigidObjectByT2DMesh");
+	RigidObject_hdf5_utilities::output_rigid_object_by_2dmesh_state_to_hdf5_file(
+		md.get_t2d_rigid_mesh(), rf, rm_grp_id);
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
+int load_t2d_rigid_mesh_from_hdf5_file(
+	Model_T2D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t grp_id)
+{
+	if (grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(grp_id, "RigidObjectByT2DMesh"))
+		return 0;
+
+	hid_t rm_grp_id = rf.open_group(grp_id, "RigidObjectByT2DMesh");
+
+	double Kn_cont, Kt_cont, fric_ratio, shear_strength;
+	rf.read_attribute(rm_grp_id, "Kn_cont", Kn_cont);
+	rf.read_attribute(rm_grp_id, "Kt_cont", Kt_cont);
+	rf.read_attribute(rm_grp_id, "fric_ratio", fric_ratio);
+	rf.read_attribute(rm_grp_id, "shear_strength", shear_strength);
+	md.set_contact_param(Kn_cont, Kt_cont, fric_ratio, shear_strength);
+
+	//unsigned int cont_type;
+	//rf.read_attribute(rm_grp_id, "contact_type", cont_type);
+	//switch (ContactType(cont_type))
+	//{
+	//case ContactType::Smooth:
+	//	md.set_smooth_contact_between_pcl_and_rect();
+	//	break;
+	//case ContactType::Frictional:
+	//	md.set_frictional_contact_between_pcl_and_rect();
+	//	break;
+	//case ContactType::Sticky:
+	//	md.set_sticky_contact_between_pcl_and_rect();
+	//	break;
+	//case ContactType::Rough:
+	//	md.set_rough_contact_between_pcl_and_rect();
+	//	break;
+	//default:
+	//	break;
+	//}
+
+	RigidObject_hdf5_utilities::load_rigid_object_by_2dmesh_from_hdf5_file(
+		md.get_t2d_rigid_mesh(), rf, rm_grp_id);
+
+	md.rigid_t2d_mesh_is_valid = true;
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
+int load_t2d_rigid_mesh_state_from_hdf5_file(
+	Model_T2D_ME_mt& md,
+	ResultFile_hdf5& rf,
+	hid_t frame_grp_id)
+{
+	if (frame_grp_id < 0)
+		return -1;
+
+	if (!rf.has_group(frame_grp_id, "RigidObjectByT2DMesh"))
+		return 0;
+
+	hid_t rm_grp_id = rf.open_group(frame_grp_id, "RigidObjectByT2DMesh");
+
+	RigidObject_hdf5_utilities::load_rigid_object_by_2dmesh_state_from_hdf5_file(
+		md.get_t2d_rigid_mesh(), rf, rm_grp_id);
+
+	rf.close_group(rm_grp_id);
+	return 0;
+}
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(
 	Model_T2D_ME_mt &md,
@@ -552,6 +676,7 @@ int output_model_to_hdf5_file(
 	// rigid object
 	//output_rigid_circle_to_hdf5_file(md, rf, md_grp_id);
 	output_rigid_rect_to_hdf5_file(md, rf, md_grp_id);
+	output_t2d_rigid_mesh_to_hdf5_file(md, rf, md_grp_id);
 	return 0;
 }
 
@@ -570,6 +695,7 @@ int time_history_complete_output_to_hdf5_file(
 	//output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
 	//output_rigid_rect_to_hdf5_file(md, stp, rf, frame_grp_id);
     output_rigid_rect_to_hdf5_file(md, rf, frame_grp_id);
+	output_t2d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -587,6 +713,7 @@ int time_history_complete_output_to_hdf5_file(
 	//output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
 	//output_rigid_rect_to_hdf5_file(md, stp, rf, frame_grp_id);
 	output_rigid_rect_to_hdf5_file(md, rf, frame_grp_id);
+	output_t2d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -604,6 +731,7 @@ int time_history_complete_output_to_hdf5_file(
 	//output_rigid_circle_to_hdf5_file(md, rf, frame_grp_id);
 	//output_rigid_rect_to_hdf5_file(md, stp, rf, frame_grp_id);
     output_rigid_rect_to_hdf5_file(md, rf, frame_grp_id);
+	output_t2d_rigid_mesh_state_to_hdf5_file(md, rf, frame_grp_id);
 	return 0;
 }
 
@@ -642,7 +770,9 @@ int load_me_mt_model_from_hdf5_file(
 
 	// rigid object
 	//load_rigid_circle_from_hdf5_file(md, rf, th_frame_id);
-	//load_rigid_rect_from_hdf5_file(md, rf, th_frame_id);
+	load_rigid_rect_from_hdf5_file(md, rf, th_frame_id);
+	load_t2d_rigid_mesh_from_hdf5_file(md, rf, md_grp_id);
+	load_t2d_rigid_mesh_state_from_hdf5_file(md, rf, th_frame_id);
 
 	step.is_first_step = false;
 	rf.read_attribute(th_frame_id, "total_time", step.start_time);

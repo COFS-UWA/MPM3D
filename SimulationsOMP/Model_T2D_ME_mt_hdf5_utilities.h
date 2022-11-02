@@ -310,6 +310,11 @@ int load_material_model_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf,
 int output_rigid_rect_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 int load_rigid_rect_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 
+int output_t2d_rigid_mesh_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int output_t2d_rigid_mesh_state_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_t2d_rigid_mesh_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
+int load_t2d_rigid_mesh_state_from_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf, hid_t frame_grp_id);
+
 // output the whole model to ModelData
 int output_model_to_hdf5_file(Model_T2D_ME_mt& md, ResultFile_hdf5& rf);
 

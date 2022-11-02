@@ -19,12 +19,10 @@ Model_T2D_ME_mt::Model_T2D_ME_mt() :
 	grid_elem_list(nullptr),
 	grid_elem_list_id_array(nullptr),
 	rigid_rect_is_valid(false),
+	rigid_t2d_mesh_is_valid(false),
 	contact_mem(nullptr),
 	pcm(&smooth_contact)
-	//pcm(&rough_contact)
-	//pcm(&fric_contact)
-	//pcm(&sticky_contact)
-	{}
+{}
 
 Model_T2D_ME_mt::~Model_T2D_ME_mt()
 {

@@ -4,10 +4,7 @@
 #include "GeometryUtils.h"
 #include "TetrahedronMesh.h"
 
-int TetrahedronMesh::init_search_grid(
-	double _hx,
-	double _hy,
-	double _hz)
+int TetrahedronMesh::init_search_grid(double _hx, double _hy, double _hz)
 {
 	return search_bg_grid.init(*this, _hx, _hy, _hz);
 }
@@ -63,11 +60,7 @@ void TetrahedronMesh::rotate_mesh(
 	centre.z = iz.x * n_x + iz.y * n_y + iz.z * n_z;
 }
 
-void TetrahedronMesh::translate_mesh(
-	double dx,
-	double dy,
-	double dz
-	) noexcept
+void TetrahedronMesh::translate_mesh(double dx, double dy, double dz) noexcept
 {
 	for (size_t n_id = 0; n_id < node_num; ++n_id)
 	{

@@ -57,16 +57,16 @@ def generate_brick_mesh(nx, ny, nz, xl, xu, yl, yu, zl, zu):
     return nodes, elems
     
 if __name__ == "__main__":
-    mh_length = 2.0
-    inv_x = 8
-    inv_y = 8
-    inv_z = 10
-    h5_file = h5py.File("../Asset/brick_mesh_%.2f_%dx%dx%d.h5" % (mh_length, inv_x, inv_y, inv_z), "w")
+    mh_height = 8.0
+    inv_x = 15
+    inv_y = 4
+    inv_z = 8
+    h5_file = h5py.File("../Asset/brick_mesh_%.2f_%dx%dx%d.h5" % (mh_height, inv_x, inv_y, inv_z), "w")
     mesh_grp = h5_file.create_group("Mesh")
     nodes, elems = generate_brick_mesh(inv_x, inv_y, inv_z,        \
-                                       0.0, mh_length/inv_z*inv_x, \
-                                       0.0, mh_length/inv_z*inv_y, \
-                                       0.0, mh_length)
+                                       0.0, mh_height/inv_z*inv_x, \
+                                       0.0, mh_height/inv_z*inv_y, \
+                                       0.0, mh_height)
     # write nodes
     node_type = np.dtype([("index", np.int64), ("x", np.float64), ("y", np.float64), ("z", np.float64)])
     nd = np.empty(len(nodes), dtype=node_type)

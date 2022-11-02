@@ -5,11 +5,30 @@
 #include "RigidCube.h"
 #include "RigidCylinder.h"
 #include "RigidCone.h"
+#include "RigidObjectByT2DMesh.h"
 #include "RigidObjectByT3DMesh.h"
 #include "ResultFile_hdf5.h"
 
 namespace RigidObject_hdf5_utilities
 {
+	inline hid_t get_pt_to_ln_dist_dt_id()
+	{
+		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(PointToLineDistance));
+		// n1, n2, n3
+		H5Tinsert(res, "n1_x", HOFFSET(PointToLineDistance, n1) + HOFFSET(Point2D, x), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "n1_y", HOFFSET(PointToLineDistance, n1) + HOFFSET(Point2D, y), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "n2_x", HOFFSET(PointToLineDistance, n2) + HOFFSET(Point2D, x), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "n2_y", HOFFSET(PointToLineDistance, n2) + HOFFSET(Point2D, y), H5T_NATIVE_DOUBLE);
+		// ix, iy
+		H5Tinsert(res, "ix_x", HOFFSET(PointToLineDistance, ix) + HOFFSET(Vector2D, x), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "ix_y", HOFFSET(PointToLineDistance, ix) + HOFFSET(Vector2D, y), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "iy_x", HOFFSET(PointToLineDistance, iy) + HOFFSET(Vector2D, x), H5T_NATIVE_DOUBLE);
+		H5Tinsert(res, "iy_y", HOFFSET(PointToLineDistance, iy) + HOFFSET(Vector2D, y), H5T_NATIVE_DOUBLE);
+		// len
+		H5Tinsert(res, "len", HOFFSET(PointToLineDistance, len), H5T_NATIVE_DOUBLE);
+		return res;
+	}
+
 	inline hid_t get_pt_to_tri_dist_dt_id()
 	{
 		hid_t res = H5Tcreate(H5T_COMPOUND, sizeof(PointToTriangleDistance));
@@ -71,6 +90,11 @@ namespace RigidObject_hdf5_utilities
 	
 	int output_rigid_cone_to_hdf5_file(RigidCone &rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
 	int load_rigid_cone_from_hdf5_file(RigidCone &rc, ResultFile_hdf5& rf, hid_t rc_grp_id);
+
+	int output_rigid_object_by_2dmesh_to_hdf5_file(RigidObjectByT2DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);
+	int output_rigid_object_by_2dmesh_state_to_hdf5_file(RigidObjectByT2DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);
+	int load_rigid_object_by_2dmesh_from_hdf5_file(RigidObjectByT2DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);
+	int load_rigid_object_by_2dmesh_state_from_hdf5_file(RigidObjectByT2DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);
 
 	int output_rigid_object_by_3dmesh_to_hdf5_file(RigidObjectByT3DMesh &rb, ResultFile_hdf5 &rf, hid_t rb_grp_id);
 	int output_rigid_object_by_3dmesh_state_to_hdf5_file(RigidObjectByT3DMesh& rb, ResultFile_hdf5& rf, hid_t rb_grp_id);

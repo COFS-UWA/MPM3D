@@ -7,7 +7,11 @@ void test_rigid_cylinder(int argc, char** argv);
 void test_rigid_cone(int argc, char** argv);
 void test_rigid_mesh_contact(int argc, char** argv);
 void test_rigid_mesh_contact2(int argc, char** argv);
+void test_rigid_mesh_contact_2d(int argc, char** argv);
 void test_contact_model_3d(int argc, char** argv);
+void test_contact_3d_rigid_ball_pap2(int argc, char** argv);
+void test_contact_3d_rigid_cylinder_pap2(int argc, char** argv);
+void test_stress_rotate();
 
 void test_mohr_coulomb();
 void test_sand_hypoplasticity_integration();
@@ -24,10 +28,12 @@ void test_Step_OMP(int argc, char** argv);
 void test_t2d_me_mt_test1(int argc, char** argv);
 void test_t2d_me_s_test2(int argc, char** argv);
 void test_t2d_me_mt_1d_compression(int argc, char** argv);
+void test_t2d_me_mt_1d_tension(int argc, char** argv);
 void test_t2d_me_mt_cap_compression(int argc, char** argv);
 void test_t2d_me_mt_strip_footing_smaller(int argc, char** argv);
 void test_t2d_me_mt_strip_footing(int argc, char** argv);
 void test_t2d_me_mt_block_sliding(int argc, char** argv);
+void test_t3d_me_mt_weird_block_sliding(int argc, char** argv);
 void test_t2d_me_mt_block_collision(int argc, char** argv);
 void test_t2d_me_mt_geostatic(int argc, char** argv);
 void test_t2d_me_mt_column_collapse(int argc, char** argv);
@@ -153,6 +159,11 @@ void test_t3d_me_mt_spudcan_cy(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy_geostatic(int argc, char** argv);
 void test_t3d_chm_mt_spudcan_cy(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_restart(int argc, char** argv);
+
+void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv);
+void test_t3d_chm_mt_spudcan_cy_HV(int argc, char** argv);
 
 void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv);
 void test_t3d_me_mt_spudcan_cy_Hossain_2006(int argc, char** argv);

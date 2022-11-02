@@ -13,6 +13,7 @@
 #include "QtMultiColorCircleGLObject.h"
 #include "QtRigidCircleObject.h"
 #include "QtRigidRectObject.h"
+#include "QtRigidObjectByT2DMesh.h"
 #include "QtUniformColorMapObject.h"
 #include "QtSceneFromHdf5.h"
 
@@ -36,6 +37,7 @@ protected:
 	QOpenGLShaderProgram shader_plain2D;
 	QOpenGLShaderProgram shader_circles;
 	QOpenGLShaderProgram shader_char;
+	QOpenGLShaderProgram shader_rigid_mesh_2D;
 
 	bool need_mat_model_data;
 	bool display_bg_mesh;
@@ -44,6 +46,8 @@ protected:
 	bool has_rc_obj;
 	bool display_rr;
 	bool has_rr_obj;
+	bool display_rb;
+	bool has_rb_obj;
 
 	QtTriangleMeshGLObject bg_mesh_obj;
 
@@ -55,7 +59,8 @@ protected:
 	
 	QtRigidCircleObject rc_obj;
 	QtRigidRectObject rr_obj;
-	
+	QtRigidObjectByT2DMesh rb_obj;
+
 	bool has_color_map;
 	float cm_xpos, cm_ypos, cm_ht;
 	QtUniformColorMapObject color_map_obj;
@@ -89,7 +94,8 @@ public:
 	inline void set_display_bg_mesh(bool op = true) { display_bg_mesh = op; }
 	inline void set_display_pcls(bool op = true) { display_pcls = op; }
 	inline void set_display_rc(bool op = true) { display_rc = op; }
-	
+	inline void set_display_rb(bool op = true) { display_rb = op; }
+
 	inline void set_display_whole_model() { display_whole_model = true; }
 	inline void set_display_range(double _xl, double _xu, double _yl, double _yu)
 	{

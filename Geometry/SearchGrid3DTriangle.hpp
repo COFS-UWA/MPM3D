@@ -97,7 +97,7 @@ protected:
 
 	// seperating axises:
 	// 4 tri normal + 3 * 6 edge cross products
-	Vector3D seperating_axes[22];
+	//Vector3D seperating_axes[22];
 
 	inline void add_triangle_to_grid(Grid& g, const Tri &tri)
 	{

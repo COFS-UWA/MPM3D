@@ -1,3 +1,4 @@
+import math as mh
 import numpy as np
 import h5py
 
@@ -106,6 +107,53 @@ def move_mesh_in_z_direction(nodes, z_off):
     for node in nodes:
         node[3] += z_off
 
+def move_mesh_in_y_direction(nodes, y_off):
+    for node in nodes:
+        node[2] += y_off
+
+def rotate_axses_by_angle(x_ang, y_ang, z_ang):
+    x_ang = mh.radians(x_ang)
+    y_ang = mh.radians(y_ang)
+    z_ang = mh.radians(z_ang)
+	#
+    Kx = 0.0
+    Ky = 0.0
+    Kz = 0.0
+    theta = mh.sqrt(x_ang*x_ang + y_ang*y_ang + z_ang*z_ang)
+    if (theta != 0.0):
+        Kx = x_ang / theta
+        Ky = y_ang / theta
+        Kz = z_ang / theta
+    #
+    q0 = mh.cos(0.5 * theta)
+    q1 = Kx * mh.sin(0.5 * theta)
+    q2 = Ky * mh.sin(0.5 * theta)
+    q3 = Kz * mh.sin(0.5 * theta)
+    #
+    ix = np.zeros(3)
+    iy = np.zeros(3)
+    iz = np.zeros(3)
+    ix[0] = 1.0 - 2.0 * (q2 * q2 + q3 * q3)
+    ix[1] = 2.0 * (q1 * q2 - q0 * q3)
+    ix[2] = 2.0 * (q1 * q3 + q0 * q2)
+    iy[0] = 2.0 * (q1 * q2 + q0 * q3)
+    iy[1] = 1.0 - 2.0 * (q3 * q3 + q1 * q1)
+    iy[2] = 2.0 * (q2 * q3 - q0 * q1)
+    iz[0] = 2.0 * (q1 * q3 - q0 * q2)
+    iz[1] = 2.0 * (q2 * q3 + q0 * q1)
+    iz[2] = 1.0 - 2.0 * (q1 * q1 + q2 * q2)
+    return ix, iy, iz
+
+def rotate_mesh(nodes, x_ang, y_ang, z_ang):
+    ix, iy, iz = rotate_axses_by_angle(x_ang, y_ang, z_ang)
+    for node in nodes:
+        node_x_tmp = node[1]
+        node_y_tmp = node[2]
+        node_z_tmp = node[3]
+        node[1] = ix[0] * node_x_tmp + ix[1] * node_y_tmp + ix[2] * node_z_tmp
+        node[2] = iy[0] * node_x_tmp + iy[1] * node_y_tmp + iy[2] * node_z_tmp
+        node[3] = iz[0] * node_x_tmp + iz[1] * node_y_tmp + iz[2] * node_z_tmp
+
 if __name__ == "__main__":
     # text_line = "*Part, name=Part-1"
     # text_line = "*Node"
@@ -131,11 +179,25 @@ if __name__ == "__main__":
     # nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_quarter_cylinder_8D.inp", "Part-1")
     # move_mesh_in_z_direction(nodes, -12.0)
     # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter_cylinder_8D.h5")
+    nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_half_cylinder_8R.inp", "Part-1")
+    move_mesh_in_z_direction(nodes, -12.0)
+    rotate_mesh(nodes, 0.0, 0.0, 90.0)
+    output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_half_cylinder_8R.h5")
     # nodes, elems = get_mesh_from_inp("../Asset/weird_cylinder.inp", "Part-1")
     # output_mesh_to_hdf5(nodes, elems, "../Asset/weird_cylinder.h5")
+    # nodes, elems = get_mesh_from_inp("../Asset/weird_block.inp", "Part-1")
+    # rotate_mesh(nodes, 90.0, 0.0, 0.0)
+    # move_mesh_in_y_direction(nodes, 3.0)
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/weird_block.h5")
     # nodes, elems = get_mesh_from_inp("../Asset/spudcan_model_Hossain_2006.inp", "Part-1")
     # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_model_Hossain_2006.h5")
-    nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_quarter_Hossain_4D.inp", "Part-1")
-    move_mesh_in_z_direction(nodes, -15.0)
-    output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter_Hossain_4D.h5")
-    
+    # nodes, elems = get_mesh_from_inp("../Asset/spudcan_soil_quarter_Hossain_4D.inp", "Part-1")
+    # move_mesh_in_z_direction(nodes, -15.0)
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/spudcan_soil_quarter_Hossain_4D.h5")
+    # nodes, elems = get_mesh_from_inp("../Asset/cylinder_cap.inp", "Part-1")
+    # move_mesh_in_z_direction(nodes, 1.0)
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/cylinder_cap.h5")
+    # nodes, elems = get_mesh_from_inp("../Asset/cy_pap2.inp", "Part-1")
+    # output_mesh_to_hdf5(nodes, elems, "../Asset/cy_pap2.h5")
+    nodes, elems = get_mesh_from_inp("../Asset/ba_pap2.inp", "Part-1")
+    output_mesh_to_hdf5(nodes, elems, "../Asset/ba_pap2.h5")

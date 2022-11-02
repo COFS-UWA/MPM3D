@@ -93,7 +93,7 @@ class MeshParser:
 
 
 if __name__ == "__main__":
-    msh_filename = "column_collapse_bg_mesh"
+    msh_filename = "rect_cap_pp2"
     # parse
     msh_file_name = "../Asset/" + msh_filename + ".msh"
     msh_parser = MeshParser()

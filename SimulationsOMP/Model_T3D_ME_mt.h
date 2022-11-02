@@ -12,6 +12,7 @@
 #include "RigidObject/RigidCube.h"
 #include "RigidObject/RigidObjectByT3DMesh.h"
 #include "RigidObject/SmoothContact3D.h"
+#include "RigidObject/SmoothContact3D_Quad.h"
 #include "RigidObject/RoughContact3D.h"
 #include "RigidObject/FrictionalContact3D.h"
 #include "RigidObject/StickyContact3D.h"
@@ -419,6 +420,7 @@ protected:
 	double Kn_cont, Kt_cont;
 	double fric_ratio, shear_strength;
 	SmoothContact3D smooth_contact;
+	SmoothContact3D_Quad smh_contact_quad;
 	RoughContact3D rough_contact;
 	FrictionalContact3D fric_contact;
 	StickyContact3D sticky_contact;
@@ -504,6 +506,10 @@ public:
 	}
 	inline void set_t3d_rigid_mesh_velocity(double vx, double vy, double vz)
 	{ rigid_t3d_mesh.set_translation_velocity_bc(vx, vy, vz);	}
+	inline void set_t3d_rigid_mesh_init_velocity(double vx, double vy, double vz)
+	{ rigid_t3d_mesh.set_velocity(vx, vy, vz); }
+	inline void set_t3d_rigid_mesh_ext_force(double fx, double fy, double fz)
+	{ rigid_t3d_mesh.set_ext_force(fx, fy, fz); }
 
 	// for contact model
 	// for contact model
@@ -518,6 +524,7 @@ public:
 		fric_ratio = _fric_ratio;
 		shear_strength = _shear_strength;
 		smooth_contact.set_Kn_cont(_Kn_cont);
+		smh_contact_quad.set_Kn_cont(_Kn_cont);
 		fric_contact.set_K_cont(_Kn_cont, _Kt_cont);
 		fric_contact.set_friction_ratio(_fric_ratio);
 		sticky_contact.set_K_cont(_Kn_cont, _Kt_cont);
@@ -525,11 +532,13 @@ public:
 		rough_contact.set_K_cont(_Kn_cont, _Kt_cont);
 	}
 	inline void set_smooth_contact_between_pcl_and_rect() noexcept { pcm = &smooth_contact; }
+	inline void set_smooth_quad_contact_between_pcl_and_rect() noexcept { pcm = &smh_contact_quad; }
 	inline void set_rough_contact_between_pcl_and_rect() noexcept { pcm = &rough_contact; }
 	inline void set_frictional_contact_between_pcl_and_rect() noexcept { pcm = &fric_contact; }
 	inline void set_sticky_contact_between_pcl_and_rect() noexcept { pcm = &sticky_contact; }
 	inline ContactModel3D *get_contact_model() noexcept { return pcm; }
 	inline bool is_smooth_contact_between_pcl_and_rect() noexcept { return pcm == &smooth_contact; }
+	inline bool is_smooth_quad_contact_between_pcl_and_rect() noexcept { return pcm == &smh_contact_quad; }
 	inline bool is_frictional_contact_between_pcl_and_rect() noexcept { return pcm == &fric_contact; }
 	inline bool is_sticky_contact_between_pcl_and_rect() noexcept { return pcm == &sticky_contact; }
 	inline bool is_rough_contact_between_pcl_and_rect() noexcept { return pcm == &rough_contact; }

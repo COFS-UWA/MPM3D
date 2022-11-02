@@ -96,7 +96,7 @@ protected:
 
 	// 22 seperating axises:
 	// 4 face normal + 3 * 6 edge cross products
-	Vector3D seperating_axes[22];
+	//Vector3D seperating_axes[22];
 
 	inline void add_teh_to_grid(Grid &g, const Teh &teh)
 	{

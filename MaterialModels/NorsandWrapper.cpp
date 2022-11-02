@@ -18,7 +18,7 @@ namespace MatModel
 		NorsandGlobal_set_param(glb, o_glb.phi,
 			o_glb.gamma, o_glb.lambda,
 			o_glb.N, o_glb.chi, o_glb.H,
-			o_glb.Ig, o_glb.niu);
+			o_glb.Ig, o_glb.niu, o_glb.min_prin_s);
 		const auto& o_mat = other.mat;
 		mat.stress[0] = o_mat.stress[0];
 		mat.stress[1] = o_mat.stress[1];
@@ -36,9 +36,10 @@ namespace MatModel
 		double phi,
 		double gamma, double lambda,
 		double N, double chi, double H,
-		double Ig, double niu)
+		double Ig, double niu,
+		double min_prin_s)
 	{
-		NorsandGlobal_set_param(glb, phi, gamma, lambda, N, chi, H, Ig, niu);
+		NorsandGlobal_set_param(glb, phi, gamma, lambda, N, chi, H, Ig, niu, min_prin_s);
 		Norsand_set_NC_param(mat, glb, ini_stress, e0);
 	}
 

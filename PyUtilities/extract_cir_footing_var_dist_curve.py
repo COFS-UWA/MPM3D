@@ -6,11 +6,11 @@ from multiprocessing import Process, Array
 
 #path_name = "E:/"
 path_name = "../Build/TestsParallel/"
-sim_name = "t3d_me_tbb_piezofoundation_sim_mat"
+sim_name = "t3d_me_tbb_piezofoundation_sim_mat_D3"
 var_name = "s33"
 th_name = "penetration"
 rb_name = "RigidObjectByT3DMesh"
-th_id = 21
+th_id = 19
 proc_num = 8
 
 # (r0, z0, dr, dz)
