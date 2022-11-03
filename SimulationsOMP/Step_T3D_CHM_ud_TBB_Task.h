@@ -4,7 +4,7 @@
 #define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #include <tbb/tbb.h>
 
-#include "RigidObject/RigidCylinder.h"
+#include "Model_T3D_CHM_mt.h"
 
 class Step_T3D_CHM_ud_TBB;
 
@@ -173,7 +173,7 @@ namespace Step_T3D_CHM_ud_TBB_Task
 		typedef Model_T3D_CHM_mt::Velocity Velocity;
 		typedef Model_T3D_CHM_mt::DShapeFuncABC DShapeFuncABC;
 		typedef Model_T3D_CHM_mt::StrainInc StrainInc;
-
+		
 		Step_T3D_CHM_ud_TBB& stp;
 
 		const ElemNodeIndex* elem_node_id;

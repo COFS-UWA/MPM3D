@@ -4,7 +4,7 @@ import h5py as py
 
 from OneDConsolidation import OneDConsolidation
 
-file_name = "t3d_chm_tbb_1d_consolidation_20kPa"
+file_name = "t3d_chm_mt_1d_consolidation_up"
 
 fig = plt.figure()
 plot1 = fig.subplots(1, 1)
@@ -33,7 +33,7 @@ for t_id in range(output_num):
     pcl_ids = pcl_dset['id']
     pcl_zs = pcl_dset['z']
     for p_id in range(len(pcl_dset)):
-        if pcl_ids[p_id] == 2559:
+        if pcl_ids[p_id] == 2559: #2431: #2559
             var = pcl_zs[p_id]
             if not is_init:
                 init_z = var
@@ -50,13 +50,13 @@ for o_id in range(output_num):
 line1, = plot1.plot(out_time, pcl_var)
 
 # analytical solution
-u0 = 20.0e3
+u0 = 1.0
 H = 1.0
-E = 5.0e6
+E = 1000.0
 niu = 0.0 # possion ratio
-kv = 5.0e-13
-miu = 1.0e-3 # dynamic viscosity
-time = 20.0 # time of consolidation
+kv = 1.0e-4
+miu = 1.0 # dynamic viscosity
+time = 10.0 # time of consolidation
 
 Es = (1 - niu) / (1 + niu) / (1 - 2.0*niu) * E # Es = (1-v) / (1 + v) / (1-2v) * E
 Cv = kv * Es / miu
