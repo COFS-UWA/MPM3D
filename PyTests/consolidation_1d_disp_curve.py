@@ -62,10 +62,10 @@ for i in range(data_num):
     u_list[i + 2] = con_res.calSettlement(t_list[i + 2])
     t_list[i + 2] += t_list[1]
 
-line2, = plot1.plot(t_list, u_list, 'r--')
-# with open("consolidation_disp_ana_SE.csv", "w") as out_file:
-    # for i in range(len(t_list)):
-        # out_file.write("%f, %f\n" % (t_list[i], u_list[i]))
+with open("consolidation_disp_ana.csv", "w") as out_file:
+    for i in range(len(t_list)):
+        out_file.write("%f, %f\n" % (t_list[i], u_list[i]))
 
+plot1.plot(t_list, u_list, 'r--')
 plt.legend(handles=[line1, line2], labels=['MPM', 'Analytical Solution'])
 plt.show()

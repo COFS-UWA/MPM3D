@@ -1,6 +1,7 @@
 #ifndef __Tetrahedron_Utils_h__
 #define __Tetrahedron_Utils_h__
 
+#include <unordered_map>
 #include <assert.h>
 #include "Geometry3D.h"
 
@@ -734,5 +735,125 @@ inline void cal_tetrahedron_moi(
 		+ 2.0 * p3.x * p3.y + p4.x * p3.y + p1.x * p4.y + p2.x * p4.y + p3.x * p4.y
 		+ 2.0 * p4.x * p4.y);
 }
+
+class TehMeshAdjElementFinder
+{
+protected:
+	struct FaceKey
+	{
+		// n1_id < n2_id < n3_id
+		size_t n1_id, n2_id, n3_id;
+		FaceKey(size_t _n1, size_t _n2, size_t _n3)
+		{
+			size_t tmp_id;
+			if (_n1 > _n2)
+			{
+				tmp_id = _n1;
+				_n1 = _n2;
+				_n2 = tmp_id;
+			}
+			if (_n2 > _n3)
+			{
+				tmp_id = _n2;
+				_n2 = _n3;
+				_n3 = tmp_id;
+			}
+			if (_n1 > _n2)
+			{
+				tmp_id = _n1;
+				_n1 = _n2;
+				_n2 = tmp_id;
+			}
+			n1_id = _n1;
+			n2_id = _n2;
+			n3_id = _n3;
+		}
+		bool operator==(const FaceKey& other) const
+		{
+			return n1_id == other.n1_id
+				&& n2_id == other.n2_id
+				&& n3_id == other.n3_id;
+		}
+	};
+
+	struct FaceKeyHashFunc
+	{
+		size_t node_num;
+		size_t node_num2;
+		FaceKeyHashFunc(size_t _nd_num) :
+			node_num(_nd_num), node_num2(_nd_num* _nd_num) {}
+		size_t operator()(const FaceKey& key) const
+		{
+			return key.n1_id * node_num2 + key.n2_id * node_num + key.n3_id;
+		}
+	};
+
+	struct AdjElems
+	{
+		size_t elem1_id, edg1_id;
+		size_t elem2_id, edg2_id;
+		AdjElems(size_t elem_id, size_t edg_id) :
+			elem1_id(elem_id), edg1_id(edg_id),
+			elem2_id(SIZE_MAX), edg2_id(SIZE_MAX) {}
+	};
+
+	typedef std::unordered_map<FaceKey, AdjElems, FaceKeyHashFunc> FaceMap;
+
+	void add_face_to_map(FaceMap& face_map,
+		size_t n1_id, size_t n2_id, size_t n3_id,
+		size_t elem_id, size_t edg_id)
+	{
+		FaceKey face_key(n1_id, n2_id, n3_id);
+		auto res = face_map.find(face_key);
+		if (res == face_map.end())
+		{
+			face_map.emplace(face_key, AdjElems(elem_id, edg_id));
+		}
+		else
+		{
+			AdjElems& adj_elems = res->second;
+			adj_elems.elem2_id = elem_id;
+			adj_elems.edg2_id = edg_id;
+		}
+	}
+
+public:
+	// struct Element { size_t n1, n2, n3, n4; };
+	// struct AdjElemIndex { size_t e1, e2, e3, e4; };
+	template <typename Element, typename AdjElemIndex>
+	void find(const Element* elems, size_t elem_num, size_t node_num, AdjElemIndex* adj_elems)
+	{
+		FaceKeyHashFunc face_key_hash_func(node_num);
+		FaceMap face_map(elem_num * 4 / 2, face_key_hash_func);
+
+		for (size_t e_id = 0; e_id < elem_num; ++e_id)
+		{
+			const size_t* ens = reinterpret_cast<const size_t*>(elems + e_id);
+			add_face_to_map(face_map, ens[0], ens[1], ens[2], e_id, 0);
+			add_face_to_map(face_map, ens[0], ens[3], ens[1], e_id, 1);
+			add_face_to_map(face_map, ens[1], ens[3], ens[2], e_id, 2);
+			add_face_to_map(face_map, ens[2], ens[3], ens[0], e_id, 3);
+		}
+
+		for (auto face_iter = face_map.begin(); face_iter != face_map.end(); ++face_iter)
+		{
+			const AdjElems& adj_es = face_iter->second;
+			if (adj_es.elem2_id != SIZE_MAX)
+			{
+				// not boundary line
+				size_t* ae1 = reinterpret_cast<size_t*>(adj_elems + adj_es.elem1_id);
+				ae1[adj_es.edg1_id] = adj_es.elem2_id;
+				size_t* ae2 = reinterpret_cast<size_t*>(adj_elems + adj_es.elem2_id);
+				ae2[adj_es.edg2_id] = adj_es.elem1_id;
+			}
+			else
+			{
+				// boundary line
+				size_t* ae = reinterpret_cast<size_t*>(adj_elems + adj_es.elem1_id);
+				ae[adj_es.edg1_id] = SIZE_MAX;
+			}
+		}
+	}
+};
 
 #endif

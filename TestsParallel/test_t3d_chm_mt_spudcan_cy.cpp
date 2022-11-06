@@ -222,12 +222,12 @@ void test_t3d_chm_mt_spudcan_cy_model(int argc, char** argv)
 	QtApp_Prep_T3D_CHM_mt md_disp(argc, argv);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(-80.0f, -30.0f);
-	md_disp.set_light_dir(-70.0f, -20.0f);
+	md_disp.set_view_dir(-90.0f, 5.0f);
+	md_disp.set_light_dir(-85.0f, 0.0f);
 	md_disp.set_display_bg_mesh(false);
 	md_disp.set_view_dist_scale(0.8);
 	//md_disp.set_pts_from_vx_bc_s(0.04);
-	md_disp.set_pts_from_vy_bc_s(0.04);
+	//md_disp.set_pts_from_vy_bc_s(0.04);
 	//md_disp.set_pts_from_vz_bc_s(0.04);
 	//md_disp.set_pts_from_vec_bc_s(0.04);
 	//md_disp.set_pts_from_vx_bc_f(0.04);

@@ -15,11 +15,12 @@ void test_t3d_me_mt_spudcan_cy_Hossain_2006_model(int argc, char** argv)
 	constexpr double footing_radius = 1.5;
 
 	constexpr double cy_radius = 8.0 * footing_radius; // 6.0, 8.0
-	constexpr double cy_coarse_radius = 3.5 * footing_radius;
 	constexpr double cy_top = 1.0 * footing_radius;
 	constexpr double cy_depth = 10.0 * footing_radius; // 7.0, 8.0
-	constexpr double cy_coarse_depth = 5.5 * footing_radius;
 	constexpr double cy_len = cy_top + cy_depth;
+	// expanded the dense area
+	constexpr double cy_coarse_radius = 3.5 * footing_radius + 0.5 * footing_radius;
+	constexpr double cy_coarse_depth = 5.5 * footing_radius + 0.5 * footing_radius;
 	constexpr double dense_elem_size = 0.16 * footing_radius;
 	constexpr double coarse_elem_size = 0.30 * footing_radius;
 	constexpr double sml_pcl_size = dense_elem_size * 0.2;

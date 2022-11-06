@@ -30,9 +30,9 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 	MatModel::LinearElasticity* les = model.add_LinearElasticity(pcl_num);
 	for (size_t pcl_id = 0; pcl_id < pcl_num; ++pcl_id)
 	{
-		MatModel::LinearElasticity& le = les[pcl_id];
-		le.set_param(1000.0, 0.0);
-		mms[pcl_id] = &le;
+		les->set_param(1000.0, 0.0);
+		mms[pcl_id] = les;
+		les = model.following_LinearElasticity(les);
 	}
 
 	IndexArray tbc_pcl_array(100);
@@ -92,7 +92,7 @@ void test_t3d_chm_mt_1d_consolidation(int argc, char **argv)
 
 	Step_T3D_CHM_mt step("step1");
 	step.set_model(model);
-	step.set_step_time(15.0);
+	step.set_step_time(1.0);
 	//step.set_step_time(1.0e-4);
 	step.set_dtime(1.0e-5);
 	step.set_thread_num(4);

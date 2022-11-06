@@ -192,11 +192,11 @@ void test_t3d_me_tbb_piezofoundation_sim_mat_model(int argc, char** argv)
 	model.init_rigid_cylinder(0.0, 0.0, 1.0, 2.0, footing_radius, 2000.0); // D = 3 m
 	model.set_rigid_cylinder_velocity(0.0, 0.0, -0.5);
 
+	model.init_t3d_rigid_mesh(1.0, "../../Asset/weird_cylinder.h5",
+		0.0, 0.0, 2.5, -90.0, 0.0, 0.0, 0.2, 0.2, 0.2); // D = 2 m
 	//model.init_t3d_rigid_mesh(1.0, "../../Asset/weird_cylinder.h5",
-	//	0.0, 0.0, 2.5, -90.0, 0.0, 0.0, 0.2, 0.2, 0.2); // D = 2 m
-	////model.init_t3d_rigid_mesh(1.0, "../../Asset/weird_cylinder.h5",
-	////	0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.2, 0.2, 0.2); // D = 3 m
-	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
+	//	0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.2, 0.2, 0.2); // D = 3 m
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.5);
 	
 	model.set_contact_param(1.0e5 / (sml_pcl_size * sml_pcl_size),
 		1.0e5 / (sml_pcl_size * sml_pcl_size), 0.1, 5.0);

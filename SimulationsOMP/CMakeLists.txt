@@ -55,6 +55,12 @@ add_library(
     Step_T3D_CHM_ud_mt_subiter_utils.cpp
     TimeHistory_T3D_CHM_ud_mt_subiter_complete.h TimeHistory_T3D_CHM_ud_mt_subiter_complete.cpp
     TimeHistory_T3D_CHM_ud_mt_subiter_ratio.h TimeHistory_T3D_CHM_ud_mt_subiter_ratio.cpp
+    Model_T3D_CHM_up_mt.h Model_T3D_CHM_up_mt.cpp
+    Model_T3D_CHM_up_mt_hdf5_utilities.h Model_T3D_CHM_up_mt_hdf5_utilities.cpp
+    ModelData_T3D_CHM_up_mt.h ModelData_T3D_CHM_up_mt.cpp
+    Step_T3D_CHM_up_TBB.h Step_T3D_CHM_up_TBB.cpp
+    Step_T3D_CHM_up_TBB_Task.h Step_T3D_CHM_up_TBB_Task.cpp
+    TimeHistory_T3D_CHM_up_TBB_complete.h TimeHistory_T3D_CHM_up_TBB_complete.cpp
     # Parallelism using TBB
     DivideTask.hpp
     MergeTask.hpp
