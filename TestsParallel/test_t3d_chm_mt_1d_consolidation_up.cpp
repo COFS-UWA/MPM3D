@@ -3,9 +3,11 @@
 #include "ParticleGenerator3D.hpp"
 #include "LinearElasticity.h"
 #include "Model_T3D_CHM_up_mt.h"
-#include "Step_T3D_CHM_up_TBB.h"
 #include "ModelData_T3D_CHM_up_mt.h"
+#include "Step_T3D_CHM_up_TBB.h"
 #include "TimeHistory_T3D_CHM_up_TBB_complete.h"
+#include "Step_T3D_CHM_up_TBB2.h"
+#include "TimeHistory_T3D_CHM_up_TBB2_complete.h"
 #include "TimeHistory_ConsoleProgressBar.h"
 #include "QtApp_Prep_T3D_CHM_up_mt.h"
 #include "test_parallel_utils.h"
@@ -37,20 +39,20 @@ void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 		les = model.following_LinearElasticity(les);
 	}
 
-	model.init_t3d_rigid_mesh(1.0, "../../Asset/cylinder_cap.h5",
-		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.01);
-	constexpr double K_cont = 1.04;
-	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
+	//model.init_t3d_rigid_mesh(1.0, "../../Asset/cylinder_cap.h5",
+	//	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 0.3);
+	//model.set_t3d_rigid_mesh_velocity(0.0, 0.0, -0.01);
+	//constexpr double K_cont = 1.04;
+	//model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
 	
-	//IndexArray tbc_pcl_array(100);
-	//find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
-	////find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 0.95 - 0.013, 1.0));
-	//MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
-	//double tz_mag = 0.025 * 0.025 * -1.0;
-	//for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
-	//	tzs_mem.add(tz_mag);
-	//model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
+	IndexArray tbc_pcl_array(100);
+	find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 1.0 - 0.013, 1.0));
+	//find_3d_pcls(model, tbc_pcl_array, Cube(0.0, 0.2, 0.0, 0.2, 0.95 - 0.013, 1.0));
+	MemoryUtils::ItemArray<double> tzs_mem(tbc_pcl_array.get_num());
+	double tz_mag = 0.025 * 0.025 * -1.0;
+	for (size_t t_id = 0; t_id < tbc_pcl_array.get_num(); ++t_id)
+		tzs_mem.add(tz_mag);
+	model.init_tzs(tbc_pcl_array.get_num(), tbc_pcl_array.get_mem(), tzs_mem.get_mem());
 
 	//IndexArray drained_bc_pt_array(100);
 	//find_3d_nodes_on_z_plane(model, drained_bc_pt_array, 1.0);
@@ -80,10 +82,10 @@ void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 	////md_disp.set_pts_from_vx_bc(0.01);
 	////md_disp.set_pts_from_vy_bc(0.01);
 	////md_disp.set_pts_from_vz_bc(0.01);
-	////md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
+	//md_disp.set_pts_from_pcl_id(tbc_pcl_array.get_mem(), tbc_pcl_array.get_num(), 0.012);
 	////size_t ids[] = { 90, 91, 92, 93, 94, 95, 96, 97, 98 };
-	//size_t ids[] = { 82, 84, 86, 88 };
-	//md_disp.set_pts_from_node_id(ids, sizeof(ids)/sizeof(ids[0]), 0.01);
+	////size_t ids[] = { 82, 84, 86, 88 };
+	////md_disp.set_pts_from_node_id(ids, sizeof(ids)/sizeof(ids[0]), 0.01);
 	//md_disp.start();
 	//return;
 
@@ -93,21 +95,21 @@ void test_t3d_chm_mt_1d_consolidation_up(int argc, char **argv)
 	ModelData_T3D_CHM_up_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_CHM_up_TBB_complete out1("consolidation");
+	TimeHistory_T3D_CHM_up_TBB2_complete out1("consolidation");
 	out1.set_interval_num(100);
 	out1.set_output_init_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(1000);
 
-	Step_T3D_CHM_up_TBB step("step1");
+	Step_T3D_CHM_up_TBB2 step("step1");
 	step.set_model(model);
-	//step.set_step_time(10.0);
-	step.set_step_time(3.0e-5);
+	step.set_step_time(3.0);
+	//step.set_step_time(1.0e-1);
 	step.set_dtime(1.0e-5);
-	step.set_thread_num(1);
+	step.set_thread_num(4);
 	step.add_time_history(out1);
-	//step.add_time_history(out_cpb);
+	step.add_time_history(out_cpb);
 	step.solve();
 }
 
