@@ -193,15 +193,14 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
-	test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
-	//test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
+	test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_result(argc, argv);
 	
 	// paper 2
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_model(argc, argv);
-	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_result(argc, argv);
