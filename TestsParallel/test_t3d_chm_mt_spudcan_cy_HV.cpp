@@ -44,10 +44,10 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	constexpr double lgr_pcl_size = coarse_elem_size * 0.25;
 
 	TetrahedronMesh teh_mesh;
-	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_half_cylinder_3_5R.h5");
-	teh_mesh.init_search_grid(0.35, 0.35, 0.35);
-	//teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_half_cylinder_8R.h5");
-	//teh_mesh.init_search_grid(0.2, 0.2, 0.2);
+	//teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_half_cylinder_3_5R.h5");
+	//teh_mesh.init_search_grid(0.35, 0.35, 0.35);
+	teh_mesh.load_mesh_from_hdf5("../../Asset/spudcan_soil_half_cylinder_8R.h5");
+	teh_mesh.init_search_grid(0.2, 0.2, 0.2);
 	std::cout << "node_num: " << teh_mesh.get_node_num() << "\n"
 			  << "elem_num: " << teh_mesh.get_elem_num() << "\n";
 
@@ -221,7 +221,7 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	// modified velocity and permeability
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
 
-	model.set_k(1.0e-12);
+	model.set_k(5.8e-12);
 	
 	//QtApp_Prep_T3D_CHM_up_mt md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
