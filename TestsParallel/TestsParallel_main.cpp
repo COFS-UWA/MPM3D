@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_1d_consolidation_result(argc, argv);
 
 	//test_t3d_chm_mt_1d_consolidation_up(argc, argv);
-	test_t3d_chm_mt_1d_consolidation_up_result(argc, argv);
+	//test_t3d_chm_mt_1d_consolidation_up_result(argc, argv);
 
 	//test_t3d_me_mt_1d_geostatic(argc, argv);
 	//test_t3d_me_mt_1d_geostatic_result(argc, argv);
@@ -194,12 +194,8 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
 	//test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
-	//test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
-<<<<<<< HEAD
+	test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV(argc, argv);
-=======
-	test_t3d_chm_mt_spudcan_cy_HV(argc, argv);
->>>>>>> 082dbcf234be5d095d90f83c8fddebcac871ef18
 	//test_t3d_chm_mt_spudcan_cy_HV_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_result(argc, argv);
 	
