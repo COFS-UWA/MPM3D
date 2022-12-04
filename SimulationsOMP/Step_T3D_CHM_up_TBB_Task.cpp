@@ -892,6 +892,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		
 		pcl_pos = md.pcl_pos;
 		pcl_mat_model = md.pcl_mat_model;
+		pcl_is_cavitated = md.pcl_is_cavitated;
 		//
 		elem_node_id = md.elem_node_id;
 		node_a_s = md.node_a_s;
@@ -953,7 +954,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const Acceleration *pn_a1, *pn_a2, *pn_a3, *pn_a4;
 		const Velocity *pn_v1, *pn_v2, *pn_v3, *pn_v4;
 		StrainInc dstrain;
-		double e_p, e_n, e_density_f;
+		double e_p, e_n, e_density_f, Kf_ratio;
 		size_t valid_pcl_num = 0;
 		e_id = SIZE_MAX;
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
@@ -1004,7 +1005,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 					+ node_dp[eni.n3] + node_dp[eni.n4]) * one_fourth;
 				e_p = elem_p[e_id] + e_dp;
 				// cavitation
-				double Kf_ratio = 1.0;
+				Kf_ratio = 1.0;
 				if (m_cav != 0.0) // consider cavitation
 				{
 					if (e_p < 0.0)
@@ -1063,6 +1064,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 			pcl_n0[p_id] = e_n;
 			pcl_p0[p_id] = e_p;
 			pcl_density_f0[p_id] = e_density_f;
+			pcl_is_cavitated[p_id] = Kf_ratio;
 
 			// update stress
 			MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];

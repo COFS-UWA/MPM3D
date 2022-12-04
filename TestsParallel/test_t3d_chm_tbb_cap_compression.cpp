@@ -155,13 +155,13 @@ void test_t3d_chm_tbb_cap_compression_result(int argc, char** argv)
 	//app.set_res_file(rf, "compression", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-800.0e3, 0.0); // norsand
 	// 	p
-	app.set_res_file(rf, "compression", Hdf5Field::p);
-	app.set_color_map_fld_range(-200.0e3, 50.0e3); // norsand
+	//app.set_res_file(rf, "compression", Hdf5Field::p);
+	//app.set_color_map_fld_range(-200.0e3, 50.0e3); // norsand
 	// u_cav
 	//app.set_res_file(rf, "compression", Hdf5Field::u_cav);
 	//app.set_color_map_fld_range(-100.0e3, -90.0e3);
 	// is cavitated
-	//app.set_res_file(rf, "compression", Hdf5Field::is_cavitated);
-	//app.set_color_map_fld_range(0.0, 1.0); // norsand
+	app.set_res_file(rf, "compression", Hdf5Field::is_cavitated);
+	app.set_color_map_fld_range(0.0, 1.0); // norsand
 	app.start();
 }

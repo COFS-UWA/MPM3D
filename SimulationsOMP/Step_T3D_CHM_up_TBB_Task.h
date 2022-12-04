@@ -314,6 +314,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		// pcls
 		const Position* pcl_pos;
 		MatModel::MaterialModel** pcl_mat_model;
+		double* pcl_is_cavitated;
 		// bg mesh
 		const ElemNodeIndex *elem_node_id;
 		const Acceleration *node_a_s;
