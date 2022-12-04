@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_mt_spudcan_cy_result(argc, argv);
 
 	//test_t3d_chm_mt_spudcan_cy_HV_model(argc, argv);
-	test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
+	//test_t3d_chm_mt_spudcan_cy_HV_geostatic(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_geo_result(argc, argv);
 	//test_t3d_chm_mt_spudcan_cy_HV_result(argc, argv);
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 	
 	// element test simulation
-	//test_t3d_chm_tbb_cap_compression(argc, argv);
+	test_t3d_chm_tbb_cap_compression(argc, argv);
 	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
 	
 	// paper2

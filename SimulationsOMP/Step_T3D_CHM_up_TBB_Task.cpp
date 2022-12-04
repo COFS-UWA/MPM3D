@@ -69,6 +69,10 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Kf0 = md.Kf;
 		k = md.k;
 		dyn_viscosity = md.dyn_viscosity;
+		m_cav = md.m_cav;
+		f_cav_end = md.f_cav_end;
+		u_cav_off = pow(1.0 / f_cav_end - 1.0, 1.0 / m_cav) - 1.0;
+		u_div_u_cav_lim = pow(Step_T3D_CHM_up_TBB_Task::max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
 
 		// pcl range
 		pcl_in_elems = stp.pcl_in_elems;
@@ -81,7 +85,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		pcl_bf_s = md.pcl_bf_s;
 		pcl_bf_f = md.pcl_bf_f;
 		pcl_t = md.pcl_t;
-
+		
 		// bg mesh data
 		elem_dN_abc = md.elem_dN_abc;
 		elem_vol = md.elem_vol;
@@ -97,6 +101,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		elem_node_force = md.elem_node_force;
 		elem_node_p_force = md.elem_node_p_force;
 		elem_node_at_surface = md.elem_node_at_surface;
+		elem_u_cav = md.elem_u_cav;
 	}
 
 	void MapPclToBgMesh::update(size_t tsk_num) noexcept
@@ -110,7 +115,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		pcl_v_s0 = spva0.pcl_v_s;
 		pcl_u0 = spva0.pcl_u;
 		pcl_stress0 = spva0.pcl_stress;
-		pcl_p0 = spva0.pcl_p;
+		//pcl_p0 = spva0.pcl_p;
 		pcl_N0 = spva0.pcl_N;
 		// pcl_vars1
 		pcl_index1 = spva1.pcl_index;
@@ -226,8 +231,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 			e_p_m_f += p_m_f;
 			// m_total
 			const double p_m = p_m_s + p_m_f;
-			// e_p_pm
-			e_p_pm += p_n / Kf0 * p_vol;
 
 			// map pcl stress and pore pressure to elements
 			const Stress& p_s1 = pcl_stress1[prev_p_id];
@@ -246,6 +249,10 @@ namespace Step_T3D_CHM_up_TBB_Task
 			e_s31 += p_s0.s31 * p_vol;
 			const double p_p = pcl_p1[prev_p_id];
 			e_p += p_p * p_vol;
+			//pcl_p0[p_id] = p_p;
+			
+			// e_p_pm
+			e_p_pm += p_n / Kf0 * p_vol;
 
 			// shape function to nodes
 			const ShapeFunc& p_N1 = pcl_N1[prev_p_id];
@@ -326,7 +333,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 				elem_node_at_surface[e_id * 4 + 3] = 0;
 				
 				elem_pcl_m[e_id] = e_p_m_s + e_p_m_f;
-				elem_pcl_pm[e_id] = e_p_pm;
 				elem_pcl_n[e_id] = 1.0 - e_p_vol_s / e_p_vol;
 				elem_density_f[e_id] = e_p_m_f / e_p_vol_f;
 
@@ -401,6 +407,18 @@ namespace Step_T3D_CHM_up_TBB_Task
 				en4_f.fy = en4_fy_s;
 				en4_fz_s -= (e_dN.dN4_dx * e_s31 + e_dN.dN4_dy * e_s23 + e_dN.dN4_dz * (e_s33 - e_p)) * e_p_vol;
 				en4_f.fz = en4_fz_s;
+
+				// cavitation
+				double Kf_ratio = 1.0;
+				if (m_cav != 0.0) // consider cavitation
+				{
+					if (e_p < 0.0)
+					{
+						const double tmp = e_p / elem_u_cav[e_id] + u_cav_off;
+						Kf_ratio = tmp < u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, m_cav))) : (1.0 / max_Kf_ratio_divider);
+					}
+				}
+				elem_pcl_pm[e_id] = e_p_pm / Kf_ratio;
 
 				elem_node_p_force[e_id * 4    ] = pf_bf_tmp * (e_dN.dN1_dx * e_pf_bfx + e_dN.dN1_dy * e_pf_bfy + e_dN.dN1_dz * e_pf_bfz);
 				elem_node_p_force[e_id * 4 + 1] = pf_bf_tmp * (e_dN.dN2_dx * e_pf_bfx + e_dN.dN2_dy * e_pf_bfy + e_dN.dN2_dz * e_pf_bfz);
@@ -615,8 +633,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 			if (n_id != node_ids[ve_id + 1])
 			{
 				node_at_surface[n_id] = n_at_surface;
-				//if (n_at_surface)
-				//	std::cout << n_id << ", " << n_at_surface << "\n";
 
 				Acceleration& n_a = node_a_s[n_id];
 				n_am *= one_fourth;
@@ -869,7 +885,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
 
 		Kf0 = md.Kf;
-
+		m_cav = md.m_cav;
+		f_cav_end = md.f_cav_end;
+		u_cav_off = pow(1.0 / f_cav_end - 1.0, 1.0 / m_cav) - 1.0;
+		u_div_u_cav_lim = pow(Step_T3D_CHM_up_TBB_Task::max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
+		
 		pcl_pos = md.pcl_pos;
 		pcl_mat_model = md.pcl_mat_model;
 		//
@@ -882,6 +902,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		elem_pcl_n = md.elem_pcl_n;
 		elem_density_f = md.elem_density_f;
 		elem_de = md.elem_de;
+		elem_u_cav = md.elem_u_cav;
 		node_de_vol_s = md.node_de_vol_s;
 		//
 		auto& pcl_sort = stp.pcl_sort;
@@ -982,7 +1003,17 @@ namespace Step_T3D_CHM_up_TBB_Task
 				const double e_dp = (node_dp[eni.n1] + node_dp[eni.n2]
 					+ node_dp[eni.n3] + node_dp[eni.n4]) * one_fourth;
 				e_p = elem_p[e_id] + e_dp;
-				const double de_vol_f = -e_dp / Kf0;
+				// cavitation
+				double Kf_ratio = 1.0;
+				if (m_cav != 0.0) // consider cavitation
+				{
+					if (e_p < 0.0)
+					{
+						const double tmp = e_p / elem_u_cav[e_id] + u_cav_off;
+						Kf_ratio = tmp < u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, m_cav))) : (1.0 / max_Kf_ratio_divider);
+					}
+				}
+				const double de_vol_f = -e_dp / (Kf_ratio * Kf0);
 				e_density_f = elem_density_f[e_id] / (1.0 + de_vol_f);
 			}
 

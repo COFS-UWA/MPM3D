@@ -65,6 +65,8 @@ namespace Step_T3D_CHM_up_TBB_Task
 		{ react_force.combine(res.react_force); }
 	};
 
+	static constexpr double max_Kf_ratio_divider = 1.0e10;
+	
 	class MapPclToBgMesh
 	{
 	protected:
@@ -81,6 +83,8 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 		Step_T3D_CHM_up_TBB& stp;
 
+		double m_cav, f_cav_end;
+		double u_cav_off, u_div_u_cav_lim;
 		double Kf0, k, dyn_viscosity;
 		
 		// pcl range
@@ -105,6 +109,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Force* elem_node_force;
 		double* elem_node_p_force;
 		uint16_t *elem_node_at_surface;
+		double* elem_u_cav;
 
 		// pcl_vars0
 		size_t* pcl_index0;
@@ -113,7 +118,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Velocity* pcl_v_s0;
 		Displacement* pcl_u0;
 		Stress* pcl_stress0;
-		double* pcl_p0;
+		//double* pcl_p0;
 		ShapeFunc* pcl_N0;
 		// pcl_vars1
 		const size_t* pcl_index1;
@@ -303,7 +308,9 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Step_T3D_CHM_up_TBB& stp;
 
 		double Kf0;
-		
+		double m_cav, f_cav_end;
+		double u_cav_off, u_div_u_cav_lim;
+
 		// pcls
 		const Position* pcl_pos;
 		MatModel::MaterialModel** pcl_mat_model;
@@ -316,6 +323,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		double* elem_p;
 		double* elem_pcl_n;
 		double * elem_density_f;
+		double *elem_u_cav;
 		StrainInc *elem_de;
 		const double *node_de_vol_s;
 
