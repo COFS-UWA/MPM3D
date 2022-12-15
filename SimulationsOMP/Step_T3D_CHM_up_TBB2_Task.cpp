@@ -69,6 +69,10 @@ namespace Step_T3D_CHM_up_TBB2_Task
 		Kf0 = md.Kf;
 		k = md.k;
 		dyn_viscosity = md.dyn_viscosity;
+		m_cav = md.m_cav;
+		f_cav_end = md.f_cav_end;
+		u_cav_off = pow(1.0 / f_cav_end - 1.0, 1.0 / m_cav) - 1.0;
+		u_div_u_cav_lim = pow(Step_T3D_CHM_up_TBB2_Task::max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
 
 		// pcl range
 		pcl_in_elems = stp.pcl_in_elems;
@@ -81,6 +85,7 @@ namespace Step_T3D_CHM_up_TBB2_Task
 		pcl_bf_s = md.pcl_bf_s;
 		pcl_bf_f = md.pcl_bf_f;
 		pcl_t = md.pcl_t;
+		pcl_is_cavitated = md.pcl_is_cavitated;
 
 		// bg mesh data
 		elem_dN_abc = md.elem_dN_abc;
@@ -95,6 +100,7 @@ namespace Step_T3D_CHM_up_TBB2_Task
 		elem_node_force = md.elem_node_force;
 		elem_node_p_force = md.elem_node_p_force;
 		elem_node_at_surface = md.elem_node_at_surface;
+		elem_u_cav = md.elem_u_cav;
 	}
 
 	void MapPclToBgMesh::update(size_t tsk_num) noexcept
@@ -224,8 +230,6 @@ namespace Step_T3D_CHM_up_TBB2_Task
 			e_p_m_f += p_m_f;
 			// m_total
 			const double p_m = p_m_s + p_m_f;
-			// e_p_pm
-			e_p_pm += p_n / Kf0 * p_vol;
 
 			// map pcl stress and pore pressure to elements
 			const Stress& p_s1 = pcl_stress1[prev_p_id];
@@ -243,6 +247,22 @@ namespace Step_T3D_CHM_up_TBB2_Task
 			e_s23 += p_s0.s23 * p_vol;
 			e_s31 += p_s0.s31 * p_vol;
 
+			// e_p_pm
+			const double p_p = pcl_p1[prev_p_id];
+			pcl_p0[p_id] = p_p;
+			// cavitation
+			double Kf_ratio = 1.0;
+			if (m_cav != 0.0) // consider cavitation
+			{
+				if (p_p < 0.0)
+				{
+					const double tmp = p_p / elem_u_cav[e_id] + u_cav_off;
+					Kf_ratio = tmp < u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, m_cav))) : (1.0 / max_Kf_ratio_divider);
+				}
+			}
+			pcl_is_cavitated[p_id] = Kf_ratio;
+			e_p_pm += p_n / (Kf_ratio * Kf0) * p_vol;
+			
 			// shape function to nodes
 			const ShapeFunc& p_N1 = pcl_N1[prev_p_id];
 			ShapeFunc& p_N0 = pcl_N0[p_id];
@@ -256,8 +276,6 @@ namespace Step_T3D_CHM_up_TBB2_Task
 			p_v_s0.vx = p_v_s1.vx;
 			p_v_s0.vy = p_v_s1.vy;
 			p_v_s0.vz = p_v_s1.vz;
-			const double p_p = pcl_p1[prev_p_id];
-			pcl_p0[p_id] = p_p;
 			p_N_m = (p_N0.N1 > N_tol ? p_N0.N1 : N_tol) * p_m;
 			en1_vm_s += p_N_m;
 			en1_vmx_s += p_N_m * p_v_s0.vx;
@@ -881,6 +899,7 @@ namespace Step_T3D_CHM_up_TBB2_Task
 
 		pcl_pos = md.pcl_pos;
 		pcl_mat_model = md.pcl_mat_model;
+		pcl_is_cavitated = md.pcl_is_cavitated;
 		//
 		elem_node_id = md.elem_node_id;
 		elem_dN_abc = md.elem_dN_abc;
@@ -1001,7 +1020,7 @@ namespace Step_T3D_CHM_up_TBB2_Task
 			// update density
 			pcl_n0[p_id] = e_n;
 			const double p_dp = p_N.N1 * (*pn_dp1) + p_N.N2 * (*pn_dp2) + p_N.N3 * (*pn_dp3) + p_N.N4 * (*pn_dp4);
-			pcl_density_f0[p_id] /= 1.0 + (-p_dp / Kf0);
+			pcl_density_f0[p_id] /= 1.0 + (-p_dp / (Kf0 * pcl_is_cavitated[p_id]));
 			//pcl_p0[p_id] = p_N.N1 * (*pn_p1) + p_N.N2 * (*pn_p2) + p_N.N3 * (*pn_p3) + p_N.N4 * (*pn_p4) + p_dp;
 			pcl_p0[p_id] += p_dp;
 

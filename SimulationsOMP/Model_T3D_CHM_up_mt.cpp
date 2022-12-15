@@ -27,8 +27,8 @@ Model_T3D_CHM_up_mt::Model_T3D_CHM_up_mt() :
 	rigid_t3d_mesh_is_valid(false),
 	contact_mem(nullptr),
 	pcm(&smooth_contact),
-	u_cav_x(0.0), u_cav_y(0.0), u_cav_z(0.0), u_cav(0.0),
-	m_cav(0.0), f_cav_end(0.05)
+	m_cav(0.0), f_cav_end(0.05), u_cav(0.0),
+	u_cav_x(0.0), u_cav_y(0.0), u_cav_z(0.0)
 {
 	//res_file_md_t3d_me_mt.open("t3d_mt_model.txt", std::ios::binary | std::ios::out);
 }

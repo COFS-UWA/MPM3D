@@ -65,6 +65,8 @@ namespace Step_T3D_CHM_up_TBB2_Task
 		{ react_force.combine(res.react_force); }
 	};
 
+	static constexpr double max_Kf_ratio_divider = 1.0e10;
+
 	class MapPclToBgMesh
 	{
 	protected:
@@ -81,6 +83,8 @@ namespace Step_T3D_CHM_up_TBB2_Task
 
 		Step_T3D_CHM_up_TBB2& stp;
 
+		double m_cav, f_cav_end;
+		double u_cav_off, u_div_u_cav_lim;
 		double Kf0, k, dyn_viscosity;
 		
 		// pcl range
@@ -92,6 +96,7 @@ namespace Step_T3D_CHM_up_TBB2_Task
 		const double *pcl_vol_s;
 		double* pcl_vol;
 		const Force* pcl_bf_s, * pcl_bf_f, * pcl_t;
+		double* pcl_is_cavitated;
 
 		// bg mesh data
 		const DShapeFuncABC *elem_dN_abc;
@@ -106,6 +111,7 @@ namespace Step_T3D_CHM_up_TBB2_Task
 		Force* elem_node_force;
 		double* elem_node_p_force;
 		uint16_t *elem_node_at_surface;
+		double *elem_u_cav;
 
 		// pcl_vars0
 		size_t* pcl_index0;
@@ -306,6 +312,7 @@ namespace Step_T3D_CHM_up_TBB2_Task
 		// pcls
 		const Position* pcl_pos;
 		MatModel::MaterialModel** pcl_mat_model;
+		const double* pcl_is_cavitated;
 		// bg mesh geo
 		const ElemNodeIndex *elem_node_id;
 		const DShapeFuncABC* elem_dN_abc;

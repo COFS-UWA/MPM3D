@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 	
 	// element test simulation
 	//test_t3d_chm_tbb_cap_compression(argc, argv);
-	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
+	test_t3d_chm_tbb_cap_compression_result(argc, argv);
 	
 	// paper2
 	// Time profiling
