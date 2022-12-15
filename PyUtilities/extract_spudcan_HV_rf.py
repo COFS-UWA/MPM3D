@@ -2,16 +2,16 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
-file_name = "t3d_chm_mt_spudcan_cy_HV_geo2"
+file_name = "t3d_chm_mt_spudcan_cy_HV"
 
 spudcan_diameter = 3.0
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
-#force_dir = "y"
-force_dir = "z"
+force_dir = "y"
+#force_dir = "z"
 
-th_grp = hdf5_file['TimeHistory']['geostatic']
+th_grp = hdf5_file['TimeHistory']['penetration'] #['geostatic'], ['penetration']
 th_num = th_grp.attrs['output_num']
 
 rb_z = []

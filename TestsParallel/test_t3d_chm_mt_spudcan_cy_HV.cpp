@@ -32,15 +32,15 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	constexpr double footing_radius = 1.5;
 
 	constexpr double cy_radius = 8.0 * footing_radius; // 6.0, 8.0
-	constexpr double cy_coarse_radius = 3.5 * footing_radius;
+	constexpr double cy_coarse_radius = 4.0 * footing_radius;
 	constexpr double cy_top = 0.5 * footing_radius;
 	constexpr double cy_depth = 8.0 * footing_radius; // 7.0, 8.0
-	constexpr double cy_coarse_depth = 4.0 * footing_radius;
+	constexpr double cy_coarse_depth = 4.5 * footing_radius;
 	constexpr double cy_len = cy_top + cy_depth;
 	constexpr double cy_len2 = cy_top + cy_coarse_depth;
 	constexpr double dense_elem_size = 0.125 * footing_radius;
 	constexpr double coarse_elem_size = 0.25 * footing_radius;
-	constexpr double sml_pcl_size = dense_elem_size * 0.3; // 0.25
+	constexpr double sml_pcl_size = dense_elem_size * 0.25; // 0.3
 	constexpr double lgr_pcl_size = coarse_elem_size * 0.25;
 
 	TetrahedronMesh teh_mesh;
@@ -61,20 +61,20 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		cy_coarse_depth,
 		sml_pcl_size, sml_pcl_size, sml_pcl_size);
 	// coarse area
-	//pcl_generator.generate_pcls_in_cylinder(
-	//	0.0, 0.0, -cy_coarse_depth,
-	//	0.0, 0.0, 1.0,
-	//	cy_coarse_radius, cy_radius,
-	//	-180.0, 0.0,
-	//	cy_coarse_depth,
-	//	lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
-	//pcl_generator.generate_pcls_in_cylinder(
-	//	0.0, 0.0, -cy_depth,
-	//	0.0, 0.0, 1.0,
-	//	0.0, cy_radius,
-	//	-180.0, 0.0,
-	//	cy_depth - cy_coarse_depth,
-	//	lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
+	pcl_generator.generate_pcls_in_cylinder(
+		0.0, 0.0, -cy_coarse_depth,
+		0.0, 0.0, 1.0,
+		cy_coarse_radius, cy_radius,
+		-180.0, 0.0,
+		cy_coarse_depth,
+		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
+	pcl_generator.generate_pcls_in_cylinder(
+		0.0, 0.0, -cy_depth,
+		0.0, 0.0, 1.0,
+		0.0, cy_radius,
+		-180.0, 0.0,
+		cy_depth - cy_coarse_depth,
+		lgr_pcl_size, lgr_pcl_size, lgr_pcl_size);
 	//
 	pcl_generator.adjust_pcl_size_to_fit_elems(teh_mesh);
 	std::cout << "pcl_num: " << pcl_generator.get_num() << "\n";
@@ -130,8 +130,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 		0.0, -0.5, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.29, -0.5);
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
-	//model.set_contact_param(K_cont, K_cont, 0.36, 5.0, K_cont/50.0, K_cont/50.0);
-	model.set_contact_param(K_cont, K_cont, 0.36, 5.0);
+	//model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont/50.0, K_cont/50.0);
+	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
 	//model.set_frictional_contact_between_spcl_and_rect();
 
 	// gravity force, float unit weight
@@ -160,10 +160,10 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 
 	// arc bcs
 	IndexArray arc_bc_pt_array(1000);
-	find_3d_nodes_on_cylinder(model, arc_bc_pt_array,
-		Vector3D(0.0, 0.0, -cy_coarse_depth), Vector3D(0.0, 0.0, 1.0), cy_coarse_radius, cy_len2);
 	//find_3d_nodes_on_cylinder(model, arc_bc_pt_array,
-	//	Vector3D(0.0, 0.0, -cy_depth), Vector3D(0.0, 0.0, 1.0), cy_radius, cy_len);
+	//	Vector3D(0.0, 0.0, -cy_coarse_depth), Vector3D(0.0, 0.0, 1.0), cy_coarse_radius, cy_len2);
+	find_3d_nodes_on_cylinder(model, arc_bc_pt_array,
+		Vector3D(0.0, 0.0, -cy_depth), Vector3D(0.0, 0.0, 1.0), cy_radius, cy_len);
 	const auto* node_pos = model.get_node_pos();
 	for (size_t n_id = 0; n_id < arc_bc_pt_array.get_num(); n_id++)
 	{
@@ -174,8 +174,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 
 	// bottom bcs
 	IndexArray vz_bc_pt_array(100);
-	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -cy_coarse_depth);
-	//find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -cy_depth);
+	//find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -cy_coarse_depth);
+	find_3d_nodes_on_z_plane(model, vz_bc_pt_array, -cy_depth);
 	model.init_fixed_vz_bc(vz_bc_pt_array.get_num(), vz_bc_pt_array.get_mem());
 
 	ResultFile_hdf5 res_file_hdf5;
@@ -185,16 +185,16 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	QtApp_Prep_T3D_CHM_up_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	md_disp.get_div_set().set_by_normal_and_point(-1.0, 0.0, 0.0, -0.5, 0.0, 0.0);
+	//md_disp.get_div_set().set_by_normal_and_point(-1.0, 0.0, 0.0, -0.5, 0.0, 0.0);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
 	md_disp.set_view_dir(70.0f, -30.0f);
 	md_disp.set_light_dir(80.0f, -25.0f);
 	md_disp.set_display_bg_mesh(true);
 	md_disp.set_view_dist_scale(0.6);
-	md_disp.set_pts_from_vx_bc(0.04);
-	//md_disp.set_pts_from_vz_bc_s(0.04);
-	//md_disp.set_pts_from_vec_bc_s(0.04);
+	//md_disp.set_pts_from_vx_bc(0.04);
+	md_disp.set_pts_from_vz_bc(0.04);
+	//md_disp.set_pts_from_vec_bc(0.04);
 	//md_disp.set_pts_from_vx_bc_f(0.04);
 	//md_disp.set_pts_from_vz_bc_f(0.04);
 	md_disp.start();
@@ -287,7 +287,7 @@ void test_t3d_chm_mt_spudcan_cy_HV(int argc, char** argv)
 	// modified velocity and permeability
 	model.set_t3d_rigid_mesh_velocity(0.0, 0.8, -0.2);
 
-	model.set_k(1.0e-11);
+	model.set_k(5.8e-12);
 	
 	//QtApp_Prep_T3D_CHM_mt_Div<EmptyDivisionSet> md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -312,7 +312,7 @@ void test_t3d_chm_mt_spudcan_cy_HV(int argc, char** argv)
 	ResultFile_hdf5 res_file_hdf5;
 	res_file_hdf5.create("t3d_chm_mt_spudcan_cy_HV.h5");
 
-	ModelData_T3D_CHM_mt md;
+	ModelData_T3D_CHM_up_mt md;
 	md.output_model(model, res_file_hdf5);
 
 #ifndef Undrained
@@ -330,7 +330,7 @@ void test_t3d_chm_mt_spudcan_cy_HV(int argc, char** argv)
 
 	step.set_model(model);
 	step.set_thread_num(30);
-	step.set_step_time(0.5); // 2.25
+	step.set_step_time(1.25); // 2.25
 	step.set_dtime(5.0e-6); // 5.0e-6
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
@@ -402,8 +402,11 @@ void test_t3d_chm_mt_spudcan_cy_HV_result(int argc, char** argv)
 	//app.set_res_file(rf, "penetration", Hdf5Field::s33);
 	//app.set_color_map_fld_range(-11000.0, 0.0);
 	// pore
-	app.set_res_file(rf, "penetration", Hdf5Field::p);
-	app.set_color_map_fld_range(-10000.0, 10000.0);
+	//app.set_res_file(rf, "penetration", Hdf5Field::p);
+	//app.set_color_map_fld_range(-200000.0, 200000.0);
+	// void ratio
+	app.set_res_file(rf, "penetration", Hdf5Field::mat_e);
+	app.set_color_map_fld_range(0.5, 0.65);
 	//
 	//app.set_png_name("t3d_chm_mt_spudcan_cy_HV");
 	//app.set_gif_name("t3d_chm_mt_spudcan_cy_HV");
