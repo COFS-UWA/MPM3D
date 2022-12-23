@@ -1,8 +1,8 @@
 import h5py as py
 import matplotlib.pyplot as plt
 
-file_name = "t3d_chm_mt_cap_compression"
-#file_name = "t3d_chm_tbb_cap_compression"
+#file_name = "t3d_chm_mt_cap_compression"
+file_name = "t3d_chm_tbb_cap_compression"
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
@@ -26,7 +26,7 @@ for th_id in range(th_num):
         pcl_pore = pcl_pores[p_id]
         pcl_tpv += pcl_pore * pcl_vol
         pcl_tv += pcl_vol
-    rb_grp = frame_grd['RigidCylinder']
+    rb_grp = frame_grd['RigidObjectByT3DMesh'] #['RigidCylinder']
     cen_z = rb_grp.attrs['z']
     if not is_init:
         is_init = True

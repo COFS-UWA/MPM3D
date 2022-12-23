@@ -31,7 +31,12 @@ namespace MatModel
 			double gamma, double lambda,
 			double N, double chi, double H,
 			double Ig, double niu, double min_prin_s = 10.0);
-		void set_min_prin_s(double prin_s) { glb.min_prin_s = prin_s; }
+		void set_min_prin_s(double prin_s)
+		{
+			if (mat.pi < prin_s)
+				mat.pi = prin_s;
+			glb.min_prin_s = prin_s;
+		}
 		void set_pi(double pi) noexcept { mat.pi = pi; }
 		
 		double get_phi() const noexcept { return glb.phi; }

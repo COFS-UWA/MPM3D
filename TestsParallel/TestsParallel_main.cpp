@@ -202,7 +202,6 @@ int main(int argc, char *argv[])
 	// paper 2
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_model(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
-	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_result(argc, argv);
 
@@ -238,7 +237,7 @@ int main(int argc, char *argv[])
 	//test_t3d_me_tbb_cap_compression(argc, argv);
 	//test_t3d_me_tbb_cap_compression_result(argc, argv);
 
-	// norsand consolidation
+	// 1d consolidation
 	//test_t3d_chm_tbb_1d_consolidation(argc, argv);
 	//test_t3d_chm_tbb_1d_consolidation_result(argc, argv);
 	

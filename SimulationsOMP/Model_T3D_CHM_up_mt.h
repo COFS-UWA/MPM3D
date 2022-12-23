@@ -19,6 +19,8 @@ class Model_T3D_CHM_up_mt;
 
 class Step_T3D_CHM_up_TBB;
 int cal_substep_func_T3D_CHM_up_TBB(void* _self);
+class Step_T3D_CHM_up_TBB2;
+int cal_substep_func_T3D_CHM_up_TBB2(void* _self);
 
 class ResultFile_hdf5;
 namespace Model_T3D_CHM_up_mt_hdf5_utilities
@@ -43,6 +45,18 @@ namespace Step_T3D_CHM_up_TBB_Task
 	class UpdateAccelerationAndVelocity;
 	class CalElemDeAndMapToNode;
 	class CalNodeDe;
+	class MapBgMeshToPcl;
+	class ContactRigidBody;
+}
+
+namespace Step_T3D_CHM_up_TBB2_Task
+{
+	class InitPcl;
+	class MapPclToBgMesh;
+	class FindSoilSurface;
+	class CalNodalVelocityAndPressure;
+	class FormNodalForce;
+	class UpdateNodalVelocityAndPressure;
 	class MapBgMeshToPcl;
 	class ContactRigidBody;
 }
@@ -526,7 +540,9 @@ public: // rigid object
 	
 	friend class Step_T3D_CHM_up_TBB;
 	friend int cal_substep_func_T3D_CHM_up_TBB(void* _self);
-	
+	friend class Step_T3D_CHM_up_TBB2;
+	friend int cal_substep_func_T3D_CHM_up_TBB2(void* _self);
+
 	friend class Model_T3D_CHM_up_mt_hdf5_utilities::ParticleData;
 	friend int Model_T3D_CHM_up_mt_hdf5_utilities::output_background_mesh_to_hdf5_file(Model_T3D_CHM_up_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
 	friend int Model_T3D_CHM_up_mt_hdf5_utilities::load_background_mesh_from_hdf5_file(Model_T3D_CHM_up_mt& md, ResultFile_hdf5& rf, hid_t grp_id);
@@ -546,6 +562,26 @@ public: // rigid object
 	friend class Step_T3D_CHM_up_TBB_Task::CalNodeDe;
 	friend class Step_T3D_CHM_up_TBB_Task::MapBgMeshToPcl;
 	friend class Step_T3D_CHM_up_TBB_Task::ContactRigidBody;
+
+	friend class Step_T3D_CHM_up_TBB2_Task::InitPcl;
+	friend class Step_T3D_CHM_up_TBB2_Task::MapPclToBgMesh;
+	friend class Step_T3D_CHM_up_TBB2_Task::FindSoilSurface;
+
+	class InitPcl;
+	class MapPclToBgMesh;
+	class FindSoilSurface;
+	class CalNodalVelocityAndPressure;
+	class FormNodalForce;
+	class UpdateNodalVelocityAndPressure;
+	class MapBgMeshToPcl;
+	class ContactRigidBody;
+
+
+	friend class Step_T3D_CHM_up_TBB2_Task::CalNodalVelocityAndPressure;
+	friend class Step_T3D_CHM_up_TBB2_Task::FormNodalForce;
+	friend class Step_T3D_CHM_up_TBB2_Task::UpdateNodalVelocityAndPressure;
+	friend class Step_T3D_CHM_up_TBB2_Task::MapBgMeshToPcl;
+	friend class Step_T3D_CHM_up_TBB2_Task::ContactRigidBody;
 };
 
 #endif

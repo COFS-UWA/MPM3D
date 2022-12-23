@@ -4,11 +4,11 @@
 #include <assert.h>
 
 #include "ParaUtil.h"
-#include "Step_T3D_CHM_up_TBB.h"
+#include "Step_T3D_CHM_up_TBB2.h"
 
 #define Block_Low(blk_id, blk_num, data_num) ((blk_id) * (data_num) / (blk_num))
 
-namespace Step_T3D_CHM_up_TBB_Task
+namespace Step_T3D_CHM_up_TBB2_Task
 {
 	constexpr double one_third = 1.0 / 3.0;
 	constexpr double one_fourth = 0.25;
@@ -72,7 +72,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		m_cav = md.m_cav;
 		f_cav_end = md.f_cav_end;
 		u_cav_off = pow(1.0 / f_cav_end - 1.0, 1.0 / m_cav) - 1.0;
-		u_div_u_cav_lim = pow(Step_T3D_CHM_up_TBB_Task::max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
+		u_div_u_cav_lim = pow(Step_T3D_CHM_up_TBB2_Task::max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
 
 		// pcl range
 		pcl_in_elems = stp.pcl_in_elems;
@@ -85,19 +85,18 @@ namespace Step_T3D_CHM_up_TBB_Task
 		pcl_bf_s = md.pcl_bf_s;
 		pcl_bf_f = md.pcl_bf_f;
 		pcl_t = md.pcl_t;
-		
+		pcl_is_cavitated = md.pcl_is_cavitated;
+
 		// bg mesh data
 		elem_dN_abc = md.elem_dN_abc;
 		elem_vol = md.elem_vol;
-		elem_has_pcls = md.elem_has_pcls;
-		elem_pcl_m = md.elem_pcl_m;
-		elem_pcl_pm = md.elem_pcl_pm;
 		elem_pcl_n = md.elem_pcl_n;
-		elem_p = md.elem_p;
-		elem_density_f = md.elem_density_f;
 		elem_pcl_vol = md.elem_pcl_vol;
 		elem_node_vm_s = md.elem_node_vm_s;
 		elem_node_p = md.elem_node_p;
+		elem_pcl_m = md.elem_pcl_m;
+		elem_pcl_pm = md.elem_pcl_pm;
+		elem_has_pcls = md.elem_has_pcls;
 		elem_node_force = md.elem_node_force;
 		elem_node_p_force = md.elem_node_p_force;
 		elem_node_at_surface = md.elem_node_at_surface;
@@ -110,12 +109,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 		const auto& spva1 = stp.spvas[stp.prev_spva_id()];
 		// pcl_vars0
 		pcl_index0 = spva0.pcl_index;
-		pcl_n0 = spva0.pcl_n;
 		pcl_density_f0 = spva0.pcl_density_f;
 		pcl_v_s0 = spva0.pcl_v_s;
 		pcl_u0 = spva0.pcl_u;
 		pcl_stress0 = spva0.pcl_stress;
-		//pcl_p0 = spva0.pcl_p;
+		pcl_p0 = spva0.pcl_p;
 		pcl_N0 = spva0.pcl_N;
 		// pcl_vars1
 		pcl_index1 = spva1.pcl_index;
@@ -127,8 +125,8 @@ namespace Step_T3D_CHM_up_TBB_Task
 		pcl_p1 = spva1.pcl_p;
 		pcl_N1 = spva1.pcl_N;
 
-		substep_index = stp.substep_index;
 		dtime = stp.dtime;
+		substep_index = stp.substep_index;
 		pcl_num = stp.valid_pcl_num;
 		task_num = tsk_num;
 	}
@@ -147,11 +145,12 @@ namespace Step_T3D_CHM_up_TBB_Task
 		++p_id1;
 		assert(p_id1 <= pcl_num);
 
-		double e_p_m_s = 0.0;
-		double e_p_m_f = 0.0;
+		double p_N_m;
 		double e_p_vol_s = 0.0;
 		double e_p_vol_f = 0.0;
 		double e_p_vol = 0.0;
+		double e_p_m_s = 0.0;
+		double e_p_m_f = 0.0;
 		double e_p_pm = 0.0;
 		double e_s11 = 0.0;
 		double e_s22 = 0.0;
@@ -159,7 +158,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 		double e_s12 = 0.0;
 		double e_s23 = 0.0;
 		double e_s31 = 0.0;
-		double e_p = 0.0;
 		double en1_vm_s = 0.0;
 		double en1_vmx_s = 0.0;
 		double en1_vmy_s = 0.0;
@@ -200,17 +198,17 @@ namespace Step_T3D_CHM_up_TBB_Task
 #ifdef _DEBUG
 		assert(e_id < stp.elem_num);
 #endif
-		double p_N_m;
 		for (size_t p_id = p_id0; p_id < p_id1; ++p_id)
 		{
-			// pcl index
 			const size_t prev_p_id = prev_pcl_ids[p_id];
 			assert(prev_p_id < stp.prev_valid_pcl_num);
+
+			// pcl index
 			const size_t ori_p_id = pcl_index1[prev_p_id];
+			pcl_index0[p_id] = ori_p_id;
 #ifdef _DEBUG
 			assert(ori_p_id < stp.ori_pcl_num);
 #endif
-			pcl_index0[p_id] = ori_p_id;
 
 			// m_s
 			const double p_m_s = pcl_m_s[ori_p_id];
@@ -227,6 +225,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 			e_p_vol_f += p_vol_f;
 			// m_f
 			const double p_den_f = pcl_density_f1[prev_p_id];
+			pcl_density_f0[p_id] = p_den_f;
 			const double p_m_f = p_den_f * p_vol_f;
 			e_p_m_f += p_m_f;
 			// m_total
@@ -247,13 +246,23 @@ namespace Step_T3D_CHM_up_TBB_Task
 			e_s12 += p_s0.s12 * p_vol;
 			e_s23 += p_s0.s23 * p_vol;
 			e_s31 += p_s0.s31 * p_vol;
-			const double p_p = pcl_p1[prev_p_id];
-			e_p += p_p * p_vol;
-			//pcl_p0[p_id] = p_p;
-			
-			// e_p_pm
-			e_p_pm += p_n / Kf0 * p_vol;
 
+			// e_p_pm
+			const double p_p = pcl_p1[prev_p_id];
+			pcl_p0[p_id] = p_p;
+			// cavitation
+			double Kf_ratio = 1.0;
+			if (m_cav != 0.0) // consider cavitation
+			{
+				if (p_p < 0.0)
+				{
+					const double tmp = p_p / elem_u_cav[e_id] + u_cav_off;
+					Kf_ratio = tmp < u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, m_cav))) : (1.0 / max_Kf_ratio_divider);
+				}
+			}
+			pcl_is_cavitated[p_id] = Kf_ratio;
+			e_p_pm += p_n / (Kf_ratio * Kf0) * p_vol;
+			
 			// shape function to nodes
 			const ShapeFunc& p_N1 = pcl_N1[prev_p_id];
 			ShapeFunc& p_N0 = pcl_N0[p_id];
@@ -326,15 +335,17 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 			if (e_id != pcl_in_elems[p_id + 1])
 			{
+				elem_pcl_n[e_id] = 1.0 - e_p_vol_s / e_p_vol;
+				
 				elem_has_pcls[e_id] = substep_index;
+
 				elem_node_at_surface[e_id * 4] = 0;
 				elem_node_at_surface[e_id * 4 + 1] = 0;
 				elem_node_at_surface[e_id * 4 + 2] = 0;
 				elem_node_at_surface[e_id * 4 + 3] = 0;
 				
 				elem_pcl_m[e_id] = e_p_m_s + e_p_m_f;
-				elem_pcl_n[e_id] = 1.0 - e_p_vol_s / e_p_vol;
-				elem_density_f[e_id] = e_p_m_f / e_p_vol_f;
+				elem_pcl_pm[e_id] = e_p_pm;
 
 				// map velocity
 				ElemNodeVM& en1_v = elem_node_vm_s[e_id * 4];
@@ -358,7 +369,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 				en4_v.vmy = en4_vmy_s;
 				en4_v.vmz = en4_vmz_s;
 				// map pore pressure
-				elem_node_p[e_id * 4] = en1_p;
+				elem_node_p[e_id * 4]     = en1_p;
 				elem_node_p[e_id * 4 + 1] = en2_p;
 				elem_node_p[e_id * 4 + 2] = en3_p;
 				elem_node_p[e_id * 4 + 3] = en4_p;
@@ -369,56 +380,43 @@ namespace Step_T3D_CHM_up_TBB_Task
 				e_s12 /= e_p_vol;
 				e_s23 /= e_p_vol;
 				e_s31 /= e_p_vol;
-				e_p /= e_p_vol;
-				elem_p[e_id] = e_p;
 				if (e_p_vol > elem_vol[e_id])
 					e_p_vol = elem_vol[e_id];
 				elem_pcl_vol[e_id] = e_p_vol;
+				
 				const DShapeFuncABC& e_dN = elem_dN_abc[e_id];
 				// node 1
 				Force& en1_f = elem_node_force[e_id * 4];
-				en1_fx_s -= (e_dN.dN1_dx * (e_s11 - e_p) + e_dN.dN1_dy * e_s12 + e_dN.dN1_dz * e_s31) * e_p_vol;
+				en1_fx_s -= (e_dN.dN1_dx * e_s11 + e_dN.dN1_dy * e_s12 + e_dN.dN1_dz * e_s31) * e_p_vol;
 				en1_f.fx = en1_fx_s;
-				en1_fy_s -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * (e_s22 - e_p) + e_dN.dN1_dz * e_s23) * e_p_vol;
+				en1_fy_s -= (e_dN.dN1_dx * e_s12 + e_dN.dN1_dy * e_s22 + e_dN.dN1_dz * e_s23) * e_p_vol;
 				en1_f.fy = en1_fy_s;
-				en1_fz_s -= (e_dN.dN1_dx * e_s31 + e_dN.dN1_dy * e_s23 + e_dN.dN1_dz * (e_s33 - e_p)) * e_p_vol;
+				en1_fz_s -= (e_dN.dN1_dx * e_s31 + e_dN.dN1_dy * e_s23 + e_dN.dN1_dz * e_s33) * e_p_vol;
 				en1_f.fz = en1_fz_s;
 				// node 2
 				Force& en2_f = elem_node_force[e_id * 4 + 1];
-				en2_fx_s -= (e_dN.dN2_dx * (e_s11 - e_p) + e_dN.dN2_dy * e_s12 + e_dN.dN2_dz * e_s31) * e_p_vol;
+				en2_fx_s -= (e_dN.dN2_dx * e_s11 + e_dN.dN2_dy * e_s12 + e_dN.dN2_dz * e_s31) * e_p_vol;
 				en2_f.fx = en2_fx_s;
-				en2_fy_s -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * (e_s22 - e_p) + e_dN.dN2_dz * e_s23) * e_p_vol;
+				en2_fy_s -= (e_dN.dN2_dx * e_s12 + e_dN.dN2_dy * e_s22 + e_dN.dN2_dz * e_s23) * e_p_vol;
 				en2_f.fy = en2_fy_s;
-				en2_fz_s -= (e_dN.dN2_dx * e_s31 + e_dN.dN2_dy * e_s23 + e_dN.dN2_dz * (e_s33 - e_p)) * e_p_vol;
+				en2_fz_s -= (e_dN.dN2_dx * e_s31 + e_dN.dN2_dy * e_s23 + e_dN.dN2_dz * e_s33) * e_p_vol;
 				en2_f.fz = en2_fz_s;
 				// node 3
 				Force& en3_f = elem_node_force[e_id * 4 + 2];
-				en3_fx_s -= (e_dN.dN3_dx * (e_s11 - e_p) + e_dN.dN3_dy * e_s12 + e_dN.dN3_dz * e_s31) * e_p_vol;
+				en3_fx_s -= (e_dN.dN3_dx * e_s11 + e_dN.dN3_dy * e_s12 + e_dN.dN3_dz * e_s31) * e_p_vol;
 				en3_f.fx = en3_fx_s;
-				en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * (e_s22 - e_p) + e_dN.dN3_dz * e_s23) * e_p_vol;
+				en3_fy_s -= (e_dN.dN3_dx * e_s12 + e_dN.dN3_dy * e_s22 + e_dN.dN3_dz * e_s23) * e_p_vol;
 				en3_f.fy = en3_fy_s;
-				en3_fz_s -= (e_dN.dN3_dx * e_s31 + e_dN.dN3_dy * e_s23 + e_dN.dN3_dz * (e_s33 - e_p)) * e_p_vol;
+				en3_fz_s -= (e_dN.dN3_dx * e_s31 + e_dN.dN3_dy * e_s23 + e_dN.dN3_dz * e_s33) * e_p_vol;
 				en3_f.fz = en3_fz_s;
 				// node 4
 				Force& en4_f = elem_node_force[e_id * 4 + 3];
-				en4_fx_s -= (e_dN.dN4_dx * (e_s11 - e_p) + e_dN.dN4_dy * e_s12 + e_dN.dN4_dz * e_s31) * e_p_vol;
+				en4_fx_s -= (e_dN.dN4_dx * e_s11 + e_dN.dN4_dy * e_s12 + e_dN.dN4_dz * e_s31) * e_p_vol;
 				en4_f.fx = en4_fx_s;
-				en4_fy_s -= (e_dN.dN4_dx * e_s12 + e_dN.dN4_dy * (e_s22 - e_p) + e_dN.dN4_dz * e_s23) * e_p_vol;
+				en4_fy_s -= (e_dN.dN4_dx * e_s12 + e_dN.dN4_dy * e_s22 + e_dN.dN4_dz * e_s23) * e_p_vol;
 				en4_f.fy = en4_fy_s;
-				en4_fz_s -= (e_dN.dN4_dx * e_s31 + e_dN.dN4_dy * e_s23 + e_dN.dN4_dz * (e_s33 - e_p)) * e_p_vol;
+				en4_fz_s -= (e_dN.dN4_dx * e_s31 + e_dN.dN4_dy * e_s23 + e_dN.dN4_dz * e_s33) * e_p_vol;
 				en4_f.fz = en4_fz_s;
-
-				// cavitation
-				double Kf_ratio = 1.0;
-				if (m_cav != 0.0) // consider cavitation
-				{
-					if (e_p < 0.0)
-					{
-						const double tmp = e_p / elem_u_cav[e_id] + u_cav_off;
-						Kf_ratio = tmp < u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, m_cav))) : (1.0 / max_Kf_ratio_divider);
-					}
-				}
-				elem_pcl_pm[e_id] = e_p_pm / Kf_ratio;
 
 				elem_node_p_force[e_id * 4    ] = pf_bf_tmp * (e_dN.dN1_dx * e_pf_bfx + e_dN.dN1_dy * e_pf_bfy + e_dN.dN1_dz * e_pf_bfz);
 				elem_node_p_force[e_id * 4 + 1] = pf_bf_tmp * (e_dN.dN2_dx * e_pf_bfx + e_dN.dN2_dy * e_pf_bfy + e_dN.dN2_dz * e_pf_bfz);
@@ -430,11 +428,11 @@ namespace Step_T3D_CHM_up_TBB_Task
 				assert(e_id < stp.elem_num || e_id == SIZE_MAX);
 #endif
 
-				e_p_m_s = 0.0;
-				e_p_m_f = 0.0;
 				e_p_vol_s = 0.0;
 				e_p_vol_f = 0.0;
 				e_p_vol = 0.0;
+				e_p_m_s = 0.0;
+				e_p_m_f = 0.0;
 				e_p_pm = 0.0;
 				e_s11 = 0.0;
 				e_s22 = 0.0;
@@ -442,7 +440,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 				e_s12 = 0.0;
 				e_s23 = 0.0;
 				e_s31 = 0.0;
-				e_p = 0.0;
 				en1_vm_s = 0.0;
 				en1_vmx_s = 0.0;
 				en1_vmy_s = 0.0;
@@ -547,40 +544,35 @@ namespace Step_T3D_CHM_up_TBB_Task
 			elem_node_at_surface[4 * e_id + 2] |= en3_at_surface;
 			elem_node_at_surface[4 * e_id + 3] |= en4_at_surface;
 		}
-
 	}
 
-	void UpdateAccelerationAndVelocity::init() noexcept
+	void CalNodalVelocityAndPressure::init() noexcept
 	{
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
 
-		elem_pcl_m = md.elem_pcl_m;
-		elem_node_force = md.elem_node_force;
 		elem_node_vm_s = md.elem_node_vm_s;
 		elem_node_p = md.elem_node_p;
 		elem_node_at_surface = md.elem_node_at_surface;
 
 		node_has_vbc = md.node_has_vbc;
 		node_vbc_vec_s = md.node_vbc_vec_s;
-		node_am = md.node_am;
-		node_a_s = md.node_a_s;
+		node_at_surface = md.node_at_surface;
 		node_v_s = md.node_v_s;
 		node_p = md.node_p;
-		node_at_surface = md.node_at_surface;
 
 		// node ranges
 		node_ids = stp.node_ids;
 		node_elem_offs = stp.node_elem_offs;
 	}
 
-	void UpdateAccelerationAndVelocity::update(size_t tsk_num) noexcept
+	void CalNodalVelocityAndPressure::update(size_t tsk_num) noexcept
 	{
 		dtime = stp.dtime;
 		four_elem_num = stp.valid_elem_num * 4;
 		task_num = tsk_num;
 	}
 
-	void UpdateAccelerationAndVelocity::work(size_t tsk_id) const
+	void CalNodalVelocityAndPressure::work(size_t tsk_id) const
 	{
 		size_t n_id;
 		size_t ve_id0 = Block_Low(tsk_id, task_num, four_elem_num);
@@ -594,12 +586,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		++ve_id1;
 		assert(ve_id1 <= four_elem_num);
 
-		size_t bc_mask, ne_id;
-		double vbc_len;
-		double n_am = 0.0;
-		double n_fx = 0.0;
-		double n_fy = 0.0;
-		double n_fz = 0.0;
+		size_t bc_mask;
 		double n_vm = 0.0;
 		double n_vmx = 0.0;
 		double n_vmy = 0.0;
@@ -612,15 +599,10 @@ namespace Step_T3D_CHM_up_TBB_Task
 #endif
 		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 		{
-			ne_id = node_elem_offs[ve_id];
+			const size_t ne_id = node_elem_offs[ve_id];
 #ifdef _DEBUG
 			assert(ne_id < stp.elem_num * 4);
 #endif
-			n_am += elem_pcl_m[ne_id / 4];
-			const Force& nf = elem_node_force[ne_id];
-			n_fx += nf.fx;
-			n_fy += nf.fy;
-			n_fz += nf.fz;
 			const ElemNodeVM& nvm = elem_node_vm_s[ne_id];
 			n_vm += nvm.vm;
 			n_vmx += nvm.vmx;
@@ -632,54 +614,36 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 			if (n_id != node_ids[ve_id + 1])
 			{
-				node_at_surface[n_id] = n_at_surface;
-
-				Acceleration& n_a = node_a_s[n_id];
-				n_am *= one_fourth;
-				node_am[n_id] = n_am;
-				n_a.ax = n_fx / n_am;
-				n_a.ay = n_fy / n_am;
-				n_a.az = n_fz / n_am;
 				Velocity& n_v = node_v_s[n_id];
-				n_v.vx = n_vmx / n_vm + n_a.ax * dtime;
-				n_v.vy = n_vmy / n_vm + n_a.ay * dtime;
-				n_v.vz = n_vmz / n_vm + n_a.az * dtime;
+				n_v.vx = n_vmx / n_vm;
+				n_v.vy = n_vmy / n_vm;
+				n_v.vz = n_vmz / n_vm;
 				const NodeVBCVec& n_vbc_vec = node_vbc_vec_s[n_id];
-				vbc_len = n_a.ax * n_vbc_vec.x + n_a.ay * n_vbc_vec.y + n_a.az * n_vbc_vec.z;
-				n_a.ax -= vbc_len * n_vbc_vec.x;
-				n_a.ay -= vbc_len * n_vbc_vec.y;
-				n_a.az -= vbc_len * n_vbc_vec.z;
-				vbc_len = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+				const double vbc_len = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
 				n_v.vx -= vbc_len * n_vbc_vec.x;
 				n_v.vy -= vbc_len * n_vbc_vec.y;
 				n_v.vz -= vbc_len * n_vbc_vec.z;
 				const NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 				bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
-				n_a.iax &= bc_mask;
 				n_v.ivx &= bc_mask;
 				bc_mask = size_t(n_has_vbc.has_vy_bc) + SIZE_MAX;
-				n_a.iay &= bc_mask;
 				n_v.ivy &= bc_mask;
 				bc_mask = size_t(n_has_vbc.has_vz_bc) + SIZE_MAX;
-				n_a.iaz &= bc_mask;
 				n_v.ivz &= bc_mask;
 
 				double& n_p = node_p[n_id];
 				n_p = n_pm / n_vm;
 				bc_mask = size_t(n_has_vbc.is_drained) + SIZE_MAX;
 				*(reinterpret_cast<size_t *>(&n_p)) &= bc_mask;
-				if (n_at_surface == 1) // at surface but in contact
+				if (n_at_surface == 1) // at surface and not in contact
 					n_p = 0.0;
+
+				node_at_surface[n_id] = n_at_surface;
 
 				n_id = node_ids[ve_id + 1];
 #ifdef _DEBUG
 				assert(n_id < stp.node_num || n_id == SIZE_MAX);
 #endif
-
-				n_am = 0.0;
-				n_fx = 0.0;
-				n_fy = 0.0;
-				n_fz = 0.0;
 				n_vm = 0.0;
 				n_vmx = 0.0;
 				n_vmy = 0.0;
@@ -690,7 +654,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		}
 	}
 
-	void CalElemDeAndMapToNode::init() noexcept
+	void FormNodalForce::init() noexcept
 	{
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
 
@@ -702,9 +666,7 @@ namespace Step_T3D_CHM_up_TBB_Task
 		elem_pcl_m = md.elem_pcl_m;
 		elem_pcl_vol = md.elem_pcl_vol;
 		elem_density_f = md.elem_density_f;
-		elem_de = md.elem_de;
-		elem_m_de_vol_s = md.elem_m_de_vol_s;
-
+		elem_node_force = md.elem_node_force;
 		elem_node_p_force = md.elem_node_p_force;
 		elem_node_at_surface = md.elem_node_at_surface;
 
@@ -712,18 +674,17 @@ namespace Step_T3D_CHM_up_TBB_Task
 		node_v_s = md.node_v_s;
 		node_p = md.node_p;
 
-		//
 		elem_ids = stp.elem_ids;
 	}
 
-	void CalElemDeAndMapToNode::update(size_t tsk_num) noexcept
+	void FormNodalForce::update(size_t tsk_num) noexcept
 	{
 		dtime = stp.dtime;
 		elem_num = stp.valid_elem_num;
 		task_num = tsk_num;
 	}
 
-	void CalElemDeAndMapToNode::work(size_t tsk_id) const
+	void FormNodalForce::work(size_t tsk_id) const
 	{
 		const size_t ve_id0 = Block_Low(tsk_id, task_num, elem_num);
 		const size_t ve_id1 = Block_Low(tsk_id + 1, task_num, elem_num);
@@ -734,98 +695,107 @@ namespace Step_T3D_CHM_up_TBB_Task
 #ifdef _DEBUG
 			assert(e_id < stp.elem_num);
 #endif
+
 			const ElemNodeIndex& eni = elem_node_id[e_id];
+			const double n1_p = node_p[eni.n1];
+			const double n2_p = node_p[eni.n2];
+			const double n3_p = node_p[eni.n3];
+			const double n4_p = node_p[eni.n4];
+			const double e_p_vol = elem_pcl_vol[e_id];
+			const double e_p_p_vol = one_fourth * (n1_p + n2_p + n3_p + n4_p) * e_p_vol;
+			const DShapeFuncABC& e_dN = elem_dN_abc[e_id];
+			// node 1
+			Force& en1_f = elem_node_force[e_id * 4];
+			en1_f.fx -= e_dN.dN1_dx * -e_p_p_vol;
+			en1_f.fy -= e_dN.dN1_dy * -e_p_p_vol;
+			en1_f.fz -= e_dN.dN1_dz * -e_p_p_vol;
+			// node 2
+			Force& en2_f = elem_node_force[e_id * 4 + 1];
+			en2_f.fx -= e_dN.dN2_dx * -e_p_p_vol;
+			en2_f.fy -= e_dN.dN2_dy * -e_p_p_vol;
+			en2_f.fz -= e_dN.dN2_dz * -e_p_p_vol;
+			// node 3
+			Force& en3_f = elem_node_force[e_id * 4 + 2];
+			en3_f.fx -= e_dN.dN3_dx * -e_p_p_vol;
+			en3_f.fy -= e_dN.dN3_dy * -e_p_p_vol;
+			en3_f.fz -= e_dN.dN3_dz * -e_p_p_vol;
+			// node 4
+			Force& en4_f = elem_node_force[e_id * 4 + 3];
+			en4_f.fx -= e_dN.dN4_dx * -e_p_p_vol;
+			en4_f.fy -= e_dN.dN4_dy * -e_p_p_vol;
+			en4_f.fz -= e_dN.dN4_dz * -e_p_p_vol;
+
 			const Velocity& n_v1 = node_v_s[eni.n1];
 			const Velocity& n_v2 = node_v_s[eni.n2];
 			const Velocity& n_v3 = node_v_s[eni.n3];
 			const Velocity& n_v4 = node_v_s[eni.n4];
-			const DShapeFuncABC& e_dN = elem_dN_abc[e_id];
-			StrainInc& e_de = elem_de[e_id];
-			e_de.de11 = (e_dN.dN1_dx * n_v1.vx + e_dN.dN2_dx * n_v2.vx + e_dN.dN3_dx * n_v3.vx + e_dN.dN4_dx * n_v4.vx) * dtime;
-			e_de.de22 = (e_dN.dN1_dy * n_v1.vy + e_dN.dN2_dy * n_v2.vy + e_dN.dN3_dy * n_v3.vy + e_dN.dN4_dy * n_v4.vy) * dtime;
-			e_de.de33 = (e_dN.dN1_dz * n_v1.vz + e_dN.dN2_dz * n_v2.vz + e_dN.dN3_dz * n_v3.vz + e_dN.dN4_dz * n_v4.vz) * dtime;
-			e_de.de12 = (e_dN.dN1_dx * n_v1.vy + e_dN.dN2_dx * n_v2.vy + e_dN.dN3_dx * n_v3.vy + e_dN.dN4_dx * n_v4.vy
-					   + e_dN.dN1_dy * n_v1.vx + e_dN.dN2_dy * n_v2.vx + e_dN.dN3_dy * n_v3.vx + e_dN.dN4_dy * n_v4.vx) * dtime * 0.5;
-			e_de.de23 = (e_dN.dN1_dy * n_v1.vz + e_dN.dN2_dy * n_v2.vz + e_dN.dN3_dy * n_v3.vz + e_dN.dN4_dy * n_v4.vz
-					   + e_dN.dN1_dz * n_v1.vy + e_dN.dN2_dz * n_v2.vy + e_dN.dN3_dz * n_v3.vy + e_dN.dN4_dz * n_v4.vy) * dtime * 0.5;
-			e_de.de31 = (e_dN.dN1_dz * n_v1.vx + e_dN.dN2_dz * n_v2.vx + e_dN.dN3_dz * n_v3.vx + e_dN.dN4_dz * n_v4.vx
-					   + e_dN.dN1_dx * n_v1.vz + e_dN.dN2_dx * n_v2.vz + e_dN.dN3_dx * n_v3.vz + e_dN.dN4_dx * n_v4.vz) * dtime * 0.5;
-			const double e_de_vol = e_de.de11 + e_de.de22 + e_de.de33;
-
-			const double e_pcl_vol = elem_pcl_vol[e_id];
-			double n1_pf = -one_fourth * e_de_vol * e_pcl_vol;
+			const double de11 = (e_dN.dN1_dx * n_v1.vx + e_dN.dN2_dx * n_v2.vx + e_dN.dN3_dx * n_v3.vx + e_dN.dN4_dx * n_v4.vx) * dtime;
+			const double de22 = (e_dN.dN1_dy * n_v1.vy + e_dN.dN2_dy * n_v2.vy + e_dN.dN3_dy * n_v3.vy + e_dN.dN4_dy * n_v4.vy) * dtime;
+			const double de33 = (e_dN.dN1_dz * n_v1.vz + e_dN.dN2_dz * n_v2.vz + e_dN.dN3_dz * n_v3.vz + e_dN.dN4_dz * n_v4.vz) * dtime;
+			double n1_pf = -one_fourth * (de11 + de22 + de33) * e_p_vol;
 			double n2_pf = n1_pf;
 			double n3_pf = n1_pf;
 			double n4_pf = n1_pf;
 
 			// p_force
-			const double n1_p = node_p[eni.n1];
-			const double n2_p = node_p[eni.n2];
-			const double n3_p = node_p[eni.n3];
-			const double n4_p = node_p[eni.n4];
 			const double dp_dx = e_dN.dN1_dx * n1_p + e_dN.dN2_dx * n2_p + e_dN.dN3_dx * n3_p + e_dN.dN4_dx * n4_p;
 			const double dp_dy = e_dN.dN1_dy * n1_p + e_dN.dN2_dy * n2_p + e_dN.dN3_dy * n3_p + e_dN.dN4_dy * n4_p;
 			const double dp_dz = e_dN.dN1_dz * n1_p + e_dN.dN2_dz * n2_p + e_dN.dN3_dz * n3_p + e_dN.dN4_dz * n4_p;
-			const double pf_tmp = pf_coef * e_pcl_vol;
+			const double pf_tmp = pf_coef * e_p_vol;
 			n1_pf -= pf_tmp * (e_dN.dN1_dx * dp_dx + e_dN.dN1_dy * dp_dy + e_dN.dN1_dz * dp_dz);
 			n2_pf -= pf_tmp * (e_dN.dN2_dx * dp_dx + e_dN.dN2_dy * dp_dy + e_dN.dN2_dz * dp_dz);
 			n3_pf -= pf_tmp * (e_dN.dN3_dx * dp_dx + e_dN.dN3_dy * dp_dy + e_dN.dN3_dz * dp_dz);
 			n4_pf -= pf_tmp * (e_dN.dN4_dx * dp_dx + e_dN.dN4_dy * dp_dy + e_dN.dN4_dz * dp_dz);
 
-			const Acceleration &n_a1 = node_a_s[eni.n1];
-			const Acceleration& n_a2 = node_a_s[eni.n2];
-			const Acceleration& n_a3 = node_a_s[eni.n3];
-			const Acceleration& n_a4 = node_a_s[eni.n4];
-			const double e_ax_s = (n_a1.ax + n_a2.ax + n_a3.ax + n_a4.ax) * one_fourth;
-			const double e_ay_s = (n_a1.ay + n_a2.ay + n_a3.ay + n_a4.ay) * one_fourth;
-			const double e_az_s = (n_a1.az + n_a2.az + n_a3.az + n_a4.az) * one_fourth;
-			const double pf_a_tmp = pf_tmp * elem_density_f[e_id];
 			// this causes instability
+			//const Acceleration &n_a1 = node_a_s[eni.n1];
+			//const Acceleration& n_a2 = node_a_s[eni.n2];
+			//const Acceleration& n_a3 = node_a_s[eni.n3];
+			//const Acceleration& n_a4 = node_a_s[eni.n4];
+			//const double e_ax_s = (n_a1.ax + n_a2.ax + n_a3.ax + n_a4.ax) * one_fourth;
+			//const double e_ay_s = (n_a1.ay + n_a2.ay + n_a3.ay + n_a4.ay) * one_fourth;
+			//const double e_az_s = (n_a1.az + n_a2.az + n_a3.az + n_a4.az) * one_fourth;
+			//const double pf_a_tmp = pf_tmp * elem_density_f[e_id];
 			//n1_pf -= pf_a_tmp * (e_dN.dN1_dx * e_ax_s + e_dN.dN1_dy * e_ay_s + e_dN.dN1_dz * e_az_s);
 			//n2_pf -= pf_a_tmp * (e_dN.dN2_dx * e_ax_s + e_dN.dN2_dy * e_ay_s + e_dN.dN2_dz * e_az_s);
 			//n3_pf -= pf_a_tmp * (e_dN.dN3_dx * e_ax_s + e_dN.dN3_dy * e_ay_s + e_dN.dN3_dz * e_az_s);
 			//n4_pf -= pf_a_tmp * (e_dN.dN4_dx * e_ax_s + e_dN.dN4_dy * e_ay_s + e_dN.dN4_dz * e_az_s);
 			
-			elem_node_p_force[e_id * 4] += n1_pf;
+			elem_node_p_force[e_id * 4]     += n1_pf;
 			elem_node_p_force[e_id * 4 + 1] += n2_pf;
 			elem_node_p_force[e_id * 4 + 2] += n3_pf;
 			elem_node_p_force[e_id * 4 + 3] += n4_pf;
-
-			// strain enhancement
-			//elem_m_de_vol[e_id] = elem_pcl_m[e_id] * e_de_vol;
-			//e_de_vol *= one_third;
-			//e_de.de11 -= e_de_vol;
-			//e_de.de22 -= e_de_vol;
-			//e_de.de33 -= e_de_vol;
 		}
 	}
 	
-	void CalNodeDe::init() noexcept
+	void UpdateNodalVelocityAndPressure::init() noexcept
 	{
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
 
+		elem_pcl_m = md.elem_pcl_m;
+		elem_node_force = md.elem_node_force;
 		elem_pcl_pm = md.elem_pcl_pm;
 		elem_node_p_force = md.elem_node_p_force;
 		node_has_vbc = md.node_has_vbc;
-		node_dp = md.node_dp;
+		node_vbc_vec = md.node_vbc_vec_s;
 		node_at_surface = md.node_at_surface;
-
-		elem_m_de_vol_s = md.elem_m_de_vol_s;
-		node_am = md.node_am;
-		node_de_vol_s = md.node_de_vol_s;
-
+		node_a_s = md.node_a_s;
+		node_v_s = md.node_v_s;
+		node_dp = md.node_dp;
+		
 		// node ranges
 		node_ids = stp.node_ids;
 		node_elem_offs = stp.node_elem_offs;
 	}
 
-	void CalNodeDe::update(size_t tsk_num) noexcept
+	void UpdateNodalVelocityAndPressure::update(size_t tsk_num) noexcept
 	{
+		dtime = stp.dtime;
 		four_elem_num = stp.valid_elem_num * 4;
 		task_num = tsk_num;
 	}
 
-	void CalNodeDe::work(size_t tsk_id) const
+	void UpdateNodalVelocityAndPressure::work(size_t tsk_id) const
 	{
 		size_t n_id;
 		size_t ve_id0 = Block_Low(tsk_id, task_num, four_elem_num);
@@ -839,8 +809,12 @@ namespace Step_T3D_CHM_up_TBB_Task
 		++ve_id1;
 		assert(ve_id1 <= four_elem_num);
 
-		size_t ne_id;
-		//double n_am_de_vol_s = 0.0;
+		double vec_bc_len;
+		size_t bc_mask;
+		double n_am = 0.0;
+		double n_fx = 0.0;
+		double n_fy = 0.0;
+		double n_fz = 0.0;
 		double n_pm = 0.0;
 		double n_pf = 0.0;
 		n_id = node_ids[ve_id0];
@@ -849,33 +823,70 @@ namespace Step_T3D_CHM_up_TBB_Task
 #endif
 		for (size_t ve_id = ve_id0; ve_id < ve_id1; ++ve_id)
 		{
-			ne_id = node_elem_offs[ve_id];
+			const size_t ne_id = node_elem_offs[ve_id];
 #ifdef _DEBUG
 			assert(ne_id < stp.elem_num * 4);
 #endif
-			n_pm += elem_pcl_pm[ne_id / 4];
+			const size_t e_id = ne_id / 4;
+
+			n_am += elem_pcl_m[e_id];
+			const Force& nf = elem_node_force[ne_id];
+			n_fx += nf.fx;
+			n_fy += nf.fy;
+			n_fz += nf.fz;
+
+			n_pm += elem_pcl_pm[e_id];
 			n_pf += elem_node_p_force[ne_id];
-			// strain enhancement
-			//n_am_de_vol_s += elem_m_de_vol_s[e_id];
+
 			if (n_id != node_ids[ve_id + 1])
 			{
+				Acceleration& n_a = node_a_s[n_id];
+				n_am *= one_fourth;
+				n_a.ax = n_fx / n_am;
+				n_a.ay = n_fy / n_am;
+				n_a.az = n_fz / n_am;
+				Velocity& n_v = node_v_s[n_id];
+				n_v.vx += n_a.ax * dtime;
+				n_v.vy += n_a.ay * dtime;
+				n_v.vz += n_a.az * dtime;
+				const NodeVBCVec& n_vbc_vec = node_vbc_vec[n_id];
+				vec_bc_len = n_a.ax * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+				n_a.ax -= vec_bc_len * n_vbc_vec.x;
+				n_a.ay -= vec_bc_len * n_vbc_vec.y;
+				n_a.az -= vec_bc_len * n_vbc_vec.z;
+				vec_bc_len = n_v.vx * n_vbc_vec.x + n_v.vy * n_vbc_vec.y + n_v.vz * n_vbc_vec.z;
+				n_v.vx -= vec_bc_len * n_vbc_vec.x;
+				n_v.vy -= vec_bc_len * n_vbc_vec.y;
+				n_v.vz -= vec_bc_len * n_vbc_vec.z;
+				const NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
+				bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
+				n_a.iax &= bc_mask;
+				n_v.ivx &= bc_mask;
+				bc_mask = size_t(n_has_vbc.has_vy_bc) + SIZE_MAX;
+				n_a.iay &= bc_mask;
+				n_v.ivy &= bc_mask;
+				bc_mask = size_t(n_has_vbc.has_vz_bc) + SIZE_MAX;
+				n_a.iaz &= bc_mask;
+				n_v.ivz &= bc_mask;
+				
 				n_pm *= one_fourth;
-				node_dp[n_id] = n_pf / n_pm;
+				double dp = n_pf / n_pm;
 				// the node is at surface without contact
 				if (node_has_vbc[n_id].is_drained || node_at_surface[n_id] == 1)
-					node_dp[n_id] = 0.0;
-
-				// strain enhancement
-				//node_de_vol[n_id] = n_am_de_vol * one_fourth / node_am[n_id];
+					dp = 0.0;
+				node_dp[n_id] = dp;
 
 				n_id = node_ids[ve_id + 1];
 #ifdef _DEBUG
 				assert(n_id < stp.node_num || n_id == SIZE_MAX);
 #endif
-				// strain enhancement
+
+				n_am = 0.0;
+				n_fx = 0.0;
+				n_fy = 0.0;
+				n_fz = 0.0;
 				n_pm = 0.0;
 				n_pf = 0.0;
-				//n_am_de_vol_s = 0.0;
 			}
 		}
 	}
@@ -885,26 +896,18 @@ namespace Step_T3D_CHM_up_TBB_Task
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
 
 		Kf0 = md.Kf;
-		m_cav = md.m_cav;
-		f_cav_end = md.f_cav_end;
-		u_cav_off = pow(1.0 / f_cav_end - 1.0, 1.0 / m_cav) - 1.0;
-		u_div_u_cav_lim = pow(Step_T3D_CHM_up_TBB_Task::max_Kf_ratio_divider - 1.0, 1.0 / m_cav);
-		
+
 		pcl_pos = md.pcl_pos;
 		pcl_mat_model = md.pcl_mat_model;
 		pcl_is_cavitated = md.pcl_is_cavitated;
 		//
 		elem_node_id = md.elem_node_id;
+		elem_dN_abc = md.elem_dN_abc;
+		elem_pcl_n = md.elem_pcl_n;
 		node_a_s = md.node_a_s;
 		node_v_s = md.node_v_s;
-		node_p = md.node_p;
 		node_dp = md.node_dp;
-		elem_p = md.elem_p;
-		elem_pcl_n = md.elem_pcl_n;
-		elem_density_f = md.elem_density_f;
-		elem_de = md.elem_de;
-		elem_u_cav = md.elem_u_cav;
-		node_de_vol_s = md.node_de_vol_s;
+		node_p = md.node_p;
 		//
 		auto& pcl_sort = stp.pcl_sort;
 		pcl_in_elems = pcl_sort.out_pcl_in_elems();
@@ -953,8 +956,10 @@ namespace Step_T3D_CHM_up_TBB_Task
 
 		const Acceleration *pn_a1, *pn_a2, *pn_a3, *pn_a4;
 		const Velocity *pn_v1, *pn_v2, *pn_v3, *pn_v4;
+		const double* pn_dp1, * pn_dp2, * pn_dp3, * pn_dp4;
+		const double *pn_p1, *pn_p2, *pn_p3, *pn_p4;
 		StrainInc dstrain;
-		double e_p, e_n, e_density_f, Kf_ratio;
+		double e_n;
 		size_t valid_pcl_num = 0;
 		e_id = SIZE_MAX;
 		Model_T3D_CHM_up_mt& md = *stp.pmodel;
@@ -975,47 +980,28 @@ namespace Step_T3D_CHM_up_TBB_Task
 				pn_v2 = node_v_s + eni.n2;
 				pn_v3 = node_v_s + eni.n3;
 				pn_v4 = node_v_s + eni.n4;
+				pn_dp1 = node_dp + eni.n1;
+				pn_dp2 = node_dp + eni.n2;
+				pn_dp3 = node_dp + eni.n3;
+				pn_dp4 = node_dp + eni.n4;
+				pn_p1 = node_p + eni.n1;
+				pn_p2 = node_p + eni.n2;
+				pn_p3 = node_p + eni.n3;
+				pn_p4 = node_p + eni.n4;
 
-				//double e_de_vol = (node_de_vol_s[eni.n1]
-				//	+ node_de_vol_s[eni.n2] + node_de_vol_s[eni.n3]
-				//	+ node_de_vol_s[eni.n4]) * one_fourth;
-				//e_density = elem_density[e_id] / (1.0 + e_de_vol);
-				
-				//pe_de = elem_de + e_id;
-				//e_de_vol *= one_third;
-				//dstrain.de11 = pe_de->de11 + e_de_vol;
-				//dstrain.de22 = pe_de->de22 + e_de_vol;
-				//dstrain.de33 = pe_de->de33 + e_de_vol;
-				//dstrain.de12 = pe_de->de12;
-				//dstrain.de23 = pe_de->de23;
-				//dstrain.de31 = pe_de->de31;
+				const DShapeFuncABC& e_dN = elem_dN_abc[e_id];
+				dstrain.de11 = (e_dN.dN1_dx * pn_v1->vx + e_dN.dN2_dx * pn_v2->vx + e_dN.dN3_dx * pn_v3->vx + e_dN.dN4_dx * pn_v4->vx) * dtime;
+				dstrain.de22 = (e_dN.dN1_dy * pn_v1->vy + e_dN.dN2_dy * pn_v2->vy + e_dN.dN3_dy * pn_v3->vy + e_dN.dN4_dy * pn_v4->vy) * dtime;
+				dstrain.de33 = (e_dN.dN1_dz * pn_v1->vz + e_dN.dN2_dz * pn_v2->vz + e_dN.dN3_dz * pn_v3->vz + e_dN.dN4_dz * pn_v4->vz) * dtime;
+				dstrain.de12 = (e_dN.dN1_dx * pn_v1->vy + e_dN.dN2_dx * pn_v2->vy + e_dN.dN3_dx * pn_v3->vy + e_dN.dN4_dx * pn_v4->vy
+							  + e_dN.dN1_dy * pn_v1->vx + e_dN.dN2_dy * pn_v2->vx + e_dN.dN3_dy * pn_v3->vx + e_dN.dN4_dy * pn_v4->vx) * dtime * 0.5;
+				dstrain.de23 = (e_dN.dN1_dy * pn_v1->vz + e_dN.dN2_dy * pn_v2->vz + e_dN.dN3_dy * pn_v3->vz + e_dN.dN4_dy * pn_v4->vz
+							  + e_dN.dN1_dz * pn_v1->vy + e_dN.dN2_dz * pn_v2->vy + e_dN.dN3_dz * pn_v3->vy + e_dN.dN4_dz * pn_v4->vy) * dtime * 0.5;
+				dstrain.de31 = (e_dN.dN1_dz * pn_v1->vx + e_dN.dN2_dz * pn_v2->vx + e_dN.dN3_dz * pn_v3->vx + e_dN.dN4_dz * pn_v4->vx
+							  + e_dN.dN1_dx * pn_v1->vz + e_dN.dN2_dx * pn_v2->vz + e_dN.dN3_dx * pn_v3->vz + e_dN.dN4_dx * pn_v4->vz) * dtime * 0.5;
 
-				StrainInc &e_de = elem_de[e_id];
-				dstrain.de11 = e_de.de11;
-				dstrain.de22 = e_de.de22;
-				dstrain.de33 = e_de.de33;
-				dstrain.de12 = e_de.de12;
-				dstrain.de23 = e_de.de23;
-				dstrain.de31 = e_de.de31;
-
-				const double de_vol_s = e_de.de11 + e_de.de22 + e_de.de33;
+				const double de_vol_s = dstrain.de11 + dstrain.de22 + dstrain.de33;
 				e_n = (elem_pcl_n[e_id] + de_vol_s) / (1.0 + de_vol_s);
-
-				const double e_dp = (node_dp[eni.n1] + node_dp[eni.n2]
-					+ node_dp[eni.n3] + node_dp[eni.n4]) * one_fourth;
-				e_p = elem_p[e_id] + e_dp;
-				// cavitation
-				Kf_ratio = 1.0;
-				if (m_cav != 0.0) // consider cavitation
-				{
-					if (e_p < 0.0)
-					{
-						const double tmp = e_p / elem_u_cav[e_id] + u_cav_off;
-						Kf_ratio = tmp < u_div_u_cav_lim ? (1.0 / (1.0 + pow(tmp, m_cav))) : (1.0 / max_Kf_ratio_divider);
-					}
-				}
-				const double de_vol_f = -e_dp / (Kf_ratio * Kf0);
-				e_density_f = elem_density_f[e_id] / (1.0 + de_vol_f);
 			}
 
 			// update velocity
@@ -1030,6 +1016,13 @@ namespace Step_T3D_CHM_up_TBB_Task
 			p_d0.ux += (p_N.N1 * pn_v1->vx + p_N.N2 * pn_v2->vx + p_N.N3 * pn_v3->vx + p_N.N4 * pn_v4->vx) * dtime;
 			p_d0.uy += (p_N.N1 * pn_v1->vy + p_N.N2 * pn_v2->vy + p_N.N3 * pn_v3->vy + p_N.N4 * pn_v4->vy) * dtime;
 			p_d0.uz += (p_N.N1 * pn_v1->vz + p_N.N2 * pn_v2->vz + p_N.N3 * pn_v3->vz + p_N.N4 * pn_v4->vz) * dtime;
+
+			// update density
+			pcl_n0[p_id] = e_n;
+			const double p_dp = p_N.N1 * (*pn_dp1) + p_N.N2 * (*pn_dp2) + p_N.N3 * (*pn_dp3) + p_N.N4 * (*pn_dp4);
+			pcl_density_f0[p_id] /= 1.0 + (-p_dp / (Kf0 * pcl_is_cavitated[p_id]));
+			//pcl_p0[p_id] = p_N.N1 * (*pn_p1) + p_N.N2 * (*pn_p2) + p_N.N3 * (*pn_p3) + p_N.N4 * (*pn_p4) + p_dp;
+			pcl_p0[p_id] += p_dp;
 
 			// update location (in which element)
 			const size_t ori_p_id = pcl_index0[p_id];
@@ -1059,12 +1052,6 @@ namespace Step_T3D_CHM_up_TBB_Task
 #ifdef _DEBUG
 			assert(p_e_id < stp.elem_num || p_e_id == SIZE_MAX);
 #endif
-
-			// update density
-			pcl_n0[p_id] = e_n;
-			pcl_p0[p_id] = e_p;
-			pcl_density_f0[p_id] = e_density_f;
-			pcl_is_cavitated[p_id] = Kf_ratio;
 
 			// update stress
 			MatModel::MaterialModel& pcl_mm = *pcl_mat_model[ori_p_id];

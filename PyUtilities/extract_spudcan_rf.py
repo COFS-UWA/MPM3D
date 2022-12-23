@@ -2,14 +2,15 @@ import math
 import h5py as py
 import matplotlib.pyplot as plt
 
-file_name = "t3d_chm_mt_spudcan_cy_geo"
+file_name = "t3d_me_mt_spudcan_cy"
+step_name = "penetration"
 
 spudcan_diameter = 3.0
 
 # Numerical result
 hdf5_file = py.File("../Build/TestsParallel/" + file_name + ".h5", "r")
 
-th_grp = hdf5_file['TimeHistory']['geostatic']
+th_grp = hdf5_file['TimeHistory'][step_name]
 th_num = th_grp.attrs['output_num']
 
 rb_z = []
