@@ -128,11 +128,12 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
 		0.0, -1.0, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.29, -0.5);
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
-	//model.set_contact_param(K_cont, K_cont, 0.36, 5.0, K_cont/50.0, K_cont/50.0);
 	model.set_contact_param(K_cont, K_cont, 0.36, 5.0);
-	//model.set_frictional_contact_between_spcl_and_rect();
+	model.set_frictional_contact();
+
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.2, -0.05);
+	model.set_k(1.0e-8);
 
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);
@@ -185,16 +186,16 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	md.output_model(model, res_file_hdf5);
 
 	QtApp_Prep_T3D_CHM_up_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
-	md_disp.get_div_set().set_by_normal_and_point(-1.0, 0.0, 0.0, -0.5, 0.0, 0.0);
+	//md_disp.get_div_set().set_by_normal_and_point(-1.0, 0.0, 0.0, -0.5, 0.0, 0.0);
 	md_disp.set_model(model);
 	md_disp.set_win_size(1200, 950);
-	md_disp.set_view_dir(70.0f, 30.0f);
-	md_disp.set_light_dir(80.0f, 25.0f);
+	md_disp.set_view_dir(70.0f, -30.0f);
+	md_disp.set_light_dir(80.0f, -25.0f);
 	md_disp.set_display_bg_mesh(true);
 	md_disp.set_view_dist_scale(0.6);
-	md_disp.set_pts_from_vx_bc(0.04);
-	//md_disp.set_pts_from_vz_bc_s(0.04);
-	//md_disp.set_pts_from_vec_bc_s(0.04);
+	//md_disp.set_pts_from_vx_bc(0.04);
+	//md_disp.set_pts_from_vz_bc(0.04);
+	md_disp.set_pts_from_vec_bc(0.04);
 	//md_disp.set_pts_from_vx_bc_f(0.04);
 	//md_disp.set_pts_from_vz_bc_f(0.04);
 	md_disp.start();
@@ -208,14 +209,12 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 
 	// contact
 	constexpr double K_cont = 1.0e8;
-	//model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont / 50.0, K_cont / 50.0);
 	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
-	//model.set_frictional_contact_between_spcl_and_rect();
+	model.set_frictional_contact();
 
 	// modified velocity and permeability
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.29, -0.5);
-
-	model.set_k(1.0e-11);
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.2, -0.05);
+	model.set_k(1.0e-8);
 	
 	//QtApp_Prep_T3D_CHM_up_mt md_disp(argc, argv);
 	////QtApp_Prep_T3D_CHM_mt_Div<PlaneDivisionSet> md_disp(argc, argv);
@@ -254,8 +253,8 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 	Step_T3D_CHM_up_TBB step("step1");
 	step.set_model(model);
 	step.set_thread_num(30);
-	step.set_step_time(5.0e-6);
-	step.set_dtime(5.0e-6);
+	step.set_step_time(9.0);
+	step.set_dtime(2.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();
