@@ -127,12 +127,13 @@ void test_t3d_chm_mt_spudcan_cy_HV_model(int argc, char** argv)
 	}
 
 	model.init_t3d_rigid_mesh(1.0, "../../Asset/spudcan_model_flat_tip.h5",
-		0.0, -0.5, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
-	model.set_t3d_rigid_mesh_velocity(0.0, 0.29, -0.5);
+		0.0, -1.0, 0.308, 65.0, 0.0, 0.0, 0.3, 0.3, 0.3);
 	constexpr double K_cont = 1.0e6 / (sml_pcl_size * sml_pcl_size);
-	//model.set_contact_param(K_cont, K_cont, 0.2, 5.0, K_cont/50.0, K_cont/50.0);
-	model.set_contact_param(K_cont, K_cont, 0.2, 5.0);
-	//model.set_frictional_contact_between_spcl_and_rect();
+	model.set_contact_param(K_cont, K_cont, 0.36, 5.0);
+	model.set_frictional_contact();
+
+	model.set_t3d_rigid_mesh_velocity(0.0, 0.2, -0.05);
+	model.set_k(1.0e-8);
 
 	// gravity force, float unit weight
 	IndexArray bfz_pcl_array(pcl_num);
@@ -220,7 +221,6 @@ void test_t3d_chm_mt_spudcan_cy_HV_geostatic(int argc, char** argv)
 
 	// modified velocity and permeability
 	model.set_t3d_rigid_mesh_velocity(0.0, 12.0, -3.0); // 0.4, -0.1
-
 	model.set_k(1.5e-11);
 	
 	// -100.0e3 - 0m; -200.0e3 - 10m, -500.0e3 - 40m
