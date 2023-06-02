@@ -217,21 +217,22 @@ void test_t3d_me_mt_spudcan_cy_geostatic(int argc, char** argv)
 	ModelData_T3D_ME_mt md;
 	md.output_model(model, res_file_hdf5);
 
-	TimeHistory_T3D_ME_TBB_complete out1("geostatic");
-	//TimeHistory_T3D_ME_mt_Geo_complete out1("geostatic");
-	out1.set_interval_num(50);
+	//TimeHistory_T3D_ME_TBB_complete out1("geostatic");
+	TimeHistory_T3D_ME_mt_Geo_complete out1("geostatic");
+	out1.set_interval_num(30);
 	out1.set_output_init_state();
 	out1.set_output_final_state();
 	out1.set_res_file(res_file_hdf5);
 	TimeHistory_ConsoleProgressBar out_cpb;
 	out_cpb.set_interval_num(2000);
 
-	Step_T3D_ME_TBB step("step1");
-	//Step_T3D_ME_mt_Geo step("step1");
+	//Step_T3D_ME_TBB step("step1");
+	Step_T3D_ME_mt_Geo step("step1");
 	step.set_model(model);
 	step.set_thread_num(30);
-	step.set_step_time(3.0);
-	step.set_dtime(5.0e-6);
+	step.set_step_time(1.0); // 3.0
+	//step.set_dtime(5.0e-6);
+	step.set_dtime(1.0e-5);
 	step.add_time_history(out1);
 	step.add_time_history(out_cpb);
 	step.solve();

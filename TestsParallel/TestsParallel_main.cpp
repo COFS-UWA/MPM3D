@@ -204,14 +204,14 @@ int main(int argc, char *argv[])
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_restart(argc, argv);
 	//test_t3d_me_mt_spudcan_cy_Hossain_2006_result(argc, argv);
-
+	
 	//test_t3d_me_mt_cylinder_bcs(argc, argv);
 	//test_t3d_me_mt_cylinder_bcs_result(argc, argv);
-
+	
 	//test_t3d_chm_mt_cylinder_bcs(argc, argv);
 	//test_t3d_chm_mt_cylinder_bcs2(argc, argv);
 	//test_t3d_chm_mt_cylinder_bcs_result(argc, argv);
-
+	
 	// tbb parallelism
 	//test_sort_pcl_task();
 	//test_sort_pcl_task2();
@@ -243,11 +243,11 @@ int main(int argc, char *argv[])
 	
 	// element test simulation
 	//test_t3d_chm_tbb_cap_compression(argc, argv);
-	test_t3d_chm_tbb_cap_compression_result(argc, argv);
+	//test_t3d_chm_tbb_cap_compression_result(argc, argv);
 	
 	// paper2
 	// Time profiling
-	//test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
+	test_t3d_me_tbb_piezofoundation_sim_mat_model(argc, argv);
 	// mt verstion
 	//test_t3d_me_mt_piezofoundation_sim_mat(argc, argv);
 	//test_t3d_me_mt_piezofoundation_sim_mat_restart(argc, argv);

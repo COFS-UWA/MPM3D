@@ -8,6 +8,8 @@
 
 #include "Step_T3D_ME_mt_Geo.h"
 
+#define _DEBUG
+
 #ifdef _DEBUG
 static std::fstream res_file_T3D_ME_mt_Geo;
 #endif
@@ -27,6 +29,7 @@ int Step_T3D_ME_mt_Geo::init_calculation()
 {
 #ifdef _DEBUG
 	res_file_T3D_ME_mt_Geo.open("t3d_stp_mt_geo.csv", std::ios::out | std::ios::binary);
+	res_file_T3D_ME_mt_Geo << "stp_id, cur_time, f_ub, f_ub_ratio, e_kin, e_kin_max, e_kin_ratio\n";
 #endif
 
 	Model_T3D_ME_mt &md = *(Model_T3D_ME_mt *)model;
@@ -860,6 +863,10 @@ int substep_func_omp_T3D_ME_mt_Geo(
 			n_v.vx -= vbc_len * n_vbc_vec.x;
 			n_v.vy -= vbc_len * n_vbc_vec.y;
 			n_v.vz -= vbc_len * n_vbc_vec.z;
+			vbc_len = n_fx * n_vbc_vec.x + n_fy * n_vbc_vec.y + n_fz * n_vbc_vec.z;
+			n_fx -= vbc_len * n_vbc_vec.x;
+			n_fy -= vbc_len * n_vbc_vec.y;
+			n_fz -= vbc_len * n_vbc_vec.z;
 			NodeHasVBC& n_has_vbc = node_has_vbc[n_id];
 			bc_mask = size_t(n_has_vbc.has_vx_bc) + SIZE_MAX;
 			n_a.iax &= bc_mask;
@@ -874,8 +881,8 @@ int substep_func_omp_T3D_ME_mt_Geo(
 			n_v.ivz &= bc_mask;
 			in_fz &= bc_mask;
 
-			f_ub += n_fx * n_fx + n_fy * n_fy + n_fz * n_fz;
-			e_kin += n_am * (n_v.vx * n_v.vx + n_v.vy * n_v.vy + n_v.vz * n_v.vz);
+			f_ub += sqrt(n_fx * n_fx + n_fy * n_fy + n_fz * n_fz) / n_am;
+			e_kin += 0.5 * n_am * (n_v.vx * n_v.vx + n_v.vy * n_v.vy + n_v.vz * n_v.vz);
 			
 			n_id = node_has_elem0[ve_id + 1];
 			assert(n_id < self.node_num || n_id == SIZE_MAX);
@@ -902,7 +909,7 @@ int substep_func_omp_T3D_ME_mt_Geo(
 #pragma omp master
 	{	
 #ifdef _DEBUG
-		self.prev_valid_pcl_num_tmp = self.prev_valid_pcl_num;
+		//self.prev_valid_pcl_num_tmp = self.prev_valid_pcl_num;
 #endif
 		self.prev_valid_pcl_num = self.valid_pcl_num;
 		self.valid_pcl_num = 0;
@@ -923,10 +930,10 @@ int substep_func_omp_T3D_ME_mt_Geo(
 		else
 			self.e_kin_ratio = 1.0;
 
-		//if (self.substep_index % 100 == 1)
-		//	res_file_T3D_ME_mt_Geo << self.substep_index << ", "
-		//		<< self.f_ub_ratio << ", "
-		//		<< self.e_kin_ratio << "\n";
+		if (self.substep_index % 100 == 1)
+			res_file_T3D_ME_mt_Geo << self.substep_index << ", " << self.current_time << ", "
+				<< self.f_ub << ", " << self.f_ub_ratio << ", "
+				<< self.e_kin << ", " << self.e_kin_max << ", " << self.e_kin_ratio << "\n";
 
 		if (self.e_kin < self.e_kin_prev)
 		{
